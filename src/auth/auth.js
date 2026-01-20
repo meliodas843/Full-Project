@@ -1,19 +1,32 @@
 export const auth = {
-  user: null,
-
-  login(role = "user") {
-    this.user = { role };
+  login(user, token) {
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("token", token);
   },
 
   logout() {
-    this.user = null;
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  },
+
+  getUser() {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
+    }
   },
 
   isAuthenticated() {
-    return this.user !== null;
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    return !!token && !!user;
   },
 
   hasRole(roles) {
-    return this.user && roles.includes(this.user.role);
-  }
+    const user = this.getUser();
+    if (!user?.role) return false;
+    return roles.includes(user.role);
+  },
 };

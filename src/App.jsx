@@ -1,13 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
-import Home from "./pages/Home";
-import Events from "./pages/Events";
-import Login from "./pages/Login";
-import Signup from "./pages/SignUp";
-import Calendar from "./pages/Calendar";
+import Home from "./pages/public/Home";
+import Login from "./pages/public/Login";
+import Signup from "./pages/public/Signup";
+import News from "./pages/public/News";
+import Events from "./pages/public/Event";
 
-import Dashboard from "./admin/Dashboard";
+import UserHome from "./pages/user/pages/Home";
+import SuperAdminHome from "./pages/super_admin/pages/Home";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -16,17 +18,29 @@ export default function App() {
       <Navbar />
 
       <Routes>
+        {/* PUBLIC */}
         <Route path="/" element={<Home />} />
-        <Route path="/events" element={<Events />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/events" element={<Events />} />
 
+        {/* USER */}
         <Route
-          path="/admin"
+          path="/user"
           element={
-            <ProtectedRoute roles={["admin", "super_admin"]}>
-              <Dashboard />
+            <ProtectedRoute roles={["user"]}>
+              <UserHome />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* SUPER ADMIN */}
+        <Route
+          path="/super-admin"
+          element={
+            <ProtectedRoute roles={["super_admin"]}>
+              <SuperAdminHome />
             </ProtectedRoute>
           }
         />

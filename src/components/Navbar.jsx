@@ -12,7 +12,7 @@ export default function Navbar() {
           <Link to="/events">Events</Link>
         </li>
         <li>
-          <Link to="/">About</Link>
+          <Link to="/news">News</Link>
         </li>
         <li>
           <Link to="/login" className="login-btn">
