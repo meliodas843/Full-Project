@@ -7,6 +7,7 @@ export default function Signup() {
     password: "",
     confirmPassword: "",
   });
+
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -39,12 +40,12 @@ export default function Signup() {
         return;
       }
 
-      // backend returns user + token
+      // ✅ Save auth info
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
 
-      // new signups are users
-      navigate("/user");
+      // ✅ NEW USERS ALWAYS GO TO PROFILE
+      navigate("/profile");
     } catch (err) {
       console.error(err);
       setMessage("Server error. Try again.");
@@ -89,7 +90,9 @@ export default function Signup() {
           </button>
         </form>
 
-        {message && <p style={{ color: "red", marginTop: 10 }}>{message}</p>}
+        {message && (
+          <p style={{ color: "red", marginTop: 10 }}>{message}</p>
+        )}
 
         <p style={{ marginTop: 12 }}>
           Already have an account? <Link to="/login">Sign in</Link>

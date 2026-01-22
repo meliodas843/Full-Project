@@ -22,7 +22,7 @@ export async function googleAuth(token) {
     const { sub: google_id, email, name, picture } = payload;
 
     const [rows] = await pool.query(
-      "SELECT id, name, email, google_id FROM all_users WHERE google_id = ? OR email = ?",
+      "SELECT id, name, email, google_id FROM users WHERE google_id = ? OR email = ?",
       [google_id, email]
     );
 
@@ -31,7 +31,7 @@ export async function googleAuth(token) {
       user = rows[0];
     } else {
       const [result] = await pool.query(
-        "INSERT INTO all_users (name, email, google_id, created_at) VALUES (?, ?, ?, NOW())",
+        "INSERT INTO users (name, email, google_id, created_at) VALUES (?, ?, ?, NOW())",
         [name, email, google_id]
       );
       user = {

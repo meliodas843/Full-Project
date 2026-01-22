@@ -11,15 +11,10 @@ export default function Sidebar() {
 
   return (
     <aside className="user-sidebar">
-      <div
-        className="us-brand"
-        onClick={() => navigate("/user/home")}
-        role="button"
-        tabIndex={0}
-      >
-        <div className="us-logo">D</div>
+      <div className="us-brand" onClick={() => navigate("/user/home")} role="button" tabIndex={0}>
+        <div className="us-logo">A</div>
         <div className="us-brand-text">
-          <div className="us-brand-name">Name</div>
+          <div className="us-brand-name">Admin</div>
           <div className="us-brand-sub">User</div>
         </div>
       </div>
@@ -27,35 +22,17 @@ export default function Sidebar() {
       <div className="us-section">
         <div className="us-section-title">Main</div>
         <nav className="us-menu">
-          <NavLink
-            to="/user/home"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
+          <NavLink to="/user/home" className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}>
             <span className="us-ic"></span>
             <span className="us-txt">Home</span>
           </NavLink>
 
-          <NavLink
-            to="/user/event"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
-            <span className="us-ic"></span>
-            <span className="us-txt">Events</span>
-          </NavLink>
-
-          {/* ✅ FIXED: matches App.jsx route */}
-          <NavLink
-            to="/user/notifications"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
+          <NavLink to="/user/calendar" className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}>
             <span className="us-ic"></span>
             <span className="us-txt">Calendar</span>
           </NavLink>
 
-          <NavLink
-            to="/user/contact"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
+          <NavLink to="/user/contact" className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}>
             <span className="us-ic"></span>
             <span className="us-txt">Contact</span>
           </NavLink>
@@ -65,10 +42,7 @@ export default function Sidebar() {
       <div className="us-section">
         <div className="us-section-title">Settings</div>
         <nav className="us-menu">
-          <NavLink
-            to="/profile"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
+          <NavLink to="/user/profile" className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}>
             <span className="us-ic"></span>
             <span className="us-txt">Profile</span>
           </NavLink>

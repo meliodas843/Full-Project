@@ -3,26 +3,29 @@ import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // ✅ Redirect based on role
   const redirectByRole = (user) => {
     if (user.role === "super_admin") {
-      navigate("/super_admin/home");
-    } else {
-      navigate("/user");
+      navigate("/super-admin/home");
+      return;
     }
+
+    // ✅ Normal users: if profile not complete -> /profile
+    if (!user.company_name || !user.phone) {
+      navigate("/profile");
+      return;
+    }
+
+    // ✅ Existing users with completed profile -> /user/home
+    navigate("/user/home");
   };
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  // ✅ Normal login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -41,7 +44,6 @@ export default function Login() {
         return;
       }
 
-      // save session
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
 
@@ -52,7 +54,6 @@ export default function Login() {
     }
   };
 
-  // ✅ Google login
   const handleGoogleLogin = async (credentialResponse) => {
     setMessage("");
 
@@ -60,9 +61,7 @@ export default function Login() {
       const res = await fetch("http://localhost:5000/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: credentialResponse.credential,
-        }),
+        body: JSON.stringify({ token: credentialResponse.credential }),
       });
 
       const data = await res.json();
@@ -111,9 +110,7 @@ export default function Login() {
           </button>
         </form>
 
-        {message && (
-          <p style={{ color: "red", marginTop: 10 }}>{message}</p>
-        )}
+        {message && <p style={{ color: "red", marginTop: 10 }}>{message}</p>}
 
         <p style={{ marginTop: 12 }}>
           Don’t have an account? <Link to="/signup">Sign up</Link>
