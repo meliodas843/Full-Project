@@ -4,10 +4,6 @@ import authMiddleware from "../middleware/authMiddleware.js"; // default export
 
 const router = express.Router();
 
-/**
- * Update current user's profile
- * Requires Authorization: Bearer <token>
- */
 router.put("/me", authMiddleware, async (req, res) => {
   try {
     const userId = req.user?.id || req.user?.userId || req.user?.user_id;

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { API_BASE } from "@/lib/config";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -13,13 +14,11 @@ export default function Login() {
       return;
     }
 
-    // ✅ Normal users: if profile not complete -> /profile
     if (!user.company_name || !user.phone) {
       navigate("/profile");
       return;
     }
 
-    // ✅ Existing users with completed profile -> /user/home
     navigate("/user/home");
   };
 
@@ -84,46 +83,54 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-box">
-        <h2>Sign in</h2>
+        <h2>Нэвтрэх</h2>
 
-        <form onSubmit={handleSubmit}>
-          <label>Email Address</label>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label>И-Майл</label>
           <input
             type="email"
             name="email"
             value={form.email}
             onChange={handleChange}
             required
+            autoComplete="email"
           />
 
-          <label>Password</label>
+          <label>Нууц үг</label>
           <input
             type="password"
             name="password"
             value={form.password}
             onChange={handleChange}
             required
+            autoComplete="current-password"
           />
 
+          <p className="forgot">
+            Forgot password? <Link to="/forgot-password">Reset it</Link>
+          </p>
+
           <button className="sign-btn" type="submit">
-            Sign in
+            Нэвтрэх
           </button>
         </form>
 
-        {message && <p style={{ color: "red", marginTop: 10 }}>{message}</p>}
+        {message && <p className="auth-error">{message}</p>}
 
-        <p style={{ marginTop: 12 }}>
-          Don’t have an account? <Link to="/signup">Sign up</Link>
+        <p className="login-footer">
+          Таньд бүртгэл байхгүй үү? <Link to="/signup">Бүртгүүлэх</Link>
         </p>
 
         <div className="divider">
-          <span>or</span>
+          <span>эсвэл</span>
         </div>
 
-        <GoogleLogin
-          onSuccess={handleGoogleLogin}
-          onError={() => setMessage("Google login failed")}
-        />
+        <div className="google-wrap">
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => setMessage("Google login failed")}
+          />
+        </div>
       </div>
     </div>
   );

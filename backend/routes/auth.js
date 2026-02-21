@@ -16,8 +16,6 @@ function signToken(user) {
     { expiresIn: "7d" }
   );
 }
-
-// ✅ always return the same shape to frontend
 function toClientUser(u) {
   return {
     id: u.id,

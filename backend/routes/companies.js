@@ -1,17 +1,10 @@
+// routes/companies.routes.js
 import express from "express";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/**
- * USERS TABLE:
- * - company_name
- * - email
- * - role
- */
-
-// ✅ Companies dropdown: ONLY companies that have at least 1 normal user
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -39,42 +32,35 @@ router.get("/employees", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "company is required" });
     }
 
-    // --- Find logged-in user's email safely ---
-    let myEmail = "";
-
-    // 1) if JWT already has email
-    if (req.user?.email) {
-      myEmail = String(req.user.email).trim().toLowerCase();
+    const myUserId = Number(req.user?.id);
+    if (!Number.isFinite(myUserId)) {
+      return res.status(401).json({ message: "Invalid token (no user id)" });
     }
 
-    // 2) else if JWT has id, lookup email from DB
-    if (!myEmail && req.user?.id) {
-      const [me] = await pool.query("SELECT email FROM users WHERE id = ? LIMIT 1", [
-        req.user.id,
-      ]);
-      myEmail = String(me?.[0]?.email || "").trim().toLowerCase();
-    }
-
-    // --- Main query (exclude myEmail if we found it) ---
-    let sql = `
-      SELECT id, email
+    const [rows] = await pool.query(
+      `
+      SELECT
+        id,
+        email,
+        CONCAT_WS(' ', first_name, last_name) AS name
       FROM users
       WHERE company_name = ?
         AND role = 'user'
+        AND id <> ?
         AND email IS NOT NULL
         AND email <> ''
-    `;
-    const params = [companyName];
+      ORDER BY email ASC
+      `,
+      [companyName, myUserId]
+    );
 
-    if (myEmail) {
-      sql += ` AND LOWER(email) <> ? `;
-      params.push(myEmail);
-    }
-
-    sql += ` ORDER BY email ASC `;
-
-    const [rows] = await pool.query(sql, params);
-    return res.json(rows);
+    return res.json(
+      rows.map((r) => ({
+        id: r.id,
+        email: r.email,
+        name: r.name?.trim() ? r.name.trim() : r.email,
+      }))
+    );
   } catch (err) {
     console.error("GET /api/companies/employees error:", err.message);
     return res.status(500).json({ message: "Server error" });

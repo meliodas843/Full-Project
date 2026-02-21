@@ -9,21 +9,25 @@ import {
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-/* PUBLIC */
 import Home from "./pages/public/Home";
 import Login from "./pages/public/Login";
 import Signup from "./pages/public/Signup";
 import News from "./pages/public/News";
 import PublicEvents from "./pages/public/Event";
+import ForgotPassword from "./pages/public/ForgotPassword";
+import ResetPassword from "./pages/public/ResetPassword";
+import EventInvite from "./pages/public/EventInvite";
 
-/* USER */
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
 import Calendar from "./pages/user/pages/Calendar";
 import Meeting from "./pages/user/pages/Meeting";
 import UserEvents from "./pages/user/pages/Event";
+import History from "./pages/user/pages/History";
+import Password from "./pages/user/pages/Password";
+import Company from "./pages/user/pages/Company";
+import Bill from "./pages/user/pages/Bill";
 
-/* SUPER ADMIN */
 import SuperAdminHome from "./pages/super_admin/pages/Home";
 import NewsCreate from "./pages/super_admin/pages/NewsCreate";
 
@@ -48,7 +52,14 @@ function AppRoutes() {
         <Route path="/news" element={<News />} />
         <Route path="/events" element={<PublicEvents />} />
 
-        {/* PROFILE */}
+        {/* Password reset (public) */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* Invite link public */}
+        <Route path="/event/invite/:token" element={<EventInvite />} />
+
+        {/* PROFILE (protected for both roles) */}
         <Route
           path="/profile"
           element={
@@ -65,7 +76,7 @@ function AppRoutes() {
           element={<Navigate to="/super-admin/home" replace />}
         />
 
-        {/* USER */}
+        {/* USER (protected) */}
         <Route
           path="/user/home"
           element={
@@ -80,6 +91,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute roles={["user"]}>
               <UserEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/history"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <History />
             </ProtectedRoute>
           }
         />
@@ -108,7 +128,44 @@ function AppRoutes() {
           element={<Navigate to="/user/notifications" replace />}
         />
 
-        {/* SUPER ADMIN */}
+        {/* ✅ FIXED: these must also be protected */}
+        <Route
+          path="/user/profile"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/password"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <Password />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/company"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <Company />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/bill"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <Bill />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* SUPER ADMIN (protected) */}
         <Route
           path="/super-admin/home"
           element={

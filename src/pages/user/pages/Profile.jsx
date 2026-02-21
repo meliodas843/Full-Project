@@ -1,221 +1,226 @@
-import { useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { useEffect, useMemo, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import UserShell from "../components/UserShell";
+import { API_BASE } from "@/lib/config";
+
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+function safeText(v) {
+  const s = String(v ?? "").trim();
+  return s || "—";
+}
+
+function formatDate(dt) {
+  if (!dt) return "—";
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleString("mn-MN", {
+    timeZone: "Asia/Ulaanbaatar",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function getInitials(nameOrEmail) {
+  const s = String(nameOrEmail || "").trim();
+  if (!s) return "?";
+  if (s.includes("@")) return s[0].toUpperCase();
+  const parts = s.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
 
 export default function Profile() {
   const navigate = useNavigate();
-  const fileRef = useRef(null);
 
-  let storedUser = null;
-  try {
-    storedUser = JSON.parse(localStorage.getItem("user") || "null");
-  } catch (e) {
-    storedUser = null;
-  }
+  const [loading, setLoading] = useState(true);
+  const [errMsg, setErrMsg] = useState("");
+  const [user, setUser] = useState(null);
 
-  const [form, setForm] = useState({
-    company_name: storedUser?.company_name || "",
-    email: storedUser?.email || "",
-    firstName: storedUser?.firstName || "",
-    lastName: storedUser?.lastName || "",
-    phone: storedUser?.phone || "",
-  });
-
-  const [avatarFile, setAvatarFile] = useState(null);
-
-  const avatarPreview = useMemo(() => {
-    if (!avatarFile) return "";
-    return URL.createObjectURL(avatarFile);
-  }, [avatarFile]);
-
-  function onChange(e) {
-    const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
-  }
-
-  function onPickFile() {
-    fileRef.current?.click();
-  }
-
-  function onFileChange(e) {
-    const file = e.target.files?.[0];
-    if (file) setAvatarFile(file);
-  }
-
-  // ✅ NOW SAVES TO DB + LOCALSTORAGE
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    const company = (form.company_name || "").trim();
-    const phone = (form.phone || "").trim();
-
-    if (!company || !phone) {
-      alert("Company name and phone number are required.");
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You are not logged in. Please login again.");
-      navigate("/login");
-      return;
-    }
-
+  // Optional fallback from JWT payload
+  const tokenUser = useMemo(() => {
     try {
-      // ✅ SAVE TO DB
-      const res = await fetch("http://localhost:5000/api/users/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          company_name: company,
-          phone: phone,
-          firstName: form.firstName,
-          lastName: form.lastName,
-        }),
-      });
+      const token = getToken();
+      if (!token) return null;
+      const [, payload] = token.split(".");
+      if (!payload) return null;
+      const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+      return json || null;
+    } catch {
+      return null;
+    }
+  }, []);
 
-      const data = await res.json().catch(() => ({}));
+  async function fetchProfile() {
+    try {
+      setErrMsg("");
+      setLoading(true);
 
-      if (!res.ok) {
-        alert(data.message || "Failed to save profile");
+      const token = getToken();
+      if (!token) {
+        setUser(null);
+        setErrMsg("Please login first.");
         return;
       }
 
-      // ✅ UPDATE LOCALSTORAGE so ProtectedRoute stops redirecting
-      const currentUser = storedUser || {};
-      const updatedUser = {
-        ...currentUser,
-        company_name: company,
-        phone: phone,
-        firstName: form.firstName,
-        lastName: form.lastName,
-      };
+      const res = await fetch(`${API_BASE}/api/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUser(null);
+        setErrMsg(data?.message || "Failed to load profile");
+        return;
+      }
 
-      console.log("PROFILE SAVED:", data);
-
-      // ✅ Go to homepage after completion
-      navigate("/user/home");
-    } catch (err) {
-      console.error(err);
-      alert("Server error saving profile");
+      setUser(data?.user || null);
+    } catch (e) {
+      console.error(e);
+      setUser(null);
+      setErrMsg("Network error while loading profile");
+    } finally {
+      setLoading(false);
     }
   }
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const display = user || tokenUser || null;
+
+  const fullName =
+    `${display?.firstName || ""} ${display?.lastName || ""}`.trim() ||
+    display?.full_name ||
+    display?.name ||
+    display?.email ||
+    "";
+
+  const email = display?.email || "";
+  const avatarUrl = display?.avatar_url || display?.photo_url || "";
+  const initials = getInitials(fullName || email);
+
   return (
-    <div className="ds">
-      <Sidebar />
+      <UserShell title="My Profile">
+        <div className="profileGrid">
+          <aside className="profileNav">
+            <div className="profileNavCard">
+              <NavLink
+                to="/user/profile"
+                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
+              >
+                Profile
+              </NavLink>
 
-      <main className="ds-main">
-        <section className="ds-content">
-          <h1 className="ds-title">Profile Settings</h1>
+              <NavLink
+                to="/user/password"
+                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
+              >
+                Change Password
+              </NavLink>
 
-          <div className="ds-card">
-            <form className="ds-form" onSubmit={handleSubmit}>
-              {/* Upload */}
-              <div className="ds-upload">
-                <button
-                  type="button"
-                  className="ds-upload-circle"
-                  onClick={onPickFile}
-                  aria-label="Upload photo"
-                >
-                  {avatarPreview ? (
-                    <img
-                      className="ds-upload-preview"
-                      src={avatarPreview}
-                      alt="avatar"
-                    />
-                  ) : (
-                    <span className="ds-camera">📷</span>
-                  )}
-                </button>
+              <NavLink
+                to="/user/company"
+                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
+              >
+                Company
+              </NavLink>
 
-                <button
-                  type="button"
-                  className="ds-upload-link"
-                  onClick={onPickFile}
-                >
-                  Upload Photo
-                </button>
+              <NavLink
+                to="/user/bill"
+                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
+              >
+                Bill
+              </NavLink>
+            </div>
+          </aside>
 
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={onFileChange}
-                  style={{ display: "none" }}
-                />
-              </div>
+          {/* RIGHT */}
+          <main className="profileMain">
+            {errMsg ? <div className="profileAlert profileAlertError">{errMsg}</div> : null}
 
-              {/* Grid inputs */}
-              <div className="ds-grid">
-                <div className="ds-field">
-                  <label>Company Name *</label>
-                  <input
-                    name="company_name"
-                    value={form.company_name}
-                    onChange={onChange}
-                    placeholder="Enter your company name"
-                    required
-                  />
+            {loading ? (
+              <div className="profileEmpty">Loading profile…</div>
+            ) : !display ? (
+              <div className="profileEmpty">No profile data.</div>
+            ) : (
+              <section className="profileCard">
+                <div className="profileMainHeader">
+                  <h3 className="profileTitle">My Profile</h3>
                 </div>
 
-                <div className="ds-field">
-                  <label>Your email</label>
-                  <input
-                    name="email"
-                    value={form.email}
-                    readOnly
-                    style={{ cursor: "not-allowed", opacity: 0.8 }}
-                  />
+                {/* TOP */}
+                <div className="profileCardTop">
+                  <div className="profileIdentity">
+                    <div className="profileAvatar" aria-label="Profile picture">
+                      {avatarUrl ? <img src={avatarUrl} alt="Profile" /> : <span>{initials}</span>}
+                    </div>
+
+                    <div className="profileIdentityText">
+                      <div className="profileName">{safeText(fullName)}</div>
+                      <div className="profileEmail">{safeText(email)}</div>
+                    </div>
+                  </div>
+
+                  <button
+                    className="profileIconBtn"
+                    type="button"
+                    title="Edit profile"
+                    onClick={() => navigate("/user/edit")}
+                  >
+                    Edit
+                  </button>
                 </div>
 
-                <div className="ds-field">
-                  <label>First Name</label>
-                  <input
-                    name="firstName"
-                    value={form.firstName}
-                    onChange={onChange}
-                    placeholder="Enter your first name"
-                  />
-                </div>
+                {/* PERSONAL INFO */}
+                <div className="profileSection">
+                  <div className="profileSectionTitle">Personal info</div>
 
-                <div className="ds-field">
-                  <label>Last Name</label>
-                  <input
-                    name="lastName"
-                    value={form.lastName}
-                    onChange={onChange}
-                    placeholder="Enter your last name"
-                  />
-                </div>
+                  <div className="profileInfoGrid">
+                    <div className="profileInfoItem">
+                      <div className="profileInfoLabel">Company</div>
+                      <div className="profileInfoValue">{safeText(display.company_name)}</div>
+                    </div>
 
-                <div className="ds-field">
-                  <label>Phone Number *</label>
-                  <input
-                    name="phone"
-                    value={form.phone}
-                    onChange={onChange}
-                    placeholder="Enter your phone number"
-                    required
-                  />
-                </div>
-              </div>
+                    <div className="profileInfoItem">
+                      <div className="profileInfoLabel">Phone</div>
+                      <div className="profileInfoValue">{safeText(display.phone)}</div>
+                    </div>
 
-              <div className="ds-actions">
-                <button className="ds-primary" type="submit">
-                  Save & Continue
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-      </main>
-    </div>
+                    <div className="profileInfoItem">
+                      <div className="profileInfoLabel">Role</div>
+                      <div className="profileInfoValue">{safeText(display.role)}</div>
+                    </div>
+
+                    <div className="profileInfoItem">
+                      <div className="profileInfoLabel">User ID</div>
+                      <div className="profileInfoValue">{safeText(display.id)}</div>
+                    </div>
+
+                    <div className="profileInfoItem">
+                      <div className="profileInfoLabel">Created</div>
+                      <div className="profileInfoValue">
+                        {formatDate(display.created_at || display.created_time)}
+                      </div>
+                    </div>
+
+                    <div className="profileInfoItem">
+                      <div className="profileInfoLabel">Google ID</div>
+                      <div className="profileInfoValue">{safeText(display.google_id)}</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+          </main>
+        </div>
+      </UserShell>
   );
 }

@@ -1,14 +1,116 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { API_BASE } from "@/lib/config";
+
+const API = API_BASE;
+
+async function safeJson(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+}
 
 export default function NewsCreate() {
-  const [form, setForm] = useState({ title: "", body: "", image_url: "" });
+  const [title, setTitle] = useState("");
+  const [bodyHtml, setBodyHtml] = useState("");
+  const [cover, setCover] = useState(null);
+
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const quillRef = useRef(null);
   const token = localStorage.getItem("token");
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  async function handleBodyImageUpload() {
+    if (!token) {
+      setMsg("❌ You must be logged in (token missing).");
+      return;
+    }
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+        setMsg("");
+
+        const fd = new FormData();
+        fd.append("image", file);
+
+        const res = await fetch(`${API}/api/news/body-image`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+
+        const data = await safeJson(res);
+
+        if (!res.ok) {
+          setMsg(data.message || "❌ Failed to upload body image");
+          return;
+        }
+
+        const rawUrl = data.url || "";
+        const imageUrl = rawUrl.startsWith("http")
+          ? rawUrl
+          : `${API}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
+
+        const quill = quillRef.current?.getEditor?.();
+        if (!quill) return;
+
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+
+        quill.insertEmbed(index, "image", imageUrl, "user");
+        quill.setSelection(index + 1);
+      } catch (e) {
+        console.error(e);
+        setMsg("❌ Server error uploading image");
+      }
+    };
+  }
+
+  const modules = useMemo(() => {
+    return {
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ list: "ordered" }, { list: "bullet" }], // ✅ OK
+          ["blockquote", "code-block"],
+          ["link", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: handleBodyImageUpload,
+        },
+      },
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ FIXED formats (remove "bullet")
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "blockquote",
+    "code-block",
+    "link",
+    "image",
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,25 +118,33 @@ export default function NewsCreate() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/news", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMsg(data.message || "Failed to post news");
-        setLoading(false);
+      if (!token) {
+        setMsg("❌ You must be logged in (token missing).");
         return;
       }
 
-      setMsg("✅ News posted!");
-      setForm({ title: "", body: "", image_url: "" });
+      const fd = new FormData();
+      fd.append("title", title);
+      fd.append("body", bodyHtml); // ✅ HTML (with inline images)
+      if (cover) fd.append("cover", cover); // ✅ cover image (optional)
+
+      const res = await fetch(`${API}/api/news`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+
+      const data = await safeJson(res);
+
+      if (!res.ok) {
+        setMsg(data.message || "Failed to post news");
+        return;
+      }
+
+      setMsg("✅ News posted successfully!");
+      setTitle("");
+      setBodyHtml("");
+      setCover(null);
     } catch (err) {
       console.error(err);
       setMsg("Server error");
@@ -47,31 +157,31 @@ export default function NewsCreate() {
     <div className="page">
       <h2>Create News (Super Admin)</h2>
 
-      <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
+      <form onSubmit={handleSubmit} className="news-create-form">
         <label>Title</label>
         <input
-          name="title"
-          value={form.title}
-          onChange={handleChange}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           required
           placeholder="News title"
         />
 
-        <label>Body</label>
-        <textarea
-          name="body"
-          value={form.body}
-          onChange={handleChange}
-          required
+        <label>Body (you can insert images)</label>
+        <ReactQuill
+          ref={quillRef}
+          theme="snow"
+          value={bodyHtml}
+          onChange={setBodyHtml}
+          modules={modules}
+          formats={formats}
           placeholder="Write your news..."
         />
 
-        <label>Image URL (optional)</label>
+        <label>Cover Image (optional)</label>
         <input
-          name="image_url"
-          value={form.image_url}
-          onChange={handleChange}
-          placeholder="https://..."
+          type="file"
+          accept="image/*"
+          onChange={(e) => setCover(e.target.files?.[0] || null)}
         />
 
         <button type="submit" disabled={loading}>

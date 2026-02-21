@@ -6,12 +6,9 @@ export default function Home() {
 
   return (
     <div className="super-admin-layout">
-      <Sidebar />
-
       <main className="super-admin-content">
         <h1>Super Admin Dashboard</h1>
         <p>Welcome, Super Admin</p>
-
         <button onClick={() => navigate("/super-admin/news-create")}>
           + Create News
         </button>

@@ -31,11 +31,6 @@ export default function Sidebar() {
             <span className="us-ic"></span>
             <span className="us-txt">Calendar</span>
           </NavLink>
-
-          <NavLink to="/user/contact" className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}>
-            <span className="us-ic"></span>
-            <span className="us-txt">Contact</span>
-          </NavLink>
         </nav>
       </div>
 

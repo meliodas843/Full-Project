@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "@/lib/config";
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -40,11 +41,9 @@ export default function Signup() {
         return;
       }
 
-      // ✅ Save auth info
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
 
-      // ✅ NEW USERS ALWAYS GO TO PROFILE
       navigate("/profile");
     } catch (err) {
       console.error(err);
@@ -55,47 +54,48 @@ export default function Signup() {
   return (
     <div className="signup-page">
       <div className="signup-box">
-        <h2>Sign Up</h2>
+        <h2>Бүртгүүлэх</h2>
 
-        <form onSubmit={handleSubmit}>
-          <label>Email Address</label>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label>И-Майл</label>
           <input
             type="email"
             name="email"
             value={form.email}
             onChange={handleChange}
             required
+            autoComplete="email"
           />
 
-          <label>Password</label>
+          <label>Нууц үг</label>
           <input
             type="password"
             name="password"
             value={form.password}
             onChange={handleChange}
             required
+            autoComplete="new-password"
           />
 
-          <label>Confirm Password</label>
+          <label>Нууц үгийн баталгаажуулалт</label>
           <input
             type="password"
             name="confirmPassword"
             value={form.confirmPassword}
             onChange={handleChange}
             required
+            autoComplete="new-password"
           />
 
           <button className="sign-btn" type="submit">
-            Sign Up
+            Бүртгүүлэх
           </button>
         </form>
 
-        {message && (
-          <p style={{ color: "red", marginTop: 10 }}>{message}</p>
-        )}
+        {message && <p className="auth-error">{message}</p>}
 
-        <p style={{ marginTop: 12 }}>
-          Already have an account? <Link to="/login">Sign in</Link>
+        <p className="login-footer">
+          Таньд бүртгэл байгаа бол <Link to="/login">Нэвтрэх</Link>
         </p>
       </div>
     </div>
