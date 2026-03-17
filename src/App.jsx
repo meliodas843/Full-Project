@@ -17,6 +17,8 @@ import PublicEvents from "./pages/public/Event";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
+import Project from "./pages/public/Project";
+import Mentor from "./pages/public/Mentor";
 
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
@@ -30,6 +32,7 @@ import Bill from "./pages/user/pages/Bill";
 
 import SuperAdminHome from "./pages/super_admin/pages/Home";
 import NewsCreate from "./pages/super_admin/pages/NewsCreate";
+import AddProject from "./pages/super_admin/pages/AddProject";
 
 function AppRoutes() {
   const location = useLocation();
@@ -43,23 +46,17 @@ function AppRoutes() {
   return (
     <>
       {showPublicNavbar && <Navbar />}
-
       <Routes>
-        {/* PUBLIC */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/news" element={<News />} />
         <Route path="/events" element={<PublicEvents />} />
-
-        {/* Password reset (public) */}
+        <Route path="/project" element={<Project />} />
+        <Route path="/mentor" element={<Mentor />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
-        {/* Invite link public */}
         <Route path="/event/invite/:token" element={<EventInvite />} />
-
-        {/* PROFILE (protected for both roles) */}
         <Route
           path="/profile"
           element={
@@ -68,15 +65,11 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-        {/* REDIRECT BASE */}
         <Route path="/user" element={<Navigate to="/user/home" replace />} />
         <Route
           path="/super-admin"
           element={<Navigate to="/super-admin/home" replace />}
         />
-
-        {/* USER (protected) */}
         <Route
           path="/user/home"
           element={
@@ -121,14 +114,10 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-        {/* alias */}
         <Route
           path="/user/calendar"
           element={<Navigate to="/user/notifications" replace />}
         />
-
-        {/* ✅ FIXED: these must also be protected */}
         <Route
           path="/user/profile"
           element={
@@ -164,8 +153,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-        {/* SUPER ADMIN (protected) */}
         <Route
           path="/super-admin/home"
           element={
@@ -182,9 +169,16 @@ function AppRoutes() {
               <NewsCreate />
             </ProtectedRoute>
           }
+        /> 
+        <Route
+          path="/super-admin/add-project"
+          element={
+            <ProtectedRoute roles={["super_admin"]}>
+              <AddProject />
+            </ProtectedRoute>
+          }
         />
 
-        {/* FALLBACK */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

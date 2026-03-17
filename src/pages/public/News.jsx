@@ -47,14 +47,11 @@ function formatDate(dt) {
    MODAL (Portal)
 ========================= */
 function NewsModal({ item, onClose }) {
-  // ESC close
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
-  // lock outside scroll (html+body)
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
@@ -115,8 +112,6 @@ function NewsModal({ item, onClose }) {
       </div>
     </div>
   );
-
-  // ✅ PORTAL FIX: render under <body>, not inside slider/transformed parents
   return createPortal(modal, document.body);
 }
 
@@ -124,7 +119,7 @@ export default function News() {
   const [news, setNews] = useState([]);
   const [msg, setMsg] = useState("Loading...");
   const [active, setActive] = useState(0);
-  const [sortOrder, setSortOrder] = useState("new"); // "new" | "old"
+  const [sortOrder, setSortOrder] = useState("new")
   const [showMore, setShowMore] = useState(false);
   const moreRef = useRef(null);
   const [selected, setSelected] = useState(null);
@@ -330,8 +325,6 @@ export default function News() {
           </section>
         )}
       </div>
-
-      {/* ✅ Portal modal */}
       {selected && <NewsModal item={selected} onClose={() => setSelected(null)} />}
     </div>
   );

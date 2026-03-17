@@ -572,7 +572,7 @@ export default function Event() {
 
       if (selectedEvent?.id === ev.id) fetchParticipants(ev.id);
 
-      setSuccessMsg("Booked ✅ Added to My Meetings");
+      setSuccessMsg("Booked ✅ Added to My Events");
       setTimeout(() => setSuccessMsg(""), 1200);
     } catch (e) {
       console.error(e);
@@ -667,16 +667,16 @@ export default function Event() {
 
             <div className="uep-sections">
               <Section
-                title="My Meetings"
+                title="My Events"
                 items={myMeetings}
-                emptyText="No meetings yet."
+                emptyText="No events yet."
                 onClickItem={(ev) => openDetail(ev.id)}
               />
 
               <Section
-                title="Finished Meetings"
+                title="Finished Events"
                 items={finishedMeetings}
-                emptyText="No finished meetings."
+                emptyText="No finished events."
                 onClickItem={(ev) => openDetail(ev.id)}
               />
             </div>
@@ -686,15 +686,10 @@ export default function Event() {
             </button>
           </div>
         </aside>
-
-        {/* RIGHT SIDE */}
         <main className="uep-right">
           <div ref={rightTopRef} />
-
           {errMsg ? <div className="uep-error">{errMsg}</div> : null}
           {successMsg ? <div className="uep-success">{successMsg}</div> : null}
-
-          {/* DETAIL VIEW */}
           {!showCreate && selectedEvent ? (
             <div className="uep-detailCard">
               <div className="uep-detailHead">
@@ -702,7 +697,6 @@ export default function Event() {
                   <div className="uep-detailKicker">Event Details</div>
                   <h3 className="uep-detailTitle">{selectedEvent.title}</h3>
                 </div>
-
                 <button
                   className="uep-iconBtn"
                   type="button"
@@ -712,7 +706,6 @@ export default function Event() {
                   ✕
                 </button>
               </div>
-
               <div className="uep-detailBody">
                 <div className="uep-detailMedia">
                   <img
@@ -721,7 +714,6 @@ export default function Event() {
                     onError={(e) => (e.currentTarget.src = fallbackImgSrc())}
                   />
                 </div>
-
                 <div className="uep-detailInfo">
                   <div className="uep-detailMetaRow">
                     <span className="uep-badge">{formatDateTime(selectedEvent.start_time)}</span>
@@ -731,8 +723,6 @@ export default function Event() {
                       </span>
                     )}
                   </div>
-
-                  {/* ✅ FIX: hide joined row for meetings */}
                   {!isSelectedMeeting && (
                     <div className="uep-joinedRow">
                       <div className="uep-joinedLabel">
@@ -761,8 +751,6 @@ export default function Event() {
                       </div>
                     </div>
                   )}
-
-                  {/* ✅ FIX: hide book button for meetings */}
                   {!isSelectedMeeting && (
                     <div className="uep-detailActions">
                       <button
@@ -775,8 +763,6 @@ export default function Event() {
                       </button>
                     </div>
                   )}
-
-                  {/* FILES (after finished) - events only */}
                   {!isSelectedMeeting && isEventFinished(selectedEvent) && (
                     <div className="uep-filesBox">
                       <h4 className="uep-filesTitle">Files (after event)</h4>
@@ -809,7 +795,6 @@ export default function Event() {
                         </div>
                       ) : (
                         <>
-                          {/* ✅ IMAGES STRIP (first 6) */}
                           {imageFiles.length > 0 && (
                             <div className="uep-gallery" role="list">
                               {imageFiles.slice(0, 6).map((f, idx) => {
@@ -834,7 +819,6 @@ export default function Event() {
                                 );
                               })}
 
-                              {/* ✅ "+N" opens lightbox at index 6 */}
                               {imageFiles.length > 6 && (
                                 <button
                                   type="button"
@@ -848,8 +832,6 @@ export default function Event() {
                               )}
                             </div>
                           )}
-
-                          {/* ✅ NON-IMAGE FILES LIST */}
                           {nonImageFiles.length > 0 && (
                             <div className="uep-filesList">
                               {nonImageFiles.map((f) => {
@@ -879,8 +861,6 @@ export default function Event() {
               <p className="uep-detailDescBottom">{selectedEvent.description || "No description."}</p>
             </div>
           ) : null}
-
-          {/* CREATE VIEW */}
           {showCreate ? (
             <div className="uep-createOnly">
               <div className="uep-createRightCard">
@@ -1018,8 +998,6 @@ export default function Event() {
               </div>
             </div>
           ) : null}
-
-          {/* EVENTS GRID (public only) */}
           {!showCreate && !selectedEvent ? (
             <>
               <div className="uep-rightHeader">
@@ -1099,8 +1077,6 @@ export default function Event() {
           ) : null}
         </main>
       </div>
-
-      {/* CONFIRM POPUP */}
       {confirmOpen && (
         <div className="uep-modalOverlay" onClick={handleConfirmNo} role="presentation">
           <div className="uep-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
@@ -1118,8 +1094,6 @@ export default function Event() {
           </div>
         </div>
       )}
-
-      {/* ✅ LIGHTBOX VIEWER */}
       {lbOpen && currentLb && (
         <div className="uep-lbOverlay" onClick={closeLightbox} role="presentation">
           <button
@@ -1191,10 +1165,6 @@ export default function Event() {
     </UserShell>
   );
 }
-
-/* =========================
-   Left list section
-========================= */
 function Section({ title, items, emptyText, onClickItem }) {
   return (
     <div className="uep-section">

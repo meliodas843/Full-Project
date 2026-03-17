@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children, roles }) {
   const location = useLocation();
   const path = location.pathname;
 
-  const [status, setStatus] = useState("checking"); // checking | ok | login
+  const [status, setStatus] = useState("checking"); 
   const [user, setUser] = useState(() => safeParseUser());
 
   useEffect(() => {

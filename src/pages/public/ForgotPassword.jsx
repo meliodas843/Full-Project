@@ -36,7 +36,6 @@ export default function ForgotPassword() {
     <div className="login-page">
       <div className="login-box">
         <h2>Нууц үг сэргээх</h2>
-
         <form onSubmit={submit}>
           <label>И-Майл</label>
           <input

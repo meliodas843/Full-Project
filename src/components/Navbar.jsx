@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import logo from "../assets/logo.png";   // adjust path if needed
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -19,11 +20,13 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <Link to="/" className="navbar__logo">
-          Khural Plus+
+          <img src={logo} alt="Khural Plus+ Logo" className="navbar__logoImg" />
         </Link>
         <ul className="navbar__links">
           <li><Link to="/events">Events</Link></li>
           <li><Link to="/news">News</Link></li>
+          <li><Link to="/project">Project</Link></li>
+          <li><Link to="/mentor">Mentor</Link></li>
           <li>
             <Link to="/login" className="get-started-btn">
               Get Started

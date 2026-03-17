@@ -12,6 +12,12 @@ export default function Home() {
         <button onClick={() => navigate("/super-admin/news-create")}>
           + Create News
         </button>
+        <button onClick={() => navigate("/super-admin/add-mentor")}> 
+          +Add Mentor
+        </button>
+        <button onClick={() => navigate("/super-admin/add-project")}>
+          +Add Project
+        </button>
       </main>
     </div>
   );

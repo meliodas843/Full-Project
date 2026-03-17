@@ -1,32 +1,43 @@
-<footer className="footer">
-        <div className="footer-container">
-          <div className="footer-brand">
-            <h3>AppName</h3>
-            <p>Building modern solutions for modern teams.</p>
+const Footer = () => {
+  return (
+    <footer className="appFooter">
+      <div className="appFooter__container">
+        <div className="appFooter__grid">
+          <div className="appFooter__brand">
+            <div className="appFooter__logo">Khural Plus+</div>
+            <p>
+              Building modern solutions for modern teams.
+            </p>
           </div>
-
-          <div className="footer-links">
+          <div className="appFooter__col">
             <h4>Product</h4>
-            <a href="#">Features</a>
-            <a href="#">Pricing</a>
-            <a href="#">Security</a>
+            <ul>
+              <li><a href="#">Features</a></li>
+              <li><a href="#">Pricing</a></li>
+              <li><a href="#">Security</a></li>
+            </ul>
           </div>
-
-          <div className="footer-links">
+          <div className="appFooter__col">
             <h4>Company</h4>
-            <a href="#">About</a>
-            <a href="#">Careers</a>
-            <a href="#">Contact</a>
+            <ul>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
           </div>
-
-          <div className="footer-links">
+          <div className="appFooter__col">
             <h4>Legal</h4>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
           </div>
         </div>
-
-        <div className="footer-bottom">
-          © {new Date().getFullYear()} AppName. All rights reserved.
+        <div className="appFooter__bottom">
+          © {new Date().getFullYear()} Khural Plus+. All rights reserved.
         </div>
-      </footer>
+      </div>
+    </footer>
+  );
+};
+export default Footer;

@@ -29,11 +29,7 @@
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    // 🔍 Search (TITLE ONLY)
     const [query, setQuery] = useState("");
-
-    // ✅ POPUP state
     const [openEvent, setOpenEvent] = useState(null);
 
     async function loadEvents() {
@@ -66,15 +62,11 @@
     useEffect(() => {
       loadEvents();
     }, []);
-
-    // ✅ FILTER — SEARCH ONLY BY TITLE
     const filtered = useMemo(() => {
       const q = query.trim().toLowerCase();
       if (!q) return events;
       return events.filter((ev) => String(ev.title || "").toLowerCase().includes(q));
     }, [events, query]);
-
-    // ✅ open popup
     function handleOpen(ev) {
       setOpenEvent(ev);
     }
@@ -82,8 +74,6 @@
     function closePopup() {
       setOpenEvent(null);
     }
-
-    // ✅ BOOK (works from card + popup)
     async function handleBook(ev) {
       try {
         setError("");
@@ -103,11 +93,7 @@
           setError(data?.message || "Failed to book event");
           return;
         }
-
-        // ✅ IMPORTANT: get the fresh list back
         const fresh = await loadEvents();
-
-        // ✅ update the popup with the fresh event data
         setOpenEvent((prev) => {
           if (!prev) return prev;
           const updated = fresh.find((x) => Number(x.id) === Number(prev.id));
@@ -122,14 +108,11 @@
     return (
       <div className="eventsGradientBg">
         <div className="eventsPage">
-          {/* HEADER */}
           <div className="eventsHeaderRow">
             <div className="eventsHeader">
               <h2 className="eventsTitle">Events</h2>
               <p className="eventsSub">Discover and join upcoming events</p>
             </div>
-
-            {/* ACTIONS */}
             <div className="eventsActions">
               <div className="eventsSearchWrap">
                 <input
@@ -155,8 +138,6 @@
               </button>
             </div>
           </div>
-
-          {/* STATES */}
           {error && <div className="eventsError">{error}</div>}
 
           {loading ? (
@@ -173,8 +154,6 @@
             </div>
           )}
         </div>
-
-        {/* ✅ FIX: MODAL OUTSIDE .eventsPage so it won't get clipped */}
         {openEvent && (
           <div className="evModalOverlay" onClick={closePopup} role="presentation">
             <div className="evModal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
