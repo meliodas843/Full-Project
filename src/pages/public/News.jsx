@@ -94,7 +94,7 @@ function NewsModal({ item, onClose }) {
                 alt={safeText(item.title) || "News image"}
               />
             ) : (
-              <div className="newsModalImg newsModalImgPlaceholder">No image</div>
+              <div className="newsModalImg newsModalImgPlaceholder">Зураг олдсонгүй</div>
             )}
           </div>
 
@@ -186,27 +186,27 @@ export default function News() {
       <div className="newsPageBg">
         <div className="newsHeaderRow">
           <div className="newsHeader">
-            <h1 className="newsTitle">News</h1>
-            <p className="newsSub">Latest updates and announcements</p>
+            <h1 className="newsTitle">Мэдээ</h1>
+            <p className="newsSub">Сүүлийн үед өөрчлөлт ба мэдээ мэдээлэл</p>
           </div>
 
           <div className="newsActions">
             <div className="newsSelectWrap">
               <select className="newsSelect" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-                <option value="new">Newest</option>
-                <option value="old">Oldest</option>
+                <option value="new">Шинэ</option>
+                <option value="old">Хуучин</option>
               </select>
             </div>
           </div>
         </div>
 
         {msg && <div className="newsMsg">{msg}</div>}
-        {isEmpty && <div className="newsEmptyBox">No news available.</div>}
+        {isEmpty && <div className="newsEmptyBox">Мэдээ алга байна.</div>}
 
         {!msg && special.length > 0 && (
           <section className="special">
             <div className="special-top">
-              <h2 className="section-title">Special News</h2>
+              <h2 className="section-title">Онцгой мэдээ</h2>
               <div className="special-controls">
                 <button className="special-btn" onClick={onPrev} type="button" aria-label="Previous">‹</button>
                 <button className="special-btn" onClick={onNext} type="button" aria-label="Next">›</button>
@@ -222,7 +222,7 @@ export default function News() {
                         {getImageSrc(item.image_url) ? (
                           <img src={getImageSrc(item.image_url)} alt={item.title} className="special-img" />
                         ) : (
-                          <div className="special-img placeholder">No image</div>
+                          <div className="special-img placeholder">Зураг олдсонгүй</div>
                         )}
                       </div>
 
@@ -236,7 +236,7 @@ export default function News() {
                         <p className="special-body">{truncate(htmlToText(item.body), 260)}</p>
 
                         <button className="special-read" onClick={() => setSelected(item)} type="button">
-                          Read more
+                          Унших
                         </button>
                       </div>
                     </div>
@@ -252,7 +252,7 @@ export default function News() {
         {!msg && sortedNews.length > 0 && (
           <section className="latest">
             <div className="latest-top">
-              <h2 className="section-title">Latest</h2>
+              <h2 className="section-title">Сүүлийн мэдээ</h2>
             </div>
 
             <div className="latest-grid">
@@ -261,7 +261,7 @@ export default function News() {
                   {getImageSrc(n.image_url) ? (
                     <img className="news-card-img" src={getImageSrc(n.image_url)} alt={n.title} />
                   ) : (
-                    <div className="news-card-img placeholder">No image</div>
+                    <div className="news-card-img placeholder">Зураг олдсонгүй</div>
                   )}
 
                   <div className="news-card-body">
@@ -274,7 +274,7 @@ export default function News() {
                     <p className="news-card-text">{truncate(htmlToText(n.body), 120)}</p>
 
                     <button className="news-card-link" type="button" onClick={() => setSelected(n)}>
-                      Read →
+                      Унших →
                     </button>
                   </div>
                 </article>
@@ -294,7 +294,7 @@ export default function News() {
         {!msg && showMore && rest.length > 0 && (
           <section className="latest" ref={moreRef}>
             <div className="latest-top">
-              <h2 className="section-title">More News</h2>
+              <h2 className="section-title">Өөр мэдээ</h2>
             </div>
 
             <div className="latest-grid">
@@ -303,7 +303,7 @@ export default function News() {
                   {getImageSrc(n.image_url) ? (
                     <img className="news-card-img" src={getImageSrc(n.image_url)} alt={n.title} />
                   ) : (
-                    <div className="news-card-img placeholder">No image</div>
+                    <div className="news-card-img placeholder">Зураг олдсонгүй</div>
                   )}
 
                   <div className="news-card-body">
@@ -316,7 +316,7 @@ export default function News() {
                     <p className="news-card-text">{truncate(htmlToText(n.body), 120)}</p>
 
                     <button className="news-card-link" type="button" onClick={() => setSelected(n)}>
-                      Read →
+                      Унших →
                     </button>
                   </div>
                 </article>

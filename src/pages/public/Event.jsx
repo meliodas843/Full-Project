@@ -110,8 +110,8 @@
         <div className="eventsPage">
           <div className="eventsHeaderRow">
             <div className="eventsHeader">
-              <h2 className="eventsTitle">Events</h2>
-              <p className="eventsSub">Discover and join upcoming events</p>
+              <h2 className="eventsTitle">Эвентүүд</h2>
+              <p className="eventsSub">Олдсон эвентүүд</p>
             </div>
             <div className="eventsActions">
               <div className="eventsSearchWrap">
@@ -141,7 +141,7 @@
           {error && <div className="eventsError">{error}</div>}
 
           {loading ? (
-            <div className="eventsEmpty">Loading events…</div>
+            <div className="eventsEmpty">Эвентүүдийг ачааллаж байна...</div>
           ) : filtered.length === 0 ? (
             <div className="eventsEmpty">
               {events.length === 0 ? "No events available." : "No events match that title."}
@@ -159,7 +159,7 @@
             <div className="evModal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
               <div className="evModalHead">
                 <div>
-                  <div className="evModalKicker">Event Details</div>
+                  <div className="evModalKicker">Эвент дэлгэрэнгүй</div>
                   <h3 className="evModalTitle">{openEvent.title}</h3>
                 </div>
 
@@ -190,7 +190,7 @@
 
               <div className="evModalActions">
                 <button className="evModalBook" type="button" onClick={() => handleBook(openEvent)}>
-                  Book
+                  Оролцох
                 </button>
               </div>
             </div>

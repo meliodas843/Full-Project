@@ -107,7 +107,7 @@ export default function Login() {
           />
 
           <p className="forgot">
-            Forgot password? <Link to="/forgot-password">Reset it</Link>
+            Нууц үгээ мартсан? <Link to="/forgot-password">Нууц үг шинэчлэх</Link>
           </p>
 
           <button className="sign-btn" type="submit">

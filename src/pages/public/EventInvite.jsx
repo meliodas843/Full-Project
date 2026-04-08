@@ -81,9 +81,9 @@ export default function EventInvite() {
     }
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
+  if (loading) return <div style={{ padding: 24 }}>Унших...</div>;
   if (err) return <div style={{ padding: 24, color: "red" }}>{err}</div>;
-  if (!event) return <div style={{ padding: 24 }}>Not found</div>;
+  if (!event) return <div style={{ padding: 24 }}>Олдсонгүй</div>;
 
   return (
     <div style={{ maxWidth: 900, margin: "20px auto", padding: 16 }}>
@@ -113,7 +113,7 @@ export default function EventInvite() {
           cursor: "pointer",
         }}
       >
-        Book
+        Оролцох
       </button>
     </div>
   );

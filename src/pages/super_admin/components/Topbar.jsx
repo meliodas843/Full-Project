@@ -37,6 +37,7 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
 
   const wrapRef = useRef(null);
 
+  // close menus on outside click / Esc
   useEffect(() => {
     function onDown(e) {
       if (!wrapRef.current) return;
@@ -85,7 +86,7 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/login");
-    onNavigate();
+    onNavigate(); // ✅ close drawer if this topbar is inside drawer
   }
 
   function toggleBell() {
@@ -108,6 +109,7 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
       <div className="app-topbar-left" />
 
       <div className="app-topbar-right">
+        {/* Notifications */}
         <div className="tb-pop">
           <button
             className="app-topbar-icon"
@@ -116,26 +118,28 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
             onClick={toggleBell}
           >
             🔔
-            {pendingCount > 0 && <span className="tb-badge">{pendingCount}</span>}
+            {pendingCount > 0 && (
+              <span className="tb-badge">{pendingCount}</span>
+            )}
           </button>
 
           {openBell && (
             <div className="tb-menu tb-menu-wide">
               <div className="tb-menu-head">
-                <div className="tb-menu-title">Уулзалтын хүсэлт</div>
+                <div className="tb-menu-title">Requested meetings</div>
                 <button
                   className="tb-menu-action"
                   type="button"
                   onClick={loadPendingRequests}
                 >
-                  Шинэчлэх
+                  Refresh
                 </button>
               </div>
 
               {loadingBell ? (
-                <div className="tb-empty">Унших…</div>
+                <div className="tb-empty">Loading…</div>
               ) : pendingCount === 0 ? (
-                <div className="tb-empty">Хүсэлт байхгүй</div>
+                <div className="tb-empty">No pending requests</div>
               ) : (
                 <div className="tb-list">
                   {pending.map((r) => (
@@ -145,16 +149,24 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
                       type="button"
                       onClick={() => {
                         setOpenBell(false);
+
+                        // ✅ GO TO REQUESTS (Home -> Requests section)
+                        // Add id="requests" to Requests card OR just keep this and scroll manually.
                         navigate("/user/home#requests");
-                        onNavigate();
+
+                        onNavigate(); // ✅ close drawer after navigation
                       }}
                     >
                       <div className="tb-item-top">
-                        <div className="tb-item-title">{r.title || "Meeting"}</div>
-                        <div className="tb-item-time">{formatDateTime(r.start_time)}</div>
+                        <div className="tb-item-title">
+                          {r.title || "Meeting"}
+                        </div>
+                        <div className="tb-item-time">
+                          {formatDateTime(r.start_time)}
+                        </div>
                       </div>
                       <div className="tb-item-sub">
-                        Хэнээс: <strong>{r.from_company || "Unknown"}</strong>
+                        From: <strong>{r.from_company || "Unknown"}</strong>
                       </div>
                     </button>
                   ))}
@@ -164,6 +176,7 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
           )}
         </div>
 
+        {/* Profile */}
         <div className="tb-pop">
           <button
             className="app-topbar-profile"
@@ -174,7 +187,7 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
             <div className="tb-avatar">D</div>
             <div className="tb-user">
               <div className="tb-name">{name}</div>
-              <div className="tb-sub">Хэрэглэгч</div>
+              <div className="tb-sub">User</div>
             </div>
           </button>
 
@@ -185,11 +198,14 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
                 type="button"
                 onClick={() => {
                   setOpenProfile(false);
+
+                  // ✅ FIX: keep user layout (not /profile)
                   navigate("/user/profile");
-                  onNavigate();
+
+                  onNavigate(); // ✅ close drawer after navigation
                 }}
               >
-                Тохиргоо / Профайл
+                Settings / Profile
               </button>
 
               <button
@@ -197,7 +213,7 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
                 type="button"
                 onClick={handleLogout}
               >
-                Гарах
+                Logout
               </button>
             </div>
           )}

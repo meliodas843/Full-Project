@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";   // adjust path if needed
+import logo from "../assets/logo.png";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -23,13 +23,18 @@ export default function Navbar() {
           <img src={logo} alt="Khural Plus+ Logo" className="navbar__logoImg" />
         </Link>
         <ul className="navbar__links">
-          <li><Link to="/events">Events</Link></li>
-          <li><Link to="/news">News</Link></li>
-          <li><Link to="/project">Project</Link></li>
-          <li><Link to="/mentor">Mentor</Link></li>
+          <li>
+            <Link to="/">Нүүр</Link>
+          </li>
+          <li>
+            <Link to="/events">Эвэнт</Link>
+          </li>
+          <li>
+            <Link to="/news">Мэдээ</Link>
+          </li>
           <li>
             <Link to="/login" className="get-started-btn">
-              Get Started
+              Нэвтрэх
             </Link>
           </li>
         </ul>
@@ -40,9 +45,7 @@ export default function Navbar() {
           aria-expanded={open}
           onClick={() => setOpen(true)}
         >
-          <span className="navbar__bar" />
-          <span className="navbar__bar" />
-          <span className="navbar__bar" />
+          {open ? "✕" : "☰"}
         </button>
       </nav>
 
@@ -58,10 +61,18 @@ export default function Navbar() {
           </button>
         </div>
 
-        <Link to="/events" onClick={() => setOpen(false)}>Events</Link>
-        <Link to="/news" onClick={() => setOpen(false)}>News</Link>
-        <Link to="/login" className="get-started-btn" onClick={() => setOpen(false)}>
-          Get Started
+        <Link to="/events" onClick={() => setOpen(false)}>
+          Эвэнт
+        </Link>
+        <Link to="/news" onClick={() => setOpen(false)}>
+          Мэдээ
+        </Link>
+        <Link
+          to="/login"
+          className="get-started-btn"
+          onClick={() => setOpen(false)}
+        >
+          Нэвтрэх
         </Link>
       </aside>
     </>

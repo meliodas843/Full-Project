@@ -163,7 +163,7 @@ export default function Meeting() {
     (async () => {
       try {
         const res = await authFetch(
-          `${API_BASE}/api/events/${selectedEventId}/participants`
+          `${API_BASE}/api/events/${selectedEventId}/participants`,
         );
         if (!res || cancelled) return;
 
@@ -212,7 +212,7 @@ export default function Meeting() {
     (async () => {
       try {
         const res = await authFetch(
-          `${API_BASE}/api/companies/employees?company=${encodeURIComponent(company)}`
+          `${API_BASE}/api/companies/employees?company=${encodeURIComponent(company)}`,
         );
         if (!res || cancelled) return;
 
@@ -261,11 +261,14 @@ export default function Meeting() {
     e.preventDefault();
     setMessage("");
 
-    if (!meetingDate || !startTime) return setMessage("Date and start time are required");
+    if (!meetingDate || !startTime)
+      return setMessage("Date and start time are required");
     if (!reason.trim()) return setMessage("Reason is required");
 
-    const invitees = mode === "event" ? selectedEventEmails : selectedCompanyEmails;
-    if (!invitees.length) return setMessage("Select at least one person to invite");
+    const invitees =
+      mode === "event" ? selectedEventEmails : selectedCompanyEmails;
+    if (!invitees.length)
+      return setMessage("Select at least one person to invite");
 
     let sendCompany = "";
     if (mode === "company") {
@@ -273,8 +276,12 @@ export default function Meeting() {
       if (!sendCompany) return setMessage("Company is required");
     }
 
-    const selectedEvent = myEvents.find((x) => String(x.id) === String(selectedEventId));
-    const eventTitle = selectedEvent?.title ? String(selectedEvent.title).trim() : "";
+    const selectedEvent = myEvents.find(
+      (x) => String(x.id) === String(selectedEventId),
+    );
+    const eventTitle = selectedEvent?.title
+      ? String(selectedEvent.title).trim()
+      : "";
 
     try {
       setLoading(true);
@@ -287,7 +294,7 @@ export default function Meeting() {
         invitees,
         mode,
         eventId: mode === "event" ? Number(selectedEventId) || null : null,
-        title: mode === "event" ? (eventTitle || "Event Meeting") : null,
+        title: mode === "event" ? eventTitle || "Event Meeting" : null,
       };
 
       if (mode === "company") payload.company = sendCompany;
@@ -320,156 +327,167 @@ export default function Meeting() {
 
   return (
     <UserShell title="Create Meeting">
-        <div className="meet-wrap">
-          <div className="meet-card">
-            <div className="meet-head">
-              <div>
-                <h2 className="meet-title">Create Meeting</h2>
-                <p className="meet-sub">Send requests by Event or by Company</p>
-              </div>
-
-              <button
-                className="meet-back"
-                type="button"
-                onClick={() => navigate("/user/notifications")}
-              >
-                Back
-              </button>
+      <div className="meet-wrap">
+        <div className="meet-card">
+          <div className="meet-head">
+            <div>
+              <h2 className="meet-title">Уулзалт зохион байгуулах</h2>
+              <p className="meet-sub">
+                Компанийн болон Эвэнтийн уулзалт зохион байгуулах
+              </p>
             </div>
 
-            {/* MODE SWITCH */}
-            <div className="meet-tabs">
-              <button
-                type="button"
-                className={mode === "event" ? "meet-tab active" : "meet-tab"}
-                onClick={() => setMode("event")}
-              >
-                From My Events
-              </button>
-              <button
-                type="button"
-                className={mode === "company" ? "meet-tab active" : "meet-tab"}
-                onClick={() => setMode("company")}
-              >
-                By Company
-              </button>
-            </div>
+            <button
+              className="meet-back"
+              type="button"
+              onClick={() => navigate("/user/notifications")}
+            >
+              Буцах
+            </button>
+          </div>
 
-            <form className="meet-form" onSubmit={handleSend}>
-              {/* COMPANY DROPDOWN ONLY IN COMPANY MODE */}
-              {mode === "company" && (
+          {/* MODE SWITCH */}
+          <div className="meet-tabs">
+            <button
+              type="button"
+              className={mode === "event" ? "meet-tab active" : "meet-tab"}
+              onClick={() => setMode("event")}
+            >
+              Миний эвэнтүүдээр
+            </button>
+            <button
+              type="button"
+              className={mode === "company" ? "meet-tab active" : "meet-tab"}
+              onClick={() => setMode("company")}
+            >
+              Байгууллагаар
+            </button>
+          </div>
+
+          <form className="meet-form" onSubmit={handleSend}>
+            {/* COMPANY DROPDOWN ONLY IN COMPANY MODE */}
+            {mode === "company" && (
+              <select
+                className="meet-input"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              >
+                <option value="">Байгууллага сонгоно уу</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {mode === "event" ? (
+              <>
                 <select
                   className="meet-input"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
+                  value={selectedEventId}
+                  onChange={(e) => setSelectedEventId(e.target.value)}
                 >
-                  <option value="">Select company</option>
-                  {companies.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.name}
+                  <option value="">Миний эвэнт сонгоно уу</option>
+                  {myEvents.map((ev) => (
+                    <option key={ev.id} value={ev.id}>
+                      {ev.title}
                     </option>
                   ))}
                 </select>
-              )}
 
-              {/* MODE A: pick event + participants dropdown */}
-              {mode === "event" ? (
-                <>
+                {eventPeople.length === 0 ? (
+                  <div className="meet-hint">
+                    Эвэнт дээрх харилцагчдыг сонгоно уу.
+                  </div>
+                ) : (
                   <select
                     className="meet-input"
-                    value={selectedEventId}
-                    onChange={(e) => setSelectedEventId(e.target.value)}
+                    multiple
+                    size={Math.min(8, eventPeople.length)}
+                    value={selectedEventEmails}
+                    onChange={(e) => {
+                      const values = Array.from(
+                        e.target.selectedOptions,
+                        (o) => o.value,
+                      );
+                      setSelectedEventEmails(values);
+                    }}
                   >
-                    <option value="">Select my event</option>
-                    {myEvents.map((ev) => (
-                      <option key={ev.id} value={ev.id}>
-                        {ev.title}
+                    {eventPeople.map((p) => (
+                      <option key={p.id} value={p.email}>
+                        {p.name} — {p.email}
                       </option>
                     ))}
                   </select>
+                )}
+              </>
+            ) : (
+              <>
+                {employees.length === 0 ? (
+                  <div className="meet-hint">
+                    Байгууллага дээрх харилцагчдыг сонгоно уу.
+                  </div>
+                ) : (
+                  <select
+                    className="meet-input"
+                    multiple
+                    size={Math.min(10, employees.length)}
+                    value={selectedCompanyEmails}
+                    onChange={(e) => {
+                      const values = Array.from(
+                        e.target.selectedOptions,
+                        (o) => o.value,
+                      );
+                      setSelectedCompanyEmails(values);
+                    }}
+                  >
+                    {employees.map((p) => (
+                      <option key={p.id} value={p.email}>
+                        {p.name} — {p.email}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </>
+            )}
 
-                  {eventPeople.length === 0 ? (
-                    <div className="meet-hint">Pick an event to load participants.</div>
-                  ) : (
-                    <select
-                      className="meet-input"
-                      multiple
-                      size={Math.min(8, eventPeople.length)}
-                      value={selectedEventEmails}
-                      onChange={(e) => {
-                        const values = Array.from(e.target.selectedOptions, (o) => o.value);
-                        setSelectedEventEmails(values);
-                      }}
-                    >
-                      {eventPeople.map((p) => (
-                        <option key={p.id} value={p.email}>
-                          {p.name} — {p.email}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </>
-              ) : (
-                <>
-                  {employees.length === 0 ? (
-                    <div className="meet-hint">Select a company to load employees.</div>
-                  ) : (
-                    <select
-                      className="meet-input"
-                      multiple
-                      size={Math.min(10, employees.length)}
-                      value={selectedCompanyEmails}
-                      onChange={(e) => {
-                        const values = Array.from(e.target.selectedOptions, (o) => o.value);
-                        setSelectedCompanyEmails(values);
-                      }}
-                    >
-                      {employees.map((p) => (
-                        <option key={p.id} value={p.email}>
-                          {p.name} — {p.email}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </>
-              )}
+            <input
+              className="meet-input"
+              type="date"
+              value={meetingDate}
+              onChange={(e) => setMeetingDate(e.target.value)}
+            />
 
-              <input
-                className="meet-input"
-                type="date"
-                value={meetingDate}
-                onChange={(e) => setMeetingDate(e.target.value)}
-              />
+            <input
+              className="meet-input"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+            />
 
-              <input
-                className="meet-input"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
+            <input
+              className="meet-input"
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+            />
 
-              <input
-                className="meet-input"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
+            <textarea
+              className="meet-textarea"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Reason"
+            />
 
-              <textarea
-                className="meet-textarea"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Reason"
-              />
+            {message && <div className="meet-message">{message}</div>}
 
-              {message && <div className="meet-message">{message}</div>}
-
-              <button className="meet-btn" disabled={loading}>
-                {loading ? "Sending..." : "Send"}
-              </button>
-            </form>
-          </div>
+            <button className="meet-btn" disabled={loading}>
+              {loading ? "Sending..." : "Send"}
+            </button>
+          </form>
         </div>
+      </div>
     </UserShell>
   );
 }

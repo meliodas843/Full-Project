@@ -10,7 +10,7 @@ function getToken() {
 export default function Notifications() {
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState("inbox"); 
+  const [tab, setTab] = useState("inbox");
 
   const [inbox, setInbox] = useState([]);
   const [sent, setSent] = useState([]);
@@ -156,9 +156,9 @@ export default function Notifications() {
         <div className="noti-wrap">
           <div className="noti-head">
             <div>
-              <h2 className="noti-title">Requests & Meetings</h2>
+              <h2 className="noti-title">Хүсэлт & Уулзалт</h2>
               <p className="noti-sub">
-                Pending requests, Sent requests, and Accepted meetings.
+                Хүлээгдэж буй | Илгээсэн | Зөвшөөрөгдсөн уулзалтууд.
               </p>
             </div>
 
@@ -168,11 +168,15 @@ export default function Notifications() {
                 className="noti-btn"
                 onClick={() => navigate("/user/meeting")}
               >
-                + Create Meeting
+                + Уулзалт үүсгэх
               </button>
 
-              <button type="button" className="noti-btn ghost" onClick={refreshAll}>
-                Refresh
+              <button
+                type="button"
+                className="noti-btn ghost"
+                onClick={refreshAll}
+              >
+                Шинэчлэх
               </button>
             </div>
           </div>
@@ -183,7 +187,7 @@ export default function Notifications() {
               onClick={() => setTab("inbox")}
               type="button"
             >
-              Pending (Inbox) ({pendingInbox.length})
+              Хүлээгдэж буй (Ирсэн мэйл ) ({pendingInbox.length})
             </button>
 
             <button
@@ -191,7 +195,7 @@ export default function Notifications() {
               onClick={() => setTab("sent")}
               type="button"
             >
-              Sent Requests ({pendingSent.length})
+              Илгээсэн хүсэлт ({pendingSent.length})
             </button>
 
             <button
@@ -199,31 +203,35 @@ export default function Notifications() {
               onClick={() => setTab("accepted")}
               type="button"
             >
-              My Meetings ({accepted.length})
+              Миний уулзалтууд ({accepted.length})
             </button>
           </div>
 
           {msg && <div className="noti-msg">{msg}</div>}
 
           {loading ? (
-            <div className="noti-empty">Loading…</div>
+            <div className="noti-empty">Уншиж байна...</div>
           ) : tab === "inbox" ? (
             <div className="noti-list">
               {pendingInbox.length === 0 ? (
-                <div className="noti-empty">No pending requests.</div>
+                <div className="noti-empty">Хүлээгдэж буй хүсэлт байхгүй</div>
               ) : (
                 pendingInbox.map((m) => (
                   <div className="noti-card" key={m.id}>
                     <div className="noti-card-top">
-                      <div className="noti-card-title">{m.title || "Meeting"}</div>
+                      <div className="noti-card-title">
+                        {m.title || "Meeting"}
+                      </div>
                       <div className="noti-card-time">{fmt(m.start_time)}</div>
                     </div>
 
                     <div className="noti-card-sub">
-                      From: <strong>{m.creator_email}</strong>
+                      Хэнээс: <strong>{m.creator_email}</strong>
                     </div>
 
-                    {m.description && <div className="noti-card-desc">{m.description}</div>}
+                    {m.description && (
+                      <div className="noti-card-desc">{m.description}</div>
+                    )}
 
                     <div className="noti-card-actions">
                       <button
@@ -231,14 +239,14 @@ export default function Notifications() {
                         type="button"
                         onClick={() => acceptMeeting(m.id)}
                       >
-                        Accept
+                        Зөвшөөрөх
                       </button>
                       <button
                         className="noti-small-btn danger"
                         type="button"
                         onClick={() => declineMeeting(m.id)}
                       >
-                        Decline
+                        Цуцлах
                       </button>
                     </div>
                   </div>
@@ -248,12 +256,14 @@ export default function Notifications() {
           ) : tab === "sent" ? (
             <div className="noti-list">
               {sent.length === 0 ? (
-                <div className="noti-empty">No sent requests.</div>
+                <div className="noti-empty">Илгээсэн хүсэлт байхгүй</div>
               ) : (
                 sent.map((m) => (
                   <div className="noti-card" key={m.id}>
                     <div className="noti-card-top">
-                      <div className="noti-card-title">{m.title || "Meeting"}</div>
+                      <div className="noti-card-title">
+                        {m.title || "Meeting"}
+                      </div>
                       <div className="noti-card-time">{fmt(m.start_time)}</div>
                     </div>
 
@@ -262,7 +272,9 @@ export default function Notifications() {
                       <span className={`pill ${m.status}`}>{m.status}</span>
                     </div>
 
-                    {m.description && <div className="noti-card-desc">{m.description}</div>}
+                    {m.description && (
+                      <div className="noti-card-desc">{m.description}</div>
+                    )}
                   </div>
                 ))
               )}
@@ -270,25 +282,28 @@ export default function Notifications() {
           ) : (
             <div className="noti-list">
               {accepted.length === 0 ? (
-                <div className="noti-empty">No accepted meetings yet.</div>
+                <div className="noti-empty">Зөвшөөрсөн уулзалт байхгүй</div>
               ) : (
                 accepted.map((m) => (
                   <div className="noti-card" key={m.id}>
                     <div className="noti-card-top">
-                      <div className="noti-card-title">{m.title || "Meeting"}</div>
+                      <div className="noti-card-title">
+                        {m.title || "Meeting"}
+                      </div>
                       <div className="noti-card-time">{fmt(m.start_time)}</div>
                     </div>
 
                     <div className="noti-card-sub">
-                      With: <strong>{m.creator_email}</strong> &nbsp;↔&nbsp;{" "}
+                      Хамтдаа: <strong>{m.creator_email}</strong> &nbsp;↔&nbsp;{" "}
                       <strong>{m.recipient_email}</strong>
-                      <span className="pill accepted">accepted</span>
+                      <span className="pill accepted">Зөвшөөрсөн</span>
                     </div>
 
-                    {m.description && <div className="noti-card-desc">{m.description}</div>}
+                    {m.description && (
+                      <div className="noti-card-desc">{m.description}</div>
+                    )}
 
                     <div className="noti-card-actions">
-                      {/* ✅ Your snippet added here */}
                       {m.zoom_join_url ? (
                         <a
                           className="btn"
@@ -296,10 +311,10 @@ export default function Notifications() {
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Join Zoom
+                          Zoom руу орох
                         </a>
                       ) : (
-                        <span className="muted">Zoom link not created yet</span>
+                        <span className="muted">Zoom холбоос олдсонгүй</span>
                       )}
                     </div>
                   </div>

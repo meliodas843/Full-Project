@@ -37,12 +37,11 @@ export default function EventCard({ event, onBook, onOpen }) {
   }, [joined, max]);
 
   function handleCardClick() {
-    // open popup details
     if (typeof onOpen === "function") onOpen(event);
   }
 
   function handleBookClick(e) {
-    e.stopPropagation(); // ✅ don't open modal
+    e.stopPropagation(); 
     setMsg("");
 
     const token = localStorage.getItem("token");
@@ -82,7 +81,7 @@ export default function EventCard({ event, onBook, onOpen }) {
       <div className="evCardBody">
         <div className="evCardTitleRow">
           <h3 className="evCardTitle">{event.title || "Untitled event"}</h3>
-          {event.visibility === "private" ? <span className="evCardPrivate">Private</span> : null}
+          {event.visibility === "private" ? <span className="evCardPrivate">Тусгай</span> : null}
         </div>
 
         <p className="evCardDesc">{event.description || "No description."}</p>
@@ -94,7 +93,7 @@ export default function EventCard({ event, onBook, onOpen }) {
           </div>
 
           <button className="evCardBtn" type="button" onClick={handleBookClick}>
-            Book
+            Оролцох
           </button>
         </div>
 

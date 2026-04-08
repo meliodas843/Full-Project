@@ -8,8 +8,10 @@ import {
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 import Home from "./pages/public/Home";
+import NewsCreate from "./pages/super_admin/pages/NewsCreate";
 import Login from "./pages/public/Login";
 import Signup from "./pages/public/Signup";
 import News from "./pages/public/News";
@@ -17,8 +19,6 @@ import PublicEvents from "./pages/public/Event";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
-import Project from "./pages/public/Project";
-import Mentor from "./pages/public/Mentor";
 
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
@@ -31,8 +31,6 @@ import Company from "./pages/user/pages/Company";
 import Bill from "./pages/user/pages/Bill";
 
 import SuperAdminHome from "./pages/super_admin/pages/Home";
-import NewsCreate from "./pages/super_admin/pages/NewsCreate";
-import AddProject from "./pages/super_admin/pages/AddProject";
 
 function AppRoutes() {
   const location = useLocation();
@@ -45,15 +43,16 @@ function AppRoutes() {
 
   return (
     <>
+      <ScrollToTop />
+
       {showPublicNavbar && <Navbar />}
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/news" element={<News />} />
         <Route path="/events" element={<PublicEvents />} />
-        <Route path="/project" element={<Project />} />
-        <Route path="/mentor" element={<Mentor />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/event/invite/:token" element={<EventInvite />} />
@@ -78,7 +77,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/event"
           element={
@@ -87,7 +85,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/history"
           element={
@@ -96,7 +93,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/notifications"
           element={
@@ -105,7 +101,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/meeting/create"
           element={
@@ -126,7 +121,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/password"
           element={
@@ -135,7 +129,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/company"
           element={
@@ -144,7 +137,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/user/bill"
           element={
@@ -161,7 +153,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/super-admin/news-create"
           element={
@@ -169,16 +160,7 @@ function AppRoutes() {
               <NewsCreate />
             </ProtectedRoute>
           }
-        /> 
-        <Route
-          path="/super-admin/add-project"
-          element={
-            <ProtectedRoute roles={["super_admin"]}>
-              <AddProject />
-            </ProtectedRoute>
-          }
         />
-
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

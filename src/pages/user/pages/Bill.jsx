@@ -38,12 +38,9 @@ function getInitials(nameOrEmail) {
 
 export default function Bill() {
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
   const [user, setUser] = useState(null);
-
-  // Optional fallback from JWT payload
   const tokenUser = useMemo(() => {
     try {
       const token = getToken();
@@ -116,44 +113,43 @@ export default function Bill() {
                 to="/user/profile"
                 className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
               >
-                Profile
+                Профайл
               </NavLink>
 
               <NavLink
                 to="/user/password"
                 className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
               >
-                Change Password
+                Нууц үг солих
               </NavLink>
 
               <NavLink
                 to="/user/company"
                 className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
               >
-                Company
+                Компани
               </NavLink>
 
               <NavLink
                 to="/user/bill"
                 className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
               >
-                Bill
+                Төлбөр
               </NavLink>
             </div>
           </aside>
 
-          {/* RIGHT */}
           <main className="profileMain">
             {errMsg ? <div className="profileAlert profileAlertError">{errMsg}</div> : null}
 
             {loading ? (
-              <div className="profileEmpty">Loading profile…</div>
+              <div className="profileEmpty">Профайл уншиж байна…</div>
             ) : !display ? (
-              <div className="profileEmpty">No profile data.</div>
+              <div className="profileEmpty">Профайл олдсонгүй</div>
             ) : (
               <section className="profileCard">
                 <div className="profileMainHeader">
-                  <h3 className="profileTitle">Bill</h3>
+                  <h3 className="profileTitle">Төлбөр</h3>
                 </div>
 
                 {/* TOP */}
@@ -175,37 +171,37 @@ export default function Bill() {
                     title="Edit profile"
                     onClick={() => navigate("/user/edit")}
                   >
-                    Edit
+                    Засах
                   </button>
                 </div>
 
                 {/* PERSONAL INFO */}
                 <div className="profileSection">
-                  <div className="profileSectionTitle">Personal info</div>
+                  <div className="profileSectionTitle">Хувийн мэдээлэл</div>
 
                   <div className="profileInfoGrid">
                     <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Company</div>
+                      <div className="profileInfoLabel">Компани</div>
                       <div className="profileInfoValue">{safeText(display.company_name)}</div>
                     </div>
 
                     <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Phone</div>
+                      <div className="profileInfoLabel">Утас</div>
                       <div className="profileInfoValue">{safeText(display.phone)}</div>
                     </div>
 
                     <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Role</div>
+                      <div className="profileInfoLabel">Рол</div>
                       <div className="profileInfoValue">{safeText(display.role)}</div>
                     </div>
 
                     <div className="profileInfoItem">
-                      <div className="profileInfoLabel">User ID</div>
+                      <div className="profileInfoLabel">Хэрэглэгч ID</div>
                       <div className="profileInfoValue">{safeText(display.id)}</div>
                     </div>
 
                     <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Created</div>
+                      <div className="profileInfoLabel">Үүссэн</div>
                       <div className="profileInfoValue">
                         {formatDate(display.created_at || display.created_time)}
                       </div>
