@@ -1408,7 +1408,14 @@ export default function Event() {
                         className="uep-inputLight"
                         type="datetime-local"
                         value={start_time}
-                        onChange={(e) => setStartTime(e.target.value)}
+                        onChange={(e) => {
+                          const nextStart = e.target.value;
+                          setStartTime(nextStart);
+
+                          if (end_time && nextStart && end_time < nextStart) {
+                            setEndTime("");
+                          }
+                        }}
                       />
                     </label>
 
@@ -1418,7 +1425,9 @@ export default function Event() {
                         className="uep-inputLight"
                         type="datetime-local"
                         value={end_time}
+                        min={start_time || undefined}
                         onChange={(e) => setEndTime(e.target.value)}
+                        disabled={!start_time}
                       />
                     </label>
                   </div>

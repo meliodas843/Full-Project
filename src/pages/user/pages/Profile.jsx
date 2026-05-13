@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
 
@@ -37,6 +37,8 @@ function getInitials(nameOrEmail) {
 }
 
 export default function Profile() {
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errMsg, setErrMsg] = useState("");
@@ -55,12 +57,11 @@ export default function Profile() {
     try {
       const token = getToken();
       if (!token) return null;
+
       const [, payload] = token.split(".");
       if (!payload) return null;
-      const json = JSON.parse(
-        atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
-      );
-      return json || null;
+
+      return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) || null;
     } catch {
       return null;
     }
@@ -70,7 +71,7 @@ export default function Profile() {
     setForm({
       firstName: profile?.firstName || profile?.first_name || "",
       lastName: profile?.lastName || profile?.last_name || "",
-      phone: profile?.phone || "",
+      phone: String(profile?.phone || "").replace(/\D/g, "").slice(0, 8),
       company_name: profile?.company_name || "",
     });
   }
@@ -82,6 +83,7 @@ export default function Profile() {
       setLoading(true);
 
       const token = getToken();
+
       if (!token) {
         setUser(null);
         setErrMsg("Please login first.");
@@ -89,10 +91,13 @@ export default function Profile() {
       }
 
       const res = await fetch(`${API_BASE}/api/profile/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
         setUser(null);
         setErrMsg(data?.message || "Failed to load profile");
@@ -100,8 +105,20 @@ export default function Profile() {
       }
 
       const profileUser = data?.user || null;
+
       setUser(profileUser);
       fillForm(profileUser);
+
+      const missingInfo =
+        !String(profileUser?.firstName || profileUser?.first_name || "").trim() ||
+        !String(profileUser?.lastName || profileUser?.last_name || "").trim() ||
+        !String(profileUser?.phone || "").replace(/\D/g, "").trim() ||
+        !String(profileUser?.company_name || "").trim();
+
+      if (missingInfo) {
+        setIsEditing(true);
+        setErrMsg("Мэдээллээ бүрэн оруулна уу.");
+      }
     } catch (e) {
       console.error(e);
       setUser(null);
@@ -118,7 +135,9 @@ export default function Profile() {
   const display = user || tokenUser || null;
 
   const fullName =
-    `${display?.firstName || display?.first_name || ""} ${display?.lastName || display?.last_name || ""}`.trim() ||
+    `${display?.firstName || display?.first_name || ""} ${
+      display?.lastName || display?.last_name || ""
+    }`.trim() ||
     display?.full_name ||
     display?.name ||
     display?.email ||
@@ -130,7 +149,42 @@ export default function Profile() {
 
   function handleChange(e) {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrMsg("");
+    setSuccessMsg("");
+  }
+
+  function handlePhoneChange(e) {
+    const onlyNumbers = e.target.value.replace(/\D/g, "").slice(0, 8);
+
+    setForm((prev) => ({
+      ...prev,
+      phone: onlyNumbers,
+    }));
+
+    setErrMsg("");
+    setSuccessMsg("");
+  }
+
+  function validateForm() {
+    if (!form.firstName.trim()) return "Мэдээллээ бүрэн оруулна уу.";
+    if (!form.lastName.trim()) return "Мэдээллээ бүрэн оруулна уу.";
+    if (!form.company_name.trim()) return "Мэдээллээ бүрэн оруулна уу.";
+
+    if (!form.phone.trim()) {
+      return "Мэдээллээ бүрэн оруулна уу.";
+    }
+
+    if (!/^\d{8}$/.test(form.phone.trim())) {
+      return "Утасны дугаараа 8 оронтой тоогоор оруулна уу.";
+    }
+
+    return "";
   }
 
   function handleEdit() {
@@ -148,22 +202,31 @@ export default function Profile() {
   }
 
   async function handleSave() {
+    const validationError = validateForm();
+
+    if (validationError) {
+      setErrMsg(validationError);
+      setSuccessMsg("");
+      return;
+    }
+
     try {
       setSaving(true);
       setErrMsg("");
       setSuccessMsg("");
 
       const token = getToken();
+
       if (!token) {
         setErrMsg("Please login first.");
         return;
       }
 
       const payload = {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        phone: form.phone,
-        company_name: form.company_name,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        phone: form.phone.trim(),
+        company_name: form.company_name.trim(),
       };
 
       const res = await fetch(`${API_BASE}/api/profile/me`, {
@@ -182,11 +245,17 @@ export default function Profile() {
         return;
       }
 
-      const updatedUser = data?.user || { ...user, ...payload };
+      const updatedUser = data?.user || {
+        ...user,
+        ...payload,
+      };
+
       setUser(updatedUser);
       fillForm(updatedUser);
       setIsEditing(false);
       setSuccessMsg("Бүртгэл амжилттай хадгалагдлаа.");
+
+      navigate("/user/home");
     } catch (e) {
       console.error(e);
       setErrMsg("Интернэтэд холбогдоход алдаа гарлаа.");
@@ -242,6 +311,7 @@ export default function Profile() {
           {errMsg ? (
             <div className="profileAlert profileAlertError">{errMsg}</div>
           ) : null}
+
           {successMsg ? (
             <div className="profileAlert profileAlertSuccess">{successMsg}</div>
           ) : null}
@@ -272,6 +342,7 @@ export default function Profile() {
                         ? `${form.firstName} ${form.lastName}`.trim() || "—"
                         : safeText(fullName)}
                     </div>
+
                     <div className="profileEmail">{safeText(email)}</div>
                   </div>
                 </div>
@@ -295,6 +366,7 @@ export default function Profile() {
                     >
                       {saving ? "Saving..." : "Save"}
                     </button>
+
                     <button
                       className="profileCancelBtn"
                       type="button"
@@ -320,6 +392,7 @@ export default function Profile() {
                           name="firstName"
                           value={form.firstName}
                           onChange={handleChange}
+                          required
                         />
                       ) : (
                         safeText(display.firstName || display.first_name)
@@ -336,6 +409,7 @@ export default function Profile() {
                           name="lastName"
                           value={form.lastName}
                           onChange={handleChange}
+                          required
                         />
                       ) : (
                         safeText(display.lastName || display.last_name)
@@ -352,6 +426,7 @@ export default function Profile() {
                           name="company_name"
                           value={form.company_name}
                           onChange={handleChange}
+                          required
                         />
                       ) : (
                         safeText(display.company_name)
@@ -367,7 +442,12 @@ export default function Profile() {
                           className="profileInput"
                           name="phone"
                           value={form.phone}
-                          onChange={handleChange}
+                          onChange={handlePhoneChange}
+                          required
+                          maxLength={8}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder="99999999"
                         />
                       ) : (
                         safeText(display.phone)

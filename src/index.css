@@ -1573,6 +1573,39 @@ a {
   outline-offset: -2px;
 }
 
+.price-card.free,
+.price-card:first-child {
+  background: #ffffff !important;
+  color: #6a5cff !important;
+  border: 2px solid #6a5cff !important;
+  box-shadow: 0 18px 40px rgba(106, 92, 255, 0.18);
+}
+
+.price-card.free h3,
+.price-card.free .price,
+.price-card.free .price-desc,
+.price-card.free li,
+.price-card:first-child h3,
+.price-card:first-child .price,
+.price-card:first-child .price-desc,
+.price-card:first-child li {
+  color: #6a5cff !important;
+}
+
+.price-card.free .btn,
+.price-card:first-child .btn {
+  background: #6a5cff !important;
+  color: #ffffff !important;
+  border-color: #6a5cff !important;
+}
+
+.price-card.free:hover,
+.price-card:first-child:hover {
+  transform: translateY(-6px);
+  border-color: #4f46e5 !important;
+  box-shadow: 0 24px 60px rgba(106, 92, 255, 0.25);
+}
+
 .badge {
   position: absolute;
   top: 16px;
