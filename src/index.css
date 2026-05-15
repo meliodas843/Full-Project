@@ -5748,6 +5748,26 @@ a {
   transform: translateY(0px);
 }
 
+.uep-listItem.is-created {
+  border-left: 4px solid #2563eb;
+  background: #eff6ff;
+}
+
+.uep-listItem.is-joined {
+  border-left: 4px solid #16a34a;
+  background: #f0fdf4;
+}
+
+.uep-listItem.is-created .uep-listMeta:first-of-type {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.uep-listItem.is-joined .uep-listMeta:first-of-type {
+  color: #15803d;
+  font-weight: 700;
+}
+
 .uep-listName {
   font-size: 13px;
   font-weight: 800;

@@ -10,34 +10,56 @@ function safeParseUser() {
   }
 }
 
-export default function ProtectedRoute({ children, roles }) {
+function parseTokenUser(token) {
+  try {
+    const [, payload] = token.split(".");
+    if (!payload) return null;
+
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+  } catch {
+    return null;
+  }
+}
+
+export default function ProtectedRoute({ children, roles = [] }) {
   const location = useLocation();
   const path = location.pathname;
 
-  const [status, setStatus] = useState("checking"); 
+  const [status, setStatus] = useState("checking");
   const [user, setUser] = useState(() => safeParseUser());
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedUser = safeParseUser();
 
     if (!token) {
       setStatus("login");
       return;
     }
 
-    if (storedUser) {
-      setUser(storedUser);
+    const tokenUser = parseTokenUser(token);
+    const storedUser = safeParseUser();
+
+    const mergedUser = {
+      ...(tokenUser || {}),
+      ...(storedUser || {}),
+      role: storedUser?.role || tokenUser?.role || "user",
+    };
+
+    if (mergedUser?.id || mergedUser?.email) {
+      localStorage.setItem("user", JSON.stringify(mergedUser));
+      setUser(mergedUser);
       setStatus("ok");
       return;
     }
 
     let cancelled = false;
 
-    (async () => {
+    async function loadMe() {
       try {
-        const res = await fetch(`${API_BASE}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch(`${API_BASE}/api/profile/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (!res.ok) {
@@ -45,22 +67,28 @@ export default function ProtectedRoute({ children, roles }) {
           return;
         }
 
-        const me = await res.json().catch(() => null);
-        if (!me) {
-          if (!cancelled) setStatus("login");
-          return;
-        }
+        const data = await res.json().catch(() => null);
+        const me = data?.user || data;
 
-        localStorage.setItem("user", JSON.stringify(me));
+        const finalUser = {
+          ...(tokenUser || {}),
+          ...(me || {}),
+          role: me?.role || tokenUser?.role || "user",
+        };
+
+        localStorage.setItem("user", JSON.stringify(finalUser));
 
         if (!cancelled) {
-          setUser(me);
+          setUser(finalUser);
           setStatus("ok");
         }
-      } catch {
+      } catch (err) {
+        console.error("ProtectedRoute error:", err);
         if (!cancelled) setStatus("login");
       }
-    })();
+    }
+
+    loadMe();
 
     return () => {
       cancelled = true;
@@ -73,18 +101,21 @@ export default function ProtectedRoute({ children, roles }) {
     return <Navigate to="/login" replace state={{ from: path }} />;
   }
 
-  if (Array.isArray(roles) && roles.length > 0 && !roles.includes(user?.role)) {
-    return <Navigate to="/" replace />;
+  const userRole = user?.role || "user";
+
+  if (Array.isArray(roles) && roles.length > 0 && !roles.includes(userRole)) {
+    return <Navigate to="/login" replace />;
   }
 
-  const isProfilePage = path.startsWith("/profile");
+  const isProfilePage = path === "/profile" || path === "/user/profile";
+
   const needsProfile =
-    user?.role === "user" &&
+    userRole === "user" &&
     (!String(user?.company_name || "").trim() ||
       !String(user?.phone || "").trim());
 
   if (needsProfile && !isProfilePage) {
-    return <Navigate to="/profile" replace state={{ from: path }} />;
+    return <Navigate to="/user/profile" replace />;
   }
 
   return children;

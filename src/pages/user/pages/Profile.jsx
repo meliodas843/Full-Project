@@ -172,20 +172,16 @@ export default function Profile() {
   }
 
   function validateForm() {
-    if (!form.firstName.trim()) return "Мэдээллээ бүрэн оруулна уу.";
-    if (!form.lastName.trim()) return "Мэдээллээ бүрэн оруулна уу.";
-    if (!form.company_name.trim()) return "Мэдээллээ бүрэн оруулна уу.";
-
-    if (!form.phone.trim()) {
-      return "Мэдээллээ бүрэн оруулна уу.";
-    }
-
-    if (!/^\d{8}$/.test(form.phone.trim())) {
-      return "Утасны дугаараа 8 оронтой тоогоор оруулна уу.";
-    }
-
-    return "";
+  if (!form.phone.trim()) {
+    return "Утасны дугаараа оруулна уу.";
   }
+
+  if (!/^\d{8}$/.test(form.phone.trim())) {
+    return "Утасны дугаараа 8 оронтой тоогоор оруулна уу.";
+  }
+
+  return "";
+}
 
   function handleEdit() {
     setErrMsg("");
@@ -245,17 +241,23 @@ export default function Profile() {
         return;
       }
 
-      const updatedUser = data?.user || {
-        ...user,
+      const updatedUser = {
+        ...(user || {}),
+        ...(data?.user || {}),
         ...payload,
+        role: user?.role || data?.user?.role || "user",
       };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      localStorage.setItem("profileComplete", "true");
 
       setUser(updatedUser);
       fillForm(updatedUser);
       setIsEditing(false);
-      setSuccessMsg("Бүртгэл амжилттай хадгалагдлаа.");
 
-      navigate("/user/home");
+      window.location.href = "/user/home";
+      return;
+
     } catch (e) {
       console.error(e);
       setErrMsg("Интернэтэд холбогдоход алдаа гарлаа.");

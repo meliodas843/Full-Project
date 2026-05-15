@@ -17,6 +17,17 @@ function formatDateTime(dt) {
   });
 }
 
+function toDateTimeLocal(dt) {
+  if (!dt) return "";
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`;
+}
+
 function getInitials(nameOrEmail) {
   const s = String(nameOrEmail || "").trim();
   if (!s) return "?";
@@ -35,23 +46,6 @@ function resolveUrl(url) {
 
 function fallbackImgSrc() {
   return `${API_BASE}/uploads/fallbacks/event-placeholder.png`;
-}
-
-async function downloadFile(url, filename) {
-  try {
-    const finalUrl = resolveUrl(url);
-    const res = await fetch(finalUrl);
-    const blob = await res.blob();
-    const a = document.createElement("a");
-    a.href = window.URL.createObjectURL(blob);
-    a.download = filename || "file";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(a.href);
-  } catch {
-    window.open(resolveUrl(url), "_blank", "noopener,noreferrer");
-  }
 }
 
 function isImageName(name) {
@@ -81,21 +75,14 @@ function parseSpeakers(value) {
     return [];
   } catch {
     if (typeof value === "string" && value.trim()) {
-      return [{ name: value.trim(), organization: "", topic: "", avatar: "" }];
+      return [{ name: value.trim(), organization: "", topic: "", avatar: null }];
     }
     return [];
   }
 }
 
 function getSpeakerAvatar(sp) {
-  return (
-    sp?.avatar_url ||
-    sp?.avatar ||
-    sp?.image_url ||
-    sp?.profile ||
-    sp?.photo ||
-    ""
-  );
+  return sp?.avatar_url || sp?.avatar || sp?.image_url || sp?.profile || sp?.photo || "";
 }
 
 function makeSpeaker() {
@@ -107,18 +94,72 @@ function makeSpeaker() {
   };
 }
 
+function getCurrentUser() {
+  const keys = ["user", "authUser", "currentUser", "profile"];
+  for (const key of keys) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || "null");
+      if (value) return value;
+    } catch {}
+  }
+
+  const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
+  return email ? { email } : null;
+}
+
+function canEditEvent(ev) {
+  if (!ev) return false;
+
+  const user = getCurrentUser();
+
+  const userId = Number(
+    user?.id ||
+      user?.user_id ||
+      user?.userId ||
+      user?.user?.id
+  );
+
+  const eventCreatorId = Number(
+    ev?.created_by ||
+      ev?.created_by_id ||
+      ev?.creator_id ||
+      ev?.user_id ||
+      ev?.organizer_id
+  );
+
+  const userEmail = String(
+    user?.email ||
+      user?.user?.email ||
+      localStorage.getItem("email") ||
+      localStorage.getItem("userEmail") ||
+      ""
+  ).toLowerCase();
+
+  const creatorEmail = String(
+    ev?.created_by_email ||
+      ev?.creator_email ||
+      ev?.user_email ||
+      ev?.organizer_email ||
+      ""
+  ).toLowerCase();
+
+  return (
+    ev?.relation_type === "created" ||
+    (Number.isFinite(userId) && Number.isFinite(eventCreatorId) && userId === eventCreatorId) ||
+    (userEmail && creatorEmail && userEmail === creatorEmail)
+  );
+}
+
 export default function Event() {
   const rightTopRef = useRef(null);
-
   const fileInputRef = useRef(null);
+
+  const [editingEventId, setEditingEventId] = useState(null);
+
   const [eventFiles, setEventFiles] = useState([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [fileNote, setFileNote] = useState("");
-
-  const [lbOpen, setLbOpen] = useState(false);
-  const [lbIndex, setLbIndex] = useState(0);
-  const lbThumbStripRef = useRef(null);
 
   const [participants, setParticipants] = useState([]);
   const [participantsCount, setParticipantsCount] = useState(0);
@@ -136,13 +177,11 @@ export default function Event() {
   const [image_url, setImageUrl] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [max_participants, setMaxParticipants] = useState("");
-
   const [visibility, setVisibility] = useState("public");
   const [inviteLink, setInviteLink] = useState("");
 
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-
   const [myEvents, setMyEvents] = useState([]);
   const [myMeetings, setMyMeetings] = useState([]);
   const [finishedMeetings, setFinishedMeetings] = useState([]);
@@ -150,11 +189,13 @@ export default function Event() {
   const [creating, setCreating] = useState(false);
   const [errMsg, setErrMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-
   const [bookedIds, setBookedIds] = useState([]);
   const [agendas, setAgendas] = useState([{ text: "", time: "" }]);
+  const [mode, setMode] = useState("all");
 
-  const [mode, setMode] = useState("all"); // all | history
+  const [lbOpen, setLbOpen] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
+  const lbThumbStripRef = useRef(null);
 
   function isEventFinished(ev) {
     if (!ev?.end_time) return false;
@@ -271,9 +312,7 @@ export default function Event() {
         return;
       }
 
-      setBookedIds(
-        Array.isArray(data) ? data.map(Number).filter(Number.isFinite) : [],
-      );
+      setBookedIds(Array.isArray(data) ? data.map(Number).filter(Number.isFinite) : []);
     } catch (e) {
       console.error(e);
       setBookedIds([]);
@@ -308,8 +347,8 @@ export default function Event() {
   async function fetchEventFiles(eventId) {
     try {
       setFilesLoading(true);
-
       const token = localStorage.getItem("token");
+
       if (!token) {
         setEventFiles([]);
         return;
@@ -337,22 +376,20 @@ export default function Event() {
   async function fetchParticipants(eventId) {
     try {
       setLoadingParticipants(true);
-
       const token = localStorage.getItem("token");
+
       if (!token) {
         setParticipants([]);
         setParticipantsCount(0);
         return;
       }
 
-      const res = await fetch(
-        `${API_BASE}/api/events/${eventId}/participants`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const res = await fetch(`${API_BASE}/api/events/${eventId}/participants`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
         setParticipants([]);
         setParticipantsCount(0);
@@ -372,37 +409,40 @@ export default function Event() {
   }
 
   useEffect(() => {
-    if (mode === "history") {
-      fetchHistory();
-    } else {
-      fetchEvents();
-    }
+    if (mode === "history") fetchHistory();
+    else fetchEvents();
 
     fetchMyBookedIds();
     fetchMyEvents();
   }, [mode]);
 
   useEffect(() => {
-    const now = Date.now();
-    const upcoming = [];
-    const finished = [];
+  const now = Date.now();
+  const upcoming = [];
+  const finished = [];
 
-    for (const ev of myEvents) {
-      const end = ev.end_time ? new Date(ev.end_time).getTime() : null;
-      if (end && !Number.isNaN(end) && end < now) finished.push(ev);
-      else upcoming.push(ev);
+  for (const ev of myEvents) {
+    const end = ev.end_time ? new Date(ev.end_time).getTime() : null;
+
+    const normalized = {
+      ...ev,
+      relation_type:
+        ev.relation_type || (canEditEvent(ev) ? "created" : "joined"),
+    };
+
+    if (end && !Number.isNaN(end) && end < now) {
+      finished.push(normalized);
+    } else {
+      upcoming.push(normalized);
     }
+  }
 
-    upcoming.sort(
-      (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0),
-    );
-    finished.sort(
-      (a, b) => new Date(b.start_time || 0) - new Date(a.start_time || 0),
-    );
+  upcoming.sort((a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0));
+  finished.sort((a, b) => new Date(b.start_time || 0) - new Date(a.start_time || 0));
 
-    setMyMeetings(upcoming);
-    setFinishedMeetings(finished);
-  }, [myEvents]);
+  setMyMeetings(upcoming);
+  setFinishedMeetings(finished);
+}, [myEvents]);
 
   const selectedEvent = useMemo(() => {
     if (!selectedEventId) return null;
@@ -431,6 +471,7 @@ export default function Event() {
 
   useEffect(() => {
     const id = Number(selectedEvent?.id);
+
     if (!id) {
       setParticipants([]);
       setParticipantsCount(0);
@@ -438,6 +479,7 @@ export default function Event() {
     }
 
     const joined = bookedIds.includes(id);
+
     if (!joined) {
       setParticipants([]);
       setParticipantsCount(Number(selectedEvent?.booked_count) || 0);
@@ -449,22 +491,21 @@ export default function Event() {
 
   useEffect(() => {
     const id = Number(selectedEvent?.id);
+
     if (!id) {
       setEventFiles([]);
       return;
     }
 
     const joined = bookedIds.includes(id);
+
     if (!joined) {
       setEventFiles([]);
       return;
     }
 
-    if (isEventFinished(selectedEvent)) {
-      fetchEventFiles(id);
-    } else {
-      setEventFiles([]);
-    }
+    if (isEventFinished(selectedEvent)) fetchEventFiles(id);
+    else setEventFiles([]);
   }, [selectedEvent?.id, bookedIds, selectedEvent]);
 
   const imageFiles = useMemo(() => {
@@ -482,65 +523,8 @@ export default function Event() {
     return eventFiles.filter((f) => !isImageName(f.original_name));
   }, [eventFiles]);
 
-  function openLightboxAt(index) {
-    const safeIndex = Math.max(0, Math.min(index, imageFiles.length - 1));
-    setLbIndex(safeIndex);
-    setLbOpen(true);
-
-    document.body.style.overflow = "hidden";
-    setTimeout(() => {
-      const strip = lbThumbStripRef.current;
-      const thumb = strip?.querySelector?.(`[data-lbthumb="${safeIndex}"]`);
-      thumb?.scrollIntoView?.({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest",
-      });
-    }, 0);
-  }
-
-  function closeLightbox() {
-    setLbOpen(false);
-    document.body.style.overflow = "";
-  }
-
-  function goPrev() {
-    if (!imageFiles.length) return;
-    const next = (lbIndex - 1 + imageFiles.length) % imageFiles.length;
-    setLbIndex(next);
-  }
-
-  function goNext() {
-    if (!imageFiles.length) return;
-    const next = (lbIndex + 1) % imageFiles.length;
-    setLbIndex(next);
-  }
-
-  useEffect(() => {
-    if (!lbOpen) return;
-
-    const onKey = (e) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") goPrev();
-      if (e.key === "ArrowRight") goNext();
-    };
-
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lbOpen, lbIndex, imageFiles.length]);
-
-  useEffect(() => {
-    if (!lbOpen) return;
-    const strip = lbThumbStripRef.current;
-    const thumb = strip?.querySelector?.(`[data-lbthumb="${lbIndex}"]`);
-    thumb?.scrollIntoView?.({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
-    });
-  }, [lbIndex, lbOpen]);
-
   function resetForm() {
+    setEditingEventId(null);
     setTitle("");
     setDescription("");
     setSpeakers([makeSpeaker()]);
@@ -555,9 +539,49 @@ export default function Event() {
   }
 
   function openCreate() {
+    resetForm();
     setMode("all");
     setSelectedEventId(null);
     setShowCreate(true);
+
+    setTimeout(() => {
+      rightTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
+
+  function openEdit(ev) {
+    if (!ev) return;
+
+    if (!canEditEvent(ev)) {
+      setErrMsg("Та зөвхөн өөрийн үүсгэсэн эвентийг засах боломжтой.");
+      return;
+    }
+
+    setErrMsg("");
+    setSuccessMsg("");
+    setInviteLink("");
+
+    setEditingEventId(ev.id);
+    setShowCreate(true);
+    setSelectedEventId(null);
+
+    const parsedSpeakers = parseSpeakers(ev.speaker);
+    const parsedAgenda = parseAgenda(ev.agenda);
+
+    setTitle(ev.title || "");
+    setDescription(ev.description || "");
+    setSpeakers(parsedSpeakers.length ? parsedSpeakers : [makeSpeaker()]);
+    setAgendas(parsedAgenda.length ? parsedAgenda : [{ text: "", time: "" }]);
+    setStartTime(toDateTimeLocal(ev.start_time));
+    setEndTime(toDateTimeLocal(ev.end_time));
+    setImageUrl(ev.image_url || "");
+    setImageFile(null);
+    setMaxParticipants(ev.max_participants || "");
+    setVisibility(ev.visibility || "public");
+
     setTimeout(() => {
       rightTopRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -575,6 +599,7 @@ export default function Event() {
 
   async function handleCreate(e) {
     e.preventDefault();
+
     setErrMsg("");
     setSuccessMsg("");
     setInviteLink("");
@@ -616,35 +641,40 @@ export default function Event() {
       fd.append("start_time", start_time);
       fd.append("end_time", end_time || "");
       fd.append("image_url", image_url.trim());
-      fd.append(
-        "max_participants",
-        max_participants ? String(max_participants) : "0",
-      );
+      fd.append("max_participants", max_participants ? String(max_participants) : "0");
       fd.append("visibility", visibility);
 
       if (imageFile) fd.append("image", imageFile);
 
       speakers.forEach((sp) => {
-        if (sp.avatar) fd.append("speaker_avatars", sp.avatar);
+        if (sp.avatar instanceof File) {
+          fd.append("speaker_avatars", sp.avatar);
+        }
       });
 
-      const res = await fetch(`${API_BASE}/api/events`, {
-        method: "POST",
+      const url = editingEventId
+        ? `${API_BASE}/api/events/${editingEventId}`
+        : `${API_BASE}/api/events`;
+
+      const res = await fetch(url, {
+        method: editingEventId ? "PUT" : "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        setErrMsg(data?.message || "Failed to create event");
+        setErrMsg(data?.message || (editingEventId ? "Failed to update event" : "Failed to create event"));
         return;
       }
 
-      setSuccessMsg("Event created ✅");
+      setSuccessMsg(editingEventId ? "Event updated ✅" : "Event created ✅");
 
-      const created = data?.event;
-      if (created?.visibility === "private" && created?.invite_token) {
-        const link = `${window.location.origin}/event/invite/${created.invite_token}`;
+      const saved = data?.event;
+
+      if (!editingEventId && saved?.visibility === "private" && saved?.invite_token) {
+        const link = `${window.location.origin}/event/invite/${saved.invite_token}`;
         setInviteLink(link);
       }
 
@@ -652,12 +682,12 @@ export default function Event() {
       await fetchMyBookedIds();
       await fetchMyEvents();
 
-      if (created?.visibility === "private" && created?.invite_token) return;
+      if (!editingEventId && saved?.visibility === "private" && saved?.invite_token) return;
 
       setTimeout(() => closeCreate(), 700);
     } catch (e2) {
       console.error(e2);
-      setErrMsg("Network error while creating event");
+      setErrMsg(editingEventId ? "Network error while updating event" : "Network error while creating event");
     } finally {
       setCreating(false);
     }
@@ -693,6 +723,7 @@ export default function Event() {
       });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
         setErrMsg(data?.message || "Failed to book event");
         return;
@@ -741,16 +772,14 @@ export default function Event() {
       files.forEach((f) => fd.append("files", f));
       fd.append("note", fileNote);
 
-      const res = await fetch(
-        `${API_BASE}/api/events/${selectedEvent.id}/files`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: fd,
-        },
-      );
+      const res = await fetch(`${API_BASE}/api/events/${selectedEvent.id}/files`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
         setErrMsg(data?.message || "Upload failed");
         return;
@@ -758,6 +787,7 @@ export default function Event() {
 
       setSuccessMsg("Files uploaded ✅");
       setFileNote("");
+
       if (fileInputRef.current) fileInputRef.current.value = "";
 
       await fetchEventFiles(selectedEvent.id);
@@ -769,10 +799,29 @@ export default function Event() {
     }
   }
 
+  async function downloadFile(url, filename) {
+    try {
+      const finalUrl = resolveUrl(url);
+      const res = await fetch(finalUrl);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = window.URL.createObjectURL(blob);
+      a.download = filename || "file";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(a.href);
+    } catch {
+      window.open(resolveUrl(url), "_blank", "noopener,noreferrer");
+    }
+  }
+
   function openDetail(id) {
     setShowCreate(false);
+    setEditingEventId(null);
     setSelectedEventId(Number(id));
     closeLightbox();
+
     setTimeout(() => {
       rightTopRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -780,6 +829,52 @@ export default function Event() {
       });
     }, 50);
   }
+
+  function openLightboxAt(index) {
+    const safeIndex = Math.max(0, Math.min(index, imageFiles.length - 1));
+    setLbIndex(safeIndex);
+    setLbOpen(true);
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeLightbox() {
+    setLbOpen(false);
+    document.body.style.overflow = "";
+  }
+
+  function goPrev() {
+    if (!imageFiles.length) return;
+    setLbIndex((lbIndex - 1 + imageFiles.length) % imageFiles.length);
+  }
+
+  function goNext() {
+    if (!imageFiles.length) return;
+    setLbIndex((lbIndex + 1) % imageFiles.length);
+  }
+
+  useEffect(() => {
+    if (!lbOpen) return;
+
+    const onKey = (e) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lbOpen, lbIndex, imageFiles.length]);
+
+  useEffect(() => {
+    if (!lbOpen) return;
+    const strip = lbThumbStripRef.current;
+    const thumb = strip?.querySelector?.(`[data-lbthumb="${lbIndex}"]`);
+    thumb?.scrollIntoView?.({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [lbIndex, lbOpen]);
 
   const currentLb = imageFiles[lbIndex];
   const isSelectedBooked = bookedIds.includes(Number(selectedEvent?.id));
@@ -789,11 +884,7 @@ export default function Event() {
       <div className="uep-wrap">
         <aside className="uep-left">
           <div className="uep-leftCard">
-            <button
-              className="uep-createBtnTop"
-              onClick={handleAskCreate}
-              type="button"
-            >
+            <button className="uep-createBtnTop" onClick={handleAskCreate} type="button">
               + Эвент Зохиох
             </button>
 
@@ -819,6 +910,7 @@ export default function Event() {
                 setMode("history");
                 setSelectedEventId(null);
                 setShowCreate(false);
+                setEditingEventId(null);
               }}
               type="button"
             >
@@ -856,9 +948,7 @@ export default function Event() {
               <div className="uep-detailBody">
                 <div className="uep-detailMedia">
                   <img
-                    src={
-                      resolveUrl(selectedEvent.image_url) || fallbackImgSrc()
-                    }
+                    src={resolveUrl(selectedEvent.image_url) || fallbackImgSrc()}
                     alt={selectedEvent.title || "Event"}
                     onError={(e) => (e.currentTarget.src = fallbackImgSrc())}
                   />
@@ -866,9 +956,7 @@ export default function Event() {
 
                 <div className="uep-detailInfo">
                   <div className="uep-detailMetaRow">
-                    <span className="uep-badge">
-                      {formatDateTime(selectedEvent.start_time)}
-                    </span>
+                    <span className="uep-badge">{formatDateTime(selectedEvent.start_time)}</span>
 
                     {selectedEvent.end_time && (
                       <span className="uep-badge uep-badgeLight">
@@ -878,9 +966,7 @@ export default function Event() {
 
                     {mode === "history" && selectedEvent?.relation_type ? (
                       <span className="uep-badge uep-badgeLight">
-                        {selectedEvent.relation_type === "created"
-                          ? "Таны үүсгэсэн"
-                          : "Та оролцсон"}
+                        {selectedEvent.relation_type === "created" ? "Таны үүсгэсэн" : "Та оролцсон"}
                       </span>
                     ) : null}
                   </div>
@@ -888,6 +974,7 @@ export default function Event() {
                   {selectedSpeakers.length > 0 && (
                     <div className="uep-detailField">
                       <strong>Элтгэгч:</strong>
+
                       <div className="uep-speakersDisplayList">
                         {selectedSpeakers.map((sp, idx) => {
                           const avatar = getSpeakerAvatar(sp);
@@ -901,17 +988,6 @@ export default function Event() {
                                     alt={sp.name || "Speaker"}
                                     onError={(e) => {
                                       e.currentTarget.style.display = "none";
-                                      const parent =
-                                        e.currentTarget.parentElement;
-                                      if (
-                                        parent &&
-                                        !parent.querySelector("span")
-                                      ) {
-                                        const span =
-                                          document.createElement("span");
-                                        span.textContent = getInitials(sp.name);
-                                        parent.appendChild(span);
-                                      }
                                     }}
                                   />
                                 ) : (
@@ -922,23 +998,17 @@ export default function Event() {
                               <div className="uep-speakerInfo">
                                 <div className="sp-row">
                                   <span className="sp-label">Нэр:</span>
-                                  <span className="sp-value">
-                                    {sp.name || "-"}
-                                  </span>
+                                  <span className="sp-value">{sp.name || "-"}</span>
                                 </div>
 
                                 <div className="sp-row">
                                   <span className="sp-label">Байгууллага:</span>
-                                  <span className="sp-value">
-                                    {sp.organization || "-"}
-                                  </span>
+                                  <span className="sp-value">{sp.organization || "-"}</span>
                                 </div>
 
                                 <div className="sp-row">
                                   <span className="sp-label">Сэдэв:</span>
-                                  <span className="sp-value">
-                                    {sp.topic || "-"}
-                                  </span>
+                                  <span className="sp-value">{sp.topic || "-"}</span>
                                 </div>
                               </div>
                             </div>
@@ -951,15 +1021,12 @@ export default function Event() {
                   {selectedAgendaItems.length > 0 && (
                     <div className="uep-detailField">
                       <strong>Хөтөлбөр:</strong>
+
                       <div className="uep-detailAgendaList">
                         {selectedAgendaItems.map((item, idx) => (
                           <div key={idx} className="uep-detailAgendaItem">
-                            <span className="uep-detailAgendaText">
-                              {item.time || "--:--"}
-                            </span>
-                            <span className="uep-detailAgendaTime">
-                              {item.text || ""}
-                            </span>
+                            <span className="uep-detailAgendaText">{item.time || "--:--"}</span>
+                            <span className="uep-detailAgendaTime">{item.text || ""}</span>
                           </div>
                         ))}
                       </div>
@@ -977,11 +1044,7 @@ export default function Event() {
 
                     <div className="uep-avatars">
                       {participants.slice(0, 6).map((p) => (
-                        <div
-                          key={p.id}
-                          className="uep-avatar"
-                          title={p.name || p.email}
-                        >
+                        <div key={p.id} className="uep-avatar" title={p.name || p.email}>
                           {p.avatar_url ? (
                             <img src={p.avatar_url} alt={p.name || "user"} />
                           ) : (
@@ -991,10 +1054,7 @@ export default function Event() {
                       ))}
 
                       {participantsCount > 6 && (
-                        <div
-                          className="uep-avatar uep-avatarMore"
-                          title="More people"
-                        >
+                        <div className="uep-avatar uep-avatarMore" title="More people">
                           +{participantsCount - 6}
                         </div>
                       )}
@@ -1002,13 +1062,21 @@ export default function Event() {
                   </div>
 
                   <div className="uep-detailActions">
+                    {canEditEvent(selectedEvent) && (
+                      <button
+                        type="button"
+                        className="uep-btn uep-btnPrimary"
+                        onClick={() => openEdit(selectedEvent)}
+                      >
+                        Засах
+                      </button>
+                    )}
+
                     {mode === "history" ? (
                       <button
                         type="button"
                         className="uep-btn uep-btnPrimary"
-                        onClick={() => {
-                          setSelectedEventId(null);
-                        }}
+                        onClick={() => setSelectedEventId(null)}
                       >
                         Буцах
                       </button>
@@ -1019,26 +1087,17 @@ export default function Event() {
                         onClick={() => handleBook(selectedEvent)}
                         disabled={bookedIds.includes(Number(selectedEvent.id))}
                       >
-                        {bookedIds.includes(Number(selectedEvent.id))
-                          ? "Бүртгэлтэй"
-                          : "Бүртгүүлэх"}
+                        {bookedIds.includes(Number(selectedEvent.id)) ? "Бүртгэлтэй" : "Бүртгүүлэх"}
                       </button>
                     )}
                   </div>
 
                   {isEventFinished(selectedEvent) && (
                     <div className="uep-filesBox">
-                      <h4 className="uep-filesTitle">
-                        Файлууд (эвент дууссаны дараа)
-                      </h4>
+                      <h4 className="uep-filesTitle">Файлууд (эвент дууссаны дараа)</h4>
 
                       <div className="uep-filesUploadRow">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          className="uep-fileInput"
-                          multiple
-                        />
+                        <input ref={fileInputRef} type="file" className="uep-fileInput" multiple />
 
                         <button
                           type="button"
@@ -1051,54 +1110,33 @@ export default function Event() {
                       </div>
 
                       {filesLoading ? (
-                        <div className="uep-emptyMini">
-                          Файлууд уншиж байна...
-                        </div>
+                        <div className="uep-emptyMini">Файлууд уншиж байна...</div>
                       ) : eventFiles.length === 0 ? (
                         <div className="uep-emptyMini">
-                          {isSelectedBooked
-                            ? "Файл байхгүй байна."
-                            : "Эвентийг бүртгүүлж файлуудыг харна уу."}
+                          {isSelectedBooked ? "Файл байхгүй байна." : "Эвентийг бүртгүүлж файлуудыг харна уу."}
                         </div>
                       ) : (
                         <>
                           {imageFiles.length > 0 && (
                             <div className="uep-gallery" role="list">
-                              {imageFiles.slice(0, 6).map((f, idx) => {
-                                const name = f.name || "image";
-                                return (
-                                  <button
-                                    key={f.id}
-                                    type="button"
-                                    className="uep-thumb"
-                                    title={name}
-                                    onClick={() => openLightboxAt(idx)}
-                                    role="listitem"
-                                  >
-                                    <img
-                                      src={f.url}
-                                      alt={name}
-                                      className="uep-thumbImg"
-                                      loading="lazy"
-                                      onError={(e) =>
-                                        (e.currentTarget.src = fallbackImgSrc())
-                                      }
-                                    />
-                                  </button>
-                                );
-                              })}
-
-                              {imageFiles.length > 6 && (
+                              {imageFiles.slice(0, 6).map((f, idx) => (
                                 <button
+                                  key={f.id}
                                   type="button"
-                                  className="uep-thumb uep-thumbMore"
-                                  onClick={() => openLightboxAt(6)}
-                                  title="Өөр зурагнууд"
+                                  className="uep-thumb"
+                                  title={f.name}
+                                  onClick={() => openLightboxAt(idx)}
                                   role="listitem"
                                 >
-                                  +{imageFiles.length - 6}
+                                  <img
+                                    src={f.url}
+                                    alt={f.name}
+                                    className="uep-thumbImg"
+                                    loading="lazy"
+                                    onError={(e) => (e.currentTarget.src = fallbackImgSrc())}
+                                  />
                                 </button>
-                              )}
+                              ))}
                             </div>
                           )}
 
@@ -1106,6 +1144,7 @@ export default function Event() {
                             <div className="uep-filesList">
                               {nonImageFiles.map((f) => {
                                 const name = f.original_name || "file";
+
                                 return (
                                   <button
                                     key={f.id}
@@ -1114,12 +1153,8 @@ export default function Event() {
                                     onClick={() => downloadFile(f.url, name)}
                                     title={name}
                                   >
-                                    <span className="uep-fileRowName">
-                                      {name}
-                                    </span>
-                                    <span className="uep-fileRowMeta">
-                                      {f.uploaded_by_email || ""}
-                                    </span>
+                                    <span className="uep-fileRowName">{name}</span>
+                                    <span className="uep-fileRowMeta">{f.uploaded_by_email || ""}</span>
                                   </button>
                                 );
                               })}
@@ -1142,7 +1177,9 @@ export default function Event() {
             <div className="uep-createOnly">
               <div className="uep-createRightCard">
                 <div className="uep-createRightHeader">
-                  <h4 className="uep-createRightTitle">Эвент Зохиох</h4>
+                  <h4 className="uep-createRightTitle">
+                    {editingEventId ? "Эвент Засах" : "Эвент Зохиох"}
+                  </h4>
                 </div>
 
                 <form className="uep-formRight" onSubmit={handleCreate}>
@@ -1184,52 +1221,6 @@ export default function Event() {
                     </label>
                   </div>
 
-                  {visibility === "private" ? (
-                    <div className="uep-hintBox">
-                      Нууц эвентүүд нь зөвхөн урилга линкээр хандалттай.
-                    </div>
-                  ) : null}
-
-                  {inviteLink ? (
-                    <div className="uep-inviteBox">
-                      <div className="uep-inviteTitle">Урилга линк</div>
-
-                      <div className="uep-inviteRow">
-                        <input
-                          className="uep-inputLight"
-                          value={inviteLink}
-                          readOnly
-                        />
-
-                        <button
-                          type="button"
-                          className="uep-btn uep-btnPrimary"
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(inviteLink);
-                              setSuccessMsg("Invite link copied ✅");
-                              setTimeout(() => setSuccessMsg(""), 1200);
-                            } catch {
-                              setErrMsg("Copy failed (browser blocked).");
-                            }
-                          }}
-                        >
-                          Хуулах
-                        </button>
-                      </div>
-
-                      <div className="uep-actions" style={{ marginTop: 10 }}>
-                        <button
-                          type="button"
-                          className="uep-cancelBtn"
-                          onClick={closeCreate}
-                        >
-                          Болсон
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-
                   <label className="uep-labelDark">
                     Тайлбар
                     <textarea
@@ -1245,28 +1236,21 @@ export default function Event() {
 
                     <div className="uep-speakersWrap">
                       {speakers.map((sp, index) => {
-                        const preview = sp.avatar
-                          ? URL.createObjectURL(sp.avatar)
-                          : "";
+                        const preview =
+                          sp.avatar instanceof File
+                            ? URL.createObjectURL(sp.avatar)
+                            : resolveUrl(getSpeakerAvatar(sp));
 
                         return (
                           <div key={index} className="uep-speakerRow">
                             <label className="uep-speakerAvatar">
-                              {preview ? (
-                                <img src={preview} alt="speaker preview" />
-                              ) : (
-                                <span>+</span>
-                              )}
+                              {preview ? <img src={preview} alt="speaker preview" /> : <span>+</span>}
 
                               <input
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) =>
-                                  handleSpeakerChange(
-                                    index,
-                                    "avatar",
-                                    e.target.files?.[0] || null,
-                                  )
+                                  handleSpeakerChange(index, "avatar", e.target.files?.[0] || null)
                                 }
                               />
                             </label>
@@ -1275,40 +1259,24 @@ export default function Event() {
                               <input
                                 className="uep-inputLight"
                                 placeholder="Нэр"
-                                value={sp.name}
-                                onChange={(e) =>
-                                  handleSpeakerChange(
-                                    index,
-                                    "name",
-                                    e.target.value,
-                                  )
-                                }
+                                value={sp.name || ""}
+                                onChange={(e) => handleSpeakerChange(index, "name", e.target.value)}
                               />
 
                               <input
                                 className="uep-inputLight"
                                 placeholder="Байгууллага / Бусад"
-                                value={sp.organization}
+                                value={sp.organization || ""}
                                 onChange={(e) =>
-                                  handleSpeakerChange(
-                                    index,
-                                    "organization",
-                                    e.target.value,
-                                  )
+                                  handleSpeakerChange(index, "organization", e.target.value)
                                 }
                               />
 
                               <input
                                 className="uep-inputLight"
                                 placeholder="Сэдэв"
-                                value={sp.topic}
-                                onChange={(e) =>
-                                  handleSpeakerChange(
-                                    index,
-                                    "topic",
-                                    e.target.value,
-                                  )
-                                }
+                                value={sp.topic || ""}
+                                onChange={(e) => handleSpeakerChange(index, "topic", e.target.value)}
                               />
                             </div>
 
@@ -1350,26 +1318,14 @@ export default function Event() {
                             <input
                               className="uep-inputLight uep-agendaTime"
                               type="time"
-                              value={item.time}
-                              onChange={(e) =>
-                                handleAgendaChange(
-                                  index,
-                                  "time",
-                                  e.target.value,
-                                )
-                              }
+                              value={item.time || ""}
+                              onChange={(e) => handleAgendaChange(index, "time", e.target.value)}
                             />
 
                             <textarea
                               className="uep-textareaLight uep-agendaText"
-                              value={item.text}
-                              onChange={(e) =>
-                                handleAgendaChange(
-                                  index,
-                                  "text",
-                                  e.target.value,
-                                )
-                              }
+                              value={item.text || ""}
+                              onChange={(e) => handleAgendaChange(index, "text", e.target.value)}
                               placeholder="Хөтөлбөр тайлбар"
                             />
                           </div>
@@ -1437,30 +1393,56 @@ export default function Event() {
                     <div className="fileUpload__box">
                       <span className="fileUpload__btn">Зураг сонгох</span>
                       <span className="fileUpload__text">
-                        {imageFile ? imageFile.name : "Файл сонгогдоогүй"}
+                        {imageFile ? imageFile.name : editingEventId ? "Шинэ зураг сонгоогүй" : "Файл сонгогдоогүй"}
                       </span>
 
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) =>
-                          setImageFile(e.target.files?.[0] || null)
-                        }
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                       />
                     </div>
                   </label>
 
+                  {inviteLink ? (
+                    <div className="uep-inviteBox">
+                      <div className="uep-inviteTitle">Урилга линк</div>
+
+                      <div className="uep-inviteRow">
+                        <input className="uep-inputLight" value={inviteLink} readOnly />
+
+                        <button
+                          type="button"
+                          className="uep-btn uep-btnPrimary"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(inviteLink);
+                              setSuccessMsg("Invite link copied ✅");
+                              setTimeout(() => setSuccessMsg(""), 1200);
+                            } catch {
+                              setErrMsg("Copy failed.");
+                            }
+                          }}
+                        >
+                          Хуулах
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="uep-actions">
-                    <button
-                      type="button"
-                      className="uep-cancelBtn"
-                      onClick={closeCreate}
-                    >
+                    <button type="button" className="uep-cancelBtn" onClick={closeCreate}>
                       Цуцлах
                     </button>
 
                     <button className="uep-createBtn" disabled={creating}>
-                      {creating ? "Бүтээж байна..." : "Бүтээх"}
+                      {creating
+                        ? editingEventId
+                          ? "Засаж байна..."
+                          : "Бүтээж байна..."
+                        : editingEventId
+                          ? "Хадгалах"
+                          : "Бүтээх"}
                     </button>
                   </div>
                 </form>
@@ -1471,17 +1453,11 @@ export default function Event() {
           {!showCreate && !selectedEvent ? (
             <>
               <div className="uep-rightHeader">
-                <h3 className="uep-rightTitle">
-                  {mode === "history" ? "Түүх" : "Бүх Эвент"}
-                </h3>
+                <h3 className="uep-rightTitle">{mode === "history" ? "Түүх" : "Бүх Эвент"}</h3>
 
                 <div style={{ display: "flex", gap: 10 }}>
                   {mode === "history" && (
-                    <button
-                      className="uep-refreshBtn"
-                      onClick={() => setMode("all")}
-                      type="button"
-                    >
+                    <button className="uep-refreshBtn" onClick={() => setMode("all")} type="button">
                       Бүх эвент
                     </button>
                   )}
@@ -1489,11 +1465,9 @@ export default function Event() {
                   <button
                     className="uep-refreshBtn"
                     onClick={async () => {
-                      if (mode === "history") {
-                        await fetchHistory();
-                      } else {
-                        await fetchEvents();
-                      }
+                      if (mode === "history") await fetchHistory();
+                      else await fetchEvents();
+
                       await fetchMyBookedIds();
                       await fetchMyEvents();
                     }}
@@ -1506,15 +1480,11 @@ export default function Event() {
 
               {loadingEvents ? (
                 <div className="uep-empty">
-                  {mode === "history"
-                    ? "Түүх уншиж байна..."
-                    : "Эвент уншиж байна..."}
+                  {mode === "history" ? "Түүх уншиж байна..." : "Эвент уншиж байна..."}
                 </div>
               ) : events.length === 0 ? (
                 <div className="uep-empty">
-                  {mode === "history"
-                    ? "Түүх байхгүй байна."
-                    : "Эвент байхгүй байна."}
+                  {mode === "history" ? "Түүх байхгүй байна." : "Эвент байхгүй байна."}
                 </div>
               ) : (
                 <div className="uep-grid">
@@ -1529,85 +1499,53 @@ export default function Event() {
                           onClick={() => openDetail(ev.id)}
                           role="button"
                           tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              openDetail(ev.id);
-                            }
-                          }}
                         >
                           <img
                             className="uep-img"
                             src={cover}
                             alt={ev.title || "Event"}
-                            onError={(e) =>
-                              (e.currentTarget.src = fallbackImgSrc())
-                            }
+                            onError={(e) => (e.currentTarget.src = fallbackImgSrc())}
                           />
                         </div>
 
                         <div className="uep-body">
-                          <h4
-                            className="uep-cardTitle"
-                            onClick={() => openDetail(ev.id)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                openDetail(ev.id);
-                              }
-                            }}
-                          >
+                          <h4 className="uep-cardTitle" onClick={() => openDetail(ev.id)}>
                             {ev.title}
                           </h4>
 
                           <p className="uep-time">
                             {formatDateTime(ev.start_time)}
-                            {ev.end_time
-                              ? ` – ${formatDateTime(ev.end_time)}`
-                              : ""}
+                            {ev.end_time ? ` – ${formatDateTime(ev.end_time)}` : ""}
                           </p>
 
-                          <p className="uep-desc">
-                            {ev.description || "No description"}
-                          </p>
+                          <p className="uep-desc">{ev.description || "No description"}</p>
 
                           {mode === "history" && (
-                            <div
-                              style={{
-                                fontSize: 12,
-                                opacity: 0.7,
-                                marginBottom: 10,
-                              }}
-                            >
-                              {ev.relation_type === "created"
-                                ? "Таны үүсгэсэн"
-                                : "Та оролцсон"}
+                            <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>
+                              {ev.relation_type === "created" ? "Таны үүсгэсэн" : "Та оролцсон"}
                             </div>
                           )}
 
-                          <button
-                            className="uep-bookBtn"
-                            type="button"
-                            onClick={() =>
-                              mode === "history"
-                                ? openDetail(ev.id)
-                                : handleBook(ev)
-                            }
-                            disabled={mode === "history" ? false : isBooked}
-                            title={
-                              mode === "history"
-                                ? "Дэлгэрэнгүй"
-                                : isBooked
-                                  ? "Бүртгэгдсэн"
-                                  : "Бүртгүүлэх (энэ эвентэд бүртгүүлнэ)"
-                            }
-                          >
-                            {mode === "history"
-                              ? "Дэлгэрэнгүй"
-                              : isBooked
-                                ? "Бүртгэгдсэн"
-                                : "Бүртгэх"}
-                          </button>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button
+                              className="uep-bookBtn"
+                              type="button"
+                              onClick={() => (mode === "history" ? openDetail(ev.id) : handleBook(ev))}
+                              disabled={mode === "history" ? false : isBooked}
+                            >
+                              {mode === "history" ? "Дэлгэрэнгүй" : isBooked ? "Бүртгэгдсэн" : "Бүртгэх"}
+                            </button>
+
+                            {canEditEvent(ev) && (
+                              <button
+                                className="uep-bookBtn"
+                                type="button"
+                                onClick={() => openEdit(ev)}
+                              >
+                                Засах
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1620,11 +1558,7 @@ export default function Event() {
       </div>
 
       {confirmOpen && (
-        <div
-          className="uep-modalOverlay"
-          onClick={handleConfirmNo}
-          role="presentation"
-        >
+        <div className="uep-modalOverlay" onClick={handleConfirmNo} role="presentation">
           <div
             className="uep-modal"
             onClick={(e) => e.stopPropagation()}
@@ -1635,19 +1569,11 @@ export default function Event() {
             <p className="uep-modalText">Та гишүүнчлэл авах уу.</p>
 
             <div className="uep-modalActions">
-              <button
-                className="uep-modalNo"
-                type="button"
-                onClick={handleConfirmNo}
-              >
+              <button className="uep-modalNo" type="button" onClick={handleConfirmNo}>
                 Үгүй
               </button>
 
-              <button
-                className="uep-modalYes"
-                type="button"
-                onClick={handleConfirmYes}
-              >
+              <button className="uep-modalYes" type="button" onClick={handleConfirmYes}>
                 Тийм
               </button>
             </div>
@@ -1656,11 +1582,7 @@ export default function Event() {
       )}
 
       {lbOpen && currentLb && (
-        <div
-          className="uep-lbOverlay"
-          onClick={closeLightbox}
-          role="presentation"
-        >
+        <div className="uep-lbOverlay" onClick={closeLightbox} role="presentation">
           <button
             className="uep-lbArrow uep-lbArrowLeft"
             type="button"
@@ -1692,28 +1614,17 @@ export default function Event() {
                 className="uep-lbIconBtn"
                 type="button"
                 title="Шинэ хуудас дээр нээх"
-                onClick={() =>
-                  window.open(currentLb.url, "_blank", "noopener,noreferrer")
-                }
+                onClick={() => window.open(currentLb.url, "_blank", "noopener,noreferrer")}
               >
                 ⤴
               </button>
 
-              <button
-                className="uep-lbIconBtn"
-                type="button"
-                title="Хаах"
-                onClick={closeLightbox}
-              >
+              <button className="uep-lbIconBtn" type="button" title="Хаах" onClick={closeLightbox}>
                 ✕
               </button>
             </div>
 
-            <img
-              className="uep-lbImage"
-              src={currentLb.url}
-              alt={currentLb.name}
-            />
+            <img className="uep-lbImage" src={currentLb.url} alt={currentLb.name} />
 
             <div className="uep-lbThumbStrip" ref={lbThumbStripRef}>
               {imageFiles.map((img, i) => (
@@ -1757,15 +1668,24 @@ function Section({ title, items, emptyText, onClickItem }) {
           {items.slice(0, 4).map((item) => (
             <button
               key={item.id}
-              className="uep-listItem"
+              className={`uep-listItem ${
+                item.relation_type === "created"
+                  ? "is-created"
+                  : "is-joined"
+              }`}
               onClick={() => onClickItem(item)}
               type="button"
             >
               <span className="uep-listName">{item.title || "Event"}</span>
+
               <span className="uep-listMeta">
-                {item.start_time
-                  ? new Date(item.start_time).toLocaleString()
-                  : ""}
+                {item.relation_type === "created"
+                  ? "Өөрийн үүсгэсэн"
+                  : "Бүртгүүлсэн"}
+              </span>
+
+              <span className="uep-listMeta">
+                {item.start_time ? new Date(item.start_time).toLocaleString() : ""}
               </span>
             </button>
           ))}

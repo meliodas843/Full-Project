@@ -62,7 +62,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 20 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const field = String(file.fieldname || "");
 
@@ -182,6 +182,128 @@ router.get("/", async (req, res) => {
     console.error("GET /api/events error:", err);
     return res.status(500).json({ message: "Server error" });
   }
+});
+
+router.put("/:id", authMiddleware, (req, res) => {
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "speaker_avatars", maxCount: 20 },
+  ])(req, res, async (multerErr) => {
+    if (multerErr) {
+      console.error("UPDATE EVENT MULTER ERROR:", multerErr);
+      return res.status(400).json({
+        message: multerErr.message || "Upload error",
+      });
+    }
+
+    try {
+      const eventId = Number(req.params.id);
+      const userEmail = String(req.user?.email || "").trim().toLowerCase();
+
+      if (!Number.isFinite(eventId)) {
+        return res.status(400).json({ message: "Invalid event id" });
+      }
+
+      if (!userEmail) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      const [rows] = await pool.query(
+        "SELECT * FROM events WHERE id = ? LIMIT 1",
+        [eventId]
+      );
+
+      if (!rows.length) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      const event = rows[0];
+
+      if (String(event.created_by_email || "").toLowerCase() !== userEmail) {
+        return res.status(403).json({
+          message: "Та зөвхөн өөрийн үүсгэсэн эвентийг засах боломжтой.",
+        });
+      }
+
+      const {
+        title,
+        description,
+        speaker,
+        agenda,
+        start_time,
+        end_time,
+        image_url,
+        max_participants,
+        visibility,
+      } = req.body;
+
+      if (!String(title || "").trim()) {
+        return res.status(400).json({ message: "Title is required" });
+      }
+
+      if (!String(start_time || "").trim()) {
+        return res.status(400).json({ message: "start_time is required" });
+      }
+
+      const files = req.files || {};
+      const imageFile = Array.isArray(files.image) ? files.image[0] : null;
+      const avatarFiles = Array.isArray(files.speaker_avatars)
+        ? files.speaker_avatars
+        : [];
+
+      const finalImageUrl = imageFile
+        ? `/uploads/events/${imageFile.filename}`
+        : String(image_url || "").trim() || event.image_url;
+
+      const finalAgenda = sanitizeAgenda(safeJsonParse(agenda, []));
+      const finalSpeakers = buildSpeakerPayload(req, speaker, avatarFiles);
+
+      await pool.query(
+        `
+        UPDATE events
+        SET
+          title = ?,
+          description = ?,
+          speaker = ?,
+          agenda = ?,
+          start_time = ?,
+          end_time = ?,
+          image_url = ?,
+          max_participants = ?,
+          visibility = ?
+        WHERE id = ?
+        `,
+        [
+          String(title).trim(),
+          String(description || "").trim() || null,
+          JSON.stringify(finalSpeakers),
+          JSON.stringify(finalAgenda),
+          normalizeDateTime(start_time),
+          normalizeDateTime(end_time) || null,
+          finalImageUrl,
+          Number(max_participants || 0),
+          String(visibility || "").trim() === "private" ? "private" : "public",
+          eventId,
+        ]
+      );
+
+      const [updatedRows] = await pool.query(
+        "SELECT * FROM events WHERE id = ? LIMIT 1",
+        [eventId]
+      );
+
+      return res.json({
+        message: "Event updated successfully ✅",
+        event: updatedRows[0],
+      });
+    } catch (err) {
+      console.error("UPDATE EVENT ERROR:", err);
+      return res.status(500).json({
+        message: "Failed to update event",
+        error: err.message,
+      });
+    }
+  });
 });
 
 /* =========================================================
@@ -387,13 +509,15 @@ router.get("/requests", authMiddleware, async (req, res) => {
 router.get("/my-joined", authMiddleware, async (req, res) => {
   try {
     const userId = Number(req.user?.id);
-    if (!Number.isFinite(userId)) {
-      return res.status(401).json({ message: "Invalid token (no user id)" });
+    const userEmail = String(req.user?.email || "").trim();
+
+    if (!Number.isFinite(userId) || !userEmail) {
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     const [rows] = await pool.query(
       `
-      SELECT
+      SELECT DISTINCT
         e.id,
         e.title,
         e.description,
@@ -413,13 +537,22 @@ router.get("/my-joined", authMiddleware, async (req, res) => {
           SELECT COUNT(*)
           FROM event_bookings eb2
           WHERE eb2.event_id = e.id
-        ) AS booked_count
-      FROM event_bookings eb
-      JOIN events e ON e.id = eb.event_id
-      WHERE eb.user_id = ? AND e.archived = 0
+        ) AS booked_count,
+        CASE
+          WHEN e.created_by_email = ? THEN 'created'
+          ELSE 'joined'
+        END AS relation_type
+      FROM events e
+      LEFT JOIN event_bookings eb ON eb.event_id = e.id
+      WHERE
+        e.archived = 0
+        AND (
+          e.created_by_email = ?
+          OR eb.user_id = ?
+        )
       ORDER BY e.start_time DESC
       `,
-      [userId],
+      [userEmail, userEmail, userId]
     );
 
     return res.json(rows);
