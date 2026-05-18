@@ -372,7 +372,13 @@ export default function Calendar() {
 
   function withLine(m) {
     const other =
-      m.creator_email === myEmail ? m.recipient_email : m.creator_email;
+  m.creator_email === myEmail
+    ? (m.recipient_name ||
+       m.recipient_company ||
+       m.recipient_email)
+    : (m.creator_name ||
+       m.creator_company ||
+       m.creator_email);
     return `With: ${other || ""}`;
   }
 
@@ -397,7 +403,7 @@ export default function Calendar() {
                 <div className="nt-empty">Хоосон</div>
               ) : (
                 inboxPending.map((m) =>
-                  renderCard(m, `From: ${m.creator_email || ""}`),
+                  renderCard(m,`From: ${m.creator_name ||""}`),
                 )
               )}
             </div>
@@ -425,7 +431,7 @@ export default function Calendar() {
                 <div className="nt-empty">Хүлээж буй хүсэлт байхгүй.</div>
               ) : (
                 sentPending.map((m) =>
-                  renderCard(m, `To: ${m.recipient_email || ""}`),
+                  renderCard(m, `To: ${m.recipient_name || ""}`),
                 )
               )}
             </div>

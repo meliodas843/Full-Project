@@ -114,37 +114,35 @@ export default function Home() {
   }
 
   async function loadRequests() {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const token = localStorage.getItem("token");
+  if (!token) return;
 
-    setLoadingRequests(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/events/requests`, {
+  setLoadingRequests(true);
+  try {
+    const [pendingRes, acceptedRes] = await Promise.all([
+      fetch(`${API_BASE}/api/meetings/inbox`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
+      }),
+      fetch(`${API_BASE}/api/meetings/accepted`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
 
-      const data = await res.json().catch(() => []);
+    const pending = await pendingRes.json().catch(() => []);
+    const accepted = await acceptedRes.json().catch(() => []);
 
-      if (res.ok) {
-        if (Array.isArray(data)) {
-          setRequests({ pending: [], accepted: data });
-        } else {
-          setRequests({
-            pending: Array.isArray(data.pending) ? data.pending : [],
-            accepted: Array.isArray(data.accepted) ? data.accepted : [],
-          });
-        }
-      } else {
-        setRequests({ pending: [], accepted: [] });
-      }
-    } catch (e) {
-      console.error(e);
-      setErr("Хүсэлтүүд уншихад алдаа гарлаа.");
-      setRequests({ pending: [], accepted: [] });
-    } finally {
-      setLoadingRequests(false);
-    }
+    setRequests({
+      pending: Array.isArray(pending) ? pending : [],
+      accepted: Array.isArray(accepted) ? accepted : [],
+    });
+  } catch (e) {
+    console.error(e);
+    setErr("Хүсэлтүүд уншихад алдаа гарлаа.");
+    setRequests({ pending: [], accepted: [] });
+  } finally {
+    setLoadingRequests(false);
   }
+}
 
   useEffect(() => {
     loadMeetings();
