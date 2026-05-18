@@ -200,10 +200,21 @@ router.post("/", authMiddleware, async (req, res) => {
       const meetingId = ins.insertId;
       createdMeetingIds.push(meetingId);
 
+      const [[recipientUser]] = await conn.query(
+        `SELECT email, company_name, name FROM users WHERE id=?`,
+        [recipientId]
+      );
+
       await conn.query(
-        `INSERT INTO notifications (user_id, type, ref_id, is_read)
-         VALUES (?, 'meeting_request', ?, 0)`,
-        [recipientId, meetingId]
+        `INSERT INTO notifications
+        (user_email, title, message, type, ref_id, is_read)
+        VALUES (?, ?, ?, 'meeting_request', ?, 0)`,
+        [
+          recipientUser.email,
+          "New Meeting Request",
+          `${finalTitle} meeting request`,
+          meetingId,
+        ]
       );
     }
 
