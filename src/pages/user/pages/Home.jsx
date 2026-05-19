@@ -159,29 +159,63 @@ export default function Home() {
   }, []);
 
   async function acceptRequest(id) {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setErr("Please login first.");
+    return;
+  }
 
-    await fetch(`${API_BASE}/api/events/requests/${id}/accept`, {
+  try {
+    const res = await fetch(`${API_BASE}/api/meetings/${id}/accept`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
+
+    const data = await res.json().catch(() => ({}));
+
+    console.log("ACCEPT RESPONSE:", res.status, data);
+
+    if (!res.ok) {
+      setErr(data?.message || `Accept failed: ${res.status}`);
+      return;
+    }
 
     await loadRequests();
     await loadMeetings();
+  } catch (e) {
+    console.error("ACCEPT ERROR:", e);
+    setErr("Accept network error.");
+  }
+}
+
+async function declineRequest(id) {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setErr("Please login first.");
+    return;
   }
 
-  async function declineRequest(id) {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}/api/events/requests/${id}/decline`, {
+  try {
+    const res = await fetch(`${API_BASE}/api/meetings/${id}/decline`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    const data = await res.json().catch(() => ({}));
+
+    console.log("DECLINE RESPONSE:", res.status, data);
+
+    if (!res.ok) {
+      setErr(data?.message || `Decline failed: ${res.status}`);
+      return;
+    }
+
     await loadRequests();
+  } catch (e) {
+    console.error("DECLINE ERROR:", e);
+    setErr("Decline network error.");
   }
+}
 
   const calendarEvents = useMemo(() => {
     const meetingItems = meetings.map((ev) => ({
