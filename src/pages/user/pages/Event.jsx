@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
+import { useSearchParams } from "react-router-dom";
 
 function formatDateTime(dt) {
   if (!dt) return "";
@@ -153,7 +154,7 @@ function canEditEvent(ev) {
 export default function Event() {
   const rightTopRef = useRef(null);
   const fileInputRef = useRef(null);
-
+  const [searchParams] = useSearchParams();
   const [editingEventId, setEditingEventId] = useState(null);
 
   const [eventFiles, setEventFiles] = useState([]);
@@ -262,37 +263,38 @@ export default function Event() {
   }
 
   async function fetchHistory() {
-    try {
-      setErrMsg("");
-      setLoadingEvents(true);
+  try {
+    setErrMsg("");
+    setLoadingEvents(true);
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setEvents([]);
-        return;
-      }
-
-      const res = await fetch(`${API_BASE}/api/events/my-history`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json().catch(() => []);
-
-      if (!res.ok) {
-        setEvents([]);
-        setErrMsg(data?.message || "Failed to load history");
-        return;
-      }
-
-      setEvents(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-      setErrMsg("Network error");
+    const token = localStorage.getItem("token");
+    if (!token) {
       setEvents([]);
-    } finally {
-      setLoadingEvents(false);
+      return;
     }
+
+    const res = await fetch(`${API_BASE}/api/events/my-joined`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json().catch(() => []);
+
+    if (!res.ok) {
+      setEvents([]);
+      setErrMsg(data?.message || "Failed to load history");
+      return;
+    }
+
+    const list = Array.isArray(data) ? data : [];
+    setEvents(list.filter((ev) => isEventFinished(ev)));
+  } catch (e) {
+    console.error(e);
+    setErrMsg("Network error");
+    setEvents([]);
+  } finally {
+    setLoadingEvents(false);
   }
+}
 
   async function fetchMyBookedIds() {
     try {
@@ -464,6 +466,16 @@ export default function Event() {
   );
 
   useEffect(() => {
+  const eventId = searchParams.get("eventId");
+
+  if (eventId) {
+    setSelectedEventId(Number(eventId));
+    setShowCreate(false);
+    setEditingEventId(null);
+  }
+}, [searchParams]);
+
+  useEffect(() => {
     setParticipants([]);
     setParticipantsCount(0);
     setEventFiles([]);
@@ -478,16 +490,8 @@ export default function Event() {
       return;
     }
 
-    const joined = bookedIds.includes(id);
-
-    if (!joined) {
-      setParticipants([]);
-      setParticipantsCount(Number(selectedEvent?.booked_count) || 0);
-      return;
-    }
-
     fetchParticipants(id);
-  }, [selectedEvent?.id, bookedIds, selectedEvent?.booked_count]);
+  }, [selectedEvent?.id]);
 
   useEffect(() => {
     const id = Number(selectedEvent?.id);
@@ -707,40 +711,44 @@ export default function Event() {
   }
 
   async function handleBook(ev) {
-    setErrMsg("");
-    setSuccessMsg("");
+  setErrMsg("");
+  setSuccessMsg("");
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setErrMsg("Please login first.");
-        return;
-      }
-
-      const res = await fetch(`${API_BASE}/api/events/${ev.id}/book`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setErrMsg(data?.message || "Failed to book event");
-        return;
-      }
-
-      await fetchMyBookedIds();
-      await fetchMyEvents();
-
-      if (selectedEvent?.id === ev.id) fetchParticipants(ev.id);
-
-      setSuccessMsg("Бүртгэл амжилттай ✅");
-      setTimeout(() => setSuccessMsg(""), 1200);
-    } catch (e) {
-      console.error(e);
-      setErrMsg("Network error while booking");
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setErrMsg("Please login first.");
+      return;
     }
+
+    const res = await fetch(`${API_BASE}/api/events/${ev.id}/book`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setErrMsg(data?.message || "Failed to book event");
+      return;
+    }
+
+    await Promise.all([
+      fetchEvents(),
+      fetchMyBookedIds(),
+      fetchMyEvents(),
+      fetchParticipants(ev.id),
+    ]);
+
+    setSelectedEventId(Number(ev.id));
+
+    setSuccessMsg("Бүртгэл амжилттай ✅");
+    setTimeout(() => setSuccessMsg(""), 1200);
+  } catch (e) {
+    console.error(e);
+    setErrMsg("Network error while booking");
   }
+}
 
   async function handleUploadFinishedFile() {
     setErrMsg("");
@@ -878,6 +886,13 @@ export default function Event() {
 
   const currentLb = imageFiles[lbIndex];
   const isSelectedBooked = bookedIds.includes(Number(selectedEvent?.id));
+  const visibleEvents = useMemo(() => {
+    if (mode === "history") {
+      return events.filter((ev) => isEventFinished(ev));
+    }
+
+    return events.filter((ev) => !isEventFinished(ev));
+  }, [events, mode]);
 
   return (
     <UserShell title="Events">
@@ -1035,34 +1050,40 @@ export default function Event() {
 
                   <div className="uep-joinedRow">
                     <div className="uep-joinedLabel">
-                      {isSelectedBooked
-                        ? loadingParticipants
-                          ? "Loading…"
-                          : `${participantsCount} joined`
-                        : `${Number(selectedEvent.booked_count) || 0} joined`}
+                      {loadingParticipants
+                        ? "Loading…"
+                        : `${participants.length || participantsCount || Number(selectedEvent?.booked_count) || 0} joined`}
                     </div>
 
-                    <div className="uep-avatars">
-                      {participants.slice(0, 6).map((p) => (
-                        <div key={p.id} className="uep-avatar" title={p.name || p.email}>
-                          {p.avatar_url ? (
-                            <img src={p.avatar_url} alt={p.name || "user"} />
-                          ) : (
-                            <span>{getInitials(p.name || p.email)}</span>
-                          )}
-                        </div>
-                      ))}
+                    <div className="uep-avatarsCompact">
+                      {participants && participants.length > 0 ? (
+                        participants.map((p, index) => {
+                          const displayName =
+                            p?.name ||
+                            `${p?.first_name || ""} ${p?.last_name || ""}`.trim() ||
+                            p?.email ||
+                            "User";
 
-                      {participantsCount > 6 && (
-                        <div className="uep-avatar uep-avatarMore" title="More people">
-                          +{participantsCount - 6}
+                          return (
+                            <div
+                              key={p?.id || index}
+                              className="uep-avatarCompact"
+                              title={displayName}
+                            >
+                              <span>{getInitials(displayName)}</span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="uep-avatarCompact">
+                          <span>{getInitials(selectedEvent?.created_by_email || "U")}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="uep-detailActions">
-                    {canEditEvent(selectedEvent) && (
+                    {canEditEvent(selectedEvent) && !isEventFinished(selectedEvent) && (
                       <button
                         type="button"
                         className="uep-btn uep-btnPrimary"
@@ -1482,13 +1503,13 @@ export default function Event() {
                 <div className="uep-empty">
                   {mode === "history" ? "Түүх уншиж байна..." : "Эвент уншиж байна..."}
                 </div>
-              ) : events.length === 0 ? (
+              ) : visibleEvents.length === 0 ? (
                 <div className="uep-empty">
                   {mode === "history" ? "Түүх байхгүй байна." : "Эвент байхгүй байна."}
                 </div>
               ) : (
                 <div className="uep-grid">
-                  {events.map((ev) => {
+                  {visibleEvents.map((ev) => {
                     const isBooked = bookedIds.includes(Number(ev.id));
                     const cover = resolveUrl(ev.image_url) || fallbackImgSrc();
 
@@ -1536,7 +1557,7 @@ export default function Event() {
                               {mode === "history" ? "Дэлгэрэнгүй" : isBooked ? "Бүртгэгдсэн" : "Бүртгэх"}
                             </button>
 
-                            {canEditEvent(ev) && (
+                            {canEditEvent(ev) && !isEventFinished(ev) && (
                               <button
                                 className="uep-bookBtn"
                                 type="button"

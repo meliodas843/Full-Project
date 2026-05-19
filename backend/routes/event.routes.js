@@ -99,6 +99,22 @@ function safeJsonParse(value, fallback) {
   }
 }
 
+async function getAuthUserId(req) {
+  let userId = Number(req.user?.id);
+
+  if (Number.isFinite(userId)) return userId;
+
+  const email = String(req.user?.email || "").trim().toLowerCase();
+  if (!email) return null;
+
+  const [[u]] = await pool.query(
+    `SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1`,
+    [email]
+  );
+
+  return u?.id ? Number(u.id) : null;
+}
+
 function sanitizeAgenda(rawAgenda) {
   const agenda = Array.isArray(rawAgenda) ? rawAgenda : [];
   return agenda
@@ -218,6 +234,11 @@ router.put("/:id", authMiddleware, (req, res) => {
       }
 
       const event = rows[0];
+      if (isFinished(event.end_time)) {
+        return res.status(400).json({
+          message: "Дууссан эвэнтийг засах боломжгүй.",
+        });
+      }
 
       if (String(event.created_by_email || "").toLowerCase() !== userEmail) {
         return res.status(403).json({
@@ -318,21 +339,12 @@ router.post("/", authMiddleware, (req, res) => {
       console.error("CREATE EVENT MULTER ERROR:", multerErr);
 
       if (multerErr.code === "LIMIT_FILE_SIZE") {
-        return res
-          .status(400)
-          .json({ message: "File too large (max 20MB each)" });
+        return res.status(400).json({ message: "File too large" });
       }
 
-      if (multerErr.code === "LIMIT_UNEXPECTED_FILE") {
-        return res.status(400).json({
-          message:
-            "Unexpected field. Use image for cover and speaker_avatars for speakers.",
-        });
-      }
-
-      return res
-        .status(400)
-        .json({ message: multerErr.message || "Upload error" });
+      return res.status(400).json({
+        message: multerErr.message || "Upload error",
+      });
     }
 
     try {
@@ -359,6 +371,11 @@ router.post("/", authMiddleware, (req, res) => {
       const userEmail = req.user?.email;
       if (!userEmail) {
         return res.status(401).json({ message: "Invalid token (no email)" });
+      }
+
+      const creatorId = await getAuthUserId(req);
+      if (!Number.isFinite(creatorId)) {
+        return res.status(401).json({ message: "Invalid token user" });
       }
 
       const files = req.files || {};
@@ -414,7 +431,17 @@ router.post("/", authMiddleware, (req, res) => {
           inviteToken,
           JSON.stringify(finalSpeakers),
           JSON.stringify(finalAgenda),
-        ],
+        ]
+      );
+
+      const eventId = result.insertId;
+
+      await pool.query(
+        `
+        INSERT IGNORE INTO event_bookings (event_id, user_id)
+        VALUES (?, ?)
+        `,
+        [eventId, creatorId]
       );
 
       const [rows] = await pool.query(
@@ -434,12 +461,17 @@ router.post("/", authMiddleware, (req, res) => {
           archived,
           archived_at,
           speaker,
-          agenda
+          agenda,
+          (
+            SELECT COUNT(*)
+            FROM event_bookings eb
+            WHERE eb.event_id = events.id
+          ) AS booked_count
         FROM events
         WHERE id = ?
         LIMIT 1
         `,
-        [result.insertId],
+        [eventId]
       );
 
       return res.status(201).json({
@@ -448,11 +480,14 @@ router.post("/", authMiddleware, (req, res) => {
       });
     } catch (err) {
       console.error("POST /api/events error:", err);
-      return res.status(500).json({ message: "Server error" });
+      return res.status(500).json({
+        message: "Server error",
+        error: err.message,
+        sql: err.sqlMessage || null,
+      });
     }
   });
 });
-
 /* =========================================================
    GET my requests
    (events created by current user)
@@ -508,7 +543,7 @@ router.get("/requests", authMiddleware, async (req, res) => {
 ========================================================= */
 router.get("/my-joined", authMiddleware, async (req, res) => {
   try {
-    const userId = Number(req.user?.id);
+    const userId = await getAuthUserId(req);
     const userEmail = String(req.user?.email || "").trim();
 
     if (!Number.isFinite(userId) || !userEmail) {
@@ -565,22 +600,17 @@ router.get("/my-joined", authMiddleware, async (req, res) => {
 /* =========================================================
    GET my history
 ========================================================= */
-router.get("/my-history", authMiddleware, async (req, res) => {
+router.get("/my-events", authMiddleware, async (req, res) => {
   try {
-    const userId = Number(req.user?.id);
-    const userEmail = String(req.user?.email || "").trim();
-
-    if (!Number.isFinite(userId)) {
-      return res.status(401).json({ message: "Invalid token (no user id)" });
-    }
+    const userEmail = String(req.user?.email || "").trim().toLowerCase();
 
     if (!userEmail) {
-      return res.status(401).json({ message: "Invalid token (no email)" });
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     const [rows] = await pool.query(
       `
-      SELECT DISTINCT
+      SELECT
         e.id,
         e.title,
         e.description,
@@ -598,31 +628,21 @@ router.get("/my-history", authMiddleware, async (req, res) => {
         e.agenda,
         (
           SELECT COUNT(*)
-          FROM event_bookings eb2
-          WHERE eb2.event_id = e.id
-        ) AS booked_count,
-        CASE
-          WHEN e.created_by_email = ? THEN 'created'
-          ELSE 'joined'
-        END AS relation_type
+          FROM event_bookings eb
+          WHERE eb.event_id = e.id
+        ) AS booked_count
       FROM events e
-      LEFT JOIN event_bookings eb ON eb.event_id = e.id
-      WHERE
-        (
-          eb.user_id = ?
-          OR e.created_by_email = ?
-        )
-        AND e.end_time IS NOT NULL
-        AND e.end_time < NOW()
-      ORDER BY e.end_time DESC, e.start_time DESC
+      WHERE LOWER(e.created_by_email) = ?
+        AND e.archived = 0
+      ORDER BY e.start_time DESC
       `,
-      [userEmail, userId, userEmail],
+      [userEmail]
     );
 
     return res.json(rows);
   } catch (err) {
-    console.error("GET /api/events/my-history error:", err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("GET /api/events/my-events error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -631,22 +651,21 @@ router.get("/my-history", authMiddleware, async (req, res) => {
 ========================================================= */
 router.get("/my-bookings", authMiddleware, async (req, res) => {
   try {
-    const userId = Number(req.user?.id);
+    const userId = await getAuthUserId(req);
+
     if (!Number.isFinite(userId)) {
-      return res.status(401).json({ message: "Invalid token (no user id)" });
+      return res.status(401).json({ message: "Invalid token user" });
     }
 
     const [rows] = await pool.query(
       `SELECT event_id FROM event_bookings WHERE user_id = ?`,
-      [userId],
+      [userId]
     );
 
-    return res.json(
-      rows.map((r) => Number(r.event_id)).filter(Number.isFinite),
-    );
+    return res.json(rows.map((r) => Number(r.event_id)));
   } catch (err) {
     console.error("GET /api/events/my-bookings error:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -656,21 +675,20 @@ router.get("/my-bookings", authMiddleware, async (req, res) => {
 router.post("/:id/book", authMiddleware, async (req, res) => {
   try {
     const eventId = Number(req.params.id);
-    const userId = Number(req.user?.id);
+    const userId = await getAuthUserId(req);
 
     if (!Number.isFinite(eventId)) {
       return res.status(400).json({ message: "Invalid event id" });
     }
 
     if (!Number.isFinite(userId)) {
-      return res.status(401).json({ message: "Invalid token (no user id)" });
+      return res.status(401).json({ message: "Invalid token user" });
     }
 
-    const [eventRows] = await pool.query(
+    const [[ev]] = await pool.query(
       `
       SELECT
         id,
-        title,
         max_participants,
         archived,
         (
@@ -682,25 +700,15 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
       WHERE id = ?
       LIMIT 1
       `,
-      [eventId],
+      [eventId]
     );
 
-    if (!eventRows.length) {
+    if (!ev) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    const ev = eventRows[0];
     if (Number(ev.archived) === 1) {
       return res.status(400).json({ message: "Event is archived" });
-    }
-
-    const [alreadyRows] = await pool.query(
-      `SELECT 1 FROM event_bookings WHERE event_id = ? AND user_id = ? LIMIT 1`,
-      [eventId, userId],
-    );
-
-    if (alreadyRows.length) {
-      return res.status(400).json({ message: "Already booked" });
     }
 
     const maxParticipants = Number(ev.max_participants || 0);
@@ -711,14 +719,21 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO event_bookings (event_id, user_id) VALUES (?, ?)`,
-      [eventId, userId],
+      `
+      INSERT IGNORE INTO event_bookings (event_id, user_id)
+      VALUES (?, ?)
+      `,
+      [eventId, userId]
     );
 
     return res.status(201).json({ message: "Booked ✅" });
   } catch (err) {
     console.error("POST /api/events/:id/book error:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+      sql: err.sqlMessage || null,
+    });
   }
 });
 
@@ -728,47 +743,38 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
 router.get("/:id/participants", authMiddleware, async (req, res) => {
   try {
     const eventId = Number(req.params.id);
-    if (!Number.isFinite(eventId)) {
-      return res.status(400).json({ message: "Invalid event id" });
-    }
-
-    const [eventRows] = await pool.query(
-      `SELECT id FROM events WHERE id = ? LIMIT 1`,
-      [eventId],
-    );
-
-    if (!eventRows.length) {
-      return res.status(404).json({ message: "Event not found" });
-    }
 
     const [rows] = await pool.query(
       `
-      SELECT
+      SELECT DISTINCT
         u.id,
-        CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS name,
         u.email,
-        u.avatar_url
-      FROM event_bookings eb
-      JOIN users u ON u.id = eb.user_id
-      WHERE eb.event_id = ?
-      ORDER BY u.first_name ASC, u.last_name ASC
+        u.first_name,
+        u.last_name,
+        u.company_name,
+        u.avatar_url,
+        TRIM(CONCAT(COALESCE(u.first_name,''), ' ', COALESCE(u.last_name,''))) AS name
+      FROM events e
+      JOIN users u
+        ON LOWER(u.email) = LOWER(e.created_by_email)
+        OR u.id IN (
+          SELECT eb.user_id
+          FROM event_bookings eb
+          WHERE eb.event_id = e.id
+        )
+      WHERE e.id = ?
       `,
-      [eventId],
+      [eventId]
     );
 
     return res.json({
-      total_count: rows.length,
       participants: rows,
+      total_count: rows.length,
     });
   } catch (err) {
-    console.error("GET /api/events/:id/participants error:", err);
-    return res.status(500).json({
-      message: "Server error",
-      error: String(err.message || err),
-    });
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
-
 /* =========================================================
    GET event files
 ========================================================= */

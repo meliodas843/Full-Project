@@ -156,8 +156,8 @@ a {
   max-width: 680px;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* ✅ center properly */
-  margin-top: 0; /* ✅ reset */
+  justify-content: center; /* âœ… center properly */
+  margin-top: 0; /* âœ… reset */
   transform: translateY(-70px);
   margin-left: 70px;
 }
@@ -606,7 +606,7 @@ a {
   flex: 0 0 50%;
   width: 50%;
   height: 100%;
-  object-fit: contain; /* ✅ show full image */
+  object-fit: contain; /* âœ… show full image */
   object-position: center;
   padding: 8px;
   box-sizing: border-box;
@@ -662,7 +662,7 @@ a {
   text-align: center;
   margin: 0 auto;
   max-width: 980px;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.05;
@@ -713,7 +713,7 @@ a {
 .publicValue .publicIconCard p {
   margin: 0;
   font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1.35;
   color: rgba(11, 15, 25, 0.86);
   max-width: 36ch;
@@ -792,10 +792,10 @@ a {
 
 .demoTitle {
   text-align: center;
-  font-size: 40px;
+  font-size: 32px;
   font-weight: 500;
   line-height: 1.05;
-  margin-bottom: 18px !important;
+  margin-bottom: 40px !important;
   letter-spacing: -0.02em;
 }
 
@@ -824,7 +824,7 @@ a {
 .demoImageWrap {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   justify-self: start;
   width: 100%;
 }
@@ -1219,7 +1219,7 @@ a {
 }
 
 .demoItem__header h3 {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
   max-width: 85%;
@@ -1234,7 +1234,7 @@ a {
 
 .demoItem p {
   font-family: ui-serif, Georgia, serif;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.4;
   margin-top: 10px;
   color: #333;
@@ -1249,7 +1249,7 @@ a {
 
 .demoItem.isActive .demoItem__header h3 {
   color: var(--secondary-900) !important;
-  font-size: 28px !important;
+  font-size: 22px !important;
 }
 
 .demoItem.isActive .demoItem__header span {
@@ -1259,7 +1259,7 @@ a {
 
 .demoItem.isActive p {
   color: #111 !important;
-  font-size: 22px !important;
+  font-size: 18px !important;
 }
 
 @media (max-width: 1000px) {
@@ -1316,7 +1316,7 @@ a {
   }
 }
 /* =========================
-   NEWS SECTION — Aetherfield style
+   NEWS SECTION â€” Aetherfield style
    Uses your existing JSX classes
 ========================= */
 .publicNews {
@@ -1838,7 +1838,7 @@ a {
     top: auto !important;
   }
 
-  /* ✅ remove huge scroll space */
+  /* âœ… remove huge scroll space */
   .demoSpacer {
     height: 0 !important;
     min-height: 0 !important;
@@ -1889,7 +1889,7 @@ a {
   }
 
   .demoItem__header h3 {
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .demoItem p {
@@ -2239,7 +2239,7 @@ a {
   border: 1px solid #30363d;
   padding: 10px;
   border-radius: 10px;
-  color: #c9d1d9; /* âœ… fixed */
+  color: #c9d1d9; /* Ã¢Å“â€¦ fixed */
 }
 
 @media (max-width: 600px) {
@@ -2601,9 +2601,9 @@ a {
    EVENTS PAGE
 ========================= */
 .eventsGradientBg {
-  min-height: 100svh; /* âœ… better than 100vh on mobile */
+  min-height: 100svh; /* Ã¢Å“â€¦ better than 100vh on mobile */
   padding: 56px 18px;
-  overflow-x: hidden; /* âœ… prevent horizontal scroll */
+  overflow-x: hidden; /* Ã¢Å“â€¦ prevent horizontal scroll */
 
   background:
     radial-gradient(
@@ -2712,10 +2712,10 @@ a {
   align-items: center;
   gap: 12px;
   width: auto;
-  flex-wrap: wrap; /* âœ… allow wrap */
+  flex-wrap: wrap; /* Ã¢Å“â€¦ allow wrap */
 }
 
-/* âœ… don't force flex:1; let it size naturally on desktop */
+/* Ã¢Å“â€¦ don't force flex:1; let it size naturally on desktop */
 .eventsSearchWrap {
   position: relative;
   flex: 0 0 auto;
@@ -2724,7 +2724,7 @@ a {
 }
 
 .eventsSearch {
-  width: 100%; /* âœ… important */
+  width: 100%; /* Ã¢Å“â€¦ important */
   padding: 12px 44px 12px 14px;
 
   background: rgba(255, 255, 255, 0.7);
@@ -3052,7 +3052,7 @@ a {
   }
 
   .eventsGrid {
-    grid-template-columns: 1fr; /* âœ… single column on phones */
+    grid-template-columns: 1fr; /* Ã¢Å“â€¦ single column on phones */
   }
 }
 
@@ -3818,7 +3818,7 @@ a {
   }
 }
 
-/* âœ… Very small phones */
+/* Ã¢Å“â€¦ Very small phones */
 @media (max-width: 420px) {
   :root {
     --sb-w: 68px;
@@ -3841,12 +3841,12 @@ a {
   background: #fff;
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  gap: 12px; /* âœ… helps when it gets tight */
+  gap: 12px; /* Ã¢Å“â€¦ helps when it gets tight */
   min-width: 0;
 }
 
 .app-topbar-left {
-  min-width: 0; /* âœ… allow shrink */
+  min-width: 0; /* Ã¢Å“â€¦ allow shrink */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3873,7 +3873,7 @@ a {
   justify-content: center;
   transition: all 150ms ease;
   position: relative; /* for badge */
-  flex: 0 0 auto; /* âœ… donâ€™t shrink icons */
+  flex: 0 0 auto; /* Ã¢Å“â€¦ donÃ¢â‚¬â„¢t shrink icons */
 }
 
 .app-topbar-icon:hover {
@@ -3912,7 +3912,7 @@ a {
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.85);
   cursor: pointer;
-  min-width: 0; /* âœ… allow text to ellipsis */
+  min-width: 0; /* Ã¢Å“â€¦ allow text to ellipsis */
   max-width: 340px;
 }
 
@@ -3938,7 +3938,7 @@ a {
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* âœ… stops overflow */
+  text-overflow: ellipsis; /* Ã¢Å“â€¦ stops overflow */
   max-width: 220px;
 }
 
@@ -3947,7 +3947,7 @@ a {
   color: var(--text-600);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* âœ… stops overflow */
+  text-overflow: ellipsis; /* Ã¢Å“â€¦ stops overflow */
   max-width: 220px;
 }
 
@@ -5476,13 +5476,13 @@ a {
     width: 100%;
   }
 
-  /* remove â€œfit-contentâ€ behavior so it stretches nicely */
+  /* remove Ã¢â‚¬Å“fit-contentÃ¢â‚¬Â behavior so it stretches nicely */
   .uep-left {
     height: auto;
     align-self: stretch;
   }
 
-  /* tighter inside paddings so it doesnâ€™t look too narrow */
+  /* tighter inside paddings so it doesnÃ¢â‚¬â„¢t look too narrow */
   .uep-left {
     padding: 14px;
     border-radius: 16px;
@@ -5586,7 +5586,7 @@ a {
   font-weight: 800;
   font-size: 14px;
 
-  margin-top: auto; /* ✅ THIS pushes it to bottom */
+  margin-top: auto; /* âœ… THIS pushes it to bottom */
 
   transition:
     background 0.15s ease,
@@ -5641,7 +5641,7 @@ a {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   outline: none;
-  width: 100%; /* âœ… responsive inputs */
+  width: 100%; /* Ã¢Å“â€¦ responsive inputs */
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -5662,9 +5662,9 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px; /* âœ… avoid squeeze */
+  gap: 10px; /* Ã¢Å“â€¦ avoid squeeze */
   margin-bottom: 10px;
-  flex-wrap: wrap; /* âœ… responsive */
+  flex-wrap: wrap; /* Ã¢Å“â€¦ responsive */
 }
 
 .uep-createTitle {
@@ -5819,7 +5819,7 @@ a {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
-  flex-wrap: wrap; /* âœ… responsive header row */
+  flex-wrap: wrap; /* Ã¢Å“â€¦ responsive header row */
 }
 
 /* =========================
@@ -5834,7 +5834,7 @@ a {
   }
 }
 
-/* âœ… Stack to 1 column */
+/* Ã¢Å“â€¦ Stack to 1 column */
 @media (max-width: 900px) {
   .uep-wrap {
     grid-template-columns: 1fr;
@@ -6123,18 +6123,6 @@ a {
   font-size: 15px;
   font-weight: 800;
   white-space: nowrap;
-}
-
-/* joined */
-.uep-joinedRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
 }
 
 .uep-joinedLabel {
@@ -6927,13 +6915,6 @@ a {
   }
 }
 
-.uep-joinedRow {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
 .uep-joinedLabel {
   font-size: 13px;
   opacity: 0.85;
@@ -7029,7 +7010,7 @@ a {
 ========================= */
 .user-layout {
   display: flex;
-  min-height: 100vh; /* âœ… better on mobile than 100vh */
+  min-height: 100vh; /* Ã¢Å“â€¦ better on mobile than 100vh */
   background: #f6f8fc;
   color: #0f172a;
   font-family:
@@ -7039,7 +7020,7 @@ a {
     Roboto,
     Arial,
     sans-serif;
-  overflow-x: hidden; /* âœ… prevent horizontal scroll */
+  overflow-x: hidden; /* Ã¢Å“â€¦ prevent horizontal scroll */
 }
 
 .user-content {
@@ -7990,7 +7971,7 @@ a {
 }
 
 .newsSelectWrap::after {
-  content: "⬇";
+  content: "â¬‡";
   position: absolute;
   right: 14px;
   top: 50%;
@@ -8118,7 +8099,7 @@ a {
 .profileNavCard {
   width: 320px;
   margin-left: 18px; /* move right */
-  margin-top: 2px; /* ðŸ‘ˆ move down */
+  margin-top: 2px; /* Ã°Å¸â€˜Ë† move down */
   background: #fff;
   border: 1px solid #eef0f5;
   border-radius: 18px;
@@ -8129,27 +8110,25 @@ a {
 }
 .profileNavBtn {
   position: relative;
-  display: flex; /* IMPORTANT */
+  display: flex; 
   align-items: center;
-  width: 100%; /* IMPORTANT */
+  width: 100%; 
   padding: 12px 14px 12px 18px;
   border-radius: 14px;
-  text-decoration: none; /* IMPORTANT for <a> */
+  text-decoration: none; 
   color: #475467;
-  font-weight: 700;
+  font-weight: 500;
   transition:
     background 0.15s ease,
     color 0.15s ease,
     transform 0.12s ease;
 }
 
-/* hover */
 .profileNavBtn:hover {
   background: #f5f7fb;
   transform: translateY(-1px);
 }
 
-/* left bar (hidden by default) */
 .profileNavBtn::before {
   content: "";
   position: absolute;
@@ -8159,24 +8138,22 @@ a {
   width: 4px;
   height: 0;
   border-radius: 999px;
-  background: #6d28d9; /* purple */
+  background: #6d28d9; 
   transition: height 0.18s ease;
   opacity: 0;
 }
 
-/* ACTIVE like your Events pill */
 .profileNavBtn.isActive {
-  background: #f3efff; /* light purple */
+  background: #f3efff;
   color: #6d28d9;
-  font-weight: 800;
+  font-weight: 700;
 }
 
-/* show the bar when active */
 .profileNavBtn.isActive::before {
   height: 28px;
   opacity: 1;
 }
-/* RIGHT */
+
 .profileMainHeader {
   padding: 6px 4px 12px;
   margin-bottom: 6px;
@@ -8350,12 +8327,12 @@ a {
 .profileInfoLabel {
   font-size: 12px;
   color: #6b7280;
-  font-weight: 900;
+  font-weight: 500;
   letter-spacing: 0.02em;
 }
 .profileInfoValue {
   font-size: 14px;
-  font-weight: 950;
+  font-weight: 700;
   color: #111827;
   word-break: break-word;
 }
@@ -8792,7 +8769,7 @@ body {
 }
 
 /* =========================
-   âœ… MODAL (FIXED + SCROLL INSIDE ONLY)
+   Ã¢Å“â€¦ MODAL (FIXED + SCROLL INSIDE ONLY)
 ========================= */
 .newsModalBackdrop {
   position: fixed;
@@ -9082,6 +9059,91 @@ body {
 ========================= */
 .events-body {
   padding: 14px 16px 16px;
+}
+
+.event-see-more {
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.event-see-more.small {
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.event-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+.event-modal {
+  width: min(680px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 24px;
+  padding: 26px;
+  position: relative;
+}
+
+.event-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.event-modal-date {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.event-modal-img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 18px;
+  margin: 16px 0;
+  background: #f1f5f9;
+}
+
+.event-modal-desc {
+  color: #334155;
+  line-height: 1.6;
+}
+
+.event-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.event-modal-actions button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 18px;
+  background: #0f172a;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .meetings-grid {
@@ -9637,7 +9699,7 @@ evModalOverlay.evModalOverlay {
    MOBILE ONLY
 ========================================================= */
 @media (max-width: 900px) {
-  /* ✅ remove desktop 2-column layout entirely on mobile */
+  /* âœ… remove desktop 2-column layout entirely on mobile */
   .user-layout {
     display: block !important;
     width: 100% !important;
@@ -9724,7 +9786,7 @@ evModalOverlay.evModalOverlay {
 
   /* =========================
      Drawer (flex column, smaller)
-     ✅ IMPORTANT: overflow hidden here so footer can pin
+     âœ… IMPORTANT: overflow hidden here so footer can pin
   ========================= */
   .mobile-drawer {
     display: flex !important;
@@ -9740,7 +9802,7 @@ evModalOverlay.evModalOverlay {
     transition: transform 0.18s ease;
     border-left: 1px solid #e6e8ef;
     box-shadow: -20px 0 40px rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* ✅ required for pinned footer */
+    overflow: hidden; /* âœ… required for pinned footer */
   }
 
   .mobile-drawer.is-open {
@@ -9764,7 +9826,7 @@ evModalOverlay.evModalOverlay {
     line-height: 1;
   }
 
-  /* ✅ only the nav area scrolls */
+  /* âœ… only the nav area scrolls */
   .mobile-drawer__nav {
     flex: 1;
     overflow: auto;
@@ -9781,7 +9843,7 @@ evModalOverlay.evModalOverlay {
   }
 
   /* =========================
-     ✅ Sidebar INSIDE drawer only
+     âœ… Sidebar INSIDE drawer only
      (prevents desktop from being affected)
   ========================= */
   .mobile-drawer .mobile-drawer__nav .user-sidebar {
@@ -9821,7 +9883,7 @@ evModalOverlay.evModalOverlay {
     white-space: nowrap;
   }
 
-  /* ✅ pin logout to bottom ONLY inside drawer */
+  /* âœ… pin logout to bottom ONLY inside drawer */
   .mobile-drawer .mobile-drawer__nav .user-sidebar .us-footer {
     margin-top: auto !important;
     padding: 14px;
@@ -11270,6 +11332,99 @@ html.modal-open {
   font-size: 14px;
 }
 
+.uep-joinedLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.uep-participantProfiles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.uep-miniProfile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  min-width: 120px;
+}
+
+.uep-miniAvatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.uep-miniAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uep-miniInfo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.uep-miniInfo strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.uep-miniInfo small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.uep-miniMore {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.uep-noParticipants {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .uep-joinedRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .uep-participantProfiles {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
+
 @keyframes mentorModalIn {
   from {
     opacity: 0;
@@ -11462,5 +11617,85 @@ html.modal-open {
     width: 34px;
     height: 34px;
     font-size: 20px;
+  }
+}
+
+
+/* ===== FIX: Event joined users compact avatars ===== */
+.uep-joinedRow {
+  width: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  overflow: visible !important;
+}
+
+.uep-joinedLabel {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.uep-avatarsCompact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.uep-avatarCompact {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #2d5bff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  flex-shrink: 0;
+}
+
+.uep-avatarCompact:first-child {
+  margin-left: 0 !important;
+}
+
+.uep-avatarCompact img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.uep-avatarCompactMore {
+  background: #0f172a !important;
+  font-size: 12px !important;
+}
+
+.uep-noParticipants {
+  font-size: 12px !important;
+  color: #94a3b8 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 768px) {
+  .uep-joinedRow {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .uep-avatarsCompact {
+    justify-content: flex-start !important;
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }

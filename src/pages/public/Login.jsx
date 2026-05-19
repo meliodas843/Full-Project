@@ -86,7 +86,7 @@ export default function Login() {
         <h2>Нэвтрэх</h2>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <label>И-Майл</label>
+          <label>Имэйл</label>
           <input
             type="email"
             name="email"
@@ -118,7 +118,7 @@ export default function Login() {
         {message && <p className="auth-error">{message}</p>}
 
         <p className="login-footer">
-          Таньд бүртгэл байхгүй үү? <Link to="/signup">Бүртгүүлэх</Link>
+          Бүртгэлгүй хэрэглэгч? <Link to="/signup">Бүртгүүлэх</Link>
         </p>
 
         <div className="divider">

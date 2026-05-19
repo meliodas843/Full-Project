@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
 
@@ -57,15 +58,12 @@ function isSameDay(a, b) {
 function buildCalendarCells(viewDate) {
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-
   const firstDay = new Date(year, month, 1);
   const startWeekday = firstDay.getDay();
   const mondayOffset = startWeekday === 0 ? 6 : startWeekday - 1;
-
   const gridStart = new Date(year, month, 1 - mondayOffset);
-  const totalCells = 42;
 
-  return Array.from({ length: totalCells }, (_, i) => {
+  return Array.from({ length: 42 }, (_, i) => {
     const cellDate = new Date(gridStart);
     cellDate.setDate(gridStart.getDate() + i);
 
@@ -87,6 +85,11 @@ export default function Home() {
 
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedDateKey, setSelectedDateKey] = useState(toDateKey(new Date()));
+  const navigate = useNavigate();
+
+  function goEventDetail(ev) {
+    navigate(`/user/event?eventId=${ev.id}`);
+  }
 
   async function loadMeetings() {
     const token = localStorage.getItem("token");
@@ -99,11 +102,17 @@ export default function Home() {
       });
       const data = await res.json().catch(() => []);
 
-      if (res.ok) {
-        setMeetings(Array.isArray(data) ? data : []);
-      } else {
-        setMeetings([]);
-      }
+      const list = res.ok && Array.isArray(data) ? data : [];
+
+      const activeOnly = list.filter((ev) => {
+        if (!ev?.end_time) return true;
+
+        const end = new Date(ev.end_time).getTime();
+
+        return Number.isFinite(end) && end > Date.now();
+      });
+
+      setMeetings(activeOnly);
     } catch (e) {
       console.error(e);
       setErr("Эвентүүд уншихад алдаа гарлаа.");
@@ -114,35 +123,35 @@ export default function Home() {
   }
 
   async function loadRequests() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  setLoadingRequests(true);
-  try {
-    const [pendingRes, acceptedRes] = await Promise.all([
-      fetch(`${API_BASE}/api/meetings/inbox`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-      fetch(`${API_BASE}/api/meetings/accepted`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-    ]);
+    setLoadingRequests(true);
+    try {
+      const [pendingRes, acceptedRes] = await Promise.all([
+        fetch(`${API_BASE}/api/meetings/inbox`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE}/api/meetings/accepted`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-    const pending = await pendingRes.json().catch(() => []);
-    const accepted = await acceptedRes.json().catch(() => []);
+      const pending = await pendingRes.json().catch(() => []);
+      const accepted = await acceptedRes.json().catch(() => []);
 
-    setRequests({
-      pending: Array.isArray(pending) ? pending : [],
-      accepted: Array.isArray(accepted) ? accepted : [],
-    });
-  } catch (e) {
-    console.error(e);
-    setErr("Хүсэлтүүд уншихад алдаа гарлаа.");
-    setRequests({ pending: [], accepted: [] });
-  } finally {
-    setLoadingRequests(false);
+      setRequests({
+        pending: Array.isArray(pending) ? pending : [],
+        accepted: Array.isArray(accepted) ? accepted : [],
+      });
+    } catch (e) {
+      console.error(e);
+      setErr("Хүсэлтүүд уншихад алдаа гарлаа.");
+      setRequests({ pending: [], accepted: [] });
+    } finally {
+      setLoadingRequests(false);
+    }
   }
-}
 
   useEffect(() => {
     loadMeetings();
@@ -198,7 +207,7 @@ export default function Home() {
     }));
 
     return [...meetingItems, ...acceptedItems].sort(
-      (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0),
+      (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0)
     );
   }, [meetings, requests.accepted]);
 
@@ -213,7 +222,7 @@ export default function Home() {
 
     Object.keys(map).forEach((key) => {
       map[key].sort(
-        (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0),
+        (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0)
       );
     });
 
@@ -251,24 +260,26 @@ export default function Home() {
           <div className="card events-card">
             <div className="card-head meetings-head">
               <h2 className="card-title">Эвентүүд</h2>
+
               <div className="slider-actions">
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={() =>
                     document
                       .querySelector(".meetings-slider")
-                      ?.scrollBy({ left: -320, behavior: "smooth" });
-                  }}
+                      ?.scrollBy({ left: -320, behavior: "smooth" })
+                  }
                 >
                   ‹
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={() =>
                     document
                       .querySelector(".meetings-slider")
-                      ?.scrollBy({ left: 320, behavior: "smooth" });
-                  }}
+                      ?.scrollBy({ left: 320, behavior: "smooth" })
+                  }
                 >
                   ›
                 </button>
@@ -292,12 +303,22 @@ export default function Home() {
 
                       <div className="meeting-body">
                         <h4>{ev.title}</h4>
+
                         <div className="meeting-time">
                           {formatDateTime(ev.start_time)}
                         </div>
+
                         <p className="meeting-desc">
                           {ev.description || "No description"}
                         </p>
+
+                        <button
+                          type="button"
+                          className="event-see-more"
+                          onClick={() => goEventDetail(ev)}
+                        >
+                          Дэлгэрэнгүй
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -317,6 +338,7 @@ export default function Home() {
               <>
                 <div className="request-section">
                   <h4>Pending</h4>
+
                   {requests.pending.length === 0 ? (
                     <div className="empty small">
                       Хүлээгдэж буй хүсэлт байхгүй
@@ -326,21 +348,17 @@ export default function Home() {
                       <div key={r.id} className="request-item">
                         <strong>{r.from_company}</strong>
                         <div>{r.title}</div>
+
                         <div className="req-meta">
                           {formatDateTime(r.start_time)}
                         </div>
 
                         <div className="req-actions">
-                          <button
-                            type="button"
-                            onClick={() => acceptRequest(r.id)}
-                          >
+                          <button type="button" onClick={() => acceptRequest(r.id)}>
                             Зөвшөөрөх
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => declineRequest(r.id)}
-                          >
+
+                          <button type="button" onClick={() => declineRequest(r.id)}>
                             Цуцлах
                           </button>
                         </div>
@@ -379,11 +397,7 @@ export default function Home() {
               <h2 className="card-title">Календар</h2>
 
               <div className="calendar-toolbar">
-                <button
-                  type="button"
-                  className="calendar-nav-btn"
-                  onClick={goPrevMonth}
-                >
+                <button type="button" className="calendar-nav-btn" onClick={goPrevMonth}>
                   ‹
                 </button>
 
@@ -391,23 +405,16 @@ export default function Home() {
                   {formatMonthLabel(viewDate)}
                 </div>
 
-                <button
-                  type="button"
-                  className="calendar-nav-btn"
-                  onClick={goNextMonth}
-                >
+                <button type="button" className="calendar-nav-btn" onClick={goNextMonth}>
                   ›
                 </button>
 
-                <button
-                  type="button"
-                  className="calendar-today-btn"
-                  onClick={goToday}
-                >
+                <button type="button" className="calendar-today-btn" onClick={goToday}>
                   Өнөөдөр
                 </button>
               </div>
             </div>
+
             <div className="calendar-legend">
               <div className="legend-item">
                 <span className="legend-dot meeting"></span>
@@ -459,15 +466,11 @@ export default function Home() {
                           </div>
 
                           <div className="calendar-dots compact">
-                            {dayEvents.length > 0 && (
-                              <>
-                                {dayEvents.some(
-                                  (ev) => ev.source === "meeting",
-                                ) && <span className="calendar-dot meeting" />}
-                                {dayEvents.some(
-                                  (ev) => ev.source === "accepted",
-                                ) && <span className="calendar-dot accepted" />}
-                              </>
+                            {dayEvents.some((ev) => ev.source === "meeting") && (
+                              <span className="calendar-dot meeting" />
+                            )}
+                            {dayEvents.some((ev) => ev.source === "accepted") && (
+                              <span className="calendar-dot accepted" />
                             )}
                           </div>
                         </button>
@@ -484,10 +487,7 @@ export default function Home() {
                   ) : (
                     <div className="calendar-event-list">
                       {selectedDayEvents.map((ev) => (
-                        <div
-                          key={ev.id}
-                          className="calendar-event-item compact"
-                        >
+                        <div key={ev.id} className="calendar-event-item compact">
                           <div className="calendar-event-badge">
                             {ev.source === "meeting" ? "Эвент" : "Уулзалт"}
                           </div>
@@ -496,14 +496,20 @@ export default function Home() {
 
                           <div className="calendar-event-time">
                             {formatDateTime(ev.start_time)}
-                            {ev.end_time
-                              ? ` - ${formatDateTime(ev.end_time)}`
-                              : ""}
+                            {ev.end_time ? ` - ${formatDateTime(ev.end_time)}` : ""}
                           </div>
 
                           <div className="calendar-event-desc">
                             {ev.description || "Тайлбар байхгүй"}
                           </div>
+
+                          <button
+                            type="button"
+                            className="event-see-more small"
+                            onClick={() => goEventDetail(ev.raw || ev)}
+                          >
+                            Дэлгэрэнгүй
+                          </button>
                         </div>
                       ))}
                     </div>

@@ -59,13 +59,6 @@ function durationMinutes(m) {
   return Math.max(15, diff || 30);
 }
 
-/**
- * ✅ Cleanup ended meetings (consistent logic)
- * Hard delete ended meetings + cleanup notifications.
- *
- * Important: This uses JS Date (server timezone) but compares with DB times by parsing.
- * That means comparisons are consistent across the app.
- */
 async function cleanupEndedMeetings(conn) {
   // Pull candidates (we only need minimal columns)
   const [rows] = await conn.query(`
@@ -201,20 +194,17 @@ router.post("/", authMiddleware, async (req, res) => {
       createdMeetingIds.push(meetingId);
 
       const [[recipientUser]] = await conn.query(
-        `SELECT email, company_name, name FROM users WHERE id=?`,
+        `SELECT email, company_name, first_name, last_name FROM users WHERE id=?`,
         [recipientId]
       );
 
       await conn.query(
-        `INSERT INTO notifications
-        (user_email, title, message, type, ref_id, is_read)
-        VALUES (?, ?, ?, 'meeting_request', ?, 0)`,
-        [
-          recipientUser.email,
-          "New Meeting Request",
-          `${finalTitle} meeting request`,
-          meetingId,
-        ]
+        `
+        INSERT INTO notifications
+        (user_id, type, ref_id, is_read)
+        VALUES (?, 'meeting_request', ?, 0)
+        `,
+        [recipientId, meetingId]
       );
     }
 
@@ -242,16 +232,32 @@ router.get("/inbox", authMiddleware, async (req, res) => {
     await cleanupEndedMeetings(conn);
 
     const [rows] = await conn.query(
-      `
-      SELECT m.*, cu.email AS creator_email, ru.email AS recipient_email
-      FROM meetings m
-      JOIN users cu ON cu.id = m.creator_user_id
-      JOIN users ru ON ru.id = m.recipient_user_id
-      WHERE m.recipient_user_id = ?
-      ORDER BY m.created_at DESC
-      `,
-      [userId]
-    );
+    `
+    SELECT
+      m.*,
+
+      cu.email AS creator_email,
+      ru.email AS recipient_email,
+
+      cu.first_name AS creator_first_name,
+      cu.last_name AS creator_last_name,
+
+      ru.first_name AS recipient_first_name,
+      ru.last_name AS recipient_last_name,
+
+      CONCAT(cu.first_name, ' ', cu.last_name) AS creator_name,
+      CONCAT(ru.first_name, ' ', ru.last_name) AS recipient_name
+
+    FROM meetings m
+    JOIN users cu ON cu.id = m.creator_user_id
+    JOIN users ru ON ru.id = m.recipient_user_id
+
+    WHERE m.recipient_user_id = ?
+
+    ORDER BY m.created_at DESC
+    `,
+    [userId]
+  );
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/inbox ERROR:", err);
@@ -266,30 +272,37 @@ router.get("/inbox", authMiddleware, async (req, res) => {
    GET /api/meetings/sent
 ========================= */
 router.get("/sent", authMiddleware, async (req, res) => {
-  const userId = req.user?.id;
-  if (!userId) return res.status(401).json({ message: "Invalid token (no user id)" });
-
-  const conn = await pool.getConnection();
   try {
-    await cleanupEndedMeetings(conn);
+    const userEmail = String(req.user?.email || "").trim().toLowerCase();
 
-    const [rows] = await conn.query(
+    const [[user]] = await pool.query(
+      `SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1`,
+      [userEmail]
+    );
+
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    const [rows] = await pool.query(
       `
-      SELECT m.*, cu.email AS creator_email, ru.email AS recipient_email
+      SELECT
+        m.*,
+        cu.email AS creator_email,
+        ru.email AS recipient_email,
+        TRIM(CONCAT(COALESCE(cu.first_name,''), ' ', COALESCE(cu.last_name,''))) AS creator_name,
+        TRIM(CONCAT(COALESCE(ru.first_name,''), ' ', COALESCE(ru.last_name,''))) AS recipient_name
       FROM meetings m
       JOIN users cu ON cu.id = m.creator_user_id
       JOIN users ru ON ru.id = m.recipient_user_id
       WHERE m.creator_user_id = ?
       ORDER BY m.created_at DESC
       `,
-      [userId]
+      [user.id]
     );
+
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/sent ERROR:", err);
     res.status(500).json({ message: "Server error", error: err.message });
-  } finally {
-    conn.release();
   }
 });
 
@@ -306,17 +319,33 @@ router.get("/accepted", authMiddleware, async (req, res) => {
     await cleanupEndedMeetings(conn);
 
     const [rows] = await conn.query(
-      `
-      SELECT m.*, cu.email AS creator_email, ru.email AS recipient_email
-      FROM meetings m
-      JOIN users cu ON cu.id = m.creator_user_id
-      JOIN users ru ON ru.id = m.recipient_user_id
-      WHERE (m.creator_user_id = ? OR m.recipient_user_id = ?)
-        AND m.status = 'accepted'
-      ORDER BY m.start_time ASC
-      `,
-      [userId, userId]
-    );
+    `
+    SELECT
+      m.*,
+
+      cu.email AS creator_email,
+      ru.email AS recipient_email,
+
+      cu.first_name AS creator_first_name,
+      cu.last_name AS creator_last_name,
+
+      ru.first_name AS recipient_first_name,
+      ru.last_name AS recipient_last_name,
+
+      CONCAT(cu.first_name, ' ', cu.last_name) AS creator_name,
+      CONCAT(ru.first_name, ' ', ru.last_name) AS recipient_name
+
+    FROM meetings m
+    JOIN users cu ON cu.id = m.creator_user_id
+    JOIN users ru ON ru.id = m.recipient_user_id
+
+    WHERE (m.creator_user_id = ? OR m.recipient_user_id = ?)
+    AND m.status = 'accepted'
+
+    ORDER BY m.created_at DESC
+    `,
+    [userId, userId]
+  );
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/accepted ERROR:", err);

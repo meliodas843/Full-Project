@@ -119,18 +119,12 @@ export default function Calendar() {
   const [editEnd, setEditEnd] = useState("");
 
   const inboxPending = useMemo(() => {
-    return inbox.filter(
-      (m) =>
-        m.status === "pending" && m.recipient_email === myEmail && !isEnded(m),
-    );
-  }, [inbox, myEmail]);
+  return inbox.filter((m) => m.status === "pending" && !isEnded(m));
+}, [inbox]);
 
   const sentPending = useMemo(() => {
-    return sentAll.filter(
-      (m) =>
-        m.status === "pending" && m.creator_email === myEmail && !isEnded(m),
-    );
-  }, [sentAll, myEmail]);
+  return sentAll.filter((m) => m.status === "pending" && !isEnded(m));
+}, [sentAll]);
 
   // ✅ accepted/declined meeting нь дууссанаас хойш 1 хоног хүртэл Миний уулзалтууд дээр харагдана
   const myMeetings = useMemo(() => {
@@ -199,16 +193,8 @@ export default function Calendar() {
       const allNow = [...s, ...a, ...i];
       if (selected && allNow.some((x) => x.id === selected.id)) return;
 
-      const inboxP = i.filter(
-        (m) =>
-          m.status === "pending" &&
-          m.recipient_email === myEmail &&
-          !isEnded(m),
-      );
-      const sentP = s.filter(
-        (m) =>
-          m.status === "pending" && m.creator_email === myEmail && !isEnded(m),
-      );
+      const inboxP = i.filter((m) => m.status === "pending" && !isEnded(m));
+      const sentP = s.filter((m) => m.status === "pending" && !isEnded(m));
 
       setSelected(
         inboxP[0] ||
@@ -403,7 +389,15 @@ export default function Calendar() {
                 <div className="nt-empty">Хоосон</div>
               ) : (
                 inboxPending.map((m) =>
-                  renderCard(m,`From: ${m.creator_name ||""}`),
+                  renderCard(
+                    m,
+                    `From: ${
+                      m.creator_name ||
+                      `${m.creator_first_name || ""} ${m.creator_last_name || ""}`.trim() ||
+                      m.creator_email ||
+                      ""
+                    }`
+                  ),
                 )
               )}
             </div>
@@ -431,7 +425,15 @@ export default function Calendar() {
                 <div className="nt-empty">Хүлээж буй хүсэлт байхгүй.</div>
               ) : (
                 sentPending.map((m) =>
-                  renderCard(m, `To: ${m.recipient_name || ""}`),
+                  renderCard(
+                    m,
+                    `To: ${
+                      m.recipient_name ||
+                      `${m.recipient_first_name || ""} ${m.recipient_last_name || ""}`.trim() ||
+                      m.recipient_email ||
+                      ""
+                    }`
+                  ),
                 )
               )}
             </div>

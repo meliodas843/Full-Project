@@ -94,7 +94,7 @@ export default function Meeting() {
 
     (async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/events/my-events`);
+        const res = await authFetch(`${API_BASE}/api/events/my-joined`);
         if (!res || cancelled) return;
 
         if (!res.ok) {
@@ -177,7 +177,14 @@ export default function Meeting() {
         }
 
         const d = await res.json().catch(() => ({}));
-        const list = Array.isArray(d?.participants) ? d.participants : [];
+
+        console.log("PARTICIPANTS RESPONSE:", d);
+
+        const list = Array.isArray(d)
+          ? d
+          : Array.isArray(d.participants)
+            ? d.participants
+            : [];
 
         if (!cancelled) {
           setEventPeople(list);
@@ -196,7 +203,6 @@ export default function Meeting() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEventId]);
 
   // when company selected -> load employees
@@ -415,10 +421,12 @@ export default function Meeting() {
                     }}
                   >
                     {eventPeople.map((p) => (
-                      <option key={p.id} value={p.email}>
-                        {p.name} — {p.email}
-                      </option>
-                    ))}
+                    <option key={p.id} value={p.email}>
+                      {(p.name && p.name.trim()) ||
+                        `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
+                        p.email} — {p.email}
+                    </option>
+                  ))}
                   </select>
                 )}
               </>
