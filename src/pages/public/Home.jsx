@@ -363,9 +363,9 @@ export default function Home() {
               <a className="btn btn--ghost" href="/login">
                 Бүртгүүлэх
               </a>
-              <a className="btn btn--ghost" href="#pricing">
+              {/*<a className="btn btn--ghost" href="#pricing">
                 Багц харах
-              </a>
+              </a>*/}
             </div>
           </div>
 
@@ -574,14 +574,13 @@ export default function Home() {
           )}
         </div>
       </section>
-      <section className="prices" id="pricing">
+      {/* <section className="prices" id="pricing">
         <div className="publicContainer">
           <h2 className="prices-title">Үнэ төлбөр</h2>
           <div className="billing-toggle">
             <div
               className={`toggle-pill ${billing === "yearly" ? "right" : ""}`}
             />
-
             <button
               className={billing === "monthly" ? "active" : ""}
               onClick={() => setBilling("monthly")}
@@ -644,7 +643,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
       <Footer />
     </main>
   );

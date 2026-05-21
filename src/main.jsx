@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const CLIENT_ID = "152036236977-p18kan1qinpmielm4h7475hcdp3vafo8.apps.googleusercontent.com";

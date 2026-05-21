@@ -224,49 +224,191 @@ router.post("/", authMiddleware, async (req, res) => {
    GET /api/meetings/inbox
 ========================= */
 router.get("/inbox", authMiddleware, async (req, res) => {
-  const userId = req.user?.id;
-  if (!userId) return res.status(401).json({ message: "Invalid token (no user id)" });
-
-  const conn = await pool.getConnection();
   try {
-    await cleanupEndedMeetings(conn);
+    const userId = req.user.id;
 
-    const [rows] = await conn.query(
-    `
-    SELECT
-      m.*,
+    const [rows] = await pool.query(
+      `
+      SELECT
+        m.*,
 
-      cu.email AS creator_email,
-      ru.email AS recipient_email,
+        cu.email AS sender_email,
+        TRIM(CONCAT(COALESCE(cu.first_name,''), ' ', COALESCE(cu.last_name,''))) AS sender_name,
+        cu.company_name AS sender_company,
 
-      cu.first_name AS creator_first_name,
-      cu.last_name AS creator_last_name,
+        ru.email AS recipient_email,
 
-      ru.first_name AS recipient_first_name,
-      ru.last_name AS recipient_last_name,
+        CASE
+          WHEN m.title IS NOT NULL AND m.title != ''
+          THEN m.title
+          ELSE 'Direct Request'
+        END AS request_from
 
-      CONCAT(cu.first_name, ' ', cu.last_name) AS creator_name,
-      CONCAT(ru.first_name, ' ', ru.last_name) AS recipient_name
+      FROM meetings m
 
-    FROM meetings m
-    JOIN users cu ON cu.id = m.creator_user_id
-    JOIN users ru ON ru.id = m.recipient_user_id
+      JOIN users cu ON cu.id = m.creator_user_id
+      JOIN users ru ON ru.id = m.recipient_user_id
 
-    WHERE m.recipient_user_id = ?
+      WHERE m.recipient_user_id = ?
+      ORDER BY m.created_at DESC
+      `,
+      [userId]
+    );
 
-    ORDER BY m.created_at DESC
-    `,
-    [userId]
-  );
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/inbox ERROR:", err);
     res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+router.post("/:id/join-request", authMiddleware, async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const userId = req.user.id;
+
+    const [[event]] = await pool.query(
+      `SELECT id, title, created_by FROM events WHERE id = ?`,
+      [eventId]
+    );
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (Number(event.created_by) === Number(userId)) {
+      return res.status(400).json({ message: "You created this event" });
+    }
+
+    const [[exists]] = await pool.query(
+      `
+      SELECT id FROM event_join_requests
+      WHERE event_id = ? AND user_id = ? AND status = 'pending'
+      `,
+      [eventId, userId]
+    );
+
+    if (exists) {
+      return res.status(400).json({ message: "Request already sent" });
+    }
+
+    const [result] = await pool.query(
+      `
+      INSERT INTO event_join_requests
+      (event_id, user_id, creator_user_id, status)
+      VALUES (?, ?, ?, 'pending')
+      `,
+      [eventId, userId, event.created_by]
+    );
+
+    res.status(201).json({
+      message: "Join request sent",
+      requestId: result.insertId,
+    });
+  } catch (err) {
+    console.error("POST /events/:id/join-request ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/join-requests/inbox", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [rows] = await pool.query(
+      `
+      SELECT
+        r.*,
+        e.title AS event_title,
+        u.email AS sender_email,
+        TRIM(CONCAT(COALESCE(u.first_name,''), ' ', COALESCE(u.last_name,''))) AS sender_name
+      FROM event_join_requests r
+      JOIN events e ON e.id = r.event_id
+      JOIN users u ON u.id = r.user_id
+      WHERE r.creator_user_id = ?
+      ORDER BY r.created_at DESC
+      `,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("GET /join-requests/inbox ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.patch("/join-requests/:id/accept", authMiddleware, async (req, res) => {
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    const requestId = Number(req.params.id);
+    const userId = req.user.id;
+
+    const [[r]] = await conn.query(
+      `
+      SELECT * FROM event_join_requests
+      WHERE id = ? AND creator_user_id = ? AND status = 'pending'
+      `,
+      [requestId, userId]
+    );
+
+    if (!r) {
+      await conn.rollback();
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    await conn.query(
+      `
+      INSERT IGNORE INTO event_bookings
+      (event_id, user_id)
+      VALUES (?, ?)
+      `,
+      [r.event_id, r.user_id]
+    );
+
+    await conn.query(
+      `
+      UPDATE event_join_requests
+      SET status = 'accepted'
+      WHERE id = ?
+      `,
+      [requestId]
+    );
+
+    await conn.commit();
+    res.json({ message: "Accepted and user added" });
+  } catch (err) {
+    await conn.rollback();
+    console.error("ACCEPT JOIN REQUEST ERROR:", err);
+    res.status(500).json({ message: "Server error" });
   } finally {
     conn.release();
   }
 });
 
+router.patch("/join-requests/:id/decline", authMiddleware, async (req, res) => {
+  try {
+    const requestId = Number(req.params.id);
+    const userId = req.user.id;
+
+    await pool.query(
+      `
+      UPDATE event_join_requests
+      SET status = 'declined'
+      WHERE id = ? AND creator_user_id = ?
+      `,
+      [requestId, userId]
+    );
+
+    res.json({ message: "Declined" });
+  } catch (err) {
+    console.error("DECLINE JOIN REQUEST ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 /* =========================
    SENT
    GET /api/meetings/sent

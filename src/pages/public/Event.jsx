@@ -1,6 +1,14 @@
   import { useEffect, useMemo, useState } from "react";
   import EventCard from "../../components/EventCard";
   import { API_BASE } from "@/lib/config";
+  import {
+  FaFacebookF,
+  FaLinkedinIn,
+  FaLink,
+  FaShareNodes,
+  FaXTwitter,
+} from "react-icons/fa6";
+const PUBLIC_SITE_URL = "http://103.168.56.224";
 
   function formatDateTime(dt) {
     if (!dt) return "";
@@ -24,6 +32,124 @@
     const normalized = u.startsWith("/") ? u : `/${u}`;
     return `${API_BASE}${normalized}`;
   }
+
+function SocialShare({ title, url, image, description }) {
+  const [open, setOpen] = useState(false);
+
+  const finalImage =
+    image && !image.includes("undefined")
+      ? image
+      : "https://via.placeholder.com/900x600?text=Event";
+
+  async function copyLink() {
+    await navigator.clipboard.writeText(url);
+    alert("Link copied ✅");
+  }
+
+  return (
+    <>
+      <div className="evSocialShare">
+       <button
+        type="button"
+        className="evSocialBtn facebook"
+        onClick={() =>
+          window.open(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+            "_blank",
+            "width=700,height=700"
+          )
+        }
+      >
+        <FaFacebookF />
+      </button>
+
+        <button
+          type="button"
+          className="evSocialBtn linkedin"
+          onClick={() =>
+            window.open(
+              `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+              "_blank"
+            )
+          }
+        >
+          <FaLinkedinIn />
+        </button>
+
+        <button type="button" className="evSocialBtn copy" onClick={copyLink}>
+          <FaLink />
+        </button>
+
+        <button type="button" className="evSocialBtn share" onClick={() => setOpen(true)}>
+          <FaShareNodes />
+        </button>
+      </div>
+
+      {open && (
+        <div className="fbShareOverlay" onClick={() => setOpen(false)}>
+          <div className="fbShareModal" onClick={(e) => e.stopPropagation()}>
+            <div className="fbShareHead">
+              <h3>Create post</h3>
+              <button type="button" onClick={() => setOpen(false)}>✕</button>
+            </div>
+
+            <div className="fbShareUser">
+              <div className="fbAvatar">D</div>
+              <div>
+                <strong>Enh Tuvshin</strong>
+                <div className="fbPrivacy">Найзын найз ▾</div>
+              </div>
+            </div>
+
+            <textarea className="fbShareText" placeholder="Та юу бодож байна?" />
+
+            <div className="fbPreviewCard">
+              <img
+                src={finalImage}
+                alt={title || "Event"}
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://via.placeholder.com/900x600?text=Event";
+                }}
+              />
+
+              <div className="fbPreviewBody">
+                <span>{window.location.hostname.toUpperCase()}</span>
+                <h4>{title}</h4>
+                <p>{description || ""}</p>
+              </div>
+            </div>
+
+            <div className="fbShareAdd">
+              <strong>Нийтлэл дээрээ нэмэх</strong>
+              <div className="fbShareSocials">
+                <span>🖼️</span>
+                <span>👥</span>
+                <span>😊</span>
+                <span>📍</span>
+                <span>GIF</span>
+                <span>🎥</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="fbShareSubmit"
+              onClick={() =>
+                window.open(
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+                  "_blank"
+                )
+              }
+            >
+              Хуваалцах
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
   export default function Events() {
     const [events, setEvents] = useState([]);
@@ -177,16 +303,30 @@
                 />
               </div>
 
-              <div className="evModalMetaRow">
-                <span className="evModalBadge">{formatDateTime(openEvent.start_time)}</span>
-                {openEvent.end_time ? (
-                  <span className="evModalBadge evModalBadgeLight">
-                    Ends: {formatDateTime(openEvent.end_time)}
+              <div className="evModalTopRow">
+                <div className="evModalMetaRow">
+                  <span className="evModalBadge">
+                    {formatDateTime(openEvent.start_time)}
                   </span>
-                ) : null}
+
+                  {openEvent.end_time ? (
+                    <span className="evModalBadge evModalBadgeLight">
+                      Ends: {formatDateTime(openEvent.end_time)}
+                    </span>
+                  ) : null}
+                </div>
+
+                <SocialShare
+                  title={openEvent.title}
+                  description={openEvent.description}
+                  image={resolveImageSrc(openEvent.image_url)}
+                  url={`${PUBLIC_SITE_URL}/share/event/${openEvent.id}`}
+                />
               </div>
 
-              <p className="evModalDesc">{openEvent.description || "No description."}</p>
+              <p className="evModalDesc">
+                {openEvent.description || "No description."}
+              </p>
 
               <div className="evModalActions">
                 <button className="evModalBook" type="button" onClick={() => handleBook(openEvent)}>

@@ -775,6 +775,195 @@ router.get("/:id/participants", authMiddleware, async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+router.post("/:id/join-request", authMiddleware, async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const userId = req.user?.id;
+
+    const [[event]] = await pool.query(
+      `
+      SELECT id, title, created_by_email
+      FROM events
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [eventId]
+    );
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const [[creator]] = await pool.query(
+      `
+      SELECT id
+      FROM users
+      WHERE LOWER(email) = LOWER(?)
+      LIMIT 1
+      `,
+      [event.created_by_email]
+    );
+
+    if (!creator) {
+      return res.status(400).json({
+        message: "Event creator user not found by created_by_email",
+      });
+    }
+
+    const creatorId = creator.id;
+
+    if (Number(creatorId) === Number(userId)) {
+      return res.status(400).json({
+        message: "You cannot request your own event",
+      });
+    }
+
+    const [[exists]] = await pool.query(
+      `
+      SELECT id
+      FROM meetings
+      WHERE event_id = ?
+        AND creator_user_id = ?
+        AND recipient_user_id = ?
+        AND status = 'pending'
+      LIMIT 1
+      `,
+      [eventId, userId, creatorId]
+    );
+
+    if (exists) {
+      return res.status(400).json({
+        message: "Request already sent",
+      });
+    }
+
+    const [[sender]] = await pool.query(
+      `
+      SELECT email, first_name, last_name
+      FROM users
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [userId]
+    );
+
+    const senderName =
+      `${sender?.first_name || ""} ${sender?.last_name || ""}`.trim() ||
+      sender?.email ||
+      "User";
+
+    const [result] = await pool.query(
+      `
+      INSERT INTO meetings
+        (
+          creator_user_id,
+          recipient_user_id,
+          title,
+          description,
+          start_time,
+          end_time,
+          status,
+          event_id,
+          request_type
+        )
+      VALUES
+        (?, ?, ?, ?, NOW(), NULL, 'pending', ?, 'event_join')
+      `,
+      [
+        userId,
+        creatorId,
+        event.title || "Эвентэд нэгдэх хүсэлт",
+        `${senderName} эвентэд нэгдэхийг хүсэж байна: ${event.title}`,
+        eventId,
+      ]
+    );
+
+    res.status(201).json({
+      message: "Join request sent",
+      meetingId: result.insertId,
+    });
+  } catch (err) {
+    console.error("POST /api/events/:id/join-request ERROR:", err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+});
+
+router.patch("/:id/accept", authMiddleware, async (req, res) => {
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    const requestId = Number(req.params.id);
+
+    // get request
+    const [[meeting]] = await conn.query(
+      `
+      SELECT *
+      FROM meetings
+      WHERE id = ?
+      `,
+      [requestId]
+    );
+
+    if (!meeting) {
+      await conn.rollback();
+
+      return res.status(404).json({
+        message: "Request not found",
+      });
+    }
+
+    // add participant to event
+    await conn.query(
+      `
+      INSERT IGNORE INTO event_bookings (
+        event_id,
+        user_id
+      )
+      VALUES (?, ?)
+      `,
+      [
+        meeting.event_id,
+        meeting.sender_id,
+      ]
+    );
+
+    // accept request
+    await conn.query(
+      `
+      UPDATE meetings
+      SET status = 'accepted'
+      WHERE id = ?
+      `,
+      [requestId]
+    );
+
+    await conn.commit();
+
+    res.json({
+      success: true,
+      message: "User added to event",
+    });
+
+  } catch (err) {
+
+    await conn.rollback();
+
+    console.error("ACCEPT REQUEST ERROR:", err);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+
+  } finally {
+    conn.release();
+  }
+});
 /* =========================================================
    GET event files
 ========================================================= */

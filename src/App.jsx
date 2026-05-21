@@ -9,7 +9,7 @@ import {
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
-
+import EventShare from "./pages/public/EventShare";
 import Home from "./pages/public/Home";
 import NewsCreate from "./pages/super_admin/pages/NewsCreate";
 import Login from "./pages/public/Login";
@@ -56,6 +56,7 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/event/invite/:token" element={<EventInvite />} />
+        <Route path="/share/event/:id" element={<EventShare />} />
         <Route
           path="/profile"
           element={

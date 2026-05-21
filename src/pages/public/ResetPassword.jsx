@@ -22,7 +22,7 @@ export default function ResetPassword() {
     if (!token) return setMsg("Missing token.");
     if (p1.length < 6) return setMsg("Password must be at least 6 characters.");
     if (p1 !== p2) return setMsg("Passwords do not match.");
-
+    
     try {
       const res = await fetch(`${API}/api/password/reset`, {
         method: "POST",

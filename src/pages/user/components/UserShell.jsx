@@ -9,31 +9,28 @@ export default function UserShell({ title = "Khural Plus+", children }) {
     setOpen(false);
   }
 
-  // close drawer on ESC
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") setOpen(false);
     }
+
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   return (
     <div className="user-layout">
-      {/* ✅ Desktop sidebar */}
       <Sidebar />
 
-      <div className="user-content">
-        {/* ✅ Desktop topbar */}
+      <div className="user-main">
         <Topbar className="topbar-desktop" />
 
-        {/* ✅ Mobile header: title + (bell/profile) + hamburger */}
         <div className="mobile-header">
           <div className="mobile-header__title">{title}</div>
 
           <div className="mobile-header__actions">
-            {/* ✅ show bell + profile OUTSIDE drawer */}
             <Topbar className="topbar-mobile-icons" onNavigate={closeDrawer} />
+
             <button
               className="mobile-header__hamburger"
               type="button"
@@ -45,17 +42,20 @@ export default function UserShell({ title = "Khural Plus+", children }) {
           </div>
         </div>
 
-        {/* ✅ Mobile drawer overlay */}
         <div
           className={`mobile-drawer-overlay ${open ? "is-show" : ""}`}
           onClick={closeDrawer}
         />
 
-        {/* ✅ Right drawer (ONLY sidebar links now) */}
         <aside className={`mobile-drawer ${open ? "is-open" : ""}`}>
           <div className="mobile-drawer__head">
             <div className="mobile-drawer__title">Menu</div>
-            <button className="mobile-drawer__close" type="button" onClick={closeDrawer}>
+
+            <button
+              className="mobile-drawer__close"
+              type="button"
+              onClick={closeDrawer}
+            >
               ✕
             </button>
           </div>
@@ -65,8 +65,7 @@ export default function UserShell({ title = "Khural Plus+", children }) {
           </div>
         </aside>
 
-        {/* Page content */}
-        {children}
+        <div className="user-page-content">{children}</div>
       </div>
     </div>
   );

@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE } from "@/lib/config";
+import {
+  FaFacebookF,
+  FaLinkedinIn,
+  FaLink,
+  FaShareNodes,
+} from "react-icons/fa6";
+import { FaXTwitter } from "react-icons/fa6";
 
 const API = API_BASE;
 
@@ -104,7 +111,14 @@ function NewsModal({ item, onClose }) {
               {item.author_email && <span className="newsMetaPill">{item.author_email}</span>}
             </div>
 
-            <h2 className="newsModalTitle">{safeText(item.title) || "Untitled"}</h2>
+            <div className="newsModalTitleRow">
+              <h2 className="newsModalTitle">{safeText(item.title) || "Untitled"}</h2>
+
+              <SocialShare
+                title={item.title}
+                url={`${window.location.origin}/news/${item.id}`}
+              />
+            </div>
 
             <div className="newsModalText" dangerouslySetInnerHTML={{ __html: item.body || "" }} />
           </div>
@@ -113,6 +127,59 @@ function NewsModal({ item, onClose }) {
     </div>
   );
   return createPortal(modal, document.body);
+}
+
+function SocialShare({ title, url }) {
+  const shareUrl = encodeURIComponent(url || window.location.href);
+  const shareTitle = encodeURIComponent(title || "");
+
+  async function handleNativeShare() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert("Link copied ✅");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  return (
+    <div className="socialShare">
+      <button type="button" className="socialShareBtn facebook"
+        onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, "_blank", "noopener,noreferrer")}
+      >
+        <FaFacebookF />
+      </button>
+
+      <button type="button" className="socialShareBtn twitter"
+        onClick={() => window.open(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`, "_blank", "noopener,noreferrer")}
+      >
+        <FaXTwitter />
+      </button>
+
+      <button type="button" className="socialShareBtn linkedin"
+        onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`, "_blank", "noopener,noreferrer")}
+      >
+        <FaLinkedinIn />
+      </button>
+
+      <button type="button" className="socialShareBtn copy"
+        onClick={async () => {
+          await navigator.clipboard.writeText(url);
+          alert("Link copied ✅");
+        }}
+      >
+        <FaLink />
+      </button>
+
+      <button type="button" className="socialShareBtn share" onClick={handleNativeShare}>
+        <FaShareNodes />
+      </button>
+    </div>
+  );
 }
 
 export default function News() {
@@ -270,10 +337,19 @@ export default function News() {
                       <span>{n.author_email || ""}</span>
                     </div>
 
-                    <h3 className="news-card-title">{safeText(n.title) || "Untitled"}</h3>
-                    <p className="news-card-text">{truncate(htmlToText(n.body), 120)}</p>
+                    <h3 className="news-card-title">
+                      {safeText(n.title) || "Untitled"}
+                    </h3>
 
-                    <button className="news-card-link" type="button" onClick={() => setSelected(n)}>
+                    <p className="news-card-text">
+                      {truncate(htmlToText(n.body), 120)}
+                    </p>
+
+                    <button
+                      className="news-card-link"
+                      type="button"
+                      onClick={() => setSelected(n)}
+                    >
                       Унших →
                     </button>
                   </div>
