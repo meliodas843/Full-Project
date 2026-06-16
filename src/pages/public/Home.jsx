@@ -116,6 +116,24 @@ function getNewsHref(n) {
   return "/news";
 }
 
+function PhoneFrame({ image }) {
+  return (
+    <div className="phoneFrame">
+      <div className="phoneTopBar" />
+
+      <div className="phoneScreen">
+        <img
+          src={image}
+          alt="Preview"
+          className="phonePreviewImg"
+        />
+      </div>
+
+      <div className="phoneHome" />
+    </div>
+  );
+}
+
 export default function Home() {
   const [news, setNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -432,79 +450,62 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="publicDemo" id="demo">
-        <div className="publicContainer">
-          <div className="demoSticky">
-            <h2 className="demoTitle demoTitle--sticky">
-              Системийн хэрэглэгчидтэй онлайн хурал хийх боломж
-            </h2>
-
-            <div className="demoLayout">
-              <div className="demoImageWrap">
-                <div className="phoneFrame">
-                  <div className="phoneTopBar" />
-
-                  <div className="phoneScreen">
-                    <img
-                      src="/assets/switch/event.png"
-                      alt="Preview 1"
-                      className="demoImg active"
-                    />
-                    <img
-                      src="/assets/switch/surgalt.png"
-                      alt="Preview 2"
-                      className="demoImg"
-                    />
-                    <img
-                      src="/assets/switch/tosol.png"
-                      alt="Preview 3"
-                      className="demoImg"
-                    />
-                  </div>
-
-                  <div className="phoneHome" />
-                </div>
-              </div>
-              <div className="demoContent">
-                <div className="demoItem">
-                  <div className="demoItem__header">
-                    <h3>Оролцсон арга хэмжээний хүмүүстэйгээ ярилцах боломж</h3>
-                    <span>001</span>
-                  </div>
-                  <p>
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting
-                  </p>
-                </div>
-
-                <div className="demoItem">
-                  <div className="demoItem__header">
-                    <h3>Өөрийн хувийн мэдээллээ хамгаалан уулзалт товлох</h3>
-                    <span>002</span>
-                  </div>
-                  <p>
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting
-                  </p>
-                </div>
-
-                <div className="demoItem">
-                  <div className="demoItem__header">
-                    <h3>Туршлагатай хүмүүстэй ярилцаж, туршлага судлах</h3>
-                    <span>003</span>
-                  </div>
-                  <p>
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting
-                  </p>
-                </div>
-              </div>
-            </div>
+      <section className="featureSection">
+        <div className="featureRow">
+          <div className="featurePhone">
+            <PhoneFrame image="/assets/switch/event.png" />
           </div>
-          <div className="demoSpacer" aria-hidden="true" />
+
+          <div className="featureContent rightNumber">
+            <span>001</span>
+            <h2>Оролцсон арга хэмжээний хүмүүстэйгээ ярилцах боломж</h2>
+            <p>
+              Lorem Ipsum is simply dummy text of the printing and
+              typesetting industry.
+            </p>
+          </div>
+        </div>
+
+        <div className="featureRow reverse">
+          <div className="featurePhone">
+            <PhoneFrame image="/assets/switch/surgalt.png" />
+          </div>
+
+          <div className="featureContent leftNumber">
+            <span>002</span>
+            <h2>Өөрийн хувийн мэдээллээ хамгаалан уулзалт товлох</h2>
+            <p>
+              Lorem Ipsum is simply dummy text of the printing and
+              typesetting industry.
+            </p>
+          </div>
+        </div>
+
+        <div className="featureRow">
+          <div className="featurePhone">
+            <PhoneFrame image="/assets/switch/tosol.png" />
+          </div>
+
+          <div className="featureContent rightNumber">
+            <span>003</span>
+            <h2>Туршлагатай хүмүүстэй ярилцаж, туршлага судлах</h2>
+            <p>
+              Lorem Ipsum is simply dummy text of the printing and
+              typesetting industry.
+            </p>
+          </div>
         </div>
       </section>
       <section className="publicNews" id="news">
+          <div className="newsDecoration">
+            <span className="dotGrid dotGridTop"></span>
+            <span className="dotGrid dotGridBottom"></span>
+
+            <span className="bubble bubble1"></span>
+            <span className="bubble bubble2"></span>
+
+            <span className="waveShape"></span>
+          </div>
         <div className="publicContainer">
           <div className="publicNews__head">
             <h2 className="publicSectionTitle">Сүүлийн үеийн мэдээ</h2>

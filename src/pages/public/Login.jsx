@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { API_BASE } from "@/lib/config";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -82,6 +81,9 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <div className="dots-top-right"></div>
+      <div className="dots-bottom-left"></div>
+
       <div className="login-box">
         <h2>Нэвтрэх</h2>
 
@@ -94,6 +96,7 @@ export default function Login() {
             onChange={handleChange}
             required
             autoComplete="email"
+            placeholder="Имэйлээ оруулна уу"
           />
 
           <label>Нууц үг</label>
@@ -104,6 +107,7 @@ export default function Login() {
             onChange={handleChange}
             required
             autoComplete="current-password"
+            placeholder="Нууц үгээ оруулна уу"
           />
 
           <p className="forgot">

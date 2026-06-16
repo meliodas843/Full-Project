@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { FiHome, FiCalendar, FiUser, FiLogOut, FiGrid } from "react-icons/fi";
 import logo from "../../../assets/logo.png";
 
-export default function Sidebar({ onNavigate = () => {} } = {}) {
+export default function Sidebar({ onNavigate = () => {}, mobile = false } = {}) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -12,14 +12,15 @@ export default function Sidebar({ onNavigate = () => {} } = {}) {
     onNavigate();
   };
 
-  const linkClass = ({ isActive }) =>
-    `us-link ${isActive ? "active" : ""}`;
+  const linkClass = ({ isActive }) => `us-link ${isActive ? "active" : ""}`;
 
   return (
-    <aside className="user-sidebar">
-      <div className="us-logo">
-        <img src={logo} alt="Insight Digital Solution Provider" />
-      </div>
+    <aside className={mobile ? "drawer-sidebar" : "user-sidebar"}>
+      {!mobile && (
+        <div className="us-logo">
+          <img src={logo} alt="Insight Digital Solution Provider" />
+        </div>
+      )}
 
       <div className="us-section">
         <div className="us-section-title">Main</div>

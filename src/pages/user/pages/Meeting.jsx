@@ -34,6 +34,13 @@ export default function Meeting() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const timeSlots = Array.from({ length: 37 }, (_, i) => {
+  const totalMinutes = 9 * 60 + i * 15;
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+});
+
   // -------------------------
   // Helper: read backend error body safely (JSON or HTML/text)
   // -------------------------
@@ -390,7 +397,7 @@ export default function Meeting() {
             {mode === "event" ? (
               <>
                 <select
-                  className="meet-input"
+                  className="meet-input meet-event-select"
                   value={selectedEventId}
                   onChange={(e) => setSelectedEventId(e.target.value)}
                 >
@@ -407,27 +414,47 @@ export default function Meeting() {
                     Эвэнт дээрх харилцагчдыг сонгоно уу.
                   </div>
                 ) : (
-                  <select
-                    className="meet-input"
-                    multiple
-                    size={Math.min(8, eventPeople.length)}
-                    value={selectedEventEmails}
-                    onChange={(e) => {
-                      const values = Array.from(
-                        e.target.selectedOptions,
-                        (o) => o.value,
-                      );
-                      setSelectedEventEmails(values);
-                    }}
-                  >
-                    {eventPeople.map((p) => (
-                    <option key={p.id} value={p.email}>
-                      {(p.name && p.name.trim()) ||
+                  <div className="meet-user-list">
+                    {eventPeople.map((p) => {
+                      const displayName =
+                        (p.name && p.name.trim()) ||
                         `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
-                        p.email} — {p.email}
-                    </option>
-                  ))}
-                  </select>
+                        p.email ||
+                        "User";
+
+                      const checked = selectedEventEmails.includes(p.email);
+
+                      return (
+                        <label
+                          key={p.id || p.email}
+                          className={`meet-user-card ${checked ? "selected" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedEventEmails((prev) => [...prev, p.email]);
+                              } else {
+                                setSelectedEventEmails((prev) =>
+                                  prev.filter((x) => x !== p.email)
+                                );
+                              }
+                            }}
+                          />
+
+                          <span className="meet-user-avatar">
+                            {displayName.charAt(0).toUpperCase()}
+                          </span>
+
+                          <span className="meet-user-info">
+                            <strong>{displayName}</strong>
+                            <small>{p.email}</small>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 )}
               </>
             ) : (
@@ -460,26 +487,36 @@ export default function Meeting() {
               </>
             )}
 
-            <input
-              className="meet-input"
-              type="date"
-              value={meetingDate}
-              onChange={(e) => setMeetingDate(e.target.value)}
-            />
+            <div className="meet-datetime-row">
+              <label>
+                <span>Огноо</span>
+                <input
+                  type="date"
+                  value={meetingDate}
+                  onChange={(e) => setMeetingDate(e.target.value)}
+                />
+              </label>
 
-            <input
-              className="meet-input"
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
+              <label>
+                <span>Эхлэх цаг</span>
+                <select value={startTime} onChange={(e) => setStartTime(e.target.value)}>
+                  <option value="">Сонгох</option>
+                  {timeSlots.map((time) => (
+                    <option key={time} value={time}>{time}</option>
+                  ))}
+                </select>
+              </label>
 
-            <input
-              className="meet-input"
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
+              <label>
+                <span>Дуусах цаг</span>
+                <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
+                  <option value="">Сонгох</option>
+                  {timeSlots.map((time) => (
+                    <option key={time} value={time}>{time}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             <textarea
               className="meet-textarea"

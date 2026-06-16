@@ -5,9 +5,7 @@ import { API_BASE } from "@/lib/config";
 
 function formatDateTime(dt) {
   if (!dt) return "";
-
   const d = new Date(dt);
-
   if (isNaN(d.getTime())) return "";
 
   return d.toLocaleString("mn-MN", {
@@ -20,10 +18,7 @@ function formatDateTime(dt) {
   });
 }
 
-export default function Topbar({
-  className = "",
-  onNavigate = () => {},
-} = {}) {
+export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
   const navigate = useNavigate();
 
   const user = useMemo(() => {
@@ -38,21 +33,20 @@ export default function Topbar({
 
   const [openProfile, setOpenProfile] = useState(false);
   const [openBell, setOpenBell] = useState(false);
-
   const [pending, setPending] = useState([]);
   const [loadingBell, setLoadingBell] = useState(false);
 
   const wrapRef = useRef(null);
-
   const bellRef = useRef(null);
   const profileRef = useRef(null);
+  const bellMenuRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
   const [bellPos, setBellPos] = useState(null);
   const [profilePos, setProfilePos] = useState(null);
 
   function getMenuPos(ref, width = 260) {
     const rect = ref.current?.getBoundingClientRect();
-
     if (!rect) return null;
 
     return {
@@ -64,9 +58,13 @@ export default function Topbar({
 
   useEffect(() => {
     function onDown(e) {
-      if (!wrapRef.current) return;
+      const target = e.target;
 
-      if (!wrapRef.current.contains(e.target)) {
+      const insideTopbar = wrapRef.current?.contains(target);
+      const insideBellMenu = bellMenuRef.current?.contains(target);
+      const insideProfileMenu = profileMenuRef.current?.contains(target);
+
+      if (!insideTopbar && !insideBellMenu && !insideProfileMenu) {
         setOpenProfile(false);
         setOpenBell(false);
       }
@@ -90,16 +88,13 @@ export default function Topbar({
 
   async function loadPendingRequests() {
     const token = localStorage.getItem("token");
-
     if (!token) return;
 
     setLoadingBell(true);
 
     try {
       const res = await fetch(`${API_BASE}/api/events/requests`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -107,10 +102,7 @@ export default function Topbar({
         return;
       }
 
-      const data = await res.json().catch(() => ({
-        pending: [],
-      }));
-
+      const data = await res.json().catch(() => ({ pending: [] }));
       setPending(Array.isArray(data?.pending) ? data.pending : []);
     } finally {
       setLoadingBell(false);
@@ -120,14 +112,15 @@ export default function Topbar({
   function handleLogout() {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
 
-    navigate("/login");
+    setOpenProfile(false);
     onNavigate();
+    navigate("/login", { replace: true });
   }
 
   function toggleBell() {
     const next = !openBell;
-
     setOpenBell(next);
     setOpenProfile(false);
 
@@ -139,7 +132,6 @@ export default function Topbar({
 
   function toggleProfile() {
     const next = !openProfile;
-
     setOpenProfile(next);
     setOpenBell(false);
 
@@ -151,12 +143,8 @@ export default function Topbar({
   const pendingCount = pending.length;
 
   return (
-    <header
-      className={`app-topbar ${className}`.trim()}
-      ref={wrapRef}
-    >
+    <header className={`app-topbar ${className}`.trim()} ref={wrapRef}>
       <div className="app-topbar-right">
-        {/* BELL */}
         <div className="tb-pop">
           <button
             ref={bellRef}
@@ -166,18 +154,14 @@ export default function Topbar({
             onClick={toggleBell}
           >
             🔔
-
-            {pendingCount > 0 && (
-              <span className="tb-badge">
-                {pendingCount}
-              </span>
-            )}
+            {pendingCount > 0 && <span className="tb-badge">{pendingCount}</span>}
           </button>
 
           {openBell &&
             bellPos &&
             createPortal(
               <div
+                ref={bellMenuRef}
                 className="tb-menu tb-menu-wide"
                 style={{
                   position: "fixed",
@@ -187,27 +171,16 @@ export default function Topbar({
                 }}
               >
                 <div className="tb-menu-head">
-                  <div className="tb-menu-title">
-                    Уулзалтын хүсэлт
-                  </div>
-
-                  <button
-                    className="tb-menu-action"
-                    type="button"
-                    onClick={loadPendingRequests}
-                  >
+                  <div className="tb-menu-title">Уулзалтын хүсэлт</div>
+                  <button className="tb-menu-action" type="button" onClick={loadPendingRequests}>
                     Шинэчлэх
                   </button>
                 </div>
 
                 {loadingBell ? (
-                  <div className="tb-empty">
-                    Унших…
-                  </div>
+                  <div className="tb-empty">Унших…</div>
                 ) : pendingCount === 0 ? (
-                  <div className="tb-empty">
-                    Хүсэлт байхгүй
-                  </div>
+                  <div className="tb-empty">Хүсэлт байхгүй</div>
                 ) : (
                   <div className="tb-list">
                     {pending.map((r) => (
@@ -217,30 +190,17 @@ export default function Topbar({
                         type="button"
                         onClick={() => {
                           setOpenBell(false);
-
-                          navigate("/user/home#requests");
-
                           onNavigate();
+                          navigate("/user/home#requests");
                         }}
                       >
                         <div className="tb-item-top">
-                          <div className="tb-item-title">
-                            {r.title || "Meeting"}
-                          </div>
-
-                          <div className="tb-item-time">
-                            {formatDateTime(
-                              r.start_time
-                            )}
-                          </div>
+                          <div className="tb-item-title">{r.title || "Meeting"}</div>
+                          <div className="tb-item-time">{formatDateTime(r.start_time)}</div>
                         </div>
 
                         <div className="tb-item-sub">
-                          Хэнээс:{" "}
-                          <strong>
-                            {r.from_company ||
-                              "Unknown"}
-                          </strong>
+                          Хэнээс: <strong>{r.from_company || "Unknown"}</strong>
                         </div>
                       </button>
                     ))}
@@ -251,7 +211,6 @@ export default function Topbar({
             )}
         </div>
 
-        {/* PROFILE */}
         <div className="tb-pop">
           <button
             ref={profileRef}
@@ -261,13 +220,9 @@ export default function Topbar({
             onClick={toggleProfile}
           >
             <div className="tb-avatar">D</div>
-
             <div className="tb-user">
               <div className="tb-name">{name}</div>
-
-              <div className="tb-sub">
-                Хэрэглэгч
-              </div>
+              <div className="tb-sub">Хэрэглэгч</div>
             </div>
           </button>
 
@@ -275,6 +230,7 @@ export default function Topbar({
             profilePos &&
             createPortal(
               <div
+                ref={profileMenuRef}
                 className="tb-menu"
                 style={{
                   position: "fixed",
@@ -288,20 +244,14 @@ export default function Topbar({
                   type="button"
                   onClick={() => {
                     setOpenProfile(false);
-
-                    navigate("/user/profile");
-
                     onNavigate();
+                    navigate("/user/profile");
                   }}
                 >
                   Тохиргоо / Профайл
                 </button>
 
-                <button
-                  className="tb-menu-item danger"
-                  type="button"
-                  onClick={handleLogout}
-                >
+                <button className="tb-menu-item danger" type="button" onClick={handleLogout}>
                   Гарах
                 </button>
               </div>,

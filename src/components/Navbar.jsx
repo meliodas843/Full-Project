@@ -55,7 +55,7 @@ export default function Navbar() {
       />
       <aside className={`navbar__drawer ${open ? "is-open" : ""}`}>
         <div className="navbar__drawerHead">
-          <span className="navbar__drawerLogo">Khural Plus+</span>
+          <span className="navbar__drawerLogo">Registra</span>
           <button className="navbar__close" onClick={() => setOpen(false)}>
             ✕
           </button>

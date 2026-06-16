@@ -4,7 +4,7 @@ const Footer = () => {
       <div className="appFooter__container">
         <div className="appFooter__grid">
           <div className="appFooter__brand">
-            <div className="appFooter__logo">Khural Plus+</div>
+            <div className="appFooter__logo">Registra</div>
             <p>
               Building modern solutions for modern teams.
             </p>

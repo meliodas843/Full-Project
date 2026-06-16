@@ -233,16 +233,30 @@ async function declineRequest(id) {
 }
 
   const calendarEvents = useMemo(() => {
-    const meetingItems = meetings.map((ev) => ({
-      id: `meeting-${ev.id}`,
-      source: "meeting",
-      title: ev.title || "Эвент",
+    const meetingItems = meetings.map((ev) => {
+    const isMeeting =
+      ev.type === "meeting" ||
+      ev.is_meeting === true ||
+      ev.zoom_join_url;
+
+    return {
+      id: `${isMeeting ? "meeting" : "event"}-${ev.id}`,
+
+      source: isMeeting ? "meeting" : "event",
+
+      title: ev.title || (isMeeting ? "Уулзалт" : "Эвент"),
+
       description: ev.description || "",
+
       image_url: ev.image_url || "",
+
       start_time: ev.start_time,
+
       end_time: ev.end_time,
+
       raw: ev,
-    }));
+    };
+  });
 
     const acceptedItems = (requests.accepted || []).map((r) => {
   const isEventJoin =
@@ -306,7 +320,7 @@ async function declineRequest(id) {
   const weekdayLabels = ["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"];
 
   return (
-    <UserShell title="Khural Plus+">
+  <UserShell title="Khural Plus+">
   <main className="home-main-fixed">
 
     {err && <div className="uep-error">{err}</div>}
@@ -439,12 +453,12 @@ async function declineRequest(id) {
 
           <div className="calendar-legend">
             <div className="legend-item">
-              <span className="legend-dot meeting"></span>
+              <span className="legend-dot event"></span>
               <span>Эвент</span>
             </div>
 
             <div className="legend-item">
-              <span className="legend-dot accepted"></span>
+              <span className="legend-dot meeting"></span>
               <span>Уулзалт</span>
             </div>
           </div>
@@ -492,12 +506,12 @@ async function declineRequest(id) {
                         </div>
 
                         <div className="calendar-dots compact">
-                          {dayEvents.some((ev) => ev.source === "meeting") && (
-                            <span className="calendar-dot meeting" />
+                          {dayEvents.some((ev) => ev.source === "event") && (
+                            <span className="calendar-dot event" />
                           )}
 
-                          {dayEvents.some((ev) => ev.source === "event") && (
-                            <span className="calendar-dot accepted" />
+                          {dayEvents.some((ev) => ev.source === "meeting") && (
+                            <span className="calendar-dot meeting" />
                           )}
                         </div>
 

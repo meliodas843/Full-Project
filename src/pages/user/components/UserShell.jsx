@@ -61,7 +61,7 @@ export default function UserShell({ title = "Khural Plus+", children }) {
           </div>
 
           <div className="mobile-drawer__nav">
-            <Sidebar onNavigate={closeDrawer} />
+            <Sidebar mobile onNavigate={closeDrawer} />
           </div>
         </aside>
 

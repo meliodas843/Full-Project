@@ -58,18 +58,6 @@
   const [datePart, timePart] = s.split(" ");
   return `${datePart}T${(timePart || "").slice(0, 5)}`;
 }
-function handleSelectEvent(item) {
-  setSelectedEventId(item.id);
-  setShowCreate(false);
-  setEditingEventId(null);
-
-  setTimeout(() => {
-    rightTopRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, 50);
-}
 
   function isSvgFile(file) {
     return (
@@ -247,6 +235,19 @@ function handleSelectEvent(item) {
     const [lbOpen, setLbOpen] = useState(false);
     const [lbIndex, setLbIndex] = useState(0);
     const lbThumbStripRef = useRef(null);
+
+    function handleSelectEvent(item) {
+    setSelectedEventId(item.id);
+    setShowCreate(false);
+    setEditingEventId(null);
+
+    setTimeout(() => {
+      rightTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
 
     function isEventFinished(ev) {
       if (!ev?.end_time) return false;
@@ -1067,12 +1068,12 @@ function handleSelectEvent(item) {
                         <span className="uep-badge uep-badgeLight">
                           <div
                             className={`event-top-badge ${
-                              ev.relation_type === "created"
+                              selectedEvent.relation_type === "created"
                                 ? "created"
                                 : "joined"
                             }`}
                           >
-                            {ev.relation_type === "created"
+                            {selectedEvent.relation_type === "created"
                               ? "Үүсгэсэн"
                               : "Бүртгүүлсэн"}
                           </div>
