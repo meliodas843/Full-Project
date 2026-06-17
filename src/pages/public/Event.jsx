@@ -1,5 +1,6 @@
   import { useEffect, useMemo, useState } from "react";
   import EventCard from "../../components/EventCard";
+  import { useNavigate } from "react-router-dom";
   import { API_BASE } from "@/lib/config";
   import {
   FaFacebookF,
@@ -200,36 +201,36 @@ function SocialShare({ title, url, image, description }) {
     function closePopup() {
       setOpenEvent(null);
     }
-    async function handleBook(ev) {
-      try {
-        setError("");
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setError("Please login first.");
-          return;
-        }
+      async function handleBook(ev) {
+        try {
+          const token = localStorage.getItem("token");
 
-        const res = await fetch(`${API_BASE}/api/events/${ev.id}/book`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+          if (!token) {
+            window.location.href = "/login";
+            return;
+          }
 
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setError(data?.message || "Failed to book event");
-          return;
+          const res = await fetch(`${API_BASE}/api/events/${ev.id}/book`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            alert(data?.message || "Failed to join event");
+            return;
+          }
+
+          await loadEvents();
+          alert("Амжилттай бүртгэгдлээ");
+        } catch (err) {
+          console.error(err);
+          alert("Network error");
         }
-        const fresh = await loadEvents();
-        setOpenEvent((prev) => {
-          if (!prev) return prev;
-          const updated = fresh.find((x) => Number(x.id) === Number(prev.id));
-          return updated || prev;
-        });
-      } catch (e) {
-        console.error(e);
-        setError("Network error while booking");
       }
-    }
 
     return (
       <div className="eventsGradientBg">

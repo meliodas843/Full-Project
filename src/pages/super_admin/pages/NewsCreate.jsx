@@ -93,7 +93,7 @@ export default function NewsCreate() {
         return;
       }
 
-      setMsg("🗑️ News deleted successfully");
+      setMsg("News deleted successfully");
 
       if (editingId === id) {
         resetForm();

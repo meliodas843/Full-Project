@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 
 const API_BASE =
@@ -136,6 +137,7 @@ function PhoneFrame({ image }) {
 
 export default function Home() {
   const [news, setNews] = useState([]);
+  const navigate = useNavigate();
   const [newsLoading, setNewsLoading] = useState(true);
   const [newsErr, setNewsErr] = useState("");
   const [billing, setBilling] = useState("monthly");
@@ -359,10 +361,10 @@ export default function Home() {
       cancelAnimationFrame(raf);
     };
   }, []);
-  const newsCards = useMemo(
-    () => (Array.isArray(news) ? news : []).slice(0, 3),
-    [news],
-  );
+const newsCards = useMemo(
+  () => (Array.isArray(news) ? news : []).slice(0, 3),
+  [news],
+);
   return (
     <main className="publicHome">
       <section className="publicHero">
@@ -500,19 +502,19 @@ export default function Home() {
           <div className="newsDecoration">
             <span className="dotGrid dotGridTop"></span>
             <span className="dotGrid dotGridBottom"></span>
-
-            <span className="bubble bubble1"></span>
-            <span className="bubble bubble2"></span>
-
             <span className="waveShape"></span>
           </div>
         <div className="publicContainer">
           <div className="publicNews__head">
             <h2 className="publicSectionTitle">Сүүлийн үеийн мэдээ</h2>
 
-            <a className="publicLink publicLink--inline" href="/news">
-              Бүгдийг үзэх →
-            </a>
+          <button
+            className="publicLink publicLink--inline"
+            type="button"
+            onClick={() => navigate("/news")}
+          >
+            Бүгдийг үзэх →
+          </button>
           </div>
 
           {newsLoading ? (
@@ -531,7 +533,7 @@ export default function Home() {
                   <article className="newsCard" key={getNewsKey(n)}>
                     <a
                       className="newsCard__img"
-                      href={getNewsHref(n)}
+                      href="/news"
                       aria-label={safeText(n.title) || "News"}
                     >
                       {img ? (
@@ -563,7 +565,7 @@ export default function Home() {
                       </p>
 
                       <div className="newsCard__actions">
-                        <a className="newsReadBtn" href={getNewsHref(n)}>
+                        <a className="newsReadBtn" href="/news">
                           Дэлгэрэнгүй <span aria-hidden>→</span>
                         </a>
                       </div>

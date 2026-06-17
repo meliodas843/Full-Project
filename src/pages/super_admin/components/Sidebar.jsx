@@ -33,25 +33,11 @@ export default function Sidebar() {
           >
             <span className="us-txt">Мэдээ үүсгэх</span>
           </NavLink>
-
-          <NavLink
-            to="/super-admin/add-project"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
-            <span className="us-txt">Төсөл үүсгэх</span>
-          </NavLink>
-
-          <NavLink
-            to="/super-admin/add-mentor"
-            className={({ isActive }) => `us-link ${isActive ? "active" : ""}`}
-          >
-            <span className="us-txt">Ментор үүсгэх</span>
-          </NavLink>
         </nav>
       </div>
 
       <div className="us-footer">
-        <button className="us-logout" onClick={handleLogout} type="button">
+        <button className="admin-us-logout" onClick={handleLogout} type="button">
           <span className="us-txt">Гарах</span>
         </button>
       </div>

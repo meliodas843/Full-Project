@@ -23,9 +23,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 8 * 1024 * 1024 }, // 8MB
+  limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    // allow only images
     if (!file.mimetype || !file.mimetype.startsWith("image/")) {
       return cb(new Error("Only images allowed"));
     }
@@ -34,13 +33,12 @@ const upload = multer({
 });
 
 /* =========================
-   GET /api/news
+   GET ALL NEWS
 ========================= */
 router.get("/", async (req, res) => {
   try {
-    // 🔁 Change 'users' to 'all_users' if that's your user table
     const [rows] = await pool.query(`
-      SELECT 
+      SELECT
         n.id,
         n.title,
         n.body,
@@ -55,66 +53,200 @@ router.get("/", async (req, res) => {
 
     return res.json(rows);
   } catch (err) {
-    console.error("GET /api/news ERROR:", err);
+    console.error("GET NEWS ERROR:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
 
 /* =========================
-   POST /api/news/body-image ✅ NEW
-   Upload image for Quill editor and return { url }
+   UPLOAD BODY IMAGE
 ========================= */
-router.post("/body-image", authMiddleware, upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+router.post(
+  "/body-image",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          message: "No image uploaded",
+        });
+      }
 
-    // Quill will insert this into <img src="...">
-    const url = `/uploads/news/${req.file.filename}`;
-    return res.json({ url });
-  } catch (err) {
-    console.error("POST /api/news/body-image ERROR:", err);
-    return res.status(500).json({ message: "Server error" });
+      return res.json({
+        url: `/uploads/news/${req.file.filename}`,
+      });
+    } catch (err) {
+      console.error("BODY IMAGE ERROR:", err);
+      return res.status(500).json({
+        message: "Server error",
+      });
+    }
   }
-});
+);
 
 /* =========================
-   POST /api/news (Super Admin)
-   ✅ accepts:
-   - title (text)
-   - body  (HTML from Quill)
-   - cover (optional cover image)
+   CREATE NEWS
 ========================= */
-router.post("/", authMiddleware, upload.single("cover"), async (req, res) => {
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("cover"),
+  async (req, res) => {
+    try {
+      const title = String(req.body.title || "").trim();
+      const body = String(req.body.body || "").trim();
+
+      if (!title || !body) {
+        return res.status(400).json({
+          message: "title and body are required",
+        });
+      }
+
+      const creatorId = req.user?.id;
+
+      if (!creatorId) {
+        return res.status(401).json({
+          message: "Invalid token",
+        });
+      }
+
+      const image_url = req.file
+        ? `/uploads/news/${req.file.filename}`
+        : null;
+
+      const [result] = await pool.query(
+        `
+        INSERT INTO news
+        (
+          title,
+          body,
+          image_url,
+          created_by
+        )
+        VALUES (?, ?, ?, ?)
+        `,
+        [
+          title,
+          body,
+          image_url,
+          creatorId,
+        ]
+      );
+
+      return res.json({
+        message: "News created",
+        id: result.insertId,
+        image_url,
+      });
+    } catch (err) {
+      console.error("CREATE NEWS ERROR:", err);
+      return res.status(500).json({
+        message: "Server error",
+      });
+    }
+  }
+);
+
+/* =========================
+   UPDATE NEWS
+========================= */
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("cover"),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const title = String(req.body.title || "").trim();
+      const body = String(req.body.body || "").trim();
+
+      if (!title || !body) {
+        return res.status(400).json({
+          message: "title and body are required",
+        });
+      }
+
+      const [rows] = await pool.query(
+        "SELECT * FROM news WHERE id = ?",
+        [id]
+      );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          message: "News not found",
+        });
+      }
+
+      const oldNews = rows[0];
+
+      const image_url = req.file
+        ? `/uploads/news/${req.file.filename}`
+        : oldNews.image_url;
+
+      await pool.query(
+        `
+        UPDATE news
+        SET
+          title = ?,
+          body = ?,
+          image_url = ?
+        WHERE id = ?
+        `,
+        [
+          title,
+          body,
+          image_url,
+          id,
+        ]
+      );
+
+      return res.json({
+        message: "News updated successfully",
+        id,
+        image_url,
+      });
+    } catch (err) {
+      console.error("UPDATE NEWS ERROR:", err);
+      return res.status(500).json({
+        message: "Server error",
+      });
+    }
+  }
+);
+
+/* =========================
+   DELETE NEWS
+========================= */
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    const title = String(req.body.title || "").trim();
-    const body = String(req.body.body || "").trim(); // ✅ HTML
+    const id = req.params.id;
 
-    if (!title || !body) {
-      return res.status(400).json({ message: "title and body are required" });
+    const [rows] = await pool.query(
+      "SELECT * FROM news WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "News not found",
+      });
     }
 
-    const creatorId = req.user?.id;
-    if (!creatorId) {
-      return res.status(401).json({ message: "Invalid token (no user id)" });
-    }
-
-    // cover image url (optional)
-    const image_url = req.file ? `/uploads/news/${req.file.filename}` : null;
-
-    const [result] = await pool.query(
-      `INSERT INTO news (title, body, image_url, created_by)
-       VALUES (?, ?, ?, ?)`,
-      [title, body, image_url, creatorId]
+    await pool.query(
+      "DELETE FROM news WHERE id = ?",
+      [id]
     );
 
     return res.json({
-      message: "News created",
-      id: result.insertId,
-      image_url,
+      message: "News deleted successfully",
     });
   } catch (err) {
-    console.error("POST /api/news ERROR:", err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("DELETE NEWS ERROR:", err);
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
 });
 
