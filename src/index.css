@@ -277,8 +277,8 @@ a {
 }
 
 .calendar-event-badge.event-badge {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #fef4e5;
+  color: #ff9f1c;
   font-weight: 700;
   padding: 6px 12px;
   border-radius: 999px;
@@ -314,7 +314,7 @@ a {
 
 .legend-dot.event,
 .calendar-dot.event {
-  background: #2563eb;
+  background: #ff9f1c;
 }
 
 .legend-dot.meeting,
@@ -2272,7 +2272,7 @@ hr,
 
 .get-started-btn {
   padding: 10px 16px;
-  background-color: #2563eb;
+  background-color: #2EC4B6;
   color: #ffffff;
   border: 1;
   border-radius: 8px;
@@ -3110,7 +3110,7 @@ hr,
 .appFooter__logo {
   font-size: 26px;
   font-weight: 700;
-  color: #6c5ce7;
+  color: #2EC4B6;
   margin-bottom: 16px;
 }
 
@@ -4099,12 +4099,7 @@ hr,
   height:42px;
   border-radius:14px;
   border:none;
-  background:
-    linear-gradient(
-      135deg,
-      #2563eb,
-      #3b82f6
-    );
+  background: #2EC4B6;
   color:#fff;
   font-size:22px;
   cursor:pointer;
@@ -4376,9 +4371,8 @@ hr,
 }
 
 .meet-tab.active {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #2ec4b6;
   color: #fff;
-  border-color: rgba(15, 23, 42, 0.28);
 }
 
 .meet-form {
@@ -4581,7 +4575,7 @@ hr,
   height: 44px;
   border-radius: 14px;
   border: 1px solid rgba(15, 23, 42, 0.18);
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #2ec4b6;
   color: #fff;
   font-weight: 900;
   letter-spacing: 0.02em;
@@ -4774,7 +4768,7 @@ hr,
   border-radius: 14px;
   padding: 14px 14px;
   cursor: pointer;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #2EC4B6;
   color: #fff;
   font-weight: 800;
   font-size: 14px;
@@ -4799,7 +4793,8 @@ hr,
   min-width: 80px;
   border: none;
   border-radius: 12px;
-  background: #4f7df3;
+  background: #2EC4B6;
+  margin-top: 10px;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -4821,7 +4816,7 @@ hr,
   color: #0f172a;
   font-weight: 800;
   font-size: 14px;
-  margin-top: auto;
+  margin-top: 10px;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -5000,8 +4995,8 @@ hr,
 }
 
 .uep-listBadge.created {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #ff9f1c;
+  color: #fff;
 }
 
 .uep-listBadge.joined {
@@ -5020,8 +5015,8 @@ hr,
 }
 
 .uep-listItem.is-created {
-  border-left: 4px solid #2563eb;
-  background: #eff6ff;
+  border-left: 4px solid #ffab12;
+  background: #fff7ee;
 }
 
 .uep-listItem.is-joined {
@@ -5825,6 +5820,7 @@ hr,
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
+  margin-top: 10px;
   background: #fff;
   cursor: pointer;
 }
@@ -5910,7 +5906,7 @@ hr,
   padding: 10px 12px;
   border: 0;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #2EC4B6;
   color: #fff;
   font-weight: 800;
   cursor: pointer;
@@ -7440,7 +7436,7 @@ html, body {
   padding: 9px 14px;
   border: 0;
   border-radius: 12px;
-  background: #2563eb;
+  background: #2EC4B6;
   color: #fff;
   font-weight: 800;
   cursor: pointer;
@@ -9244,6 +9240,33 @@ html.modal-open {
 
 .us-logout:hover {
   background: #f8fafc;
+}
+
+.user-sidebar .us-link.active,
+.drawer-sidebar .us-link.active {
+  position: relative;
+  background: #2ec4b6;
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(46, 196, 182, 0.35);
+}
+
+.user-sidebar .us-link.active .us-icon,
+.drawer-sidebar .us-link.active .us-icon {
+  color: #fff;
+}
+
+.user-sidebar .us-link.active::before,
+.drawer-sidebar .us-link.active::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 4px;
+  height: 30px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: #2ec4b6;
+  box-shadow: 0 0 14px rgba(46, 196, 182, 0.8);
 }
 
 .us-logo,
