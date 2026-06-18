@@ -189,8 +189,13 @@ router.get("/", async (req, res) => {
         ) AS booked_count
       FROM events
       WHERE archived = 0
+        AND visibility = 'public'
+        AND DATE_ADD(
+          COALESCE(end_time, start_time),
+          INTERVAL 1 DAY
+        ) >= NOW()
       ORDER BY start_time DESC
-      `,
+      `
     );
 
     return res.json(rows);

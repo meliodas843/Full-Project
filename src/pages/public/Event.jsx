@@ -34,6 +34,28 @@ const PUBLIC_SITE_URL = "http://103.168.56.224";
     return `${API_BASE}${normalized}`;
   }
 
+  function getEventEndTime(ev) {
+  return ev?.end_time || ev?.start_time;
+}
+
+function shouldShowPublicEvent(ev) {
+  if (!ev) return false;
+
+  if (String(ev.visibility || "public").toLowerCase() === "private") {
+    return false;
+  }
+
+  const endRaw = getEventEndTime(ev);
+  if (!endRaw) return true;
+
+  const end = new Date(endRaw).getTime();
+  if (!Number.isFinite(end)) return true;
+
+  const ONE_DAY = 24 * 60 * 60 * 1000;
+
+  return end >= Date.now() - ONE_DAY;
+}
+
 function SocialShare({ title, url, image, description }) {
   const [open, setOpen] = useState(false);
 
@@ -191,8 +213,13 @@ function SocialShare({ title, url, image, description }) {
     }, []);
     const filtered = useMemo(() => {
       const q = query.trim().toLowerCase();
-      if (!q) return events;
-      return events.filter((ev) => String(ev.title || "").toLowerCase().includes(q));
+
+      return events
+        .filter(shouldShowPublicEvent)
+        .filter((ev) => {
+          if (!q) return true;
+          return String(ev.title || "").toLowerCase().includes(q);
+        });
     }, [events, query]);
     function handleOpen(ev) {
       setOpenEvent(ev);

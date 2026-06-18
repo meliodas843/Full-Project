@@ -666,6 +666,8 @@
     async function handleCreate(e) {
       e.preventDefault();
 
+      if (creating) return;
+
       setErrMsg("");
       setSuccessMsg("");
       setInviteLink("");
@@ -731,29 +733,33 @@
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          setErrMsg(data?.message || (editingEventId ? "Failed to update event" : "Failed to create event"));
+          setErrMsg(
+            data?.message ||
+              (editingEventId ? "Failed to update event" : "Failed to create event")
+          );
           return;
         }
 
+        const saved = data?.event || data;
+
         setSuccessMsg(editingEventId ? "Event updated ✅" : "Event created ✅");
-
-        const saved = data?.event;
-
-        if (!editingEventId && saved?.visibility === "private" && saved?.invite_token) {
-          const link = `${window.location.origin}/event/invite/${saved.invite_token}`;
-          setInviteLink(link);
-        }
 
         await fetchEvents();
         await fetchMyBookedIds();
         await fetchMyEvents();
 
-        if (!editingEventId && saved?.visibility === "private" && saved?.invite_token) return;
-
-        setTimeout(() => closeCreate(), 700);
+        resetForm();
+        setShowCreate(false);
+        setEditingEventId(null);
+        setSelectedEventId(saved?.id || null);
+        setMode("all");
       } catch (e2) {
         console.error(e2);
-        setErrMsg(editingEventId ? "Network error while updating event" : "Network error while creating event");
+        setErrMsg(
+          editingEventId
+            ? "Network error while updating event"
+            : "Network error while creating event"
+        );
       } finally {
         setCreating(false);
       }
@@ -974,7 +980,15 @@
         return events.filter((ev) => isEventFinished(ev));
       }
 
-      return events.filter((ev) => !isEventFinished(ev));
+      return events.filter((ev) => {
+        if (isEventFinished(ev)) return false;
+
+        if (ev.visibility === "private") {
+          return canEditEvent(ev);
+        }
+
+        return true;
+      });
     }, [events, mode]);
 
     return (
@@ -1593,7 +1607,11 @@
                         Цуцлах
                       </button>
 
-                      <button className="uep-createBtn" disabled={creating}>
+                      <button
+                        type="submit"
+                        className="uep-createBtn"
+                        disabled={creating}
+                      >
                         {creating
                           ? editingEventId
                             ? "Засаж байна..."
