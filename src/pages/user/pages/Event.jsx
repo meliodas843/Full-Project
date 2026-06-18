@@ -578,6 +578,12 @@
       return eventFiles.filter((f) => !isImageName(f.original_name));
     }, [eventFiles]);
 
+    const minDateTime = new Date(
+      Date.now() - new Date().getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .slice(0, 16);
+
     function resetForm() {
       setEditingEventId(null);
       setTitle("");
@@ -674,6 +680,16 @@
 
       if (!title.trim() || !start_time) {
         setErrMsg("Title and start time are required.");
+        return;
+      }
+
+      if (!editingEventId && new Date(start_time) < new Date()) {
+        setErrMsg("Өнгөрсөн огноо сонгох боломжгүй.");
+        return;
+      }
+
+      if (end_time && new Date(end_time) < new Date(start_time)) {
+        setErrMsg("Дуусах цаг эхлэх цагаас өмнө байж болохгүй.");
         return;
       }
 
@@ -1509,8 +1525,17 @@
                           className="uep-inputLight"
                           type="datetime-local"
                           value={start_time}
+                          min={editingEventId ? undefined : minDateTime}
                           onChange={(e) => {
                             const nextStart = e.target.value;
+
+                            if (!editingEventId && nextStart && nextStart < minDateTime) {
+                              setErrMsg("Өнгөрсөн огноо сонгох боломжгүй.");
+                              setStartTime("");
+                              return;
+                            }
+
+                            setErrMsg("");
                             setStartTime(nextStart);
 
                             if (end_time && nextStart && end_time < nextStart) {
@@ -1526,13 +1551,23 @@
                           className="uep-inputLight"
                           type="datetime-local"
                           value={end_time}
-                          min={start_time || undefined}
-                          onChange={(e) => setEndTime(e.target.value)}
+                          min={start_time || minDateTime}
+                          onChange={(e) => {
+                            const nextEnd = e.target.value;
+
+                            if (start_time && nextEnd && nextEnd < start_time) {
+                              setErrMsg("Дуусах цаг эхлэх цагаас өмнө байж болохгүй.");
+                              setEndTime("");
+                              return;
+                            }
+
+                            setErrMsg("");
+                            setEndTime(nextEnd);
+                          }}
                           disabled={!start_time}
                         />
                       </label>
                     </div>
-
                     <label className="uep-labelDark fileUpload">
                       Эвент Зураг (оруулах)
 
