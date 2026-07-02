@@ -1,10 +1,13 @@
+import logo from "../assets/registra-logo-def.png";
 const Footer = () => {
   return (
     <footer className="appFooter">
       <div className="appFooter__container">
         <div className="appFooter__grid">
           <div className="appFooter__brand">
-            <div className="appFooter__logo">Registra</div>
+            <div className="appFooter__logo">
+              <img src={logo} alt="Registra" />
+            </div>
             <p>
               Building modern solutions for modern teams.
             </p>

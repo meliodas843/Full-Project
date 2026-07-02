@@ -1,6 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { FiHome, FiCalendar, FiUser, FiLogOut, FiGrid } from "react-icons/fi";
-import logo from "../../../assets/logo.png";
+import logo from "../../../assets/registra-logo-def.png";
 
 export default function Sidebar({ onNavigate = () => {}, mobile = false } = {}) {
   const navigate = useNavigate();
