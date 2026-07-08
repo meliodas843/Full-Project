@@ -142,6 +142,21 @@ export default function Home() {
   const [newsErr, setNewsErr] = useState("");
   const [billing, setBilling] = useState("monthly");
   const planTitle = billing === "monthly" ? "Сарын багц" : "Жилийн багц";
+  const heroImages = [
+    "/public/assets/home.png",
+    "/public/assets/img1.png",
+    "/public/assets/img2.png",
+  ];
+
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4500); // was 3200
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -182,6 +197,7 @@ export default function Home() {
       alive = false;
     };
   }, []);
+
   useEffect(() => {
     const items = document.querySelectorAll(".demoItem");
 
@@ -392,23 +408,18 @@ const newsCards = useMemo(
           <div className="publicHero__visual" aria-hidden="true">
             <div className="heroShowcase">
               <div className="heroShowcase__track">
-                <div className="heroShowcase__slide heroShowcase__slide--animate">
-                  <img
-                    src="/assets/home.png"
-                    alt="Main preview 1"
-                    className="heroShowcase__img heroShowcase__img--main"
-                  />
-                  <img
-                    src="/assets/calendar.png"
-                    alt="Left preview 2"
-                    className="heroShowcase__img heroShowcase__img--left"
-                  />
-                  <img
-                    src="/assets/home.png"
-                    alt="Right preview 3"
-                    className="heroShowcase__img heroShowcase__img--right"
-                  />
-                </div>
+                {heroImages.map((img, i) => {
+                  const pos = (i - heroIndex + heroImages.length) % heroImages.length;
+
+                  return (
+                    <img
+                      key={img + i}
+                      src={img}
+                      alt="Hero preview"
+                      className={`heroShowcase__img heroShowcase__img--pos${pos}`}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>

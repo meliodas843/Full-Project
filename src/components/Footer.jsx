@@ -37,7 +37,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="appFooter__bottom">
-          © {new Date().getFullYear()} Khural Plus+. All rights reserved.
+          © {new Date().getFullYear()} Registra. All rights reserved.
         </div>
       </div>
     </footer>

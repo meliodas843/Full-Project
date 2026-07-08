@@ -102,6 +102,15 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/user/calendar"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <Calendar />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/user/meeting/create"
           element={
