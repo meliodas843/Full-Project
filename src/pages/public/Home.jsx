@@ -143,9 +143,9 @@ export default function Home() {
   const [billing, setBilling] = useState("monthly");
   const planTitle = billing === "monthly" ? "Сарын багц" : "Жилийн багц";
   const heroImages = [
-    "/public/assets/home.png",
-    "/public/assets/img1.png",
-    "/public/assets/img2.png",
+      "/assets/home.png",
+      "/assets/img1.png",
+      "/assets/img2.png",
   ];
 
   const [heroIndex, setHeroIndex] = useState(0);
