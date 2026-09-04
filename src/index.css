@@ -19907,6 +19907,7 @@ html[data-user-theme="dark"] .rgBellButton {
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .rgTopUserText small {

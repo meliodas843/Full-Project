@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import {
+  NavLink,
+  useNavigate,
+} from "react-router-dom";
 import {
   FiCheckCircle,
   FiEye,
@@ -24,12 +27,18 @@ export default function Password() {
     confirm: false,
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
 
   function updateField(event) {
-    const { name, value } = event.target;
+    const { name, value } =
+      event.target;
 
     setForm((current) => ({
       ...current,
@@ -92,7 +101,8 @@ export default function Password() {
           headers: {
             "Content-Type":
               "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization:
+              `Bearer ${token}`,
           },
           body: JSON.stringify({
             current_password:
@@ -138,225 +148,207 @@ export default function Password() {
 
   return (
     <UserShell title="Нууц үг солих">
-      <div className="profileSettingsPage">
-        <aside className="profileSettingsNav">
-          <NavLink
-            to="/user/profile"
-            className={({ isActive }) =>
-              `profileSettingsLink ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
+      <main className="rgProfilePage">
+        <aside className="rgProfileTabs">
+          <NavLink to="/user/profile">
             Профайл
           </NavLink>
 
           <NavLink
             to="/user/password"
             className={({ isActive }) =>
-              `profileSettingsLink ${
-                isActive ? "active" : ""
-              }`
+              isActive ? "active" : ""
             }
           >
             Нууц үг солих
           </NavLink>
 
-          <NavLink
-            to="/user/company"
-            className={({ isActive }) =>
-              `profileSettingsLink ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
+          <NavLink to="/user/company">
             Компани
           </NavLink>
 
-          <NavLink
-            to="/user/bill"
-            className={({ isActive }) =>
-              `profileSettingsLink ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
+          <NavLink to="/user/bill">
             Төлбөр
           </NavLink>
         </aside>
 
-        <main className="passwordSettingsMain">
-          <section className="passwordSettingsCard">
-            <div className="passwordSettingsHeader">
-              <div className="passwordSettingsIcon">
-                <FiLock />
-              </div>
-
-              <div>
-                <h2>Нууц үг солих</h2>
-
-                <p>
-                  Бүртгэлээ хамгаалахын тулд
-                  хүчтэй нууц үг ашиглана уу.
-                </p>
-              </div>
+        <section className="rgProfileCard">
+          <header className="passwordSettingsHeader">
+            <div className="passwordSettingsIcon">
+              <FiLock />
             </div>
 
-            <form
-              className="passwordSettingsForm"
-              onSubmit={handleSubmit}
-            >
-              <label className="passwordField">
-                <span>
-                  Одоогийн нууц үг
-                </span>
+            <div>
+              <h2>Нууц үг солих</h2>
 
-                <div className="passwordInputWrap">
-                  <input
-                    type={
-                      show.current
-                        ? "text"
-                        : "password"
-                    }
-                    name="currentPassword"
-                    value={
-                      form.currentPassword
-                    }
-                    onChange={updateField}
-                    autoComplete="current-password"
-                  />
+              <p>
+                Бүртгэлээ хамгаалахын тулд
+                хүчтэй нууц үг ашиглана уу.
+              </p>
+            </div>
+          </header>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShow((current) => ({
-                        ...current,
-                        current:
-                          !current.current,
-                      }))
-                    }
-                  >
-                    {show.current ? (
-                      <FiEyeOff />
-                    ) : (
-                      <FiEye />
-                    )}
-                  </button>
-                </div>
-              </label>
+          <form
+            className="passwordSettingsForm"
+            onSubmit={handleSubmit}
+          >
+            <label className="passwordField">
+              <span>
+                Одоогийн нууц үг
+              </span>
 
-              <label className="passwordField">
-                <span>Шинэ нууц үг</span>
+              <div className="passwordInputWrap">
+                <input
+                  type={
+                    show.current
+                      ? "text"
+                      : "password"
+                  }
+                  name="currentPassword"
+                  value={
+                    form.currentPassword
+                  }
+                  onChange={updateField}
+                  autoComplete="current-password"
+                />
 
-                <div className="passwordInputWrap">
-                  <input
-                    type={
-                      show.next
-                        ? "text"
-                        : "password"
-                    }
-                    name="newPassword"
-                    value={form.newPassword}
-                    onChange={updateField}
-                    autoComplete="new-password"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShow((current) => ({
-                        ...current,
-                        next: !current.next,
-                      }))
-                    }
-                  >
-                    {show.next ? (
-                      <FiEyeOff />
-                    ) : (
-                      <FiEye />
-                    )}
-                  </button>
-                </div>
-              </label>
-
-              <label className="passwordField">
-                <span>
-                  Шинэ нууц үгийг
-                  баталгаажуулах
-                </span>
-
-                <div className="passwordInputWrap">
-                  <input
-                    type={
-                      show.confirm
-                        ? "text"
-                        : "password"
-                    }
-                    name="confirmPassword"
-                    value={
-                      form.confirmPassword
-                    }
-                    onChange={updateField}
-                    autoComplete="new-password"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShow((current) => ({
-                        ...current,
-                        confirm:
-                          !current.confirm,
-                      }))
-                    }
-                  >
-                    {show.confirm ? (
-                      <FiEyeOff />
-                    ) : (
-                      <FiEye />
-                    )}
-                  </button>
-                </div>
-              </label>
-
-              {error && (
-                <div className="passwordMessage error">
-                  {error}
-                </div>
-              )}
-
-              {success && (
-                <div className="passwordMessage success">
-                  <FiCheckCircle />
-                  {success}
-                </div>
-              )}
-
-              <div className="passwordSettingsActions">
                 <button
                   type="button"
-                  className="passwordCancel"
+                  aria-label="Нууц үг харах"
                   onClick={() =>
-                    navigate("/user/profile")
+                    setShow((current) => ({
+                      ...current,
+                      current:
+                        !current.current,
+                    }))
                   }
                 >
-                  Цуцлах
-                </button>
-
-                <button
-                  type="submit"
-                  className="passwordSave"
-                  disabled={loading}
-                >
-                  {loading
-                    ? "Шинэчилж байна..."
-                    : "Нууц үг шинэчлэх"}
+                  {show.current ? (
+                    <FiEyeOff />
+                  ) : (
+                    <FiEye />
+                  )}
                 </button>
               </div>
-            </form>
-          </section>
-        </main>
-      </div>
+            </label>
+
+            <label className="passwordField">
+              <span>
+                Шинэ нууц үг
+              </span>
+
+              <div className="passwordInputWrap">
+                <input
+                  type={
+                    show.next
+                      ? "text"
+                      : "password"
+                  }
+                  name="newPassword"
+                  value={
+                    form.newPassword
+                  }
+                  onChange={updateField}
+                  autoComplete="new-password"
+                />
+
+                <button
+                  type="button"
+                  aria-label="Нууц үг харах"
+                  onClick={() =>
+                    setShow((current) => ({
+                      ...current,
+                      next: !current.next,
+                    }))
+                  }
+                >
+                  {show.next ? (
+                    <FiEyeOff />
+                  ) : (
+                    <FiEye />
+                  )}
+                </button>
+              </div>
+            </label>
+
+            <label className="passwordField">
+              <span>
+                Шинэ нууц үгийг
+                баталгаажуулах
+              </span>
+
+              <div className="passwordInputWrap">
+                <input
+                  type={
+                    show.confirm
+                      ? "text"
+                      : "password"
+                  }
+                  name="confirmPassword"
+                  value={
+                    form.confirmPassword
+                  }
+                  onChange={updateField}
+                  autoComplete="new-password"
+                />
+
+                <button
+                  type="button"
+                  aria-label="Нууц үг харах"
+                  onClick={() =>
+                    setShow((current) => ({
+                      ...current,
+                      confirm:
+                        !current.confirm,
+                    }))
+                  }
+                >
+                  {show.confirm ? (
+                    <FiEyeOff />
+                  ) : (
+                    <FiEye />
+                  )}
+                </button>
+              </div>
+            </label>
+
+            {error && (
+              <div className="passwordMessage error">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="passwordMessage success">
+                <FiCheckCircle />
+                {success}
+              </div>
+            )}
+
+            <div className="passwordSettingsActions">
+              <button
+                type="button"
+                className="passwordCancel"
+                onClick={() =>
+                  navigate("/user/profile")
+                }
+              >
+                Цуцлах
+              </button>
+
+              <button
+                type="submit"
+                className="passwordSave"
+                disabled={loading}
+              >
+                {loading
+                  ? "Шинэчилж байна..."
+                  : "Нууц үг шинэчлэх"}
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
     </UserShell>
   );
 }

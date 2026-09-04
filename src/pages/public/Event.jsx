@@ -86,7 +86,29 @@ function eventEndTime(event) {
   );
 }
 
-function isVisible(event) {
+function parseEventDate(value) {
+  if (!value) return NaN;
+
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  const raw = String(value).trim();
+
+  if (!raw) return NaN;
+
+  const normalized = raw.includes("T")
+    ? raw
+    : raw.replace(" ", "T");
+
+  return new Date(normalized).getTime();
+}
+
+function isVisible(event, now) {
   if (!event) return false;
 
   const visibility = String(
@@ -105,15 +127,17 @@ function isVisible(event) {
 
   const raw = eventEndTime(event);
 
-  if (!raw) return true;
-
-  const time = new Date(raw).getTime();
-
-  if (!Number.isFinite(time)) {
+  if (!raw) {
     return true;
   }
 
-  return time >= Date.now() - 24 * 60 * 60 * 1000;
+  const endTime = parseEventDate(raw);
+
+  if (!Number.isFinite(endTime)) {
+    return true;
+  }
+
+  return endTime > now;
 }
 
 function getEventId(event) {
@@ -128,6 +152,7 @@ export default function Events() {
   const [category, setCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [now, setNow] = useState(Date.now());
 
   async function loadEvents() {
     try {
@@ -150,6 +175,7 @@ export default function Events() {
       }
 
       setEvents(normalizeArray(data));
+      setNow(Date.now());
     } catch (err) {
       setError(
         err?.message ||
@@ -166,14 +192,24 @@ export default function Events() {
     loadEvents();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 30000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   const visibleEvents = useMemo(() => {
-    return events.filter(isVisible);
-  }, [events]);
+    return events.filter((event) =>
+      isVisible(event, now),
+    );
+  }, [events, now]);
 
   const filtered = useMemo(() => {
-    const q = query
-      .trim()
-      .toLowerCase();
+    const q = query.trim().toLowerCase();
 
     return visibleEvents.filter((event) => {
       const searchableText = [

@@ -306,24 +306,22 @@ export default function Profile() {
           <NavLink
             to="/user/profile"
             className={({ isActive }) =>
-              isActive
-                ? "active"
-                : ""
+              isActive ? "active" : ""
             }
           >
-            Profile
+            Профайл
           </NavLink>
 
           <NavLink to="/user/password">
-            Change Password
+            Нууц үг солих
           </NavLink>
 
           <NavLink to="/user/company">
-            Company Info
+            Компани
           </NavLink>
 
           <NavLink to="/user/bill">
-            Payment Info
+            Төлбөр
           </NavLink>
         </aside>
 
@@ -425,143 +423,100 @@ export default function Profile() {
               )}
 
               <section className="rgProfileInfo">
-                <h3>
-                  PERSONAL INFORMATION
-                </h3>
+                <h3>ХУВИЙН МЭДЭЭЛЭЛ</h3>
 
                 <div className="rgProfileInfoGrid">
                   <div className="rgProfileField">
-                    <label>
-                      First Name
-                    </label>
-
+                    <label>Нэр</label>
                     {editing ? (
                       <input
                         name="firstName"
-                        value={
-                          form.firstName
-                        }
+                        value={form.firstName}
                         onChange={change}
                       />
                     ) : (
                       <strong>
                         {valueOrDash(
-                          user.firstName ||
-                            user.first_name,
+                          user.firstName || user.first_name,
                         )}
                       </strong>
                     )}
                   </div>
 
                   <div className="rgProfileField">
-                    <label>
-                      Last Name
-                    </label>
-
+                    <label>Овог</label>
                     {editing ? (
                       <input
                         name="lastName"
-                        value={
-                          form.lastName
-                        }
+                        value={form.lastName}
                         onChange={change}
                       />
                     ) : (
                       <strong>
                         {valueOrDash(
-                          user.lastName ||
-                            user.last_name,
+                          user.lastName || user.last_name,
                         )}
                       </strong>
                     )}
                   </div>
 
                   <div className="rgProfileField">
-                    <label>
-                      Company
-                    </label>
-
+                    <label>Компани</label>
                     {editing ? (
                       <input
                         name="company_name"
-                        value={
-                          form.company_name
-                        }
+                        value={form.company_name}
                         onChange={change}
                       />
                     ) : (
                       <strong>
-                        {valueOrDash(
-                          user.company_name,
-                        )}
+                        {valueOrDash(user.company_name)}
                       </strong>
                     )}
                   </div>
 
                   <div className="rgProfileField">
-                    <label>
-                      Phone
-                    </label>
-
+                    <label>Утас</label>
                     {editing ? (
                       <input
                         name="phone"
-                        value={
-                          form.phone
-                        }
+                        value={form.phone}
                         onChange={change}
                       />
                     ) : (
                       <strong>
-                        {valueOrDash(
-                          user.phone,
-                        )}
+                        {valueOrDash(user.phone)}
                       </strong>
                     )}
                   </div>
 
                   <div className="rgProfileField">
-                    <label>Role</label>
+                    <label>Эрх</label>
+                    <strong>
+                      {valueOrDash(user.role)}
+                    </strong>
+                  </div>
 
+                  <div className="rgProfileField">
+                    <label>Хэрэглэгчийн ID</label>
                     <strong>
                       {valueOrDash(
-                        user.role,
+                        user.id || user.user_id,
                       )}
                     </strong>
                   </div>
 
                   <div className="rgProfileField">
-                    <label>User ID</label>
-
+                    <label>Бүртгүүлсэн огноо</label>
                     <strong>
-                      {valueOrDash(
-                        user.id ||
-                          user.user_id,
-                      )}
+                      {formatDate(user.created_at)}
                     </strong>
                   </div>
 
                   <div className="rgProfileField">
-                    <label>
-                      Created Date
-                    </label>
-
+                    <label>Google ID</label>
                     <strong>
-                      {formatDate(
-                        user.created_at,
-                      )}
-                    </strong>
-                  </div>
-
-                  <div className="rgProfileField">
-                    <label>
-                      Google ID
-                    </label>
-
-                    <strong>
-                      {valueOrDash(
-                        user.google_id,
-                      )}
+                      {valueOrDash(user.google_id)}
                     </strong>
                   </div>
                 </div>

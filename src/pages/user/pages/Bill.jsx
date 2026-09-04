@@ -7,16 +7,37 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
-function safeText(v) {
-  const s = String(v ?? "").trim();
-  return s || "—";
+function valueOrDash(value) {
+  const text = String(value ?? "").trim();
+  return text || "—";
 }
 
-function formatDate(dt) {
-  if (!dt) return "—";
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return "—";
-  return d.toLocaleString("mn-MN", {
+function initials(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return "U";
+
+  const parts = text.split(/\s+/).filter(Boolean);
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0]}${
+    parts[parts.length - 1][0]
+  }`.toUpperCase();
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return date.toLocaleString("mn-MN", {
     timeZone: "Asia/Ulaanbaatar",
     year: "numeric",
     month: "2-digit",
@@ -27,196 +48,234 @@ function formatDate(dt) {
   });
 }
 
-function getInitials(nameOrEmail) {
-  const s = String(nameOrEmail || "").trim();
-  if (!s) return "?";
-  if (s.includes("@")) return s[0].toUpperCase();
-  const parts = s.split(/\s+/).filter(Boolean);
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
 export default function Bill() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [errMsg, setErrMsg] = useState("");
+
   const [user, setUser] = useState(null);
-  const tokenUser = useMemo(() => {
-    try {
-      const token = getToken();
-      if (!token) return null;
-      const [, payload] = token.split(".");
-      if (!payload) return null;
-      const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-      return json || null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  async function fetchProfile() {
-    try {
-      setErrMsg("");
-      setLoading(true);
+  async function loadProfile() {
+    const token = getToken();
 
-      const token = getToken();
-      if (!token) {
-        setUser(null);
-        setErrMsg("Please login first.");
-        return;
-      }
-
-      const res = await fetch(`${API_BASE}/api/profile/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+    if (!token) {
+      navigate("/login", {
+        replace: true,
       });
+      return;
+    }
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        `${API_BASE}/api/profile/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response
+        .json()
+        .catch(() => ({}));
+
+      if (!response.ok) {
+        setError(
+          data?.message ||
+            "Профайл уншихад алдаа гарлаа.",
+        );
         setUser(null);
-        setErrMsg(data?.message || "Failed to load profile");
         return;
       }
 
-      setUser(data?.user || null);
-    } catch (e) {
-      console.error(e);
+      setUser(data?.user || data);
+    } catch {
+      setError(
+        "Сервертэй холбогдож чадсангүй.",
+      );
       setUser(null);
-      setErrMsg("Network error while loading profile");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchProfile();
+    loadProfile();
   }, []);
 
-  const display = user || tokenUser || null;
+  const fullName = useMemo(() => {
+    if (!user) return "";
 
-  const fullName =
-    `${display?.firstName || ""} ${display?.lastName || ""}`.trim() ||
-    display?.full_name ||
-    display?.name ||
-    display?.email ||
-    "";
-
-  const email = display?.email || "";
-  const avatarUrl = display?.avatar_url || display?.photo_url || "";
-  const initials = getInitials(fullName || email);
+    return (
+      `${user.firstName || user.first_name || ""} ${
+        user.lastName || user.last_name || ""
+      }`.trim() ||
+      user.full_name ||
+      user.name ||
+      user.email ||
+      ""
+    );
+  }, [user]);
 
   return (
-      <UserShell title="My Bill">
-        <div className="profileGrid">
-          <aside className="profileNav">
-            <div className="profileNavCard">
-              <NavLink
-                to="/user/profile"
-                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
-              >
-                Профайл
-              </NavLink>
+    <UserShell title="Төлбөр">
+      <main className="rgProfilePage">
+        <aside className="rgProfileTabs">
+          <NavLink to="/user/profile">
+            Профайл
+          </NavLink>
 
-              <NavLink
-                to="/user/password"
-                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
-              >
-                Нууц үг солих
-              </NavLink>
+          <NavLink to="/user/password">
+            Нууц үг солих
+          </NavLink>
 
-              <NavLink
-                to="/user/company"
-                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
-              >
-                Компани
-              </NavLink>
+          <NavLink to="/user/company">
+            Компани
+          </NavLink>
 
-              <NavLink
-                to="/user/bill"
-                className={({ isActive }) => `profileNavBtn ${isActive ? "isActive" : ""}`}
-              >
-                Төлбөр
-              </NavLink>
+          <NavLink
+            to="/user/bill"
+            className={({ isActive }) =>
+              isActive ? "active" : ""
+            }
+          >
+            Төлбөр
+          </NavLink>
+        </aside>
+
+        <section className="rgProfileCard">
+          {loading ? (
+            <div className="rgProfileState">
+              Профайл уншиж байна...
             </div>
-          </aside>
-
-          <main className="profileMain">
-            {errMsg ? <div className="profileAlert profileAlertError">{errMsg}</div> : null}
-
-            {loading ? (
-              <div className="profileEmpty">Профайл уншиж байна…</div>
-            ) : !display ? (
-              <div className="profileEmpty">Профайл олдсонгүй</div>
-            ) : (
-              <section className="profileCard">
-                <div className="profileMainHeader">
-                  <h3 className="profileTitle">Төлбөр</h3>
-                </div>
-
-                {/* TOP */}
-                <div className="profileCardTop">
-                  <div className="profileIdentity">
-                    <div className="profileAvatar" aria-label="Profile picture">
-                      {avatarUrl ? <img src={avatarUrl} alt="Profile" /> : <span>{initials}</span>}
-                    </div>
-
-                    <div className="profileIdentityText">
-                      <div className="profileName">{safeText(fullName)}</div>
-                      <div className="profileEmail">{safeText(email)}</div>
-                    </div>
+          ) : !user ? (
+            <div className="rgProfileState">
+              {error || "Профайл олдсонгүй."}
+            </div>
+          ) : (
+            <>
+              <header className="rgProfileHeader">
+                <div className="rgProfileIdentity">
+                  <div className="rgLargeAvatar">
+                    {user.avatar_url ||
+                    user.photo_url ? (
+                      <img
+                        src={
+                          user.avatar_url ||
+                          user.photo_url
+                        }
+                        alt={fullName}
+                      />
+                    ) : (
+                      initials(
+                        fullName || user.email,
+                      )
+                    )}
                   </div>
 
-                  <button
-                    className="profileIconBtn"
-                    type="button"
-                    title="Edit profile"
-                    onClick={() => navigate("/user/edit")}
-                  >
-                    Засах
-                  </button>
+                  <div>
+                    <h2>
+                      {valueOrDash(fullName)}
+                    </h2>
+
+                    <a
+                      href={`mailto:${user.email}`}
+                    >
+                      {valueOrDash(user.email)}
+                    </a>
+                  </div>
                 </div>
 
-                {/* PERSONAL INFO */}
-                <div className="profileSection">
-                  <div className="profileSectionTitle">Хувийн мэдээлэл</div>
+                <button
+                  type="button"
+                  className="rgEditProfileButton"
+                  onClick={() =>
+                    navigate("/user/profile")
+                  }
+                >
+                  Засах
+                </button>
+              </header>
 
-                  <div className="profileInfoGrid">
-                    <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Компани</div>
-                      <div className="profileInfoValue">{safeText(display.company_name)}</div>
-                    </div>
+              {error && (
+                <div className="rgProfileAlert error">
+                  {error}
+                </div>
+              )}
 
-                    <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Утас</div>
-                      <div className="profileInfoValue">{safeText(display.phone)}</div>
-                    </div>
+              <section className="rgProfileInfo">
+                <h3>ТӨЛБӨРИЙН МЭДЭЭЛЭЛ</h3>
 
-                    <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Рол</div>
-                      <div className="profileInfoValue">{safeText(display.role)}</div>
-                    </div>
+                <div className="rgProfileInfoGrid">
+                  <div className="rgProfileField">
+                    <label>Компани</label>
 
-                    <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Хэрэглэгч ID</div>
-                      <div className="profileInfoValue">{safeText(display.id)}</div>
-                    </div>
+                    <strong>
+                      {valueOrDash(
+                        user.company_name,
+                      )}
+                    </strong>
+                  </div>
 
-                    <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Үүссэн</div>
-                      <div className="profileInfoValue">
-                        {formatDate(display.created_at || display.created_time)}
-                      </div>
-                    </div>
+                  <div className="rgProfileField">
+                    <label>Утас</label>
 
-                    <div className="profileInfoItem">
-                      <div className="profileInfoLabel">Google ID</div>
-                      <div className="profileInfoValue">{safeText(display.google_id)}</div>
-                    </div>
+                    <strong>
+                      {valueOrDash(user.phone)}
+                    </strong>
+                  </div>
+
+                  <div className="rgProfileField">
+                    <label>Эрх</label>
+
+                    <strong>
+                      {valueOrDash(user.role)}
+                    </strong>
+                  </div>
+
+                  <div className="rgProfileField">
+                    <label>
+                      Хэрэглэгчийн ID
+                    </label>
+
+                    <strong>
+                      {valueOrDash(
+                        user.id || user.user_id,
+                      )}
+                    </strong>
+                  </div>
+
+                  <div className="rgProfileField">
+                    <label>
+                      Бүртгүүлсэн огноо
+                    </label>
+
+                    <strong>
+                      {formatDate(
+                        user.created_at ||
+                          user.created_time,
+                      )}
+                    </strong>
+                  </div>
+
+                  <div className="rgProfileField">
+                    <label>Google ID</label>
+
+                    <strong>
+                      {valueOrDash(
+                        user.google_id,
+                      )}
+                    </strong>
                   </div>
                 </div>
               </section>
-            )}
-          </main>
-        </div>
-      </UserShell>
+            </>
+          )}
+        </section>
+      </main>
+    </UserShell>
   );
 }
