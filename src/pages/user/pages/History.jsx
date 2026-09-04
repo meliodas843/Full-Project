@@ -54,16 +54,53 @@ function formatDateTime(value) {
   });
 }
 
-function isFinished(event) {
-  if (!event?.end_time) return false;
+function parseEventDateTime(value) {
+  if (!value) return NaN;
 
-  const end = new Date(event.end_time).getTime();
+  const raw = String(value).trim();
 
-  return Number.isFinite(end) && end < Date.now();
+  if (!raw) return NaN;
+
+  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+    return new Date(raw).getTime();
+  }
+
+  const normalized = raw.replace(" ", "T");
+
+  const match = normalized.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/
+  );
+
+  if (!match) {
+    return new Date(normalized).getTime();
+  }
+
+  const [, year, month, day, hour, minute, second = "00"] = match;
+
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  ).getTime();
 }
 
-function getEventStatus(event) {
-  if (isFinished(event)) {
+function isFinished(event, now = Date.now()) {
+  if (!event) return false;
+
+  const value = event.end_time || event.start_time;
+
+  if (!value) return false;
+
+  const time = parseEventDateTime(value);
+
+  return Number.isFinite(time) && time <= now;
+}
+
+function getEventStatus(event, now = Date.now()) {
+  if (isFinished(event, now)) {
     return "ended";
   }
 
@@ -85,6 +122,7 @@ export default function History() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [now, setNow] = useState(Date.now());
 
   async function load() {
     try {
@@ -145,11 +183,19 @@ export default function History() {
     load();
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const visibleEvents = useMemo(() => {
     let result = [...events];
 
     if (filter !== "all") {
-      result = result.filter((event) => getEventStatus(event) === filter);
+      result = result.filter((event) => getEventStatus(event, now) === filter);
     }
 
     result.sort((a, b) => {
@@ -164,7 +210,7 @@ export default function History() {
     });
 
     return result;
-  }, [events, filter, sort]);
+  }, [events, filter, sort, now]);
 
   function createEvent() {
     navigate("/user/event?create=1");
@@ -316,7 +362,7 @@ export default function History() {
         ) : (
           <div className="myEventsGrid">
             {visibleEvents.map((event) => {
-              const status = getEventStatus(event);
+              const status = getEventStatus(event, now);
 
               return (
                 <article className="myEventCard" key={event.id}>

@@ -225,6 +225,7 @@
     const [myEvents, setMyEvents] = useState([]);
     const [myMeetings, setMyMeetings] = useState([]);
     const [finishedMeetings, setFinishedMeetings] = useState([]);
+    const [now, setNow] = useState(Date.now());
 
     const [creating, setCreating] = useState(false);
     const [errMsg, setErrMsg] = useState("");
@@ -250,10 +251,49 @@
     }, 50);
   }
 
+    function parseEventDateTime(value) {
+      if (!value) return NaN;
+
+      const raw = String(value).trim();
+
+      if (!raw) return NaN;
+
+      if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+        return new Date(raw).getTime();
+      }
+
+      const normalized = raw.replace(" ", "T");
+
+      const match = normalized.match(
+        /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/
+      );
+
+      if (!match) {
+        return new Date(normalized).getTime();
+      }
+
+      const [, year, month, day, hour, minute, second = "00"] = match;
+
+      return new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second)
+      ).getTime();
+    }
+
     function isEventFinished(ev) {
-      if (!ev?.end_time) return false;
-      const t = new Date(ev.end_time).getTime();
-      return Number.isFinite(t) && t < Date.now();
+      if (!ev) return false;
+
+      const value = ev.end_time || ev.start_time;
+
+      if (!value) return false;
+
+      const time = parseEventDateTime(value);
+
+      return Number.isFinite(time) && time <= now;
     }
 
     function handleAgendaChange(index, field, value) {
@@ -463,6 +503,14 @@
     }
 
     useEffect(() => {
+      const timer = setInterval(() => {
+        setNow(Date.now());
+      }, 30000);
+
+      return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
       if (mode === "history") fetchHistory();
       else fetchEvents();
 
@@ -471,32 +519,38 @@
     }, [mode]);
 
     useEffect(() => {
-    const now = Date.now();
-    const upcoming = [];
-    const finished = [];
+      const upcoming = [];
+      const finished = [];
 
-    for (const ev of myEvents) {
-      const end = ev.end_time ? new Date(ev.end_time).getTime() : null;
+      for (const ev of myEvents) {
+        const normalized = {
+          ...ev,
+          relation_type:
+            ev.relation_type || (canEditEvent(ev) ? "created" : "joined"),
+        };
 
-      const normalized = {
-        ...ev,
-        relation_type:
-          ev.relation_type || (canEditEvent(ev) ? "created" : "joined"),
-      };
-
-      if (end && !Number.isNaN(end) && end < now) {
-        finished.push(normalized);
-      } else {
-        upcoming.push(normalized);
+        if (isEventFinished(normalized)) {
+          finished.push(normalized);
+        } else {
+          upcoming.push(normalized);
+        }
       }
-    }
 
-    upcoming.sort((a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0));
-    finished.sort((a, b) => new Date(b.start_time || 0) - new Date(a.start_time || 0));
+      upcoming.sort(
+        (a, b) =>
+          parseEventDateTime(a.start_time) -
+          parseEventDateTime(b.start_time)
+      );
 
-    setMyMeetings(upcoming);
-    setFinishedMeetings(finished);
-  }, [myEvents]);
+      finished.sort(
+        (a, b) =>
+          parseEventDateTime(b.end_time || b.start_time) -
+          parseEventDateTime(a.end_time || a.start_time)
+      );
+
+      setMyMeetings(upcoming);
+      setFinishedMeetings(finished);
+    }, [myEvents, now]);
 
     const selectedEvent = useMemo(() => {
       if (!selectedEventId) return null;
@@ -1006,7 +1060,7 @@
 
         return true;
       });
-    }, [events, mode]);
+    }, [events, mode, now]);
 
     return (
       <UserShell title="Events">
