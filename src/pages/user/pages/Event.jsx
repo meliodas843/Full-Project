@@ -296,6 +296,22 @@
       return Number.isFinite(time) && time <= now;
     }
 
+    function isWithinFinishedDay(ev) {
+      if (!ev) return false;
+
+      const value = ev.end_time || ev.start_time;
+
+      if (!value) return false;
+
+      const time = parseEventDateTime(value);
+
+      if (!Number.isFinite(time)) return false;
+
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      return time <= now && now - time < oneDay;
+    }
+
     function handleAgendaChange(index, field, value) {
       setAgendas((prev) =>
         prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
@@ -529,10 +545,13 @@
             ev.relation_type || (canEditEvent(ev) ? "created" : "joined"),
         };
 
-        if (isEventFinished(normalized)) {
-          finished.push(normalized);
-        } else {
+        if (!isEventFinished(normalized)) {
           upcoming.push(normalized);
+          continue;
+        }
+
+        if (isWithinFinishedDay(normalized)) {
+          finished.push(normalized);
         }
       }
 
