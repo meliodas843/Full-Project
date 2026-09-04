@@ -1,5 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  FiArrowLeft,
+  FiBriefcase,
+  FiCalendar,
+  FiCheck,
+  FiClock,
+  FiSearch,
+  FiSend,
+  FiUsers,
+  FiX,
+} from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
 
@@ -7,75 +18,110 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
+function getDisplayName(person) {
+  return (
+    String(person?.name || "").trim() ||
+    `${person?.first_name || ""} ${person?.last_name || ""}`.trim() ||
+    String(person?.email || "").trim() ||
+    "User"
+  );
+}
+
+function getInitials(person) {
+  const name = getDisplayName(person);
+  const parts = name.split(/\s+/).filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  }
+
+  return name.slice(0, 2).toUpperCase();
+}
+
+function normalizeArray(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.participants)) return data.participants;
+  if (Array.isArray(data?.employees)) return data.employees;
+  return [];
+}
+
 export default function Meeting() {
   const navigate = useNavigate();
 
-  // mode: "event" | "company"
   const [mode, setMode] = useState("event");
 
-  // MODE A: my events + participants
   const [myEvents, setMyEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [eventPeople, setEventPeople] = useState([]);
   const [selectedEventEmails, setSelectedEventEmails] = useState([]);
 
-  // MODE B: companies + employees
   const [companies, setCompanies] = useState([]);
   const [company, setCompany] = useState("");
   const [employees, setEmployees] = useState([]);
   const [selectedCompanyEmails, setSelectedCompanyEmails] = useState([]);
 
-  // meeting fields
   const [meetingDate, setMeetingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
 
+  const [eventSearch, setEventSearch] = useState("");
+  const [companySearch, setCompanySearch] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [loadingPeople, setLoadingPeople] = useState(false);
   const [message, setMessage] = useState("");
 
-  const timeSlots = Array.from({ length: 37 }, (_, i) => {
-  const totalMinutes = 9 * 60 + i * 15;
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-});
+  const timeSlots = useMemo(() => {
+    return Array.from({ length: 37 }, (_, index) => {
+      const totalMinutes = 9 * 60 + index * 15;
+      const hour = Math.floor(totalMinutes / 60);
+      const minute = totalMinutes % 60;
 
-  // -------------------------
-  // Helper: read backend error body safely (JSON or HTML/text)
-  // -------------------------
-  async function readError(res) {
+      return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
+        2,
+        "0",
+      )}`;
+    });
+  }, []);
+
+  async function readError(response) {
     try {
-      const text = await res.text();
-      if (!text) return `HTTP ${res.status}`;
+      const text = await response.text();
 
-      // try JSON
+      if (!text) {
+        return `HTTP ${response.status}`;
+      }
+
       try {
-        const json = JSON.parse(text);
-        return json?.message || json?.error || text;
+        const data = JSON.parse(text);
+        return data?.message || data?.error || text;
       } catch {
-        // return raw text (often HTML error page)
         return text;
       }
     } catch {
-      return `HTTP ${res.status}`;
+      return `HTTP ${response.status}`;
     }
   }
 
-  // -------------------------
-  // Helper: fetch with auth + 401 handling + prevents Bearer null
-  // -------------------------
   async function authFetch(url, options = {}) {
     const token = getToken();
 
-    // ✅ prevent "Authorization: Bearer null" causing backend crash
     if (!token) {
       localStorage.removeItem("token");
-      navigate("/login", { replace: true });
+      localStorage.removeItem("user");
+
+      navigate("/login", {
+        replace: true,
+      });
+
       return null;
     }
 
-    const res = await fetch(url, {
+    const response = await fetch(url, {
       ...options,
       headers: {
         ...(options.headers || {}),
@@ -84,180 +130,163 @@ export default function Meeting() {
       },
     });
 
-    if (res.status === 401) {
+    if (response.status === 401) {
       localStorage.removeItem("token");
-      navigate("/login", { replace: true });
+      localStorage.removeItem("user");
+
+      navigate("/login", {
+        replace: true,
+      });
+
       return null;
     }
 
-    return res;
+    return response;
   }
 
-  // -------------------------
-  // LOAD: my events (Mode A)
-  // -------------------------
-  useEffect(() => {
-    let cancelled = false;
+  async function loadMyEvents() {
+    try {
+      const response = await authFetch(
+        `${API_BASE}/api/events/my-joined`,
+      );
 
-    (async () => {
-      try {
-        const res = await authFetch(`${API_BASE}/api/events/my-joined`);
-        if (!res || cancelled) return;
+      if (!response) return;
 
-        if (!res.ok) {
-          const errMsg = await readError(res);
-          console.error("MY EVENTS ERROR:", res.status, errMsg);
-          if (!cancelled) setMessage(errMsg);
-          return;
-        }
-
-        const d = await res.json().catch(() => []);
-        if (!cancelled) setMyEvents(Array.isArray(d) ? d : []);
-      } catch (e) {
-        console.error("MY EVENTS CRASH:", e);
-        if (!cancelled) setMessage("Failed to load your events");
+      if (!response.ok) {
+        const error = await readError(response);
+        setMessage(error);
+        return;
       }
-    })();
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const data = await response.json().catch(() => []);
 
-  // -------------------------
-  // LOAD: companies (Mode B)
-  // -------------------------
-  useEffect(() => {
-    let cancelled = false;
+      setMyEvents(normalizeArray(data));
+    } catch {
+      setMessage("Эвэнтүүдийг ачаалж чадсангүй.");
+    }
+  }
 
-    (async () => {
-      try {
-        const res = await authFetch(`${API_BASE}/api/companies`);
-        if (!res || cancelled) return;
+  async function loadCompanies() {
+    try {
+      const response = await authFetch(
+        `${API_BASE}/api/companies`,
+      );
 
-        if (!res.ok) {
-          const errMsg = await readError(res);
-          console.error("COMPANIES ERROR:", res.status, errMsg);
-          if (!cancelled) setMessage(errMsg);
-          return;
-        }
+      if (!response) return;
 
-        const d = await res.json().catch(() => []);
-        if (!cancelled) setCompanies(Array.isArray(d) ? d : []);
-      } catch (e) {
-        console.error("COMPANIES CRASH:", e);
-        if (!cancelled) setMessage("Failed to load companies");
+      if (!response.ok) {
+        const error = await readError(response);
+        setMessage(error);
+        return;
       }
-    })();
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const data = await response.json().catch(() => []);
 
-  // when event selected -> load participants
-  useEffect(() => {
-    if (!selectedEventId) {
+      setCompanies(normalizeArray(data));
+    } catch {
+      setMessage("Байгууллагуудыг ачаалж чадсангүй.");
+    }
+  }
+
+  async function loadEventPeople(eventId) {
+    if (!eventId) {
       setEventPeople([]);
       setSelectedEventEmails([]);
       return;
     }
 
-    let cancelled = false;
+    try {
+      setLoadingPeople(true);
+      setMessage("");
 
-    (async () => {
-      try {
-        const res = await authFetch(
-          `${API_BASE}/api/events/${selectedEventId}/participants`,
-        );
-        if (!res || cancelled) return;
+      const response = await authFetch(
+        `${API_BASE}/api/events/${eventId}/participants`,
+      );
 
-        if (!res.ok) {
-          const errMsg = await readError(res);
-          console.error("PARTICIPANTS ERROR:", res.status, errMsg);
-          if (!cancelled) setMessage(errMsg);
-          setEventPeople([]);
-          setSelectedEventEmails([]);
-          return;
-        }
+      if (!response) return;
 
-        const d = await res.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = await readError(response);
 
-        console.log("PARTICIPANTS RESPONSE:", d);
+        setEventPeople([]);
+        setSelectedEventEmails([]);
+        setMessage(error);
 
-        const list = Array.isArray(d)
-          ? d
-          : Array.isArray(d.participants)
-            ? d.participants
-            : [];
-
-        if (!cancelled) {
-          setEventPeople(list);
-          setSelectedEventEmails([]);
-        }
-      } catch (e) {
-        console.error("PARTICIPANTS CRASH:", e);
-        if (!cancelled) {
-          setEventPeople([]);
-          setSelectedEventEmails([]);
-          setMessage(e?.message || "Failed to load participants");
-        }
+        return;
       }
-    })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedEventId]);
+      const data = await response.json().catch(() => []);
 
-  // when company selected -> load employees
-  useEffect(() => {
-    if (!company) {
+      setEventPeople(normalizeArray(data));
+      setSelectedEventEmails([]);
+    } catch {
+      setEventPeople([]);
+      setSelectedEventEmails([]);
+      setMessage("Оролцогчдыг ачаалж чадсангүй.");
+    } finally {
+      setLoadingPeople(false);
+    }
+  }
+
+  async function loadEmployees(companyName) {
+    if (!companyName) {
       setEmployees([]);
       setSelectedCompanyEmails([]);
       return;
     }
 
-    let cancelled = false;
+    try {
+      setLoadingPeople(true);
+      setMessage("");
 
-    (async () => {
-      try {
-        const res = await authFetch(
-          `${API_BASE}/api/companies/employees?company=${encodeURIComponent(company)}`,
-        );
-        if (!res || cancelled) return;
+      const response = await authFetch(
+        `${API_BASE}/api/companies/employees?company=${encodeURIComponent(
+          companyName,
+        )}`,
+      );
 
-        if (!res.ok) {
-          const errMsg = await readError(res);
-          console.error("EMPLOYEES ERROR:", res.status, errMsg);
-          if (!cancelled) setMessage(errMsg);
-          setEmployees([]);
-          setSelectedCompanyEmails([]);
-          return;
-        }
+      if (!response) return;
 
-        const d = await res.json().catch(() => []);
-        if (!cancelled) {
-          setEmployees(Array.isArray(d) ? d : []);
-          setSelectedCompanyEmails([]);
-        }
-      } catch (e) {
-        console.error("EMPLOYEES CRASH:", e);
-        if (!cancelled) setMessage("Failed to load employees");
+      if (!response.ok) {
+        const error = await readError(response);
+
+        setEmployees([]);
+        setSelectedCompanyEmails([]);
+        setMessage(error);
+
+        return;
       }
-    })();
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      const data = await response.json().catch(() => []);
+
+      setEmployees(normalizeArray(data));
+      setSelectedCompanyEmails([]);
+    } catch {
+      setEmployees([]);
+      setSelectedCompanyEmails([]);
+      setMessage("Ажилтнуудыг ачаалж чадсангүй.");
+    } finally {
+      setLoadingPeople(false);
+    }
+  }
+
+  useEffect(() => {
+    loadMyEvents();
+    loadCompanies();
+  }, []);
+
+  useEffect(() => {
+    loadEventPeople(selectedEventId);
+  }, [selectedEventId]);
+
+  useEffect(() => {
+    loadEmployees(company);
   }, [company]);
 
-  // reset on mode switch
   useEffect(() => {
     setMessage("");
+    setEventSearch("");
+    setCompanySearch("");
 
     if (mode === "event") {
       setCompany("");
@@ -270,31 +299,208 @@ export default function Meeting() {
     }
   }, [mode]);
 
-  async function handleSend(e) {
-    e.preventDefault();
+  const eventPeopleFiltered = useMemo(() => {
+    const query = eventSearch.trim().toLowerCase();
+
+    if (!query) {
+      return eventPeople;
+    }
+
+    return eventPeople.filter((person) => {
+      const text = [
+        getDisplayName(person),
+        person?.email,
+        person?.company_name,
+        person?.company,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return text.includes(query);
+    });
+  }, [eventPeople, eventSearch]);
+
+  const employeesFiltered = useMemo(() => {
+    const query = companySearch.trim().toLowerCase();
+
+    if (!query) {
+      return employees;
+    }
+
+    return employees.filter((person) => {
+      const text = [
+        getDisplayName(person),
+        person?.email,
+        person?.company_name,
+        person?.company,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return text.includes(query);
+    });
+  }, [employees, companySearch]);
+
+  const selectedEmails =
+    mode === "event"
+      ? selectedEventEmails
+      : selectedCompanyEmails;
+
+  const people =
+    mode === "event"
+      ? eventPeople
+      : employees;
+
+  function toggleEventPerson(email) {
+    if (!email) return;
+
+    setSelectedEventEmails((current) => {
+      if (current.includes(email)) {
+        return current.filter(
+          (item) => item !== email,
+        );
+      }
+
+      return [...current, email];
+    });
+  }
+
+  function toggleCompanyPerson(email) {
+    if (!email) return;
+
+    setSelectedCompanyEmails((current) => {
+      if (current.includes(email)) {
+        return current.filter(
+          (item) => item !== email,
+        );
+      }
+
+      return [...current, email];
+    });
+  }
+
+  function selectAllEventPeople() {
+    const emails = eventPeople
+      .map((person) => person?.email)
+      .filter(Boolean);
+
+    if (
+      emails.length > 0 &&
+      emails.every((email) =>
+        selectedEventEmails.includes(email),
+      )
+    ) {
+      setSelectedEventEmails([]);
+      return;
+    }
+
+    setSelectedEventEmails(emails);
+  }
+
+  function selectAllCompanyPeople() {
+    const emails = employees
+      .map((person) => person?.email)
+      .filter(Boolean);
+
+    if (
+      emails.length > 0 &&
+      emails.every((email) =>
+        selectedCompanyEmails.includes(email),
+      )
+    ) {
+      setSelectedCompanyEmails([]);
+      return;
+    }
+
+    setSelectedCompanyEmails(emails);
+  }
+
+  function removeSelected(email) {
+    if (mode === "event") {
+      setSelectedEventEmails((current) =>
+        current.filter((item) => item !== email),
+      );
+    } else {
+      setSelectedCompanyEmails((current) =>
+        current.filter((item) => item !== email),
+      );
+    }
+  }
+
+  function findSelectedPerson(email) {
+    return people.find(
+      (person) => person?.email === email,
+    );
+  }
+
+  async function handleSend(event) {
+    event.preventDefault();
+
+    if (loading) return;
+
     setMessage("");
 
-    if (!meetingDate || !startTime)
-      return setMessage("Date and start time are required");
-    if (!reason.trim()) return setMessage("Reason is required");
+    if (!meetingDate) {
+      setMessage("Уулзалтын огноог сонгоно уу.");
+      return;
+    }
+
+    if (!startTime) {
+      setMessage("Эхлэх цагийг сонгоно уу.");
+      return;
+    }
+
+    if (
+      endTime &&
+      startTime &&
+      endTime <= startTime
+    ) {
+      setMessage(
+        "Дуусах цаг эхлэх цагаас хойш байх ёстой.",
+      );
+      return;
+    }
+
+    if (!reason.trim()) {
+      setMessage("Уулзалтын зорилгыг оруулна уу.");
+      return;
+    }
 
     const invitees =
-      mode === "event" ? selectedEventEmails : selectedCompanyEmails;
-    if (!invitees.length)
-      return setMessage("Select at least one person to invite");
+      mode === "event"
+        ? selectedEventEmails
+        : selectedCompanyEmails;
 
-    let sendCompany = "";
-    if (mode === "company") {
-      sendCompany = String(company || "").trim();
-      if (!sendCompany) return setMessage("Company is required");
+    if (!invitees.length) {
+      setMessage(
+        "Хамгийн багадаа нэг хүн сонгоно уу.",
+      );
+      return;
+    }
+
+    if (
+      mode === "event" &&
+      !selectedEventId
+    ) {
+      setMessage("Эвэнт сонгоно уу.");
+      return;
+    }
+
+    if (
+      mode === "company" &&
+      !company
+    ) {
+      setMessage("Байгууллага сонгоно уу.");
+      return;
     }
 
     const selectedEvent = myEvents.find(
-      (x) => String(x.id) === String(selectedEventId),
+      (item) =>
+        String(item.id) ===
+        String(selectedEventId),
     );
-    const eventTitle = selectedEvent?.title
-      ? String(selectedEvent.title).trim()
-      : "";
 
     try {
       setLoading(true);
@@ -306,233 +512,618 @@ export default function Meeting() {
         reason: reason.trim(),
         invitees,
         mode,
-        eventId: mode === "event" ? Number(selectedEventId) || null : null,
-        title: mode === "event" ? eventTitle || "Event Meeting" : null,
+        eventId:
+          mode === "event"
+            ? Number(selectedEventId) || null
+            : null,
+        title:
+          mode === "event"
+            ? selectedEvent?.title ||
+              "Event Meeting"
+            : `${company} Meeting`,
       };
 
-      if (mode === "company") payload.company = sendCompany;
-
-      const res = await authFetch(`${API_BASE}/api/meetings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res) return;
-
-      if (!res.ok) {
-        const errMsg = await readError(res);
-        console.error("MEETING API ERROR:", res.status, errMsg);
-        return setMessage(errMsg || "Failed to send");
+      if (mode === "company") {
+        payload.company = company;
       }
 
-      await res.json().catch(() => ({}));
+      const response = await authFetch(
+        `${API_BASE}/api/meetings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
 
-      setMessage("✅ Meeting request sent");
-      setTimeout(() => navigate("/user/notifications"), 600);
-    } catch (e) {
-      console.error("MEETING API CRASH:", e);
-      setMessage("Server error");
+      if (!response) return;
+
+      if (!response.ok) {
+        const error =
+          await readError(response);
+
+        setMessage(
+          error ||
+            "Уулзалтын хүсэлт илгээж чадсангүй.",
+        );
+
+        return;
+      }
+
+      await response
+        .json()
+        .catch(() => ({}));
+
+      setMessage(
+        "Уулзалтын хүсэлт амжилттай илгээгдлээ.",
+      );
+
+      setTimeout(() => {
+        navigate("/user/calendar");
+      }, 700);
+    } catch {
+      setMessage(
+        "Сервертэй холбогдож чадсангүй.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  const selectedAll =
+    people.length > 0 &&
+    people
+      .map((person) => person?.email)
+      .filter(Boolean)
+      .every((email) =>
+        selectedEmails.includes(email),
+      );
+
   return (
-    <UserShell title="Create Meeting">
-      <div className="meet-wrap">
-        <div className="meet-card">
-          <div className="meet-head">
+    <UserShell title="Уулзалт үүсгэх">
+      <main className="rgMeetingPage">
+        <section className="rgMeetingCard">
+          <header className="rgMeetingHeader">
             <div>
-              <h2 className="meet-title">Уулзалт зохион байгуулах</h2>
-              <p className="meet-sub">
-                Компанийн болон Эвэнтийн уулзалт зохион байгуулах
-              </p>
+              <div className="rgMeetingHeaderIcon">
+                <FiCalendar />
+              </div>
+
+              <div>
+                <h1>
+                  Уулзалт зохион байгуулах
+                </h1>
+
+                <p>
+                  Эвэнт эсвэл байгууллагын
+                  хүмүүсээс сонгон уулзалтын
+                  хүсэлт илгээнэ үү.
+                </p>
+              </div>
             </div>
 
             <button
-              className="meet-back"
               type="button"
-              onClick={() => navigate("/user/notifications")}
+              className="rgMeetingBack"
+              onClick={() =>
+                navigate("/user/calendar")
+              }
             >
+              <FiArrowLeft />
               Буцах
             </button>
-          </div>
+          </header>
 
-          {/* MODE SWITCH */}
-          <div className="meet-tabs">
-            <button
-              type="button"
-              className={mode === "event" ? "meet-tab active" : "meet-tab"}
-              onClick={() => setMode("event")}
-            >
-              Миний эвэнтүүдээр
-            </button>
-            <button
-              type="button"
-              className={mode === "company" ? "meet-tab active" : "meet-tab"}
-              onClick={() => setMode("company")}
-            >
-              Байгууллагаар
-            </button>
-          </div>
-
-          <form className="meet-form" onSubmit={handleSend}>
-            {/* COMPANY DROPDOWN ONLY IN COMPANY MODE */}
-            {mode === "company" && (
-              <select
-                className="meet-input"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
+          <form
+            className="rgMeetingForm"
+            onSubmit={handleSend}
+          >
+            <div className="rgMeetingTabs">
+              <button
+                type="button"
+                className={
+                  mode === "event"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setMode("event")
+                }
               >
-                <option value="">Байгууллага сонгоно уу</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            )}
+                <FiCalendar />
+                Миний эвэнтүүдээр
+              </button>
 
-            {mode === "event" ? (
-              <>
-                <select
-                  className="meet-input meet-event-select"
-                  value={selectedEventId}
-                  onChange={(e) => setSelectedEventId(e.target.value)}
-                >
-                  <option value="">Миний эвэнт сонгоно уу</option>
-                  {myEvents.map((ev) => (
-                    <option key={ev.id} value={ev.id}>
-                      {ev.title}
+              <button
+                type="button"
+                className={
+                  mode === "company"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setMode("company")
+                }
+              >
+                <FiBriefcase />
+                Байгууллагаар
+              </button>
+            </div>
+
+            <section className="rgMeetingSection">
+              <div className="rgMeetingSectionTitle">
+                <span>
+                  {mode === "event"
+                    ? "Эвэнт сонгох"
+                    : "Байгууллага сонгох"}
+                </span>
+              </div>
+
+              {mode === "event" ? (
+                <div className="rgMeetingField">
+                  <label>
+                    Миний эвэнт
+                  </label>
+
+                  <select
+                    value={
+                      selectedEventId
+                    }
+                    onChange={(event) =>
+                      setSelectedEventId(
+                        event.target.value,
+                      )
+                    }
+                  >
+                    <option value="">
+                      Эвэнт сонгоно уу
                     </option>
-                  ))}
-                </select>
 
-                {eventPeople.length === 0 ? (
-                  <div className="meet-hint">
-                    Эвэнт дээрх харилцагчдыг сонгоно уу.
-                  </div>
-                ) : (
-                  <div className="meet-user-list">
-                    {eventPeople.map((p) => {
-                      const displayName =
-                        (p.name && p.name.trim()) ||
-                        `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
-                        p.email ||
-                        "User";
+                    {myEvents.map(
+                      (event) => (
+                        <option
+                          key={event.id}
+                          value={event.id}
+                        >
+                          {event.title}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+              ) : (
+                <div className="rgMeetingField">
+                  <label>
+                    Байгууллага
+                  </label>
 
-                      const checked = selectedEventEmails.includes(p.email);
+                  <select
+                    value={company}
+                    onChange={(event) =>
+                      setCompany(
+                        event.target.value,
+                      )
+                    }
+                  >
+                    <option value="">
+                      Байгууллага сонгоно уу
+                    </option>
+
+                    {companies.map(
+                      (item) => (
+                        <option
+                          key={
+                            item.id ||
+                            item.name
+                          }
+                          value={
+                            item.name
+                          }
+                        >
+                          {item.name}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+              )}
+            </section>
+
+            <section className="rgMeetingSection">
+              <div className="rgMeetingPeopleHeader">
+                <div>
+                  <h3>
+                    <FiUsers />
+                    Оролцогч сонгох
+                  </h3>
+
+                  <p>
+                    {selectedEmails.length}
+                    {" "}хүн сонгогдсон
+                  </p>
+                </div>
+
+                {people.length > 0 && (
+                  <button
+                    type="button"
+                    className="rgMeetingSelectAll"
+                    onClick={
+                      mode === "event"
+                        ? selectAllEventPeople
+                        : selectAllCompanyPeople
+                    }
+                  >
+                    <FiCheck />
+
+                    {selectedAll
+                      ? "Бүгдийг болиулах"
+                      : "Бүгдийг сонгох"}
+                  </button>
+                )}
+              </div>
+
+              {selectedEmails.length >
+                0 && (
+                <div className="rgMeetingSelected">
+                  {selectedEmails.map(
+                    (email) => {
+                      const person =
+                        findSelectedPerson(
+                          email,
+                        );
 
                       return (
-                        <label
-                          key={p.id || p.email}
-                          className={`meet-user-card ${checked ? "selected" : ""}`}
+                        <div
+                          key={email}
+                          className="rgMeetingSelectedChip"
                         >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedEventEmails((prev) => [...prev, p.email]);
+                          <span>
+                            {getInitials(
+                              person || {
+                                email,
+                              },
+                            )}
+                          </span>
+
+                          <div>
+                            <strong>
+                              {getDisplayName(
+                                person || {
+                                  email,
+                                },
+                              )}
+                            </strong>
+
+                            <small>
+                              {email}
+                            </small>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeSelected(
+                                email,
+                              )
+                            }
+                          >
+                            <FiX />
+                          </button>
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              )}
+
+              {(mode === "event" &&
+                selectedEventId) ||
+              (mode === "company" &&
+                company) ? (
+                <>
+                  <div className="rgMeetingSearch">
+                    <FiSearch />
+
+                    <input
+                      value={
+                        mode === "event"
+                          ? eventSearch
+                          : companySearch
+                      }
+                      onChange={(event) => {
+                        if (
+                          mode === "event"
+                        ) {
+                          setEventSearch(
+                            event.target.value,
+                          );
+                        } else {
+                          setCompanySearch(
+                            event.target.value,
+                          );
+                        }
+                      }}
+                      placeholder="Нэр эсвэл имэйлээр хайх..."
+                    />
+
+                    {(mode === "event"
+                      ? eventSearch
+                      : companySearch) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            mode ===
+                            "event"
+                          ) {
+                            setEventSearch(
+                              "",
+                            );
+                          } else {
+                            setCompanySearch(
+                              "",
+                            );
+                          }
+                        }}
+                      >
+                        <FiX />
+                      </button>
+                    )}
+                  </div>
+
+                  {loadingPeople ? (
+                    <div className="rgMeetingPeopleEmpty">
+                      Оролцогчдыг
+                      ачаалж байна...
+                    </div>
+                  ) : (
+                    <div className="rgMeetingPeopleGrid">
+                      {(mode === "event"
+                        ? eventPeopleFiltered
+                        : employeesFiltered
+                      ).map((person) => {
+                        const email =
+                          person?.email;
+
+                        const checked =
+                          selectedEmails.includes(
+                            email,
+                          );
+
+                        return (
+                          <button
+                            type="button"
+                            key={
+                              person?.id ||
+                              email
+                            }
+                            className={
+                              checked
+                                ? "rgMeetingPerson active"
+                                : "rgMeetingPerson"
+                            }
+                            onClick={() => {
+                              if (
+                                mode ===
+                                "event"
+                              ) {
+                                toggleEventPerson(
+                                  email,
+                                );
                               } else {
-                                setSelectedEventEmails((prev) =>
-                                  prev.filter((x) => x !== p.email)
+                                toggleCompanyPerson(
+                                  email,
                                 );
                               }
                             }}
-                          />
+                          >
+                            <span className="rgMeetingPersonAvatar">
+                              {getInitials(
+                                person,
+                              )}
+                            </span>
 
-                          <span className="meet-user-avatar">
-                            {displayName.charAt(0).toUpperCase()}
-                          </span>
+                            <span className="rgMeetingPersonInfo">
+                              <strong>
+                                {getDisplayName(
+                                  person,
+                                )}
+                              </strong>
 
-                          <span className="meet-user-info">
-                            <strong>{displayName}</strong>
-                            <small>{p.email}</small>
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {employees.length === 0 ? (
-                  <div className="meet-hint">
-                    Байгууллага дээрх харилцагчдыг сонгоно уу.
-                  </div>
-                ) : (
+                              <small>
+                                {person.email}
+                              </small>
+                            </span>
+
+                            <span className="rgMeetingPersonCheck">
+                              {checked && (
+                                <FiCheck />
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!loadingPeople &&
+                    (mode === "event"
+                      ? eventPeopleFiltered
+                      : employeesFiltered
+                    ).length === 0 && (
+                      <div className="rgMeetingPeopleEmpty">
+                        Хэрэглэгч
+                        олдсонгүй.
+                      </div>
+                    )}
+                </>
+              ) : (
+                <div className="rgMeetingPeopleEmpty">
+                  {mode === "event"
+                    ? "Эхлээд эвэнт сонгоно уу."
+                    : "Эхлээд байгууллага сонгоно уу."}
+                </div>
+              )}
+            </section>
+
+            <section className="rgMeetingSection">
+              <div className="rgMeetingSectionTitle">
+                <span>
+                  Уулзалтын хугацаа
+                </span>
+              </div>
+
+              <div className="rgMeetingDateGrid">
+                <div className="rgMeetingField">
+                  <label>
+                    <FiCalendar />
+                    Огноо
+                  </label>
+
+                  <input
+                    type="date"
+                    min={today}
+                    value={meetingDate}
+                    onChange={(event) =>
+                      setMeetingDate(
+                        event.target.value,
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="rgMeetingField">
+                  <label>
+                    <FiClock />
+                    Эхлэх цаг
+                  </label>
+
                   <select
-                    className="meet-input"
-                    multiple
-                    size={Math.min(10, employees.length)}
-                    value={selectedCompanyEmails}
-                    onChange={(e) => {
-                      const values = Array.from(
-                        e.target.selectedOptions,
-                        (o) => o.value,
-                      );
-                      setSelectedCompanyEmails(values);
-                    }}
+                    value={startTime}
+                    onChange={(event) =>
+                      setStartTime(
+                        event.target.value,
+                      )
+                    }
                   >
-                    {employees.map((p) => (
-                      <option key={p.id} value={p.email}>
-                        {p.name} — {p.email}
-                      </option>
-                    ))}
+                    <option value="">
+                      Сонгох
+                    </option>
+
+                    {timeSlots.map(
+                      (time) => (
+                        <option
+                          key={time}
+                          value={time}
+                        >
+                          {time}
+                        </option>
+                      ),
+                    )}
                   </select>
-                )}
-              </>
+                </div>
+
+                <div className="rgMeetingField">
+                  <label>
+                    <FiClock />
+                    Дуусах цаг
+                  </label>
+
+                  <select
+                    value={endTime}
+                    onChange={(event) =>
+                      setEndTime(
+                        event.target.value,
+                      )
+                    }
+                  >
+                    <option value="">
+                      Сонгох
+                    </option>
+
+                    {timeSlots.map(
+                      (time) => (
+                        <option
+                          key={time}
+                          value={time}
+                        >
+                          {time}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <section className="rgMeetingSection">
+              <div className="rgMeetingField">
+                <label>
+                  Уулзалтын зорилго
+                </label>
+
+                <textarea
+                  rows={5}
+                  value={reason}
+                  onChange={(event) =>
+                    setReason(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Уулзалтын зорилго, хэлэлцэх сэдэв..."
+                />
+              </div>
+            </section>
+
+            {message && (
+              <div
+                className={`rgMeetingMessage ${
+                  message.includes(
+                    "амжилттай",
+                  )
+                    ? "success"
+                    : ""
+                }`}
+              >
+                {message}
+              </div>
             )}
 
-            <div className="meet-datetime-row">
-              <label>
-                <span>Огноо</span>
-                <input
-                  type="date"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                />
-              </label>
+            <footer className="rgMeetingActions">
+              <div>
+                <strong>
+                  {
+                    selectedEmails.length
+                  }
+                </strong>
 
-              <label>
-                <span>Эхлэх цаг</span>
-                <select value={startTime} onChange={(e) => setStartTime(e.target.value)}>
-                  <option value="">Сонгох</option>
-                  {timeSlots.map((time) => (
-                    <option key={time} value={time}>{time}</option>
-                  ))}
-                </select>
-              </label>
+                <span>
+                  оролцогч сонгосон
+                </span>
+              </div>
 
-              <label>
-                <span>Дуусах цаг</span>
-                <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
-                  <option value="">Сонгох</option>
-                  {timeSlots.map((time) => (
-                    <option key={time} value={time}>{time}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
+              <button
+                type="submit"
+                className="rgMeetingSubmit"
+                disabled={loading}
+              >
+                <FiSend />
 
-            <textarea
-              className="meet-textarea"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Reason"
-            />
-
-            {message && <div className="meet-message">{message}</div>}
-
-            <button className="meet-btn" disabled={loading}>
-              {loading ? "Sending..." : "Send"}
-            </button>
+                {loading
+                  ? "Илгээж байна..."
+                  : "Хүсэлт илгээх"}
+              </button>
+            </footer>
           </form>
-        </div>
-      </div>
+        </section>
+      </main>
     </UserShell>
   );
 }

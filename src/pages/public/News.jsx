@@ -1,407 +1,584 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { API_BASE } from "@/lib/config";
-import {
-  FaFacebookF,
-  FaLinkedinIn,
-  FaLink,
-  FaShareNodes,
-} from "react-icons/fa6";
-import { FaXTwitter } from "react-icons/fa6";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { FaClock } from "react-icons/fa6";
+import Footer from "../../components/Footer";
+import { API_BASE, getImageSrc } from "../../lib/config";
+import eventFallback from "../../assets/event.png";
 
-const API = API_BASE;
+const categories = [
+  "All",
+  "DevOps",
+  "Cloud",
+  "AI/ML",
+  "Security",
+  "Frontend",
+  "Data",
+];
 
-function safeText(s) {
-  return String(s || "").trim();
+function normalizeArray(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.news)) return data.news;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
 }
 
-function truncate(text, max = 220) {
-  const t = safeText(text);
-  if (t.length <= max) return t;
-  return t.slice(0, max).trimEnd() + "…";
-}
+function htmlToText(value) {
+  const html = String(value || "");
 
-function htmlToText(html) {
-  const s = String(html || "");
-  if (typeof window !== "undefined" && window.DOMParser) {
-    const doc = new DOMParser().parseFromString(s, "text/html");
-    const text = doc.body?.textContent || "";
-    return text.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  if (typeof document !== "undefined") {
+    const element = document.createElement("div");
+    element.innerHTML = html;
+
+    return String(
+      element.textContent ||
+        element.innerText ||
+        "",
+    )
+      .replace(/\s+/g, " ")
+      .trim();
   }
-  return s
+
+  return html
     .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function getImageSrc(image_url) {
-  const u = safeText(image_url);
-  if (!u) return "";
-  if (u.startsWith("http://") || u.startsWith("https://")) return u;
-  const normalized = u.startsWith("/") ? u : `/${u}`;
-  return `${API}${normalized}`;
-}
+function truncate(value, length) {
+  const text = htmlToText(value);
 
-function formatDate(dt) {
-  if (!dt) return "";
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString();
-}
-
-/* =========================
-   MODAL (Portal)
-========================= */
-function NewsModal({ item, onClose }) {
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const scrollY = window.scrollY;
-
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.top = `-${scrollY}px`;
-    body.style.width = "100%";
-
-    return () => {
-      html.style.overflow = "";
-      body.style.overflow = "";
-      body.style.position = "";
-      body.style.top = "";
-      body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
-
-  const modal = (
-    <div className="newsModalBackdrop" onClick={onClose} role="presentation">
-      <div
-        className="newsModalCard"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
-        <button className="newsModalClose" onClick={onClose} type="button" aria-label="Close">
-          ✕
-        </button>
-
-        <div className="newsModalInner">
-          <div className="newsModalMedia">
-            {getImageSrc(item.image_url) ? (
-              <img
-                className="newsModalImg"
-                src={getImageSrc(item.image_url)}
-                alt={safeText(item.title) || "News image"}
-              />
-            ) : (
-              <div className="newsModalImg newsModalImgPlaceholder">Зураг олдсонгүй</div>
-            )}
-          </div>
-
-          <div className="newsModalBody">
-            <div className="newsModalMeta">
-              {item.created_at && <span className="newsMetaPill">{formatDate(item.created_at)}</span>}
-              {item.author_email && <span className="newsMetaPill">{item.author_email}</span>}
-            </div>
-
-            <div className="newsModalTitleRow">
-              <h2 className="newsModalTitle">{safeText(item.title) || "Untitled"}</h2>
-
-              <SocialShare
-                title={item.title}
-                url={`${window.location.origin}/news/${item.id}`}
-              />
-            </div>
-
-            <div className="newsModalText" dangerouslySetInnerHTML={{ __html: item.body || "" }} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-  return createPortal(modal, document.body);
-}
-
-function SocialShare({ title, url }) {
-  const shareUrl = encodeURIComponent(url || window.location.href);
-  const shareTitle = encodeURIComponent(title || "");
-
-  async function handleNativeShare() {
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        alert("Link copied ✅");
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  if (text.length <= length) {
+    return text;
   }
 
-  return (
-    <div className="socialShare">
-      <button type="button" className="socialShareBtn facebook"
-        onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, "_blank", "noopener,noreferrer")}
-      >
-        <FaFacebookF />
-      </button>
+  return `${text.slice(0, length).trim()}...`;
+}
 
-      <button type="button" className="socialShareBtn twitter"
-        onClick={() => window.open(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`, "_blank", "noopener,noreferrer")}
-      >
-        <FaXTwitter />
-      </button>
+function formatDate(value) {
+  if (!value) return "";
 
-      <button type="button" className="socialShareBtn linkedin"
-        onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`, "_blank", "noopener,noreferrer")}
-      >
-        <FaLinkedinIn />
-      </button>
+  const date = new Date(value);
 
-      <button type="button" className="socialShareBtn copy"
-        onClick={async () => {
-          await navigator.clipboard.writeText(url);
-          alert("Link copied ✅");
-        }}
-      >
-        <FaLink />
-      </button>
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
 
-      <button type="button" className="socialShareBtn share" onClick={handleNativeShare}>
-        <FaShareNodes />
-      </button>
-    </div>
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getCategory(item) {
+  if (item?.category) {
+    return item.category;
+  }
+
+  const text = `${item?.title || ""} ${
+    item?.body ||
+    item?.content ||
+    item?.description ||
+    ""
+  }`.toLowerCase();
+
+  if (
+    text.includes("security") ||
+    text.includes("cyber") ||
+    text.includes("zero-trust") ||
+    text.includes("zero trust") ||
+    text.includes("аюулгүй")
+  ) {
+    return "Security";
+  }
+
+  if (
+    text.includes("cloud") ||
+    text.includes("kubernetes") ||
+    text.includes("docker") ||
+    text.includes("aws") ||
+    text.includes("azure")
+  ) {
+    return "Cloud";
+  }
+
+  if (
+    text.includes("ai") ||
+    text.includes("llm") ||
+    text.includes("machine learning") ||
+    text.includes("artificial")
+  ) {
+    return "AI/ML";
+  }
+
+  if (
+    text.includes("frontend") ||
+    text.includes("react") ||
+    text.includes("javascript") ||
+    text.includes("typescript")
+  ) {
+    return "Frontend";
+  }
+
+  if (
+    text.includes("data") ||
+    text.includes("analytics") ||
+    text.includes("database")
+  ) {
+    return "Data";
+  }
+
+  return "DevOps";
+}
+
+function categoryClass(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function readingTime(value) {
+  const words = htmlToText(value)
+    .split(/\s+/)
+    .filter(Boolean).length;
+
+  return Math.max(
+    3,
+    Math.ceil(words / 180),
   );
+}
+
+function getBody(item) {
+  return (
+    item?.body ||
+    item?.content ||
+    item?.description ||
+    ""
+  );
+}
+
+function getImage(item) {
+  const source =
+    item?.image_url ||
+    item?.image ||
+    item?.cover_image;
+
+  if (!source) {
+    return eventFallback;
+  }
+
+  return getImageSrc(
+    source,
+    eventFallback,
+  );
+}
+
+function getId(item) {
+  return item?.id ?? item?._id;
+}
+
+function getAuthor(item) {
+  return (
+    item?.author_name ||
+    item?.author ||
+    item?.author_email ||
+    item?.created_by_name ||
+    "Khural Plus"
+  );
+}
+
+function getInitials(value) {
+  const text = String(value || "")
+    .trim();
+
+  if (!text) {
+    return "KP";
+  }
+
+  if (text.includes("@")) {
+    return text
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  const words = text
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 1) {
+    return words[0]
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return `${words[0][0]}${
+    words[words.length - 1][0]
+  }`.toUpperCase();
 }
 
 export default function News() {
   const [news, setNews] = useState([]);
-  const [msg, setMsg] = useState("Loading...");
-  const [active, setActive] = useState(0);
-  const [sortOrder, setSortOrder] = useState("new")
-  const [showMore, setShowMore] = useState(false);
-  const moreRef = useRef(null);
-  const [selected, setSelected] = useState(null);
-
-  const load = async () => {
-    try {
-      setMsg("Loading...");
-      const res = await fetch(`${API}/api/news`);
-      const data = await res.json().catch(() => []);
-
-      if (!res.ok) {
-        setMsg((data && data.message) || "Failed to load news");
-        return;
-      }
-
-      const arr = Array.isArray(data) ? data : [];
-      setNews(arr);
-      setMsg("");
-    } catch (err) {
-      console.error(err);
-      setMsg("Server error loading news");
-    }
-  };
+  const [category, setCategory] =
+    useState("All");
+  const [loading, setLoading] =
+    useState(true);
+  const [error, setError] =
+    useState("");
+  const [visible, setVisible] =
+    useState(7);
 
   useEffect(() => {
-    load();
+    window.scrollTo({
+      top: 0,
+      behavior: "instant",
+    });
   }, []);
 
-  const sortedNews = useMemo(() => {
-    const copy = [...news];
-    copy.sort((a, b) => {
-      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return sortOrder === "new" ? tb - ta : ta - tb;
+  useEffect(() => {
+    let alive = true;
+
+    async function loadNews() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          `${API_BASE}/api/news`,
+        );
+
+        const data = await response
+          .json()
+          .catch(() => []);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              "Мэдээг ачаалж чадсангүй.",
+          );
+        }
+
+        if (alive) {
+          setNews(normalizeArray(data));
+        }
+      } catch (err) {
+        if (alive) {
+          setError(
+            err?.message ||
+              "Сервертэй холбогдож чадсангүй.",
+          );
+
+          setNews([]);
+        }
+      } finally {
+        if (alive) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadNews();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const sorted = useMemo(() => {
+    return [...news].sort((a, b) => {
+      const first = new Date(
+        a?.created_at ||
+          a?.updated_at ||
+          a?.date ||
+          0,
+      ).getTime();
+
+      const second = new Date(
+        b?.created_at ||
+          b?.updated_at ||
+          b?.date ||
+          0,
+      ).getTime();
+
+      return second - first;
     });
-    return copy;
-  }, [news, sortOrder]);
+  }, [news]);
 
-  const special = useMemo(() => sortedNews.slice(0, 5), [sortedNews]);
-  const latest = useMemo(() => sortedNews.slice(0, 4), [sortedNews]);
-  const rest = useMemo(() => sortedNews.slice(4), [sortedNews]);
+  const filtered = useMemo(() => {
+    if (category === "All") {
+      return sorted;
+    }
 
-  useEffect(() => {
-    if (special.length <= 1) return;
-    const t = setInterval(() => setActive((p) => (p + 1) % special.length), 5500);
-    return () => clearInterval(t);
-  }, [special.length]);
+    return sorted.filter(
+      (item) =>
+        getCategory(item) === category,
+    );
+  }, [sorted, category]);
 
-  const onPrev = () => special.length && setActive((p) => (p - 1 + special.length) % special.length);
-  const onNext = () => special.length && setActive((p) => (p + 1) % special.length);
+  const featured = filtered[0];
 
-  useEffect(() => {
-    if (!showMore) return;
-    const t = setTimeout(() => {
-      moreRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-    return () => clearTimeout(t);
-  }, [showMore]);
-
-  const isEmpty = !msg && sortedNews.length === 0;
+  const others = filtered.slice(
+    1,
+    visible,
+  );
 
   return (
-    <div className="newsWrap">
-      <div className="newsPageBg">
-        <div className="newsHeaderRow">
-          <div className="newsHeader">
-            <h1 className="newsTitle">Мэдээ</h1>
-            <p className="newsSub">Сүүлийн үед өөрчлөлт ба мэдээ мэдээлэл</p>
-          </div>
+    <main className="riPublicPage riNewsPage">
+      <section className="riNewsHero">
+        <div className="riContainer">
+          <span className="riNewsPill">
+            МЭДЭЭ & НИЙТЛЭЛ
+          </span>
 
-          <div className="newsActions">
-            <div className="newsSelectWrap">
-              <select className="newsSelect" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-                <option value="new">Шинэ</option>
-                <option value="old">Хуучин</option>
-              </select>
-            </div>
+          <h1>
+            Сүүлийн үеийн технологийн мэдээ
+          </h1>
+
+          <p>
+            Технологи, хөгжүүлэлт, кибер
+            аюулгүй байдал болон IT салбарын
+            сонирхолтой нийтлэлүүд.
+          </p>
+
+          <div className="riNewsTabs">
+            {categories.map((item) => (
+              <button
+                type="button"
+                key={item}
+                className={
+                  category === item
+                    ? "active"
+                    : ""
+                }
+                onClick={() => {
+                  setCategory(item);
+                  setVisible(7);
+                }}
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
+      </section>
 
-        {msg && <div className="newsMsg">{msg}</div>}
-        {isEmpty && <div className="newsEmptyBox">Мэдээ алга байна.</div>}
-
-        {!msg && special.length > 0 && (
-          <section className="special">
-            <div className="special-top">
-              <h2 className="section-title">Онцгой мэдээ</h2>
-              <div className="special-controls">
-                <button className="special-btn" onClick={onPrev} type="button" aria-label="Previous">‹</button>
-                <button className="special-btn" onClick={onNext} type="button" aria-label="Next">›</button>
-              </div>
+      <section className="riNewsContent">
+        <div className="riContainer">
+          {loading && (
+            <div className="riStatusBox">
+              Мэдээг ачаалж байна...
             </div>
+          )}
 
-            <div className="special-card">
-              <div className="special-track" style={{ transform: `translateX(-${active * 100}%)` }}>
-                {special.map((item, i) => (
-                  <div className="special-slide" key={item.id}>
-                    <div className={`special-grid ${i % 2 === 0 ? "img-left" : "img-right"}`}>
-                      <div className="special-media">
-                        {getImageSrc(item.image_url) ? (
-                          <img src={getImageSrc(item.image_url)} alt={item.title} className="special-img" />
-                        ) : (
-                          <div className="special-img placeholder">Зураг олдсонгүй</div>
-                        )}
-                      </div>
-
-                      <div className="special-content">
-                        <div className="special-meta">
-                          <span>{formatDate(item.created_at)}</span>
-                          <span>{item.author_email || ""}</span>
-                        </div>
-
-                        <h3 className="special-title">{safeText(item.title) || "Untitled"}</h3>
-                        <p className="special-body">{truncate(htmlToText(item.body), 260)}</p>
-
-                        <button className="special-read" onClick={() => setSelected(item)} type="button">
-                          Унших
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="special-glow" />
+          {!loading && error && (
+            <div className="riStatusBox error">
+              {error}
             </div>
-          </section>
-        )}
+          )}
 
-        {!msg && sortedNews.length > 0 && (
-          <section className="latest">
-            <div className="latest-top">
-              <h2 className="section-title">Сүүлийн мэдээ</h2>
-            </div>
-
-            <div className="latest-grid">
-              {latest.map((n) => (
-                <article className="news-card" key={n.id}>
-                  {getImageSrc(n.image_url) ? (
-                    <img className="news-card-img" src={getImageSrc(n.image_url)} alt={n.title} />
-                  ) : (
-                    <div className="news-card-img placeholder">Зураг олдсонгүй</div>
-                  )}
-
-                  <div className="news-card-body">
-                    <div className="news-card-meta">
-                      <span>{n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}</span>
-                      <span>{n.author_email || ""}</span>
-                    </div>
-
-                    <h3 className="news-card-title">
-                      {safeText(n.title) || "Untitled"}
-                    </h3>
-
-                    <p className="news-card-text">
-                      {truncate(htmlToText(n.body), 120)}
-                    </p>
-
-                    <button
-                      className="news-card-link"
-                      type="button"
-                      onClick={() => setSelected(n)}
-                    >
-                      Унших →
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            {rest.length > 0 && (
-              <div className="latest-footer">
-                <button className="news-more" type="button" onClick={() => setShowMore((v) => !v)}>
-                  {showMore ? "Hide" : "See more news"}
-                </button>
+          {!loading &&
+            !error &&
+            filtered.length === 0 && (
+              <div className="riStatusBox">
+                Мэдээ олдсонгүй.
               </div>
             )}
-          </section>
-        )}
 
-        {!msg && showMore && rest.length > 0 && (
-          <section className="latest" ref={moreRef}>
-            <div className="latest-top">
-              <h2 className="section-title">Өөр мэдээ</h2>
-            </div>
+          {!loading &&
+            !error &&
+            featured && (
+              <>
+                <Link
+                  to={`/news/${getId(
+                    featured,
+                  )}`}
+                  className="riFeaturedNews"
+                >
+                  <div className="riFeaturedNewsImage">
+                    <img
+                      src={getImage(
+                        featured,
+                      )}
+                      alt={
+                        featured?.title ||
+                        "News"
+                      }
+                      onError={(event) => {
+                        event.currentTarget.src =
+                          eventFallback;
+                      }}
+                    />
+                  </div>
 
-            <div className="latest-grid">
-              {rest.map((n) => (
-                <article className="news-card" key={n.id}>
-                  {getImageSrc(n.image_url) ? (
-                    <img className="news-card-img" src={getImageSrc(n.image_url)} alt={n.title} />
-                  ) : (
-                    <div className="news-card-img placeholder">Зураг олдсонгүй</div>
-                  )}
+                  <div className="riFeaturedNewsContent">
+                    <div className="riNewsMeta">
+                      <span
+                        className={`riNewsCategory ${categoryClass(
+                          getCategory(
+                            featured,
+                          ),
+                        )}`}
+                      >
+                        {getCategory(
+                          featured,
+                        )}
+                      </span>
 
-                  <div className="news-card-body">
-                    <div className="news-card-meta">
-                      <span>{n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}</span>
-                      <span>{n.author_email || ""}</span>
+                      <span className="riNewsReadTime">
+                        <FaClock />
+                        {readingTime(
+                          getBody(
+                            featured,
+                          ),
+                        )}{" "}
+                        мин
+                      </span>
                     </div>
 
-                    <h3 className="news-card-title">{safeText(n.title) || "Untitled"}</h3>
-                    <p className="news-card-text">{truncate(htmlToText(n.body), 120)}</p>
+                    <h2>
+                      {featured?.title ||
+                        "Untitled"}
+                    </h2>
 
-                    <button className="news-card-link" type="button" onClick={() => setSelected(n)}>
-                      Унших →
+                    <p>
+                      {truncate(
+                        getBody(featured),
+                        280,
+                      )}
+                    </p>
+
+                    <div className="riFeaturedAuthor">
+                      <span>
+                        {getInitials(
+                          getAuthor(
+                            featured,
+                          ),
+                        )}
+                      </span>
+
+                      <div>
+                        <strong>
+                          {getAuthor(
+                            featured,
+                          )}
+                        </strong>
+
+                        <small>
+                          {formatDate(
+                            featured?.created_at ||
+                              featured?.date,
+                          )}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+
+                {others.length > 0 && (
+                  <div className="riNewsGrid">
+                    {others.map(
+                      (item) => (
+                        <Link
+                          to={`/news/${getId(
+                            item,
+                          )}`}
+                          className="riNewsCard"
+                          key={getId(item)}
+                        >
+                          <div className="riNewsCardImage">
+                            <img
+                              src={getImage(
+                                item,
+                              )}
+                              alt={
+                                item?.title ||
+                                "News"
+                              }
+                              onError={(
+                                event,
+                              ) => {
+                                event.currentTarget.src =
+                                  eventFallback;
+                              }}
+                            />
+
+                            <span
+                              className={categoryClass(
+                                getCategory(
+                                  item,
+                                ),
+                              )}
+                            >
+                              {getCategory(
+                                item,
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="riNewsCardBody">
+                            <h3>
+                              {item?.title ||
+                                "Untitled"}
+                            </h3>
+
+                            <p>
+                              {truncate(
+                                getBody(
+                                  item,
+                                ),
+                                145,
+                              )}
+                            </p>
+
+                            <div className="riNewsCardFooter">
+                              <span>
+                                {formatDate(
+                                  item?.created_at ||
+                                    item?.date,
+                                )}
+                              </span>
+
+                              <span>
+                                <FaClock />
+                                {readingTime(
+                                  getBody(
+                                    item,
+                                  ),
+                                )}{" "}
+                                мин
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      ),
+                    )}
+                  </div>
+                )}
+
+                {filtered.length >
+                  visible && (
+                  <div className="riNewsLoadMore">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setVisible(
+                          (current) =>
+                            current +
+                            6,
+                        )
+                      }
+                    >
+                      Илүү ихийг үзэх
                     </button>
                   </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-      {selected && <NewsModal item={selected} onClose={() => setSelected(null)} />}
-    </div>
+                )}
+              </>
+            )}
+        </div>
+      </section>
+
+      <Footer />
+    </main>
   );
 }

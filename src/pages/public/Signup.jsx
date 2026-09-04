@@ -1,103 +1,295 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { API_BASE } from "@/lib/config";
+import { useEffect, useState } from "react";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+import {
+  FiEye,
+  FiEyeOff,
+  FiMoon,
+  FiSun,
+} from "react-icons/fi";
+import logo from "../../assets/registra-logo-def.png";
+import { API_BASE } from "../../lib/config";
 
 export default function Signup() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
+  const [message, setMessage] =
+    useState("");
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const [loading, setLoading] =
+    useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] = useState(false);
+
+  const [theme, setTheme] = useState(
+    () =>
+      localStorage.getItem(
+        "registra-theme",
+      ) || "light",
+  );
+
+  useEffect(() => {
+    document.documentElement.dataset.userTheme =
+      theme;
+
+    localStorage.setItem(
+      "registra-theme",
+      theme,
+    );
+  }, [theme]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
     setMessage("");
 
-    if (form.password !== form.confirmPassword) {
-      setMessage("Passwords do not match");
+    if (
+      form.password !==
+      form.confirmPassword
+    ) {
+      setMessage(
+        "Нууц үг таарахгүй байна.",
+      );
+
       return;
     }
 
+    setLoading(true);
+
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-        }),
-      });
+      const response = await fetch(
+        `${API_BASE}/api/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        },
+      );
 
-      const data = await res.json();
+      const data = await response
+        .json()
+        .catch(() => ({}));
 
-      if (!res.ok) {
-        setMessage(data.message || "Sign up failed.");
+      if (!response.ok) {
+        setMessage(
+          data?.message ||
+            "Бүртгүүлэхэд алдаа гарлаа.",
+        );
+
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user),
+      );
 
-      navigate("/profile");
-    } catch (err) {
-      console.error(err);
-      setMessage("Server error. Try again.");
+      localStorage.setItem(
+        "token",
+        data.token,
+      );
+
+      navigate("/profile", {
+        replace: true,
+      });
+    } catch {
+      setMessage(
+        "Сервертэй холбогдож чадсангүй.",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="signup-page">
-      <div className="signup-box">
-        <h2>Бүртгүүлэх</h2>
+    <main className="rgAuthPage">
+      <button
+        type="button"
+        className="rgAuthTheme"
+        onClick={() =>
+          setTheme((current) =>
+            current === "light"
+              ? "dark"
+              : "light",
+          )
+        }
+      >
+        {theme === "light" ? (
+          <FiMoon />
+        ) : (
+          <FiSun />
+        )}
+      </button>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <label>И-Майл</label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            autoComplete="email"
+      <div className="rgAuthCenter">
+        <Link
+          to="/"
+          className="rgAuthLogo"
+        >
+          <img
+            src={logo}
+            alt="Registra"
           />
+        </Link>
 
-          <label>Нууц үг</label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            autoComplete="new-password"
-          />
+        <section className="rgAuthCard">
+          <div className="rgAuthHeading">
+            <h1>Бүртгүүлэх</h1>
 
-          <label>Нууц үгийн баталгаажуулалт</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            required
-            autoComplete="new-password"
-          />
+            <p>
+              Registra бүртгэл үүсгэнэ үү
+            </p>
+          </div>
 
-          <button className="sign-btn" type="submit">
-            Бүртгүүлэх
-          </button>
-        </form>
+          <form
+            className="rgAuthForm"
+            onSubmit={handleSubmit}
+          >
+            <label>
+              И-МЭЙЛ ХАЯГ
+            </label>
 
-        {message && <p className="auth-error">{message}</p>}
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
 
-        <p className="login-footer">
-          Таньд бүртгэл байгаа бол <Link to="/login">Нэвтрэх</Link>
-        </p>
+            <label>
+              НУУЦ ҮГ
+            </label>
+
+            <div className="rgPasswordField">
+              <input
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPassword(
+                    (current) =>
+                      !current,
+                  )
+                }
+              >
+                {showPassword ? (
+                  <FiEyeOff />
+                ) : (
+                  <FiEye />
+                )}
+              </button>
+            </div>
+
+            <label>
+              НУУЦ ҮГ БАТАЛГААЖУУЛАХ
+            </label>
+
+            <div className="rgPasswordField">
+              <input
+                type={
+                  showConfirmPassword
+                    ? "text"
+                    : "password"
+                }
+                name="confirmPassword"
+                value={
+                  form.confirmPassword
+                }
+                onChange={handleChange}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowConfirmPassword(
+                    (current) =>
+                      !current,
+                  )
+                }
+              >
+                {showConfirmPassword ? (
+                  <FiEyeOff />
+                ) : (
+                  <FiEye />
+                )}
+              </button>
+            </div>
+
+            {message && (
+              <div className="rgAuthError">
+                {message}
+              </div>
+            )}
+
+            <button
+              className="rgAuthSubmit"
+              type="submit"
+              disabled={loading}
+            >
+              {loading
+                ? "Бүртгэж байна..."
+                : "Бүртгүүлэх"}
+            </button>
+          </form>
+
+          <div className="rgAuthSignup">
+            <span>
+              Бүртгэлтэй хэрэглэгч?
+            </span>
+
+            <Link to="/login">
+              Нэвтрэх
+            </Link>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,663 +1,973 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import {
+  FaArrowRight,
+  FaCalendarDays,
+  FaUsers,
+  FaChartLine,
+  FaCreditCard,
+  FaMagnifyingGlass,
+  FaGift,
+  FaCircleCheck,
+  FaCheck,
+  FaMobileScreenButton,
+  FaTabletScreenButton,
+  FaDesktop,
+} from "react-icons/fa6";
 import Footer from "../../components/Footer";
+import { API_BASE, getImageSrc } from "../../lib/config";
+import eventFallback from "../../assets/event.png";
 
-const API_BASE =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) ||
-  (typeof process !== "undefined" && process.env?.REACT_APP_API_BASE) ||
-  "http://localhost:5000";
-
-function safeText(v) {
-  return String(v ?? "").trim();
+function normalizeArray(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.events)) return data.events;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
 }
 
-function toImgUrl(url) {
-  const u = safeText(url);
-  if (!u) return "";
-  if (u.startsWith("http://") || u.startsWith("https://")) return u;
-  const normalized = u.startsWith("/") ? u : `/${u}`;
-  return `${API_BASE}${normalized}`;
-}
-
-function fmtDate(value) {
+function formatDate(value) {
   if (!value) return "";
+
   const d = new Date(value);
+
   if (Number.isNaN(d.getTime())) return "";
+
   return d.toLocaleDateString("mn-MN", {
     year: "numeric",
     month: "short",
-    day: "2-digit",
+    day: "numeric",
   });
 }
 
-function decodeHtmlEntities(str) {
-  const s = String(str || "");
-  if (typeof window !== "undefined") {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = s;
-    return txt.value;
+function featureCategory(title = "") {
+  const value = title.toLowerCase();
+
+  if (
+    value.includes("security") ||
+    value.includes("cyber") ||
+    value.includes("аюулгүй")
+  ) {
+    return "Security";
   }
-  return s;
+
+  if (value.includes("cloud")) return "Cloud";
+  if (value.includes("ai") || value.includes("machine")) return "AI/ML";
+  if (value.includes("data")) return "Data";
+  if (value.includes("front")) return "Frontend";
+
+  return "DevOps";
 }
 
-function stripHtml(html) {
-  const s = decodeHtmlEntities(html);
-  return s
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function getRegisteredCount(event) {
+  const directValues = [
+    event?.booked_count,
+    event?.registered_count,
+    event?.registration_count,
+    event?.registrations_count,
+    event?.participant_count,
+    event?.participants_count,
+    event?.attendee_count,
+    event?.attendees_count,
+    event?.booking_count,
+    event?.bookings_count,
+  ];
+
+  for (const value of directValues) {
+    const number = Number(value);
+
+    if (Number.isFinite(number) && number >= 0) {
+      return number;
+    }
+  }
+
+  const arrays = [
+    event?.registrations,
+    event?.participants,
+    event?.attendees,
+    event?.bookings,
+    event?.users,
+  ];
+
+  for (const value of arrays) {
+    if (Array.isArray(value)) {
+      return value.length;
+    }
+  }
+
+  return 0;
 }
 
-function pickPreview(n) {
-  return stripHtml(
-    n?.snippet ||
-      n?.excerpt ||
-      n?.summary ||
-      n?.description ||
-      n?.desc ||
-      n?.body ||
-      n?.content ||
-      n?.text ||
-      "",
-  );
+function getCapacity(event) {
+  const values = [
+    event?.max_participants,
+    event?.capacity,
+    event?.participant_limit,
+    event?.max_attendees,
+    event?.maximum_participants,
+    event?.seat_limit,
+    event?.seats,
+  ];
+
+  for (const value of values) {
+    const number = Number(value);
+
+    if (Number.isFinite(number) && number > 0) {
+      return number;
+    }
+  }
+
+  return 0;
 }
 
-function getNewsKey(n) {
-  return n?.id ?? n?._id ?? n?.slug ?? n?.title ?? Math.random();
-}
-function AnimatedPrice({ value, prefix = "₮", duration = 450 }) {
-  const [display, setDisplay] = useState(value);
-  const rafRef = useRef(0);
-  const prevRef = useRef(value);
+function AnimatedNumber({
+  value = 0,
+  duration = 1300,
+  suffix = "",
+  prefix = "",
+}) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const ref = useRef(null);
 
   useEffect(() => {
-    const from = prevRef.current;
-    const to = value;
+    const element = ref.current;
 
-    cancelAnimationFrame(rafRef.current);
+    if (!element) return;
 
-    // if same value, no animation
-    if (from === to) {
-      setDisplay(to);
-      return;
-    }
+    let frame = null;
+    let started = false;
 
-    const start = performance.now();
+    const startAnimation = () => {
+      if (started) return;
 
-    const tick = (now) => {
-      const t = Math.min(1, (now - start) / duration);
-      // easeOutCubic
-      const eased = 1 - Math.pow(1 - t, 3);
-      const current = Math.round(from + (to - from) * eased);
+      started = true;
 
-      setDisplay(current);
+      const target = Math.max(0, Number(value) || 0);
+      const start = performance.now();
 
-      if (t < 1) rafRef.current = requestAnimationFrame(tick);
-      else prevRef.current = to;
+      const animate = (time) => {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        const current = Math.round(target * eased);
+
+        setDisplayValue(current);
+
+        if (progress < 1) {
+          frame = requestAnimationFrame(animate);
+        }
+      };
+
+      frame = requestAnimationFrame(animate);
     };
 
-    rafRef.current = requestAnimationFrame(tick);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          startAnimation();
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.25,
+      },
+    );
 
-    return () => cancelAnimationFrame(rafRef.current);
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+    };
   }, [value, duration]);
 
   return (
-    <span className="priceNumber">
+    <span ref={ref}>
       {prefix}
-      {Number(display).toLocaleString("mn-MN")}
+      {displayValue.toLocaleString("en-US")}
+      {suffix}
     </span>
   );
 }
-function getNewsHref(n) {
-  const slug = n?.slug;
-  const id = n?._id ?? n?.id;
-  if (slug) return `/news/${slug}`;
-  if (id) return `/news/${id}`;
-  return "/news";
-}
 
-function PhoneFrame({ image }) {
-  return (
-    <div className="phoneFrame">
-      <div className="phoneTopBar" />
+const features = [
+  {
+    icon: <FaCalendarDays />,
+    title: "Ухаалаг хуваарь",
+    text: "Эвэнт болон уулзалтын хуваарийг нэг дороос хурдан, ойлгомжтой удирдана.",
+  },
+  {
+    icon: <FaUsers />,
+    title: "Оролцогчдын удирдлага",
+    text: "Бүртгэл, оролцогчдын мэдээлэл болон багтаамжийг бодит хугацаанд хянаарай.",
+  },
+  {
+    icon: <FaChartLine />,
+    title: "Бодит хугацааны мэдээлэл",
+    text: "Эвэнтийн бүртгэл болон оролцооны мэдээллийг ойлгомжтойгоор хянах боломжтой.",
+  },
+  {
+    icon: <FaCreditCard />,
+    title: "Найдвартай систем",
+    text: "Хэрэглэгчдэд энгийн, хурдан бөгөөд тогтвортой бүртгэлийн туршлага өгнө.",
+  },
+];
 
-      <div className="phoneScreen">
-        <img
-          src={image}
-          alt="Preview"
-          className="phonePreviewImg"
-        />
-      </div>
+const testimonials = [
+  {
+    initials: "AW",
+    name: "Ариунболд",
+    role: "Engineering Manager",
+    text: "Khural Plus ашигласнаар манай эвэнтийн бүртгэл болон оролцогчдын удирдлага маш хурдан болсон.",
+  },
+  {
+    initials: "SR",
+    name: "Саруул",
+    role: "Event Manager",
+    text: "Хэрэглэхэд ойлгомжтой, эвэнтийн мэдээллийг нэг дороос удирдах боломж хамгийн их таалагдсан.",
+  },
+  {
+    initials: "CL",
+    name: "Цэлмэг",
+    role: "Community Organizer",
+    text: "Олон хүний бүртгэлийг гараар хөтлөх шаардлагагүй болсон нь бидний ажлыг маш их хөнгөвчилсөн.",
+  },
+  {
+    initials: "DA",
+    name: "Дөлгөөн",
+    role: "Product Lead",
+    text: "Бүртгэл, оролцогч болон эвэнтийн мэдээллийг нэг системээс харах нь маш тохиромжтой.",
+  },
+  {
+    initials: "BK",
+    name: "Билгүүн",
+    role: "Security Engineer",
+    text: "Жижиг workshop-оос том эвэнт хүртэл ашиглаж болох цэвэрхэн, хурдан платформ.",
+  },
+  {
+    initials: "YP",
+    name: "Ялгуун",
+    role: "Platform Engineer",
+    text: "Орчин үеийн дизайнтай бөгөөд desktop, tablet, mobile дээр бүгдэд нь маш эвтэйхэн.",
+  },
+];
 
-      <div className="phoneHome" />
-    </div>
-  );
-}
+const plans = [
+  {
+    title: "Free",
+    price: "₮0",
+    className: "free",
+    features: [
+      "50 хүртэл оролцогч",
+      "Сард 2 эвэнт",
+      "Үндсэн статистик",
+      "И-мэйл дэмжлэг",
+      "Стандарт бүртгэл",
+    ],
+    button: "Эхлэх",
+  },
+  {
+    title: "Basic",
+    price: "₮79,000",
+    className: "basic",
+    features: [
+      "500 хүртэл оролцогч",
+      "Сард 10 эвэнт",
+      "Нарийвчилсан статистик",
+      "Priority support",
+      "Custom бүртгэл",
+    ],
+    button: "Үнэгүй турших",
+  },
+  {
+    title: "Pro",
+    price: "₮199,000",
+    className: "pro",
+    features: [
+      "Хязгааргүй оролцогч",
+      "Хязгааргүй эвэнт",
+      "Бүрэн статистик",
+      "Live support",
+      "Custom branding",
+      "API access",
+      "Team collaboration",
+    ],
+    button: "Үнэгүй турших",
+  },
+  {
+    title: "Enterprise",
+    price: "Custom",
+    className: "enterprise",
+    features: [
+      "Pro багцын бүх боломж",
+      "Dedicated support",
+      "Custom integrations",
+      "Байгууллагын тохиргоо",
+      "Priority SLA",
+    ],
+    button: "Холбогдох",
+  },
+];
 
 export default function Home() {
-  const [news, setNews] = useState([]);
-  const navigate = useNavigate();
-  const [newsLoading, setNewsLoading] = useState(true);
-  const [newsErr, setNewsErr] = useState("");
-  const [billing, setBilling] = useState("monthly");
-  const planTitle = billing === "monthly" ? "Сарын багц" : "Жилийн багц";
-  const heroImages = [
-      "/assets/home.png",
-      "/assets/img1.png",
-      "/assets/img2.png",
-  ];
-
-  const [heroIndex, setHeroIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % heroImages.length);
-    }, 4500); // was 3200
-
-    return () => clearInterval(timer);
-  }, []);
+  const [events, setEvents] = useState([]);
+  const [animatedPercentage, setAnimatedPercentage] = useState(0);
 
   useEffect(() => {
     let alive = true;
 
-    async function load() {
-      setNewsLoading(true);
-      setNewsErr("");
-
+    async function loadEvents() {
       try {
-        const res = await fetch(`${API_BASE}/api/news?limit=6`, {
-          headers: { Accept: "application/json" },
-        });
+        const res = await fetch(`${API_BASE}/api/events`);
+        const data = await res.json().catch(() => []);
 
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
-
-        const data = await res.json();
-
-        const items = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.items)
-            ? data.items
-            : Array.isArray(data?.news)
-              ? data.news
-              : Array.isArray(data?.data)
-                ? data.data
-                : [];
-
-        if (alive) setNews(items);
-      } catch (e) {
-        if (alive) setNewsErr("Мэдээ ачааллахад алдаа гарлаа.");
-      } finally {
-        if (alive) setNewsLoading(false);
+        if (alive && res.ok) {
+          setEvents(normalizeArray(data));
+        }
+      } catch {
+        if (alive) {
+          setEvents([]);
+        }
       }
     }
 
-    load();
+    loadEvents();
+
     return () => {
       alive = false;
     };
   }, []);
 
   useEffect(() => {
-    const items = document.querySelectorAll(".demoItem");
+    const elements = document.querySelectorAll("[data-ri-reveal]");
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("show");
-            observer.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+
+          entry.target.classList.add("riVisible");
+          observer.unobserve(entry.target);
         });
       },
       {
-        threshold: 0.2,
+        threshold: 0.13,
+        rootMargin: "0px 0px -45px 0px",
       },
     );
-    items.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
-    const cards = document.querySelectorAll(".price-card");
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("show");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.3 },
-    );
-
-    cards.forEach((card) => observer.observe(card));
-
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
-    const section = document.querySelector(".publicDemo");
-    if (!section) return;
-    const getScrollParent = (el) => {
-      let p = el.parentElement;
-      while (p) {
-        const s = getComputedStyle(p);
-        const canScroll = /(auto|scroll)/.test(s.overflowY);
-        if (canScroll && p.scrollHeight > p.clientHeight) return p;
-        p = p.parentElement;
-      }
-      return window;
-    };
-    const scroller = getScrollParent(section);
-    const getScrollTop = () =>
-      scroller === window ? window.scrollY : scroller.scrollTop;
-    const getViewportH = () =>
-      scroller === window ? window.innerHeight : scroller.clientHeight;
-    const sectionTopAbs = (() => {
-      const r = section.getBoundingClientRect();
-      if (scroller === window) return r.top + window.scrollY;
-
-      const sr = scroller.getBoundingClientRect();
-      return r.top - sr.top + scroller.scrollTop;
-    })();
-
-    let raf = 0;
-
-    const update = () => {
-      const items = Array.from(section.querySelectorAll(".demoItem"));
-      const imgs = Array.from(section.querySelectorAll(".demoImg"));
-
-      if (!items.length) return;
-
-      const scrollInside = getScrollTop() - sectionTopAbs;
-      const switchDistance = getViewportH() * 0.7;
-
-      const idx = Math.max(
-        0,
-        Math.min(items.length - 1, Math.floor(scrollInside / switchDistance)),
-      );
-
-      items.forEach((el, i) => el.classList.toggle("isActive", i === idx));
-
-      imgs.forEach((img, i) => {
-        img.classList.toggle("active", i === idx);
-      });
-    };
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
-    };
-    (scroller === window ? window : scroller).addEventListener(
-      "scroll",
-      onScroll,
-      {
-        passive: true,
-      },
-    );
-    window.addEventListener("resize", update);
-    update();
-    return () => {
-      (scroller === window ? window : scroller).removeEventListener(
-        "scroll",
-        onScroll,
-      );
-      window.removeEventListener("resize", update);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 980px)");
-    if (mq.matches) return;
-
-    const section = document.querySelector(".publicDemo");
-    if (!section) return;
-
-    const getScrollParent = (el) => {
-      let p = el.parentElement;
-      while (p) {
-        const s = getComputedStyle(p);
-        const canScroll = /(auto|scroll)/.test(s.overflowY);
-        if (canScroll && p.scrollHeight > p.clientHeight) return p;
-        p = p.parentElement;
-      }
-      return window;
-    };
-
-    const scroller = getScrollParent(section);
-    const getScrollTop = () =>
-      scroller === window ? window.scrollY : scroller.scrollTop;
-    const getViewportH = () =>
-      scroller === window ? window.innerHeight : scroller.clientHeight;
-
-    const sectionTopAbs = (() => {
-      const r = section.getBoundingClientRect();
-      if (scroller === window) return r.top + window.scrollY;
-      const sr = scroller.getBoundingClientRect();
-      return r.top - sr.top + scroller.scrollTop;
-    })();
-
-    let raf = 0;
-
-    const update = () => {
-      const items = Array.from(section.querySelectorAll(".demoItem"));
-      const imgs = Array.from(section.querySelectorAll(".demoImg"));
-      if (!items.length || !imgs.length) return;
-
-      const scrollInside = getScrollTop() - sectionTopAbs;
-      const switchDistance = getViewportH() * 0.7;
-      const idx = Math.max(
-        0,
-        Math.min(items.length - 1, Math.floor(scrollInside / switchDistance)),
-      );
-
-      items.forEach((el, i) => el.classList.toggle("isActive", i === idx));
-      imgs.forEach((img, i) => img.classList.toggle("active", i === idx));
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
-    };
-
-    (scroller === window ? window : scroller).addEventListener(
-      "scroll",
-      onScroll,
-      { passive: true },
-    );
-    window.addEventListener("resize", update);
-    update();
+    elements.forEach((element) => observer.observe(element));
 
     return () => {
-      (scroller === window ? window : scroller).removeEventListener(
-        "scroll",
-        onScroll,
-      );
-      window.removeEventListener("resize", update);
-      cancelAnimationFrame(raf);
+      observer.disconnect();
     };
   }, []);
-const newsCards = useMemo(
-  () => (Array.isArray(news) ? news : []).slice(0, 3),
-  [news],
-);
+
+  const featured = useMemo(() => {
+    const event = events.find(
+      (item) =>
+        String(item.visibility || "public").toLowerCase() !== "private",
+    );
+
+    return {
+      title: event?.title || "Technology Summit 2026",
+      date: formatDate(event?.start_time),
+      location:
+        event?.location ||
+        event?.venue ||
+        event?.address ||
+        "Ulaanbaatar Event Center",
+      image: event?.image_url
+        ? getImageSrc(event.image_url)
+        : eventFallback,
+      registered: getRegisteredCount(event),
+      capacity: getCapacity(event),
+      category: featureCategory(event?.title || ""),
+    };
+  }, [events]);
+
+  const percentage = useMemo(() => {
+    if (!featured.capacity) return 0;
+
+    return Math.min(
+      100,
+      Math.round(
+        (featured.registered / featured.capacity) * 100,
+      ),
+    );
+  }, [featured.registered, featured.capacity]);
+
+  useEffect(() => {
+    let frame = null;
+    const start = performance.now();
+    const duration = 1200;
+
+    const animate = (time) => {
+      const progress = Math.min((time - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+
+      setAnimatedPercentage(
+        Math.round(percentage * eased),
+      );
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+
+    return () => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+    };
+  }, [percentage]);
+
   return (
-    <main className="publicHome">
-      <section className="publicHero">
-        <div className="publicHero__wrap">
-          <div className="publicHero__copy">
-            <h1 className="publicHero__title">
-              <span className="text-accent">
-                Хялбар үүсгэж <br />
-                хурдан бүртгэ
-              </span>
+    <main className="riPublicPage">
+      <section className="riHero">
+        <div className="riHeroGlow riHeroGlowOne" />
+        <div className="riHeroGlow riHeroGlowTwo" />
+
+        <div className="riContainer riHeroGrid">
+          <div className="riHeroContent riHeroEntrance">
+            <div className="riPill riHeroPillAnimation">
+              <span />
+              IT EVENT MANAGEMENT PLATFORM
+            </div>
+
+            <h1 className="riHeroTitleAnimation">
+              Эвэнтээ
+              <br />
+              <em>бүртгэж, удирдаад</em>
+              <br />
+              илүү хялбар ажилла.
             </h1>
-            <p className="publicHero__sub">
-              Эвентээ хялбар үүсгэн, оролцогчидоо хурдан бүртгэ
+
+            <p className="riHeroDescriptionAnimation">
+              Хурал, эвэнт, workshop болон арга хэмжээний бүртгэл,
+              оролцогчдын мэдээлэл, удирдлагыг нэг орчин үеийн
+              платформоос.
             </p>
-            <div className="publicHero__actions">
-              <a className="btn btn--ghost" href="/login">
-                Бүртгүүлэх
-              </a>
-              {/*<a className="btn btn--ghost" href="#pricing">
-                Багц харах
-              </a>*/}
+
+            <div className="riHeroButtons riHeroButtonsAnimation">
+              <Link to="/events" className="riPrimaryButton">
+                Эвэнтүүд үзэх
+                <FaArrowRight />
+              </Link>
+
+              <Link to="/news" className="riSecondaryButton">
+                Мэдээ унших
+              </Link>
+            </div>
+
+            <div className="riHeroStats riHeroStatsAnimation">
+              <div>
+                <strong>
+                  <AnimatedNumber value={5200} suffix="+" />
+                </strong>
+                <span>Бүртгэлтэй хэрэглэгч</span>
+              </div>
+
+              <div>
+                <strong>
+                  <AnimatedNumber value={340} />
+                </strong>
+                <span>Зохион байгуулсан эвэнт</span>
+              </div>
+
+              <div>
+                <strong>
+                  <AnimatedNumber value={98} suffix="%" />
+                </strong>
+                <span>Сэтгэл ханамж</span>
+              </div>
             </div>
           </div>
 
-          <div className="publicHero__visual" aria-hidden="true">
-            <div className="heroShowcase">
-              <div className="heroShowcase__track">
-                {heroImages.map((img, i) => {
-                  const pos = (i - heroIndex + heroImages.length) % heroImages.length;
+          <div className="riHeroVisual riHeroCardAnimation">
+            <div className="riHeroCircle riHeroCircleOne" />
+            <div className="riHeroCircle riHeroCircleTwo" />
 
-                  return (
-                    <img
-                      key={img + i}
-                      src={img}
-                      alt="Hero preview"
-                      className={`heroShowcase__img heroShowcase__img--pos${pos}`}
-                    />
-                  );
-                })}
+            <div className="riFeaturedEvent">
+              <div className="riFeaturedImage">
+                <img src={featured.image} alt={featured.title} />
+
+                <span className="riEventCategory">
+                  {featured.category}
+                </span>
+              </div>
+
+              <div className="riFeaturedBody">
+                <div className="riFeaturedTitleRow">
+                  <h3>{featured.title}</h3>
+                  <span className="riLiveBadge">Live</span>
+                </div>
+
+                <p>
+                  {featured.date}
+                  {featured.date && featured.location ? " · " : ""}
+                  {featured.location}
+                </p>
+
+                <div className="riCapacityBar">
+                  <span
+                    className="riAnimatedCapacity"
+                    style={{
+                      width: `${animatedPercentage}%`,
+                    }}
+                  />
+                </div>
+
+                <div className="riCapacityText">
+                  <span>
+                    <AnimatedNumber
+                      value={featured.registered}
+                      duration={1100}
+                    />{" "}
+                    /{" "}
+                    {featured.capacity > 0
+                      ? featured.capacity.toLocaleString("en-US")
+                      : "∞"}{" "}
+                    оролцогч
+                  </span>
+
+                  <strong>
+                    {animatedPercentage}%
+                  </strong>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section className="publicValue">
-        <div className="publicContainer">
-          <h2 className="publicSectionTitle">
-            Олон нийтэд нээлттэй болон зөвхөн зорилтот хүмүүс рүү явуулах
-            боломжтой арга хэмжээнүүд
-          </h2>
 
-          <div className="publicGrid3">
-            <div className="publicIconCard">
-              <div className="publicIcon">📈</div>
-              <h3>Арга хэмжээгээ хялбар үүсгэ</h3>
-              <p>
-                Бизнес эрхлэгч эмэгтэйчүүдийн үндэсний сүлжээг бий болгож,
-                тэдний хувь хүний болон мэргэжлийн өсөлтийг зөвлөн туслах,
-                сүлжээний боломжоор хангах.
-              </p>
-            </div>
-
-            <div className="publicIconCard">
-              <div className="publicIcon">🎯</div>
-              <h3>Оролцогчидоо бүртгэ</h3>
-              <p>
-                Тогтвортой, ёс зүйтэй бизнесийг бий болгоход бизнес эрхлэгч
-                эмэгтэйчүүдийг чадавхжуулах.
-              </p>
-            </div>
-
-            <div className="publicIconCard">
-              <div className="publicIcon">🎯</div>
-              <h3>Өөрийн зохион байгуулсан арга хэмжээг хяна</h3>
-              <p>
-                Тогтвортой, ёс зүйтэй бизнесийг бий болгоход бизнес эрхлэгч
-                эмэгтэйчүүдийг чадавхжуулах.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="featureSection">
-        <div className="featureRow">
-          <div className="featurePhone">
-            <PhoneFrame image="/assets/switch/event.png" />
-          </div>
-
-          <div className="featureContent rightNumber">
-            <span>001</span>
-            <h2>Оролцсон арга хэмжээний хүмүүстэйгээ ярилцах боломж</h2>
-            <p>
-              Lorem Ipsum is simply dummy text of the printing and
-              typesetting industry.
-            </p>
-          </div>
-        </div>
-
-        <div className="featureRow reverse">
-          <div className="featurePhone">
-            <PhoneFrame image="/assets/switch/surgalt.png" />
-          </div>
-
-          <div className="featureContent leftNumber">
-            <span>002</span>
-            <h2>Өөрийн хувийн мэдээллээ хамгаалан уулзалт товлох</h2>
-            <p>
-              Lorem Ipsum is simply dummy text of the printing and
-              typesetting industry.
-            </p>
-          </div>
-        </div>
-
-        <div className="featureRow">
-          <div className="featurePhone">
-            <PhoneFrame image="/assets/switch/tosol.png" />
-          </div>
-
-          <div className="featureContent rightNumber">
-            <span>003</span>
-            <h2>Туршлагатай хүмүүстэй ярилцаж, туршлага судлах</h2>
-            <p>
-              Lorem Ipsum is simply dummy text of the printing and
-              typesetting industry.
-            </p>
-          </div>
-        </div>
-      </section>
-      <section className="publicNews" id="news">
-          <div className="newsDecoration">
-            <span className="dotGrid dotGridTop"></span>
-            <span className="dotGrid dotGridBottom"></span>
-            <span className="waveShape"></span>
-          </div>
-        <div className="publicContainer">
-          <div className="publicNews__head">
-            <h2 className="publicSectionTitle">Сүүлийн үеийн мэдээ</h2>
-
-          <button
-            className="publicLink publicLink--inline"
-            type="button"
-            onClick={() => navigate("/news")}
+      <section
+        className="riSection riFeaturesSection"
+        id="features"
+      >
+        <div className="riContainer">
+          <div
+            className="riSectionHead riRevealUp"
+            data-ri-reveal
           >
-            Бүгдийг үзэх →
-          </button>
+            <div className="riPill">
+              БОЛОМЖУУД
+            </div>
+
+            <h2>
+              Амжилттай эвэнт зохион байгуулах бүх зүйл
+            </h2>
+
+            <p>
+              Эвэнт зохион байгуулагчдад зориулсан хэрэгтэй
+              боломжуудыг нэг дороос.
+            </p>
           </div>
 
-          {newsLoading ? (
-            <div className="publicEmpty">Ачааллаж байна…</div>
-          ) : newsErr ? (
-            <div className="publicEmpty">{newsErr}</div>
-          ) : newsCards.length === 0 ? (
-            <div className="publicEmpty">Одоогоор мэдээ алга.</div>
-          ) : (
-            <div className="publicGrid3 publicGrid3--news">
-              {newsCards.map((n) => {
-                const preview = pickPreview(n);
-                const img = toImgUrl(n.image_url || n.image || n.thumbnail);
+          <div className="riFeatureGrid">
+            {features.map((item, index) => (
+              <article
+                className="riFeatureCard riRevealUp"
+                data-ri-reveal
+                key={item.title}
+                style={{
+                  "--ri-delay": `${index * 100}ms`,
+                }}
+              >
+                <div className="riFeatureIcon">
+                  {item.icon}
+                </div>
 
-                return (
-                  <article className="newsCard" key={getNewsKey(n)}>
-                    <a
-                      className="newsCard__img"
-                      href="/news"
-                      aria-label={safeText(n.title) || "News"}
-                    >
-                      {img ? (
-                        <img src={img} alt={safeText(n.title) || "News"} />
-                      ) : (
-                        <div className="newsCard__ph" />
-                      )}
-                    </a>
-
-                    <div className="newsCard__body">
-                      <div className="newsCard__meta">
-                        <span className="pill">
-                          {safeText(n.category) || "Товч"}
-                        </span>
-                        <span className="dot">•</span>
-                        <span className="date">
-                          {fmtDate(n.created_at || n.createdAt || n.date)}
-                        </span>
-                      </div>
-
-                      <h3 className="newsCard__title">
-                        {safeText(n.title) || "Untitled"}
-                      </h3>
-
-                      <p className="newsCard__desc">
-                        {preview
-                          ? preview.slice(0, 160)
-                          : "Товч тайлбар удахгүй нэмэгдэнэ."}
-                      </p>
-
-                      <div className="newsCard__actions">
-                        <a className="newsReadBtn" href="/news">
-                          Дэлгэрэнгүй <span aria-hidden>→</span>
-                        </a>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
-      {/* <section className="prices" id="pricing">
-        <div className="publicContainer">
-          <h2 className="prices-title">Үнэ төлбөр</h2>
-          <div className="billing-toggle">
-            <div
-              className={`toggle-pill ${billing === "yearly" ? "right" : ""}`}
-            />
-            <button
-              className={billing === "monthly" ? "active" : ""}
-              onClick={() => setBilling("monthly")}
-            >
-              Сар
-            </button>
 
-            <button
-              className={billing === "yearly" ? "active" : ""}
-              onClick={() => setBilling("yearly")}
-            >
-              Жил
-            </button>
-          </div>
-          <div className="price-grid price-grid--two">
-            <div className="price-card">
-              <h3>{planTitle}</h3>
-              <p
-                className={
-                  "price " + (billing === "yearly" ? "isYearly" : "isMonthly")
-                }
-              >
-                {"Үнэгүй"}
-              </p>
-              <p className="price-desc">Энгийн Орон нутгийн </p>
-              <ul>
-                <li>
-                  Хөдөө орон нутгаас онлайнаар сургалт арга хэмжээ, мэдээ
-                  мэдээлэл авах гишүүд
-                </li>
-              </ul>
-              <a className="btn btn--ghost" href="/signup">
-                Багцаа авах
-              </a>
+      <section className="riSection riDevicesSection">
+        <div className="riContainer riDevicesGrid">
+          <div
+            className="riDevicesContent riSlideFromLeft"
+            data-ri-reveal
+          >
+            <div className="riPill riPurplePill">
+              БҮХ ТӨХӨӨРӨМЖ
             </div>
-            <div className="price-card featured reveal">
-              <div className="badge">Үндсэн</div>
 
-              <h3>{planTitle}</h3>
-              <p
-                className={
-                  "price " + (billing === "yearly" ? "isYearly" : "isMonthly")
-                }
+            <h2>
+              Бүх дэлгэц дээр
+              <br />
+              төгс харагдана
+            </h2>
+
+            <p>
+              Гар утас, таблет эсвэл компьютер ашигласан ч
+              Khural Plus хэрэглэгч бүрт ижилхэн цэвэрхэн,
+              хурдан туршлага өгнө.
+            </p>
+
+            <div className="riDeviceList">
+              <div
+                className="riDeviceItem"
+                style={{ "--ri-device-delay": "0ms" }}
               >
-                <AnimatedPrice
-                  value={billing === "monthly" ? 125000 : 1500000}
-                />
-              </p>
-              <p className="price-desc">Premium / Leadership </p>
+                <span>
+                  <FaMobileScreenButton />
+                </span>
 
-              <ul>
-                <li>Гүнзгийрүүлсэн менторшип</li>
-                <li>Vip түвшний хамт олны арга хэмжээнд</li>
-                <li>Танилцуулга болон харагдац (exposure) нэмэгдэх</li>
-              </ul>
+                <p>
+                  <strong>Mobile</strong>
+                  <small>
+                    Гар утсанд бүрэн нийцсэн
+                  </small>
+                </p>
+              </div>
 
-              <a className="btn btn--ghost" href="/billing">
-                Багцаа авах
-              </a>
+              <div
+                className="riDeviceItem"
+                style={{ "--ri-device-delay": "110ms" }}
+              >
+                <span>
+                  <FaTabletScreenButton />
+                </span>
+
+                <p>
+                  <strong>Tablet</strong>
+                  <small>
+                    Компакт, ойлгомжтой layout
+                  </small>
+                </p>
+              </div>
+
+              <div
+                className="riDeviceItem"
+                style={{ "--ri-device-delay": "220ms" }}
+              >
+                <span>
+                  <FaDesktop />
+                </span>
+
+                <p>
+                  <strong>Desktop</strong>
+                  <small>
+                    Бүрэн хэмжээний удирдлагын орчин
+                  </small>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="riDeviceVisual riSlideFromRight"
+            data-ri-reveal
+          >
+            <div className="riBrowserMockup">
+              <div className="riBrowserTop">
+                <span />
+                <span />
+                <span />
+              </div>
+
+              <img
+                src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=85"
+                alt="Desktop"
+              />
+            </div>
+
+            <div className="riLaptopMockup">
+              <img
+                src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85"
+                alt="Laptop"
+              />
+            </div>
+
+            <div className="riPhoneMockup">
+              <img
+                src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=85"
+                alt="Mobile"
+              />
             </div>
           </div>
         </div>
-      </section> */}
+      </section>
+
+      <section
+        className="riSection riHowSection"
+        id="how-it-works"
+      >
+        <div className="riContainer">
+          <div
+            className="riSectionHead riRevealUp"
+            data-ri-reveal
+          >
+            <div className="riPill riPurplePill">
+              ХЭРХЭН АЖИЛЛАХ
+            </div>
+
+            <h2>
+              Эвэнтээ хэдхэн алхмаар олоод бүртгүүл
+            </h2>
+
+            <p>
+              Урт, төвөгтэй процесс байхгүй. Ердөө гурван алхам.
+            </p>
+          </div>
+
+          <div
+            className="riSteps riStepsSequence"
+            data-ri-reveal
+          >
+            <div className="riStepConnector riStepConnectorOne">
+              <span />
+            </div>
+
+            <div className="riStepConnector riStepConnectorTwo">
+              <span />
+            </div>
+
+            <article className="riStep riAnimatedStep riAnimatedStepOne">
+              <div className="riStepIcon">
+                <FaMagnifyingGlass />
+                <b>01</b>
+                <i className="riStepPulse" />
+              </div>
+
+              <h3>Эвэнт олох</h3>
+
+              <p>
+                Сонирхсон хурал, workshop болон эвэнтээ хайж,
+                дэлгэрэнгүй мэдээлэлтэй танилцаарай.
+              </p>
+            </article>
+
+            <article className="riStep riAnimatedStep riAnimatedStepTwo">
+              <div className="riStepIcon purple">
+                <FaGift />
+                <b>02</b>
+                <i className="riStepPulse" />
+              </div>
+
+              <h3>Бүртгүүлэх</h3>
+
+              <p>
+                Хэдхэн секундэд бүртгүүлж, өөрийн оролцох эвэнтийг
+                бүртгэлдээ хадгалаарай.
+              </p>
+            </article>
+
+            <article className="riStep riAnimatedStep riAnimatedStepThree">
+              <div className="riStepIcon violet">
+                <FaCircleCheck />
+                <b>03</b>
+                <i className="riStepPulse" />
+              </div>
+
+              <h3>Оролцох</h3>
+
+              <p>
+                Эвэнтийн мэдээлэл, хуваарь болон шинэчлэлүүдээ өөрийн
+                бүртгэлээс хянаарай.
+              </p>
+            </article>
+          </div>
+
+          <div
+            className="riCenteredButton riRevealUp"
+            data-ri-reveal
+          >
+            <Link
+              to="/events"
+              className="riPrimaryButton"
+            >
+              Дараагийн эвэнтээ олох
+              <FaArrowRight />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="riSection riTestimonialsSection"
+        id="testimonials"
+      >
+        <div className="riContainer">
+          <div
+            className="riSectionHead riRevealUp"
+            data-ri-reveal
+          >
+            <div className="riPill">
+              СЭТГЭГДЭЛ
+            </div>
+
+            <h2>
+              Хэрэглэгчдийн итгэсэн платформ
+            </h2>
+
+            <p>
+              Khural Plus ашиглаж байгаа хэрэглэгчдийн
+              сэтгэгдлээс.
+            </p>
+          </div>
+
+          <div className="riTestimonialSlider">
+            <div className="riTestimonialTrack">
+              {[...testimonials, ...testimonials].map((item, index) => (
+                <article
+                  className="riTestimonialCard"
+                  key={`${item.name}-${index}`}
+                >
+                  <div className="riStars">★★★★★</div>
+
+                  <p>“{item.text}”</p>
+
+                  <div className="riTestimonialUser">
+                    <span>{item.initials}</span>
+
+                    <div>
+                      <strong>{item.name}</strong>
+                      <small>{item.role}</small>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div
+            className="riBigStats riRevealUp"
+            data-ri-reveal
+          >
+            <div>
+              <strong>
+                <AnimatedNumber
+                  value={5200}
+                  suffix="+"
+                />
+              </strong>
+
+              <span>
+                Бүртгэлтэй хэрэглэгч
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                <AnimatedNumber value={340} />
+              </strong>
+
+              <span>
+                Зохион байгуулсан эвэнт
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                4.9 / 5
+              </strong>
+
+              <span>
+                Дундаж үнэлгээ
+              </span>
+            </div>
+
+            <div>
+              <strong>
+                <AnimatedNumber
+                  value={98}
+                  suffix="%"
+                />
+              </strong>
+
+              <span>
+                Санал болгоно
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="riSection riPricingSection"
+        id="pricing"
+      >
+        <div className="riContainer">
+          <div
+            className="riSectionHead riRevealUp"
+            data-ri-reveal
+          >
+            <div className="riPill">
+              БАГЦ
+            </div>
+
+            <h2>
+              Энгийн, ойлгомжтой багц
+            </h2>
+
+            <p>
+              Хэрэгцээндээ тохирсон багцаа сонгоорой.
+            </p>
+          </div>
+
+          <div className="riPricingGrid">
+            {plans.map((plan, index) => (
+              <article
+                className={`riPriceCard ${plan.className} riRevealUp`}
+                data-ri-reveal
+                key={plan.title}
+                style={{
+                  "--ri-delay": `${index * 90}ms`,
+                }}
+              >
+                {plan.className === "pro" && (
+                  <span className="riPopularBadge">
+                    ХАМГИЙН ЭРЭЛТТЭЙ
+                  </span>
+                )}
+
+                <h3>
+                  {plan.title}
+                </h3>
+
+                <div className="riPrice">
+                  <strong>
+                    {plan.price}
+                  </strong>
+
+                  {plan.price !== "Custom" && (
+                    <span>/сар</span>
+                  )}
+                </div>
+
+                <div className="riPlanFeatures">
+                  {plan.features.map((feature) => (
+                    <div key={feature}>
+                      <FaCheck />
+                      <span>
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <Link
+                  to="/login"
+                  className="riPlanButton"
+                >
+                  {plan.button}
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </main>
   );

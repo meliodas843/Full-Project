@@ -1,674 +1,882 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiPlus,
+} from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
-
-const TZ = "Asia/Ulaanbaatar";
 
 function getToken() {
   return localStorage.getItem("token");
 }
 
-function getMyEmail() {
-  try {
-    return JSON.parse(localStorage.getItem("user") || "{}")?.email || "";
-  } catch {
-    return "";
+function parseDate(value) {
+  if (!value) return null;
+
+  const raw = String(value).trim();
+
+  const date = new Date(
+    raw.includes("T")
+      ? raw
+      : raw.replace(" ", "T"),
+  );
+
+  return Number.isNaN(date.getTime())
+    ? null
+    : date;
+}
+
+function isoKey(value) {
+  const date =
+    value instanceof Date
+      ? value
+      : parseDate(value);
+
+  if (!date) return "";
+
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function monthGrid(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  const first = new Date(
+    year,
+    month,
+    1,
+  );
+
+  const start =
+    first.getDay() === 0
+      ? 6
+      : first.getDay() - 1;
+
+  const days = new Date(
+    year,
+    month + 1,
+    0,
+  ).getDate();
+
+  const result = [];
+
+  for (
+    let index = 0;
+    index < start;
+    index += 1
+  ) {
+    result.push(null);
   }
+
+  for (
+    let day = 1;
+    day <= days;
+    day += 1
+  ) {
+    result.push(
+      new Date(year, month, day),
+    );
+  }
+
+  while (result.length % 7 !== 0) {
+    result.push(null);
+  }
+
+  return result;
 }
 
-function parseDB(dt) {
-  if (!dt) return null;
-  const s = String(dt).trim();
-  if (!s) return null;
-  const isoLike = s.includes("T") ? s : s.replace(" ", "T");
-  const d = new Date(isoLike);
-  const t = d.getTime();
-  return Number.isFinite(t) ? d : null;
+function formatTime(value) {
+  const date = parseDate(value);
+
+  if (!date) return "";
+
+  return date.toLocaleTimeString(
+    "mn-MN",
+    {
+      timeZone: "Asia/Ulaanbaatar",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    },
+  );
 }
 
-function formatInTZ(dt, opts) {
-  const d = parseDB(dt);
-  if (!d) return "";
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: TZ,
-    ...opts,
-  }).format(d);
+function formatDateTime(value) {
+  const date = parseDate(value);
+
+  if (!date) return "";
+
+  return date.toLocaleString(
+    "mn-MN",
+    {
+      timeZone: "Asia/Ulaanbaatar",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    },
+  );
 }
 
-function isoDateOnlyTZ(dt) {
-  const d = parseDB(dt);
-  if (!d) return "";
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(d);
+function normalizeArray(data) {
+  if (Array.isArray(data)) {
+    return data;
+  }
 
-  const y = parts.find((p) => p.type === "year")?.value;
-  const m = parts.find((p) => p.type === "month")?.value;
-  const day = parts.find((p) => p.type === "day")?.value;
-  return `${y}-${m}-${day}`;
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  if (Array.isArray(data?.items)) {
+    return data.items;
+  }
+
+  return [];
 }
 
-function isEnded(m) {
-  if (!m?.start_time) return false;
+function uniqueMeetings(items) {
+  const map = new Map();
 
-  const start = parseDB(m.start_time);
-  if (!start) return false;
+  items.forEach((item) => {
+    if (!item?.id) return;
 
-  const end = m.end_time
-    ? parseDB(m.end_time)
-    : new Date(start.getTime() + 30 * 60 * 1000);
+    const key = `${item.id}-${item.start_time || ""}`;
 
-  if (!end) return false;
+    if (!map.has(key)) {
+      map.set(key, item);
+    }
+  });
 
-  return Date.now() > end.getTime();
-}
-
-// ✅ My Meetings list-ээс meeting-г хэзээ нуух вэ
-function shouldHideFromMyMeetings(m) {
-  if (!m?.start_time) return false;
-
-  const start = parseDB(m.start_time);
-  if (!start) return false;
-
-  const end = m.end_time
-    ? parseDB(m.end_time)
-    : new Date(start.getTime() + 30 * 60 * 1000);
-
-  if (!end) return false;
-
-  // meeting дууссанаас хойш 24 цагийн дараа алга болно
-  const hideAfter = new Date(end.getTime() + 24 * 60 * 60 * 1000);
-
-  return Date.now() > hideAfter.getTime();
-}
-
-function buildMonthGrid(year, monthIndex) {
-  const first = new Date(year, monthIndex, 1);
-  const startDay = (first.getDay() + 6) % 7;
-  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-
-  const cells = [];
-  for (let i = 0; i < startDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++)
-    cells.push(new Date(year, monthIndex, d));
-  while (cells.length % 7 !== 0) cells.push(null);
-  return cells;
+  return Array.from(map.values());
 }
 
 export default function Calendar() {
   const navigate = useNavigate();
-  const myEmail = useMemo(() => getMyEmail(), []);
 
-  const [sentAll, setSentAll] = useState([]);
-  const [acceptedAll, setAcceptedAll] = useState([]);
-  const [inbox, setInbox] = useState([]);
+  const [sent, setSent] =
+    useState([]);
 
-  const [selected, setSelected] = useState(null);
+  const [accepted, setAccepted] =
+    useState([]);
 
-  const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [viewDate, setViewDate] = useState(() => new Date());
+  const [inbox, setInbox] =
+    useState([]);
 
-  const [editingId, setEditingId] = useState(null);
-  const [editDate, setEditDate] = useState("");
-  const [editStart, setEditStart] = useState("");
-  const [editEnd, setEditEnd] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  const inboxPending = useMemo(() => {
-  return inbox.filter((m) => m.status === "pending" && !isEnded(m));
-}, [inbox]);
+  const [message, setMessage] =
+    useState("");
 
-  const sentPending = useMemo(() => {
-  return sentAll.filter((m) => m.status === "pending" && !isEnded(m));
-}, [sentAll]);
+  const [viewDate, setViewDate] =
+    useState(() => {
+      const today = new Date();
 
-  // ✅ accepted/declined meeting нь дууссанаас хойш 1 хоног хүртэл Миний уулзалтууд дээр харагдана
-  const myMeetings = useMemo(() => {
-    const sentDoneByMe = sentAll.filter(
-      (m) => m.status !== "pending" && m.creator_email === myEmail,
+      return new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1,
+      );
+    });
+
+  const [selectedDate, setSelectedDate] =
+    useState(() => new Date());
+
+  async function authFetch(
+    url,
+    options = {},
+  ) {
+    const token = getToken();
+
+    if (!token) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+
+      navigate("/login", {
+        replace: true,
+      });
+
+      return null;
+    }
+
+    const response = await fetch(
+      url,
+      {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
     );
 
-    const map = new Map();
-    [...acceptedAll, ...sentDoneByMe].forEach((m) => {
-      if (!shouldHideFromMyMeetings(m)) {
-        map.set(m.id, m);
-      }
-    });
+    if (response.status === 401) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
 
-    return Array.from(map.values()).sort((a, b) => {
-      const ta =
-        parseDB(a.updated_at || a.created_at || a.start_time)?.getTime() || 0;
-      const tb =
-        parseDB(b.updated_at || b.created_at || b.start_time)?.getTime() || 0;
-      return tb - ta;
-    });
-  }, [acceptedAll, sentAll, myEmail]);
+      navigate("/login", {
+        replace: true,
+      });
 
-  const allForCalendar = useMemo(
-    () => [...sentAll, ...acceptedAll, ...inbox].filter((m) => !isEnded(m)),
-    [sentAll, acceptedAll, inbox],
-  );
+      return null;
+    }
 
-  const meetingDaysSet = useMemo(() => {
-    const set = new Set();
-    allForCalendar.forEach((m) => {
-      const iso = isoDateOnlyTZ(m.start_time);
-      if (iso) set.add(iso);
-    });
-    return set;
-  }, [allForCalendar]);
+    return response;
+  }
 
-  async function loadAll() {
-    setMsg("");
+  async function load() {
     setLoading(true);
+    setMessage("");
+
     try {
-      const [rSent, rAccepted, rInbox] = await Promise.all([
-        fetch("http://localhost:5000/api/meetings/sent", {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        }),
-        fetch("http://localhost:5000/api/meetings/accepted", {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        }),
-        fetch("http://localhost:5000/api/meetings/inbox", {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        }),
+      const [
+        sentResponse,
+        acceptedResponse,
+        inboxResponse,
+      ] = await Promise.all([
+        authFetch(
+          `${API_BASE}/api/meetings/sent`,
+        ),
+        authFetch(
+          `${API_BASE}/api/meetings/accepted`,
+        ),
+        authFetch(
+          `${API_BASE}/api/meetings/inbox`,
+        ),
       ]);
 
-      const sentData = await rSent.json().catch(() => []);
-      const acceptedData = await rAccepted.json().catch(() => []);
-      const inboxData = await rInbox.json().catch(() => []);
+      if (
+        !sentResponse ||
+        !acceptedResponse ||
+        !inboxResponse
+      ) {
+        return;
+      }
 
-      const s = Array.isArray(sentData) ? sentData : [];
-      const a = Array.isArray(acceptedData) ? acceptedData : [];
-      const i = Array.isArray(inboxData) ? inboxData : [];
+      const sentData =
+        await sentResponse
+          .json()
+          .catch(() => []);
 
-      setSentAll(s);
-      setAcceptedAll(a);
-      setInbox(i);
+      const acceptedData =
+        await acceptedResponse
+          .json()
+          .catch(() => []);
 
-      const allNow = [...s, ...a, ...i];
-      if (selected && allNow.some((x) => x.id === selected.id)) return;
+      const inboxData =
+        await inboxResponse
+          .json()
+          .catch(() => []);
 
-      const inboxP = i.filter((m) => m.status === "pending" && !isEnded(m));
-      const sentP = s.filter((m) => m.status === "pending" && !isEnded(m));
-
-      setSelected(
-        inboxP[0] ||
-          sentP[0] ||
-          a.find((x) => !shouldHideFromMyMeetings(x)) ||
-          s.find((x) => !shouldHideFromMyMeetings(x)) ||
-          null,
+      setSent(
+        sentResponse.ok
+          ? normalizeArray(sentData)
+          : [],
       );
+
+      setAccepted(
+        acceptedResponse.ok
+          ? normalizeArray(
+              acceptedData,
+            )
+          : [],
+      );
+
+      setInbox(
+        inboxResponse.ok
+          ? normalizeArray(inboxData)
+          : [],
+      );
+
+      if (
+        !sentResponse.ok ||
+        !acceptedResponse.ok ||
+        !inboxResponse.ok
+      ) {
+        setMessage(
+          "Уулзалтын мэдээлэл уншихад алдаа гарлаа.",
+        );
+      }
     } catch {
-      setMsg("Server error while loading");
+      setMessage(
+        "Сервертэй холбогдож чадсангүй.",
+      );
+
+      setSent([]);
+      setAccepted([]);
+      setInbox([]);
     } finally {
       setLoading(false);
     }
   }
 
-  async function action(meetingId, act) {
-    setMsg("");
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/meetings/${meetingId}/${act}`,
-        {
-          method: "PATCH",
-          headers: { Authorization: `Bearer ${getToken()}` },
-        },
-      );
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return setMsg(data?.message || "Action failed");
-
-      setMsg(data?.message || "Done");
-      setEditingId(null);
-
-      await loadAll();
-    } catch {
-      setMsg("Server error. Try again.");
-    }
-  }
-
-  async function saveEdit(meetingId) {
-    setMsg("");
-    if (!editDate || !editStart)
-      return setMsg("Date and start time are required");
-    if (editEnd && editEnd <= editStart)
-      return setMsg("End time must be after start time");
-
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/meetings/${meetingId}/edit`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
-          },
-          body: JSON.stringify({
-            date: editDate,
-            startTime: editStart,
-            endTime: editEnd || null,
-          }),
-        },
-      );
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return setMsg(data?.message || "Edit failed");
-
-      setMsg(data?.message || "Meeting updated");
-      setEditingId(null);
-      setEditDate("");
-      setEditStart("");
-      setEditEnd("");
-      await loadAll();
-    } catch {
-      setMsg("Server error while saving edit");
-    }
-  }
-
   useEffect(() => {
-    loadAll();
+    load();
   }, []);
 
-  function goPrevMonth() {
-    setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
-  }
+  const pendingInbox = useMemo(
+    () =>
+      inbox.filter(
+        (meeting) =>
+          String(
+            meeting?.status || "",
+          ).toLowerCase() ===
+          "pending",
+      ),
+    [inbox],
+  );
 
-  function goNextMonth() {
-    setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
-  }
+  const pendingSent = useMemo(
+    () =>
+      sent.filter(
+        (meeting) =>
+          String(
+            meeting?.status || "",
+          ).toLowerCase() ===
+          "pending",
+      ),
+    [sent],
+  );
+
+  const myMeetings = useMemo(
+    () =>
+      uniqueMeetings([
+        ...accepted,
+        ...sent.filter(
+          (meeting) =>
+            String(
+              meeting?.status || "",
+            ).toLowerCase() !==
+            "pending",
+        ),
+      ]),
+    [accepted, sent],
+  );
+
+  const allMeetings = useMemo(
+    () =>
+      uniqueMeetings([
+        ...sent,
+        ...accepted,
+        ...inbox,
+      ]),
+    [sent, accepted, inbox],
+  );
+
+  const byDay = useMemo(() => {
+    const map = {};
+
+    allMeetings.forEach(
+      (meeting) => {
+        const key = isoKey(
+          meeting.start_time,
+        );
+
+        if (!key) return;
+
+        if (!map[key]) {
+          map[key] = [];
+        }
+
+        map[key].push(meeting);
+      },
+    );
+
+    Object.keys(map).forEach(
+      (key) => {
+        map[key].sort(
+          (a, b) => {
+            const first =
+              parseDate(
+                a.start_time,
+              )?.getTime() || 0;
+
+            const second =
+              parseDate(
+                b.start_time,
+              )?.getTime() || 0;
+
+            return first - second;
+          },
+        );
+      },
+    );
+
+    return map;
+  }, [allMeetings]);
 
   const grid = useMemo(
-    () => buildMonthGrid(viewDate.getFullYear(), viewDate.getMonth()),
+    () => monthGrid(viewDate),
     [viewDate],
   );
 
-  const monthTitle = useMemo(() => {
-    return new Intl.DateTimeFormat("en", {
-      month: "long",
-      year: "numeric",
-    }).format(viewDate);
-  }, [viewDate]);
+  const selectedKey =
+    isoKey(selectedDate);
 
-  function pillClass(status) {
-    return `nt-pill ${status || ""}`.trim();
-  }
+  const selectedMeetings =
+    byDay[selectedKey] || [];
 
-  const canRespond = useMemo(() => {
-    if (!selected) return false;
-    return (
-      selected.recipient_email === myEmail && selected.status === "pending"
+  const title =
+    viewDate.toLocaleDateString(
+      "en-US",
+      {
+        month: "long",
+        year: "numeric",
+      },
     );
-  }, [selected, myEmail]);
 
-  const selectedEnded = useMemo(
-    () => (selected ? isEnded(selected) : false),
-    [selected],
-  );
+  function openMeetingCreate() {
+    const token = getToken();
 
-  function renderCard(m, line) {
-    const active = selected?.id === m.id;
-    const dateText = m.start_time
-      ? formatInTZ(m.start_time, {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        })
-      : "";
-    const t = m.start_time
-      ? formatInTZ(m.start_time, {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-      : "";
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+      });
 
-    return (
-      <button
-        key={m.id}
-        type="button"
-        className={`nt-item ${active ? "is-active" : ""}`}
-        onClick={() => setSelected(m)}
-      >
-        <div className="nt-item-top">
-          <div className="nt-item-title">{m.title}</div>
-          <div className={pillClass(m.status)}>
-            {String(m.status).toUpperCase()}
-          </div>
-        </div>
+      return;
+    }
 
-        <div className="nt-item-meta">
-          <span>{dateText}</span>
-          {t ? <span className="nt-dot">•</span> : null}
-          {t ? <span>{t}</span> : null}
-        </div>
-
-        <div className="nt-item-from">{line}</div>
-        {m.description ? (
-          <div className="nt-item-desc">{m.description}</div>
-        ) : null}
-      </button>
+    navigate(
+      "/user/meeting/create",
     );
   }
 
-  function withLine(m) {
-    const other =
-  m.creator_email === myEmail
-    ? (m.recipient_name ||
-       m.recipient_company ||
-       m.recipient_email)
-    : (m.creator_name ||
-       m.creator_company ||
-       m.creator_email);
-    return `With: ${other || ""}`;
+  function goPreviousMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() - 1,
+          1,
+        ),
+    );
+  }
+
+  function goNextMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() + 1,
+          1,
+        ),
+    );
+  }
+
+  function selectMeeting(
+    meeting,
+  ) {
+    const date = parseDate(
+      meeting?.start_time,
+    );
+
+    if (!date) return;
+
+    setSelectedDate(date);
+
+    setViewDate(
+      new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1,
+      ),
+    );
   }
 
   return (
-    <UserShell title="My Calendar">
-      <div className="nt-wrap">
-        <div className="nt-shell">
-          <aside className="nt-left">
-            <div className="nt-left-head">
+    <UserShell title="Календар">
+      <main className="rgCalendarPage">
+        <aside className="rgCalendarSidebar">
+          <section className="rgDashboardCard rgInboxCard">
+            <div className="rgInboxHeader">
               <div>
-                <div className="nt-left-title">Хүсэлтийн хайрцаг</div>
-                <div className="nt-left-sub">
-                  {loading ? "Loading..." : `${inboxPending.length} pending`}
-                </div>
+                <h3>
+                  Request Inbox
+                </h3>
+
+                <span>
+                  {pendingInbox.length}{" "}
+                  pending
+                </span>
               </div>
+
+              <b>
+                {pendingInbox.length}
+              </b>
             </div>
 
-            {msg && <div className="nt-msg">{msg}</div>}
+            {loading ? (
+              <div className="rgInboxEmpty">
+                Уншиж байна...
+              </div>
+            ) : pendingInbox.length ===
+              0 ? (
+              <div className="rgInboxEmpty">
+                Empty
+              </div>
+            ) : (
+              <div className="rgInboxRequests">
+                {pendingInbox.map(
+                  (meeting) => (
+                    <button
+                      type="button"
+                      key={meeting.id}
+                      onClick={() =>
+                        selectMeeting(
+                          meeting,
+                        )
+                      }
+                    >
+                      <div>
+                        <strong>
+                          {meeting.title ||
+                            "Meeting"}
+                        </strong>
 
-            <div className="nt-list nt-inbox-list">
-              {inboxPending.length === 0 ? (
-                <div className="nt-empty">Хоосон</div>
-              ) : (
-                inboxPending.map((m) =>
-                  renderCard(
-                    m,
-                    `From: ${
-                      m.creator_name ||
-                      `${m.creator_first_name || ""} ${m.creator_last_name || ""}`.trim() ||
-                      m.creator_email ||
-                      ""
-                    }`
+                        <small>
+                          {meeting.creator_email ||
+                            meeting.sender_email ||
+                            ""}
+                        </small>
+                      </div>
+
+                      <span>
+                        {formatTime(
+                          meeting.start_time,
+                        )}
+                      </span>
+                    </button>
                   ),
-                )
-              )}
+                )}
+              </div>
+            )}
+          </section>
+
+          <button
+            type="button"
+            className="rgSendRequestButton"
+            onClick={
+              openMeetingCreate
+            }
+          >
+            <FiPlus />
+
+            Send Request
+          </button>
+
+          <section className="rgDashboardCard rgMyMeetingsCard">
+            <div className="rgMyMeetingsHeading">
+              <div>
+                <h3>
+                  My Meetings
+                </h3>
+
+                <span>
+                  {myMeetings.length}{" "}
+                  item(s)
+                </span>
+              </div>
             </div>
 
-            <div className="nt-left-head">
+            {loading ? (
               <div>
-                <div className="nt-left-title">Хүсэлт явуулах</div>
-                <div className="nt-left-sub">
-                  {loading ? "Loading..." : `${sentPending.length} pending`}
+                Уншиж байна...
+              </div>
+            ) : myMeetings.length ===
+              0 ? (
+              <div>
+                No meetings scheduled.
+              </div>
+            ) : (
+              <div className="rgMyMeetingList">
+                {myMeetings
+                  .slice(0, 6)
+                  .map(
+                    (meeting) => (
+                      <button
+                        type="button"
+                        key={
+                          meeting.id
+                        }
+                        onClick={() =>
+                          selectMeeting(
+                            meeting,
+                          )
+                        }
+                      >
+                        <div>
+                          <strong>
+                            {meeting.title ||
+                              "Meeting"}
+                          </strong>
+
+                          <small>
+                            {formatDateTime(
+                              meeting.start_time,
+                            )}
+                          </small>
+                        </div>
+
+                        <span
+                          className={`rgMeetingStatus ${
+                            meeting.status ||
+                            ""
+                          }`}
+                        >
+                          {meeting.status ||
+                            "accepted"}
+                        </span>
+                      </button>
+                    ),
+                  )}
+              </div>
+            )}
+          </section>
+
+          {pendingSent.length >
+            0 && (
+            <section className="rgDashboardCard rgMyMeetingsCard">
+              <div className="rgMyMeetingsHeading">
+                <div>
+                  <h3>
+                    Sent Requests
+                  </h3>
+
+                  <span>
+                    {
+                      pendingSent.length
+                    }{" "}
+                    pending
+                  </span>
                 </div>
               </div>
+
+              <div className="rgMyMeetingList">
+                {pendingSent
+                  .slice(0, 5)
+                  .map(
+                    (meeting) => (
+                      <button
+                        key={
+                          meeting.id
+                        }
+                        type="button"
+                        onClick={() =>
+                          selectMeeting(
+                            meeting,
+                          )
+                        }
+                      >
+                        <div>
+                          <strong>
+                            {meeting.title ||
+                              "Meeting"}
+                          </strong>
+
+                          <small>
+                            To:{" "}
+                            {meeting.recipient_email ||
+                              ""}
+                          </small>
+                        </div>
+
+                        <span className="rgMeetingStatus pending">
+                          pending
+                        </span>
+                      </button>
+                    ),
+                  )}
+              </div>
+            </section>
+          )}
+
+          {message && (
+            <div className="rgCalendarMessage">
+              {message}
+            </div>
+          )}
+        </aside>
+
+        <section className="rgDashboardCard rgBigCalendar">
+          <header className="rgBigCalendarHeader">
+            <h2>{title}</h2>
+
+            <div>
+              <button
+                type="button"
+                onClick={
+                  goPreviousMonth
+                }
+              >
+                <FiChevronLeft />
+              </button>
 
               <button
-                className="nt-plus"
                 type="button"
-                onClick={() => navigate("/user/meeting/create")}
-                title="Create meeting"
+                onClick={goNextMonth}
               >
-                +
+                <FiChevronRight />
               </button>
             </div>
+          </header>
 
-            <div className="nt-list nt-sent-list">
-              {sentPending.length === 0 ? (
-                <div className="nt-empty">Хүлээж буй хүсэлт байхгүй.</div>
-              ) : (
-                sentPending.map((m) =>
-                  renderCard(
-                    m,
-                    `To: ${
-                      m.recipient_name ||
-                      `${m.recipient_first_name || ""} ${m.recipient_last_name || ""}`.trim() ||
-                      m.recipient_email ||
-                      ""
-                    }`
-                  ),
-                )
-              )}
-            </div>
+          <div className="rgBigWeekdays">
+            {[
+              "Mon",
+              "Tue",
+              "Wed",
+              "Thu",
+              "Fri",
+              "Sat",
+              "Sun",
+            ].map((day) => (
+              <span key={day}>
+                {day}
+              </span>
+            ))}
+          </div>
 
-            <div className="nt-split-head">
-              <div className="nt-left-title">Миний уулзалтууд</div>
-              <div className="nt-left-sub">
-                {loading ? "Loading..." : `${myMeetings.length} item(s)`}
-              </div>
-            </div>
-
-            <div className="nt-list nt-meetings-list">
-              {myMeetings.length === 0 ? (
-                <div className="nt-empty">Одоогоор уулзалт байхгүй байна.</div>
-              ) : (
-                myMeetings.map((m) => renderCard(m, withLine(m)))
-              )}
-            </div>
-          </aside>
-
-          <main className="nt-right">
-            <div className="nt-cal-head">
-              <div className="nt-cal-title">{monthTitle}</div>
-              <div className="nt-cal-actions">
-                <button
-                  className="nt-cal-btn"
-                  type="button"
-                  onClick={goPrevMonth}
-                >
-                  ←
-                </button>
-                <button
-                  className="nt-cal-btn"
-                  type="button"
-                  onClick={goNextMonth}
-                >
-                  →
-                </button>
-              </div>
-            </div>
-
-            <div className="nt-detail">
-              {selected ? (
-                <>
-                  <div className="nt-detail-title">{selected.title}</div>
-
-                  <div className="nt-detail-meta">
-                    <span className={pillClass(selected.status)}>
-                      {String(selected.status).toUpperCase()}
-                    </span>
-                    <span className="nt-dot">•</span>
-                    <span>
-                      {selected.start_time
-                        ? `${formatInTZ(selected.start_time, {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                          })} ${formatInTZ(selected.start_time, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })}`
-                        : ""}
-                    </span>
-                  </div>
-
-                  <div className="nt-detail-desc">
-                    {selected.description || "No reason provided."}
-                  </div>
-
-                  {selected.status === "accepted" &&
-                    selected.zoom_join_url &&
-                    !selectedEnded && (
-                      <div
-                        className="nt-detail-actions"
-                        style={{ marginTop: 12 }}
-                      >
-                        <button
-                          className="nt-action accept"
-                          type="button"
-                          onClick={() =>
-                            window.open(
-                              selected.zoom_join_url,
-                              "_blank",
-                              "noopener,noreferrer",
-                            )
-                          }
-                        >
-                          Zoom Орох
-                        </button>
-                      </div>
-                    )}
-
-                  {selected.status === "accepted" && selectedEnded && (
-                    <div className="nt-muted" style={{ marginTop: 10 }}>
-                      Энэ уулзалт дууссан байна.
-                    </div>
-                  )}
-
-                  {canRespond && (
-                    <>
-                      <div className="nt-detail-actions">
-                        <button
-                          className="nt-action accept"
-                          type="button"
-                          onClick={() => action(selected.id, "accept")}
-                        >
-                          Зөвшөөрөх
-                        </button>
-                        <button
-                          className="nt-action decline"
-                          type="button"
-                          onClick={() => action(selected.id, "decline")}
-                        >
-                          Цуцлах
-                        </button>
-                        <button
-                          className="nt-action edit"
-                          type="button"
-                          onClick={() => {
-                            setEditingId(selected.id);
-                            setEditDate(isoDateOnlyTZ(selected.start_time));
-                            setEditStart(
-                              formatInTZ(selected.start_time, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              }),
-                            );
-                            setEditEnd(
-                              selected.end_time
-                                ? formatInTZ(selected.end_time, {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  })
-                                : "",
-                            );
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </div>
-
-                      {editingId === selected.id && (
-                        <div className="nt-edit-box">
-                          <div className="nt-edit-row">
-                            <label>Он сар</label>
-                            <input
-                              type="date"
-                              value={editDate}
-                              onChange={(e) => setEditDate(e.target.value)}
-                            />
-                          </div>
-
-                          <div className="nt-edit-row">
-                            <label>Эхлэх</label>
-                            <input
-                              type="time"
-                              value={editStart}
-                              onChange={(e) => setEditStart(e.target.value)}
-                            />
-                          </div>
-
-                          <div className="nt-edit-row">
-                            <label>Дуусгах (optional)</label>
-                            <input
-                              type="time"
-                              value={editEnd}
-                              onChange={(e) => setEditEnd(e.target.value)}
-                            />
-                          </div>
-
-                          <div className="nt-edit-actions">
-                            <button
-                              className="nt-action accept"
-                              type="button"
-                              onClick={() => saveEdit(selected.id)}
-                            >
-                              Хадгалах
-                            </button>
-                            <button
-                              className="nt-action decline"
-                              type="button"
-                              onClick={() => setEditingId(null)}
-                            >
-                              Цуцлах
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="nt-muted">Select a card to see details.</div>
-              )}
-            </div>
-
-            <div className="nt-cal-grid">
-              <div className="nt-weekdays">
-                <div>Даваа</div>
-                <div>Ням</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-                <div>Sun</div>
-              </div>
-
-              <div className="nt-cells">
-                {grid.map((d, idx) => {
-                  if (!d) return <div key={idx} className="nt-cell is-empty" />;
-
-                  const day = d.getDate();
-                  const iso = `${d.getFullYear()}-${String(
-                    d.getMonth() + 1,
-                  ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                  const hasMeeting = meetingDaysSet.has(iso);
-
+          <div className="rgBigCalendarGrid">
+            {grid.map(
+              (date, index) => {
+                if (!date) {
                   return (
                     <div
-                      key={idx}
-                      className={`nt-cell ${hasMeeting ? "has-meeting" : ""}`}
-                    >
-                      <div className="nt-day">{day}</div>
-                      {hasMeeting && <div className="nt-dotmark" />}
-                    </div>
+                      key={`empty-${index}`}
+                    />
                   );
-                })}
-              </div>
+                }
+
+                const key =
+                  isoKey(date);
+
+                const meetings =
+                  byDay[key] || [];
+
+                const active =
+                  key ===
+                  selectedKey;
+
+                return (
+                  <button
+                    type="button"
+                    key={key}
+                    className={
+                      active
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setSelectedDate(
+                        date,
+                      )
+                    }
+                  >
+                    <span>
+                      {date.getDate()}
+                    </span>
+
+                    {meetings.length >
+                      0 && (
+                      <div className="rgBigMeetingDots">
+                        {meetings
+                          .slice(
+                            0,
+                            3,
+                          )
+                          .map(
+                            (
+                              meeting,
+                              dotIndex,
+                            ) => (
+                              <i
+                                key={`${meeting.id}-${dotIndex}`}
+                              />
+                            ),
+                          )}
+                      </div>
+                    )}
+                  </button>
+                );
+              },
+            )}
+          </div>
+
+          {selectedMeetings.length >
+            0 && (
+            <div className="rgCalendarSelected">
+              {selectedMeetings.map(
+                (meeting) => (
+                  <div
+                    key={`${meeting.id}-${meeting.start_time}`}
+                  >
+                    <span>
+                      {formatTime(
+                        meeting.start_time,
+                      )}
+                    </span>
+
+                    <div>
+                      <strong>
+                        {meeting.title ||
+                          "Meeting"}
+                      </strong>
+
+                      <small>
+                        {meeting.creator_email ===
+                        JSON.parse(
+                          localStorage.getItem(
+                            "user",
+                          ) || "{}",
+                        )?.email
+                          ? `To: ${
+                              meeting.recipient_email ||
+                              ""
+                            }`
+                          : `From: ${
+                              meeting.creator_email ||
+                              ""
+                            }`}
+                      </small>
+                    </div>
+
+                    <b
+                      className={`rgMeetingStatus ${
+                        meeting.status ||
+                        ""
+                      }`}
+                    >
+                      {meeting.status ||
+                        ""}
+                    </b>
+                  </div>
+                ),
+              )}
             </div>
-          </main>
-        </div>
-      </div>
+          )}
+
+          {loading && (
+            <div className="rgCalendarLoading">
+              Loading...
+            </div>
+          )}
+        </section>
+      </main>
     </UserShell>
   );
 }

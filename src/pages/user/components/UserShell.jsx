@@ -1,72 +1,138 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  FiMenu,
+  FiX,
+} from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import logo from "../../../assets/registra-logo-def.png";
 
-export default function UserShell({ title = "Khural Plus+", children }) {
-  const [open, setOpen] = useState(false);
+export default function UserShell({
+  title = "Registra",
+  children,
+}) {
+  const [open, setOpen] =
+    useState(false);
 
-  function closeDrawer() {
-    setOpen(false);
-  }
+  const [theme, setTheme] =
+    useState(() => {
+      return (
+        localStorage.getItem(
+          "registra-theme",
+        ) || "light"
+      );
+    });
 
   useEffect(() => {
-    function onKey(e) {
-      if (e.key === "Escape") setOpen(false);
+    document.documentElement.dataset.userTheme =
+      theme;
+
+    localStorage.setItem(
+      "registra-theme",
+      theme,
+    );
+  }, [theme]);
+
+  useEffect(() => {
+    document.body.style.overflow =
+      open ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow =
+        "";
+    };
+  }, [open]);
+
+  useEffect(() => {
+    function handleKey(event) {
+      if (
+        event.key === "Escape"
+      ) {
+        setOpen(false);
+      }
     }
 
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener(
+      "keydown",
+      handleKey,
+    );
+
+    return () =>
+      document.removeEventListener(
+        "keydown",
+        handleKey,
+      );
   }, []);
 
   return (
-    <div className="user-layout">
-      <Sidebar />
+    <div className="rgUserLayout">
+      <Sidebar
+        theme={theme}
+        onThemeChange={setTheme}
+      />
 
-      <div className="user-main">
-        <Topbar className="topbar-desktop" />
+      <div className="rgUserMain">
+        <Topbar />
 
-        <div className="mobile-header">
-          <div className="mobile-header__title">{title}</div>
+        <header className="rgMobileHeader">
+          <img
+            src={logo}
+            alt="Registra"
+          />
 
-          <div className="mobile-header__actions">
-            <Topbar className="topbar-mobile-icons" onNavigate={closeDrawer} />
+          <span>{title}</span>
 
-            <button
-              className="mobile-header__hamburger"
-              type="button"
-              aria-label="Open menu"
-              onClick={() => setOpen(true)}
-            >
-              ☰
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() =>
+              setOpen(true)
+            }
+          >
+            <FiMenu />
+          </button>
+        </header>
+
+        <div className="rgUserContent">
+          {children}
         </div>
-
-        <div
-          className={`mobile-drawer-overlay ${open ? "is-show" : ""}`}
-          onClick={closeDrawer}
-        />
-
-        <aside className={`mobile-drawer ${open ? "is-open" : ""}`}>
-          <div className="mobile-drawer__head">
-            <div className="mobile-drawer__title">Menu</div>
-
-            <button
-              className="mobile-drawer__close"
-              type="button"
-              onClick={closeDrawer}
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="mobile-drawer__nav">
-            <Sidebar mobile onNavigate={closeDrawer} />
-          </div>
-        </aside>
-
-        <div className="user-page-content">{children}</div>
       </div>
+
+      <div
+        className={`rgMobileOverlay ${
+          open ? "show" : ""
+        }`}
+        onClick={() =>
+          setOpen(false)
+        }
+      />
+
+      <aside
+        className={`rgMobileDrawer ${
+          open ? "open" : ""
+        }`}
+      >
+        <button
+          type="button"
+          className="rgMobileClose"
+          onClick={() =>
+            setOpen(false)
+          }
+        >
+          <FiX />
+        </button>
+
+        <Sidebar
+          mobile
+          theme={theme}
+          onThemeChange={setTheme}
+          onNavigate={() =>
+            setOpen(false)
+          }
+        />
+      </aside>
     </div>
   );
 }

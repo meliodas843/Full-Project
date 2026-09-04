@@ -1,264 +1,475 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "@/lib/config";
+import {
+  FiBell,
+  FiChevronDown,
+  FiLogOut,
+  FiUser,
+} from "react-icons/fi";
+import { API_BASE } from "../../../lib/config";
 
-function formatDateTime(dt) {
-  if (!dt) return "";
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return "";
+function initials(value) {
+  const text = String(
+    value || "",
+  ).trim();
 
-  return d.toLocaleString("mn-MN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  if (!text) return "U";
+
+  if (text.includes("@")) {
+    return text
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  const words = text
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 1) {
+    return words[0]
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return `${words[0][0]}${
+    words[words.length - 1][0]
+  }`.toUpperCase();
 }
 
-export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
+function formatDateTime(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "";
+  }
+
+  return date.toLocaleString(
+    "mn-MN",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );
+}
+
+export default function Topbar({
+  className = "",
+  onNavigate = () => {},
+} = {}) {
   const navigate = useNavigate();
+
+  const [openBell, setOpenBell] =
+    useState(false);
+
+  const [openProfile, setOpenProfile] =
+    useState(false);
+
+  const [pending, setPending] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const bellRef = useRef(null);
+  const profileRef = useRef(null);
+  const bellMenuRef = useRef(null);
+  const profileMenuRef =
+    useRef(null);
+
+  const [bellPosition, setBellPosition] =
+    useState(null);
+
+  const [
+    profilePosition,
+    setProfilePosition,
+  ] = useState(null);
 
   const user = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("user") || "{}");
+      return JSON.parse(
+        localStorage.getItem(
+          "user",
+        ) || "{}",
+      );
     } catch {
       return {};
     }
   }, []);
 
-  const name = user?.name || user?.email || "User";
+  const fullName =
+    `${user?.firstName || user?.first_name || ""} ${
+      user?.lastName ||
+      user?.last_name ||
+      ""
+    }`.trim() ||
+    user?.name ||
+    user?.email ||
+    "User";
 
-  const [openProfile, setOpenProfile] = useState(false);
-  const [openBell, setOpenBell] = useState(false);
-  const [pending, setPending] = useState([]);
-  const [loadingBell, setLoadingBell] = useState(false);
+  const role =
+    user?.role === "super_admin"
+      ? "Administrator"
+      : "Хэрэглэгч";
 
-  const wrapRef = useRef(null);
-  const bellRef = useRef(null);
-  const profileRef = useRef(null);
-  const bellMenuRef = useRef(null);
-  const profileMenuRef = useRef(null);
+  function menuPosition(
+    reference,
+    width,
+  ) {
+    const rect =
+      reference.current?.getBoundingClientRect();
 
-  const [bellPos, setBellPos] = useState(null);
-  const [profilePos, setProfilePos] = useState(null);
-
-  function getMenuPos(ref, width = 260) {
-    const rect = ref.current?.getBoundingClientRect();
     if (!rect) return null;
 
     return {
-      top: rect.bottom + 12,
-      left: Math.max(12, rect.right - width),
+      top: rect.bottom + 10,
+      left: Math.max(
+        14,
+        rect.right - width,
+      ),
       width,
     };
   }
 
-  useEffect(() => {
-    function onDown(e) {
-      const target = e.target;
+  async function loadNotifications() {
+    const token =
+      localStorage.getItem("token");
 
-      const insideTopbar = wrapRef.current?.contains(target);
-      const insideBellMenu = bellMenuRef.current?.contains(target);
-      const insideProfileMenu = profileMenuRef.current?.contains(target);
-
-      if (!insideTopbar && !insideBellMenu && !insideProfileMenu) {
-        setOpenProfile(false);
-        setOpenBell(false);
-      }
-    }
-
-    function onKey(e) {
-      if (e.key === "Escape") {
-        setOpenProfile(false);
-        setOpenBell(false);
-      }
-    }
-
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, []);
-
-  async function loadPendingRequests() {
-    const token = localStorage.getItem("token");
     if (!token) return;
 
-    setLoadingBell(true);
+    setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/events/requests`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE}/api/events/requests`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-      if (!res.ok) {
+      const data = await response
+        .json()
+        .catch(() => ({}));
+
+      if (!response.ok) {
         setPending([]);
         return;
       }
 
-      const data = await res.json().catch(() => ({ pending: [] }));
-      setPending(Array.isArray(data?.pending) ? data.pending : []);
+      if (
+        Array.isArray(
+          data?.pending,
+        )
+      ) {
+        setPending(data.pending);
+      } else if (
+        Array.isArray(data)
+      ) {
+        setPending(data);
+      } else {
+        setPending([]);
+      }
+    } catch {
+      setPending([]);
     } finally {
-      setLoadingBell(false);
+      setLoading(false);
     }
-  }
-
-  function handleLogout() {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-
-    setOpenProfile(false);
-    onNavigate();
-    navigate("/login", { replace: true });
   }
 
   function toggleBell() {
     const next = !openBell;
+
     setOpenBell(next);
     setOpenProfile(false);
 
     if (next) {
-      setBellPos(getMenuPos(bellRef, 360));
-      loadPendingRequests();
+      setBellPosition(
+        menuPosition(
+          bellRef,
+          310,
+        ),
+      );
+
+      loadNotifications();
     }
   }
 
   function toggleProfile() {
-    const next = !openProfile;
+    const next =
+      !openProfile;
+
     setOpenProfile(next);
     setOpenBell(false);
 
     if (next) {
-      setProfilePos(getMenuPos(profileRef, 260));
+      setProfilePosition(
+        menuPosition(
+          profileRef,
+          250,
+        ),
+      );
     }
   }
 
-  const pendingCount = pending.length;
+  function logout() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+
+    onNavigate();
+
+    navigate("/login", {
+      replace: true,
+    });
+  }
+
+  useEffect(() => {
+    function handleClick(event) {
+      const target =
+        event.target;
+
+      if (
+        bellRef.current?.contains(
+          target,
+        ) ||
+        profileRef.current?.contains(
+          target,
+        ) ||
+        bellMenuRef.current?.contains(
+          target,
+        ) ||
+        profileMenuRef.current?.contains(
+          target,
+        )
+      ) {
+        return;
+      }
+
+      setOpenBell(false);
+      setOpenProfile(false);
+    }
+
+    function handleKey(event) {
+      if (
+        event.key === "Escape"
+      ) {
+        setOpenBell(false);
+        setOpenProfile(false);
+      }
+    }
+
+    window.addEventListener(
+      "resize",
+      () => {
+        setOpenBell(false);
+        setOpenProfile(false);
+      },
+    );
+
+    document.addEventListener(
+      "mousedown",
+      handleClick,
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleKey,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClick,
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKey,
+      );
+    };
+  }, []);
 
   return (
-    <header className={`app-topbar ${className}`.trim()} ref={wrapRef}>
-      <div className="app-topbar-right">
-        <div className="tb-pop">
-          <button
-            ref={bellRef}
-            className="app-topbar-icon"
-            type="button"
-            aria-label="Notifications"
-            onClick={toggleBell}
-          >
-            🔔
-            {pendingCount > 0 && <span className="tb-badge">{pendingCount}</span>}
-          </button>
+    <header
+      className={`rgTopbar ${className}`.trim()}
+    >
+      <div className="rgTopbarSpacer" />
 
-          {openBell &&
-            bellPos &&
-            createPortal(
-              <div
-                ref={bellMenuRef}
-                className="tb-menu tb-menu-wide"
-                style={{
-                  position: "fixed",
-                  top: bellPos.top,
-                  left: bellPos.left,
-                  width: bellPos.width,
-                }}
-              >
-                <div className="tb-menu-head">
-                  <div className="tb-menu-title">Уулзалтын хүсэлт</div>
-                  <button className="tb-menu-action" type="button" onClick={loadPendingRequests}>
-                    Шинэчлэх
-                  </button>
-                </div>
+      <div className="rgTopbarActions">
+        <button
+          ref={bellRef}
+          type="button"
+          className="rgBellButton"
+          onClick={toggleBell}
+        >
+          <FiBell />
 
-                {loadingBell ? (
-                  <div className="tb-empty">Унших…</div>
-                ) : pendingCount === 0 ? (
-                  <div className="tb-empty">Хүсэлт байхгүй</div>
-                ) : (
-                  <div className="tb-list">
-                    {pending.map((r) => (
-                      <button
-                        key={r.id}
-                        className="tb-item"
-                        type="button"
-                        onClick={() => {
-                          setOpenBell(false);
-                          onNavigate();
-                          navigate("/user/home#requests");
-                        }}
-                      >
-                        <div className="tb-item-top">
-                          <div className="tb-item-title">{r.title || "Meeting"}</div>
-                          <div className="tb-item-time">{formatDateTime(r.start_time)}</div>
-                        </div>
+          {pending.length > 0 && (
+            <span className="rgBellDot">
+              {pending.length}
+            </span>
+          )}
+        </button>
 
-                        <div className="tb-item-sub">
-                          Хэнээс: <strong>{r.from_company || "Unknown"}</strong>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>,
-              document.body
-            )}
-        </div>
+        <button
+          ref={profileRef}
+          type="button"
+          className="rgTopProfile"
+          onClick={toggleProfile}
+        >
+          <span className="rgTopAvatar">
+            {initials(fullName)}
+          </span>
 
-        <div className="tb-pop">
-          <button
-            ref={profileRef}
-            className="app-topbar-profile"
-            type="button"
-            aria-label="Profile"
-            onClick={toggleProfile}
-          >
-            <div className="tb-avatar">D</div>
-            <div className="tb-user">
-              <div className="tb-name">{name}</div>
-              <div className="tb-sub">Хэрэглэгч</div>
-            </div>
-          </button>
+          <span className="rgTopUserText">
+            <strong>
+              {user?.email ||
+                fullName}
+            </strong>
 
-          {openProfile &&
-            profilePos &&
-            createPortal(
-              <div
-                ref={profileMenuRef}
-                className="tb-menu"
-                style={{
-                  position: "fixed",
-                  top: profilePos.top,
-                  left: profilePos.left,
-                  width: profilePos.width,
-                }}
-              >
-                <button
-                  className="tb-menu-item"
-                  type="button"
-                  onClick={() => {
-                    setOpenProfile(false);
-                    onNavigate();
-                    navigate("/user/profile");
-                  }}
-                >
-                  Тохиргоо / Профайл
-                </button>
+            <small>
+              {role}
+            </small>
+          </span>
 
-                <button className="tb-menu-item danger" type="button" onClick={handleLogout}>
-                  Гарах
-                </button>
-              </div>,
-              document.body
-            )}
-        </div>
+          <FiChevronDown className="rgTopChevron" />
+        </button>
       </div>
+
+      {openBell &&
+        bellPosition &&
+        createPortal(
+          <div
+            ref={bellMenuRef}
+            className="rgDropdown rgNotificationDropdown"
+            style={{
+              position: "fixed",
+              top: bellPosition.top,
+              left: bellPosition.left,
+              width:
+                bellPosition.width,
+            }}
+          >
+            <h4>
+              Notifications
+            </h4>
+
+            {loading ? (
+              <div className="rgNotificationEmpty">
+                Уншиж байна...
+              </div>
+            ) : pending.length ===
+              0 ? (
+              <div className="rgNotificationEmpty">
+                Шинэ мэдэгдэл
+                байхгүй.
+              </div>
+            ) : (
+              <div className="rgNotificationList">
+                {pending
+                  .slice(0, 6)
+                  .map((item) => (
+                    <button
+                      type="button"
+                      className="rgNotificationItem"
+                      key={
+                        item.id
+                      }
+                      onClick={() => {
+                        setOpenBell(
+                          false,
+                        );
+
+                        navigate(
+                          "/user/calendar",
+                        );
+                      }}
+                    >
+                      <span className="rgNotificationBullet" />
+
+                      <span>
+                        <strong>
+                          {item.title ||
+                            "Meeting request"}
+                        </strong>
+
+                        {item.start_time && (
+                          <small>
+                            {formatDateTime(
+                              item.start_time,
+                            )}
+                          </small>
+                        )}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>,
+          document.body,
+        )}
+
+      {openProfile &&
+        profilePosition &&
+        createPortal(
+          <div
+            ref={profileMenuRef}
+            className="rgDropdown rgProfileDropdown"
+            style={{
+              position: "fixed",
+              top:
+                profilePosition.top,
+              left:
+                profilePosition.left,
+              width:
+                profilePosition.width,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setOpenProfile(
+                  false,
+                );
+
+                navigate(
+                  "/user/profile",
+                );
+              }}
+            >
+              <FiUser />
+
+              Профайл
+            </button>
+
+            <button
+              type="button"
+              className="danger"
+              onClick={logout}
+            >
+              <FiLogOut />
+
+              Гарах
+            </button>
+          </div>,
+          document.body,
+        )}
     </header>
   );
 }

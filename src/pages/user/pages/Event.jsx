@@ -2,6 +2,7 @@
   import UserShell from "../components/UserShell";
   import { API_BASE } from "@/lib/config";
   import { useSearchParams } from "react-router-dom";
+  import EventCreateWizard from "../components/EventCreateWizard";
 
   function formatDateTime(dt) {
   if (!dt) return "";
@@ -1009,14 +1010,19 @@
 
     return (
       <UserShell title="Events">
-        <div className="uep-wrap">
-          <aside className="uep-left">
+        <div className={`uep-wrap ${selectedEvent && !showCreate ? "is-detail" : ""}`}>
+          {!selectedEvent && (
+            <aside className="uep-left">
             <div className="uep-leftCard">
-              <button className="uep-createBtnTop" onClick={handleAskCreate} type="button">
-                + Эвент Зохиох
+              <button
+                className="uep-createBtnTop"
+                onClick={handleAskCreate}
+                type="button"
+              >
+                + Create Event
               </button>
 
-              <div className="uep-sections">
+             <div className="uep-sections">
                 <Section
                   title="МИНИЙ ЭВЕНТҮҮД"
                   items={myMeetings}
@@ -1032,22 +1038,23 @@
                   onClickItem={handleSelectEvent}
                   showBadge={true}
                 />
-              </div>
 
-              <button
-                className="uep-historyBtn"
-                onClick={() => {
-                  setMode("history");
-                  setSelectedEventId(null);
-                  setShowCreate(false);
-                  setEditingEventId(null);
-                }}
-                type="button"
-              >
-                Түүх
-              </button>
+                <button
+                  className="uep-historyBtn"
+                  onClick={() => {
+                    setMode("history");
+                    setSelectedEventId(null);
+                    setShowCreate(false);
+                    setEditingEventId(null);
+                  }}
+                  type="button"
+                >
+                  Түүх
+                </button>
+              </div>
             </div>
-          </aside>
+            </aside>
+          )}
 
           <main className="uep-right">
             <div ref={rightTopRef} />
@@ -1056,628 +1063,402 @@
             {successMsg ? <div className="uep-success">{successMsg}</div> : null}
 
             {!showCreate && selectedEvent ? (
-              <div className="uep-detailCard">
-                <div className="uep-detailHead">
-                  <div>
-                    <div className="uep-detailKicker">
-                      {mode === "history" ? "Түүхэн Эвент" : "Эвент Мэдээлэл"}
-                    </div>
-                    <h3 className="uep-detailTitle">{selectedEvent.title}</h3>
-                  </div>
+              <div className="eventDetailPage">
+                <button
+                  type="button"
+                  className="eventDetailBack"
+                  onClick={() => setSelectedEventId(null)}
+                >
+                  <span>←</span>
+                  Back
+                </button>
 
-                  <button
-                    className="uep-iconBtn"
-                    type="button"
-                    onClick={() => setSelectedEventId(null)}
-                    title="Close"
-                  >
-                    ✕
-                  </button>
-                </div>
+                <div className="eventDetailHero">
+                  <img
+                    src={resolveUrl(selectedEvent.image_url) || fallbackImgSrc()}
+                    alt={selectedEvent.title || "Event"}
+                    className="eventDetailHeroImage"
+                    onError={(e) => {
+                      e.currentTarget.src = fallbackImgSrc();
+                    }}
+                  />
 
-                <div className="uep-detailBody">
-                  <div className="uep-detailMedia">
-                    <img
-                      src={resolveUrl(selectedEvent.image_url) || fallbackImgSrc()}
-                      alt={selectedEvent.title || "Event"}
-                      onError={(e) => (e.currentTarget.src = fallbackImgSrc())}
-                    />
-                  </div>
+                  <div className="eventDetailHeroShade" />
 
-                  <div className="uep-detailInfo">
-                    <div className="uep-detailMetaRow">
-                      <span className="uep-badge">{formatDateTime(selectedEvent.start_time)}</span>
-
-                      {selectedEvent.end_time && (
-                        <span className="uep-badge uep-badgeLight">
-                          Дууссан: {formatDateTime(selectedEvent.end_time)}
+                  <div className="eventDetailHeroContent">
+                    <div className="eventDetailTags">
+                      {selectedEvent.visibility ? (
+                        <span className="eventDetailTag purple">
+                          {selectedEvent.visibility}
                         </span>
-                      )}
+                      ) : null}
 
-                      {mode === "history" && selectedEvent?.relation_type ? (
-                        <span className="uep-badge uep-badgeLight">
-                          <div
-                            className={`event-top-badge ${
-                              selectedEvent.relation_type === "created"
-                                ? "created"
-                                : "joined"
-                            }`}
-                          >
-                            {selectedEvent.relation_type === "created"
-                              ? "Үүсгэсэн"
-                              : "Бүртгүүлсэн"}
-                          </div>
+                      {selectedEvent.category ? (
+                        <span className="eventDetailTag cyan">
+                          {selectedEvent.category}
+                        </span>
+                      ) : null}
+
+                      {selectedEvent.type ? (
+                        <span className="eventDetailTag cyan">
+                          {selectedEvent.type}
                         </span>
                       ) : null}
                     </div>
 
-                    {selectedSpeakers.length > 0 && (
-                      <div className="uep-detailField">
-                        <strong>Элтгэгч:</strong>
+                    <h1 className="eventDetailHeroTitle">
+                      {selectedEvent.title || "Untitled Event"}
+                    </h1>
+                  </div>
 
-                        <div className="uep-speakersDisplayList">
-                          {selectedSpeakers.map((sp, idx) => {
-                            const avatar = getSpeakerAvatar(sp);
+                  <span className="eventDetailStatus">
+                    {isEventFinished(selectedEvent)
+                      ? "Ended"
+                      : bookedIds.includes(Number(selectedEvent.id))
+                        ? "Registered"
+                        : "Published"}
+                  </span>
+                </div>
+
+                <div className="eventDetailLayout">
+                  <div className="eventDetailMain">
+                    <section className="eventDetailSection">
+                      <h2>About this Event</h2>
+
+                      <p className="eventDetailDescription">
+                        {selectedEvent.description || "No event description."}
+                      </p>
+                    </section>
+
+                    <section className="eventDetailSection">
+                      <h2>Organizer</h2>
+
+                      <div className="eventOrganizer">
+                        <div className="eventOrganizerAvatar">
+                          {getInitials(
+                            selectedEvent.created_by_name ||
+                              selectedEvent.created_by_email ||
+                              "Organizer"
+                          )}
+                        </div>
+
+                        <div className="eventOrganizerInfo">
+                          <strong>
+                            {selectedEvent.created_by_name ||
+                              selectedEvent.organizer_name ||
+                              selectedEvent.created_by_email ||
+                              "Organizer"}
+                          </strong>
+
+                          <span>Organizer</span>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="eventDetailSection eventRegistrationSection">
+                      <div className="eventRegistrationHeader">
+                        <h2>Registrations</h2>
+
+                        <span>
+                          {participants.length ||
+                            participantsCount ||
+                            Number(selectedEvent.booked_count) ||
+                            0}
+                          {" / "}
+                          {Number(selectedEvent.max_participants) || 0}
+                        </span>
+                      </div>
+
+                      <div className="eventRegistrationProgress">
+                        <div
+                          className="eventRegistrationProgressBar"
+                          style={{
+                            width: `${
+                              Number(selectedEvent.max_participants) > 0
+                                ? Math.min(
+                                    100,
+                                    ((participants.length ||
+                                      participantsCount ||
+                                      Number(selectedEvent.booked_count) ||
+                                      0) /
+                                      Number(selectedEvent.max_participants)) *
+                                      100
+                                  )
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+
+                      <div className="eventRegistrationStats">
+                        <div>
+                          <strong>
+                            {participants.length ||
+                              participantsCount ||
+                              Number(selectedEvent.booked_count) ||
+                              0}
+                          </strong>
+                          <span>Registered</span>
+                        </div>
+
+                        <div>
+                          <strong>
+                            {Number(selectedEvent.max_participants) || 0}
+                          </strong>
+                          <span>Capacity</span>
+                        </div>
+
+                        <div>
+                          <strong>
+                            {Math.max(
+                              0,
+                              (Number(selectedEvent.max_participants) || 0) -
+                                (participants.length ||
+                                  participantsCount ||
+                                  Number(selectedEvent.booked_count) ||
+                                  0)
+                            )}
+                          </strong>
+                          <span>Remaining</span>
+                        </div>
+                      </div>
+                    </section>
+
+                    {selectedSpeakers.length > 0 ? (
+                      <section className="eventDetailSection">
+                        <h2>Speakers</h2>
+
+                        <div className="eventDetailSpeakers">
+                          {selectedSpeakers.map((speaker, index) => {
+                            const avatar = getSpeakerAvatar(speaker);
 
                             return (
-                              <div className="uep-speakerDisplay" key={idx}>
-                                <div className="uep-speakerAvatarSmall">
+                              <div
+                                className="eventDetailSpeaker"
+                                key={index}
+                              >
+                                <div className="eventDetailSpeakerAvatar">
                                   {avatar ? (
                                     <img
                                       src={resolveUrl(avatar)}
-                                      alt={sp.name || "Speaker"}
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = "none";
-                                      }}
+                                      alt={speaker.name || "Speaker"}
                                     />
                                   ) : (
-                                    <span>{getInitials(sp.name)}</span>
+                                    <span>
+                                      {getInitials(speaker.name || "Speaker")}
+                                    </span>
                                   )}
                                 </div>
 
-                                <div className="uep-speakerInfo">
-                                  <div className="sp-row">
-                                    <span className="sp-label">Нэр:</span>
-                                    <span className="sp-value">{sp.name || "-"}</span>
-                                  </div>
+                                <div>
+                                  <strong>{speaker.name || "-"}</strong>
 
-                                  <div className="sp-row">
-                                    <span className="sp-label">Байгууллага:</span>
-                                    <span className="sp-value">{sp.organization || "-"}</span>
-                                  </div>
+                                  <span>
+                                    {speaker.organization || ""}
+                                  </span>
 
-                                  <div className="sp-row">
-                                    <span className="sp-label">Сэдэв:</span>
-                                    <span className="sp-value">{sp.topic || "-"}</span>
-                                  </div>
+                                  {speaker.topic ? (
+                                    <small>{speaker.topic}</small>
+                                  ) : null}
                                 </div>
                               </div>
                             );
                           })}
                         </div>
-                      </div>
-                    )}
+                      </section>
+                    ) : null}
 
-                    {selectedAgendaItems.length > 0 && (
-                      <div className="uep-detailField">
-                        <strong>Хөтөлбөр:</strong>
+                    {selectedAgendaItems.length > 0 ? (
+                      <section className="eventDetailSection">
+                        <h2>Agenda</h2>
 
-                        <div className="uep-detailAgendaList">
-                          {selectedAgendaItems.map((item, idx) => (
-                            <div key={idx} className="uep-detailAgendaItem">
-                              <span className="uep-detailAgendaText">{item.time || "--:--"}</span>
-                              <span className="uep-detailAgendaTime">{item.text || ""}</span>
+                        <div className="eventDetailAgenda">
+                          {selectedAgendaItems.map((item, index) => (
+                            <div
+                              className="eventDetailAgendaItem"
+                              key={index}
+                            >
+                              <span>{item.time || "--:--"}</span>
+                              <strong>{item.text || ""}</strong>
                             </div>
                           ))}
                         </div>
+                      </section>
+                    ) : null}
+                  </div>
+
+                  <aside className="eventDetailSidebar">
+                    <section className="eventDetailSideCard">
+                      <h2>Event Details</h2>
+
+                      <div className="eventDetailInfoRow">
+                        <div className="eventDetailInfoIcon">
+                          📅
+                        </div>
+
+                        <div>
+                          <span>Start</span>
+                          <strong>
+                            {formatDateTime(selectedEvent.start_time)}
+                          </strong>
+
+                          {selectedEvent.end_time ? (
+                            <>
+                              <span className="eventDetailInfoSub">
+                                End
+                              </span>
+
+                              <strong>
+                                {formatDateTime(selectedEvent.end_time)}
+                              </strong>
+                            </>
+                          ) : null}
+                        </div>
                       </div>
-                    )}
 
-                    <div className="uep-joinedRow">
-                      <div className="uep-joinedLabel">
-                        {loadingParticipants
-                          ? "Loading…"
-                          : `${participants.length || participantsCount || Number(selectedEvent?.booked_count) || 0} joined`}
+                      <div className="eventDetailInfoRow">
+                        <div className="eventDetailInfoIcon cyan">
+                          ⌖
+                        </div>
+
+                        <div>
+                          <span>Location</span>
+
+                          <strong>
+                            {selectedEvent.location ||
+                              selectedEvent.venue ||
+                              selectedEvent.meeting_link ||
+                              "Online"}
+                          </strong>
+                        </div>
                       </div>
+                    </section>
 
-                      <div className="uep-avatarsCompact">
-                        {participants && participants.length > 0 ? (
-                          participants.map((p, index) => {
-                            const displayName =
-                              p?.name ||
-                              `${p?.first_name || ""} ${p?.last_name || ""}`.trim() ||
-                              p?.email ||
-                              "User";
-
-                            return (
-                              <div
-                                key={p?.id || index}
-                                className="uep-avatarCompact"
-                                title={displayName}
-                              >
-                                <span>{getInitials(displayName)}</span>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div className="uep-avatarCompact">
-                            <span>{getInitials(selectedEvent?.created_by_email || "U")}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="uep-detailActions">
-                      {canEditEvent(selectedEvent) && !isEventFinished(selectedEvent) && (
-                        <button
-                          type="button"
-                          className="uep-btn uep-btnPrimary"
-                          onClick={() => openEdit(selectedEvent)}
-                        >
-                          Засах
-                        </button>
-                      )}
-
-                      {mode === "history" ? (
-                        <button
-                          type="button"
-                          className="uep-btn uep-btnPrimary"
-                          onClick={() => setSelectedEventId(null)}
-                        >
-                          Буцах
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="uep-btn uep-btnPrimary"
-                          onClick={() => handleBook(selectedEvent)}
-                          disabled={bookedIds.includes(Number(selectedEvent.id))}
-                        >
-                          {bookedIds.includes(Number(selectedEvent.id)) ? "Бүртгэлтэй" : "Бүртгүүлэх"}
-                        </button>
-                      )}
-                    </div>
-
-                    {isEventFinished(selectedEvent) && (
-                      <div className="uep-filesBox">
-                        <h4 className="uep-filesTitle">Файлууд (эвент дууссаны дараа)</h4>
-
-                        <div className="uep-filesUploadRow">
-                          <input ref={fileInputRef} type="file" className="uep-fileInput" multiple />
+                    <section className="eventDetailActionsCard">
+                      {canEditEvent(selectedEvent) ? (
+                        <>
+                          <button
+                            type="button"
+                            className="eventDetailManageBtn"
+                            onClick={() => openEdit(selectedEvent)}
+                          >
+                            Manage Event
+                          </button>
 
                           <button
                             type="button"
-                            className="uep-btn uep-btnPrimary"
-                            onClick={handleUploadFinishedFile}
-                            disabled={uploadingFile}
+                            className="eventDetailEditBtn"
+                            onClick={() => openEdit(selectedEvent)}
                           >
-                            {uploadingFile ? "Оруулж байна..." : "Оруулах"}
+                            Edit Details
                           </button>
-                        </div>
 
-                        {filesLoading ? (
-                          <div className="uep-emptyMini">Файлууд уншиж байна...</div>
-                        ) : eventFiles.length === 0 ? (
-                          <div className="uep-emptyMini">
-                            {isSelectedBooked ? "Файл байхгүй байна." : "Эвентийг бүртгүүлж файлуудыг харна уу."}
-                          </div>
-                        ) : (
-                          <>
-                            {imageFiles.length > 0 && (
-                              <div className="uep-gallery" role="list">
-                                {imageFiles.slice(0, 6).map((f, idx) => (
-                                  <button
-                                    key={f.id}
-                                    type="button"
-                                    className="uep-thumb"
-                                    title={f.name}
-                                    onClick={() => openLightboxAt(idx)}
-                                    role="listitem"
-                                  >
-                                    <img
-                                      src={f.url}
-                                      alt={f.name}
-                                      className="uep-thumbImg"
-                                      loading="lazy"
-                                      onError={(e) => (e.currentTarget.src = fallbackImgSrc())}
-                                    />
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-
-                            {nonImageFiles.length > 0 && (
-                              <div className="uep-filesList">
-                                {nonImageFiles.map((f) => {
-                                  const name = f.original_name || "file";
-
-                                  return (
-                                    <button
-                                      key={f.id}
-                                      type="button"
-                                      className="uep-fileRow"
-                                      onClick={() => downloadFile(f.url, name)}
-                                      title={name}
-                                    >
-                                      <span className="uep-fileRowName">{name}</span>
-                                      <span className="uep-fileRowMeta">{f.uploaded_by_email || ""}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                          <button
+                            type="button"
+                            className="eventDetailAttendeesBtn"
+                          >
+                            View Attendees
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className="eventDetailManageBtn"
+                          onClick={() => handleBook(selectedEvent)}
+                          disabled={bookedIds.includes(
+                            Number(selectedEvent.id)
+                          )}
+                        >
+                          {bookedIds.includes(Number(selectedEvent.id))
+                            ? "Registered"
+                            : "Register"}
+                        </button>
+                      )}
+                    </section>
+                  </aside>
                 </div>
-
-                <p className="uep-detailDescBottom">
-                  {selectedEvent.description || "Бичсэн тайлбар байхгүй."}
-                </p>
               </div>
             ) : null}
 
             {showCreate ? (
-              <div className="uep-createOnly">
-                <div className="uep-createRightCard">
-                  <div className="uep-createRightHeader">
-                    <h4 className="uep-createRightTitle">
-                      {editingEventId ? "Эвент Засах" : "Эвент Зохиох"}
-                    </h4>
-                  </div>
-
-                  <form className="uep-formRight" onSubmit={handleCreate}>
-                    <div className="uep-row2">
-                      <label className="uep-labelDark">
-                        Гарчиг *
-                        <input
-                          className="uep-inputLight"
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          placeholder="Эвентийн гарчиг"
-                        />
-                      </label>
-
-                      <label className="uep-labelDark">
-                        Орох Хүмүүсийн Тоо
-                        <input
-                          className="uep-inputLight"
-                          type="number"
-                          value={max_participants}
-                          onChange={(e) => setMaxParticipants(e.target.value)}
-                          min="0"
-                          placeholder="0"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="uep-row2">
-                      <label className="uep-labelDark">
-                        Нууцлал
-                        <select
-                          className="uep-inputLight"
-                          value={visibility}
-                          onChange={(e) => setVisibility(e.target.value)}
-                        >
-                          <option value="public">Нийт</option>
-                          <option value="private">Нууцлал (линк)</option>
-                        </select>
-                      </label>
-                    </div>
-
-                    <label className="uep-labelDark">
-                      Тайлбар
-                      <textarea
-                        className="uep-textareaLight"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Эвентийн дэлгэрэнгүй тайлбар"
-                      />
-                    </label>
-
-                    <div className="uep-speakerBox">
-                      <span className="uep-labelDark">Элтгэгч</span>
-
-                      <div className="uep-speakersWrap">
-                        {speakers.map((sp, index) => {
-                          const preview =
-                            sp.avatar instanceof File
-                              ? URL.createObjectURL(sp.avatar)
-                              : resolveUrl(getSpeakerAvatar(sp));
-
-                          return (
-                            <div key={index} className="uep-speakerRow">
-                              <label className="uep-speakerAvatar">
-                                {preview ? <img src={preview} alt="speaker preview" /> : <span>+</span>}
-
-                                <input
-                                  type="file"
-                                  accept=".png,.jpg,.jpeg,.webp,.gif"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0] || null;
-
-                                    if (!file) {
-                                      handleSpeakerChange(index, "avatar", null);
-                                      return;
-                                    }
-
-                                    if (isSvgFile(file)) {
-                                      setErrMsg("SVG avatar оруулах боломжгүй.");
-                                      handleSpeakerChange(index, "avatar", null);
-                                      e.target.value = "";
-                                      return;
-                                    }
-
-                                    setErrMsg("");
-                                    handleSpeakerChange(index, "avatar", file);
-                                  }}
-                                />
-                              </label>
-
-                              <div className="uep-speakerFields">
-                                <input
-                                  className="uep-inputLight"
-                                  placeholder="Нэр"
-                                  value={sp.name || ""}
-                                  onChange={(e) => handleSpeakerChange(index, "name", e.target.value)}
-                                />
-
-                                <input
-                                  className="uep-inputLight"
-                                  placeholder="Байгууллага / Бусад"
-                                  value={sp.organization || ""}
-                                  onChange={(e) =>
-                                    handleSpeakerChange(index, "organization", e.target.value)
-                                  }
-                                />
-
-                                <input
-                                  className="uep-inputLight"
-                                  placeholder="Сэдэв"
-                                  value={sp.topic || ""}
-                                  onChange={(e) => handleSpeakerChange(index, "topic", e.target.value)}
-                                />
-                              </div>
-
-                              <div className="uep-speakerActions">
-                                {speakers.length > 1 && (
-                                  <button
-                                    type="button"
-                                    className="icon-btn"
-                                    onClick={() => removeSpeaker(index)}
-                                    title="delete speaker"
-                                  >
-                                    <img src="/assets/delete.png" alt="delete" />
-                                  </button>
-                                )}
-
-                                {index === speakers.length - 1 && (
-                                  <button
-                                    type="button"
-                                    className="uep-btn uep-btnPrimary"
-                                    onClick={addSpeaker}
-                                  >
-                                    +
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="uep-labelDark">
-                      <span>Хөтөлбөр</span>
-
-                      <div className="uep-agendaWrap">
-                        {agendas.map((item, index) => (
-                          <div key={index} className="uep-agendaItem">
-                            <div className="uep-agendaRow">
-                              <input
-                                className="uep-inputLight uep-agendaTime"
-                                type="time"
-                                value={item.time || ""}
-                                onChange={(e) => handleAgendaChange(index, "time", e.target.value)}
-                              />
-
-                              <textarea
-                                className="uep-textareaLight uep-agendaText"
-                                value={item.text || ""}
-                                onChange={(e) => handleAgendaChange(index, "text", e.target.value)}
-                                placeholder="Хөтөлбөр тайлбар"
-                              />
-                            </div>
-
-                            <div className="uep-agendaActions">
-                              {agendas.length > 1 && (
-                                <button
-                                  type="button"
-                                  className="icon-btn"
-                                  onClick={() => removeAgendaItem(index)}
-                                  title="delete agenda"
-                                >
-                                  <img src="/assets/delete.png" alt="delete" />
-                                </button>
-                              )}
-
-                              {index === agendas.length - 1 && (
-                                <button
-                                  type="button"
-                                  className="uep-btn uep-btnPrimary"
-                                  onClick={addAgendaItem}
-                                >
-                                  +
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="uep-row2">
-                      <label className="uep-labelDark">
-                        Эхлэх цаг *
-                        <input
-                          className="uep-inputLight"
-                          type="datetime-local"
-                          value={start_time}
-                          min={editingEventId ? undefined : minDateTime}
-                          onChange={(e) => {
-                            const nextStart = e.target.value;
-
-                            if (!editingEventId && nextStart && nextStart < minDateTime) {
-                              setErrMsg("Өнгөрсөн огноо сонгох боломжгүй.");
-                              setStartTime("");
-                              return;
-                            }
-
-                            setErrMsg("");
-                            setStartTime(nextStart);
-
-                            if (end_time && nextStart && end_time < nextStart) {
-                              setEndTime("");
-                            }
-                          }}
-                        />
-                      </label>
-
-                      <label className="uep-labelDark">
-                        Дуусах цаг
-                        <input
-                          className="uep-inputLight"
-                          type="datetime-local"
-                          value={end_time}
-                          min={start_time || minDateTime}
-                          onChange={(e) => {
-                            const nextEnd = e.target.value;
-
-                            if (start_time && nextEnd && nextEnd < start_time) {
-                              setErrMsg("Дуусах цаг эхлэх цагаас өмнө байж болохгүй.");
-                              setEndTime("");
-                              return;
-                            }
-
-                            setErrMsg("");
-                            setEndTime(nextEnd);
-                          }}
-                          disabled={!start_time}
-                        />
-                      </label>
-                    </div>
-                    <label className="uep-labelDark fileUpload">
-                      Эвент Зураг (оруулах)
-
-                      <div className="fileUpload__box">
-                        <span className="fileUpload__btn">Зураг сонгох</span>
-
-                        <span className="fileUpload__text">
-                          {imageFile
-                            ? imageFile.name
-                            : editingEventId
-                              ? "Шинэ зураг сонгоогүй"
-                              : "Файл сонгогдоогүй"}
-                        </span>
-
-                        <input
-                          type="file"
-                          accept=".png,.jpg,.jpeg,.webp,.gif"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-
-                            if (!file) {
-                              setImageFile(null);
-                              return;
-                            }
-
-                            /* BLOCK SVG */
-                            if (
-                              file.type === "image/svg+xml" ||
-                              file.name.toLowerCase().endsWith(".svg")
-                            ) {
-                              setErrMsg("SVG зураг оруулах боломжгүй.");
-                              setImageFile(null);
-                              e.target.value = "";
-                              return;
-                            }
-
-                            setErrMsg("");
-                            setImageFile(file);
-                          }}
-                        />
-                      </div>
-                    </label>
-
-                    {inviteLink ? (
-                      <div className="uep-inviteBox">
-                        <div className="uep-inviteTitle">Урилга линк</div>
-
-                        <div className="uep-inviteRow">
-                          <input className="uep-inputLight" value={inviteLink} readOnly />
-
-                          <button
-                            type="button"
-                            className="uep-btn uep-btnPrimary"
-                            onClick={async () => {
-                              try {
-                                await navigator.clipboard.writeText(inviteLink);
-                                setSuccessMsg("Invite link copied ✅");
-                                setTimeout(() => setSuccessMsg(""), 1200);
-                              } catch {
-                                setErrMsg("Copy failed.");
-                              }
-                            }}
-                          >
-                            Хуулах
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <div className="uep-actions">
-                      <button type="button" className="uep-cancelBtn" onClick={closeCreate}>
-                        Цуцлах
-                      </button>
-
-                      <button
-                        type="submit"
-                        className="uep-createBtn"
-                        disabled={creating}
-                      >
-                        {creating
-                          ? editingEventId
-                            ? "Засаж байна..."
-                            : "Бүтээж байна..."
-                          : editingEventId
-                            ? "Хадгалах"
-                            : "Бүтээх"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
+              <EventCreateWizard
+                key={editingEventId || "new-event"}
+                editingEventId={editingEventId}
+                title={title}
+                setTitle={setTitle}
+                description={description}
+                setDescription={setDescription}
+                speakers={speakers}
+                handleSpeakerChange={handleSpeakerChange}
+                addSpeaker={addSpeaker}
+                removeSpeaker={removeSpeaker}
+                agendas={agendas}
+                handleAgendaChange={handleAgendaChange}
+                addAgendaItem={addAgendaItem}
+                removeAgendaItem={removeAgendaItem}
+                start_time={start_time}
+                setStartTime={setStartTime}
+                end_time={end_time}
+                setEndTime={setEndTime}
+                image_url={image_url}
+                setImageUrl={setImageUrl}
+                imageFile={imageFile}
+                setImageFile={setImageFile}
+                max_participants={max_participants}
+                setMaxParticipants={setMaxParticipants}
+                visibility={visibility}
+                setVisibility={setVisibility}
+                creating={creating}
+                errMsg={errMsg}
+                setErrMsg={setErrMsg}
+                successMsg={successMsg}
+                minDateTime={minDateTime}
+                resolveUrl={resolveUrl}
+                getSpeakerAvatar={getSpeakerAvatar}
+                isSvgFile={isSvgFile}
+                handleCreate={handleCreate}
+                closeCreate={closeCreate}
+              />
             ) : null}
 
             {!showCreate && !selectedEvent ? (
               <>
                 <div className="uep-rightHeader">
-                  <h3 className="uep-rightTitle">{mode === "history" ? "Түүх" : "Бүх Эвент"}</h3>
+                  <h3 className="uep-rightTitle">
+                    {mode === "history" ? "Түүх" : "All Events"}
+                  </h3>
 
-                  <div style={{ display: "flex", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
                     {mode === "history" && (
-                      <button className="uep-refreshBtn" onClick={() => setMode("all")} type="button">
-                        Бүх эвент
+                      <button
+                        className="uep-refreshBtn"
+                        onClick={() => setMode("all")}
+                        type="button"
+                      >
+                        All Events
                       </button>
+                    )}
+
+                    {mode !== "history" && (
+                      <span className="uep-refreshBtn">
+                        {visibleEvents.length} events
+                      </span>
                     )}
 
                     <button
                       className="uep-refreshBtn"
                       onClick={async () => {
-                        if (mode === "history") await fetchHistory();
-                        else await fetchEvents();
+                        if (mode === "history") {
+                          await fetchHistory();
+                        } else {
+                          await fetchEvents();
+                        }
 
                         await fetchMyBookedIds();
                         await fetchMyEvents();

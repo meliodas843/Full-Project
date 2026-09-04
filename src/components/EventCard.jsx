@@ -1,104 +1,147 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { API_BASE } from "@/lib/config";
+import {
+  FaCalendarDays,
+  FaLocationDot,
+  FaUsers,
+} from "react-icons/fa6";
+import { getImageSrc } from "../lib/config";
+import eventFallback from "../assets/event.png";
 
-function formatDateTime(dt) {
-  if (!dt) return "";
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString("en-US", {
+function formatDate(value) {
+  if (!value) return "";
+
+  const d = new Date(value);
+
+  if (Number.isNaN(d.getTime())) return "";
+
+  return d.toLocaleDateString("mn-MN", {
     year: "numeric",
-    month: "numeric",
+    month: "short",
     day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
   });
 }
 
-function getImageSrc(image_url) {
-  const u = String(image_url || "").trim();
-  if (!u) return "https://via.placeholder.com/900x600";
-  if (u.startsWith("http://") || u.startsWith("https://")) return u;
-  const normalized = u.startsWith("/") ? u : `/${u}`;
-  return `${API_BASE}${normalized}`;
+function getCategory(event) {
+  const text = `${event?.title || ""} ${event?.description || ""}`.toLowerCase();
+
+  if (
+    text.includes("security") ||
+    text.includes("cyber") ||
+    text.includes("аюулгүй")
+  ) {
+    return "Security";
+  }
+
+  if (text.includes("cloud")) return "Cloud";
+  if (
+    text.includes("ai") ||
+    text.includes("machine learning") ||
+    text.includes("artificial")
+  ) {
+    return "AI/ML";
+  }
+
+  if (text.includes("frontend") || text.includes("react")) return "Frontend";
+  if (text.includes("data")) return "Data";
+
+  return "DevOps";
 }
 
 export default function EventCard({ event, onBook, onOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [msg, setMsg] = useState("");
 
-  const joined = Number(event.booked_count) || 0;
-  const max = Number(event.max_participants) || 0;
+  const joined = Number(event?.booked_count || 0);
+  const capacity = Number(event?.max_participants || 0);
 
-  const capacityText = useMemo(() => {
-    if (max <= 0) return `${joined} joined (Unlimited)`;
-    return `${joined} / ${max} joined`;
-  }, [joined, max]);
+  const remaining = Math.max(0, capacity - joined);
 
-  function handleCardClick() {
-    if (typeof onOpen === "function") onOpen(event);
-  }
+  const percentage = useMemo(() => {
+    if (!capacity) return Math.min(100, joined ? 50 : 0);
+    return Math.min(100, Math.round((joined / capacity) * 100));
+  }, [joined, capacity]);
 
-  function handleBookClick(e) {
-    e.stopPropagation(); 
-    setMsg("");
+  function join(e) {
+    e.stopPropagation();
 
     const token = localStorage.getItem("token");
+
     if (!token) {
-      navigate("/login", { replace: true, state: { from: location.pathname } });
+      navigate("/login", {
+        state: {
+          from: location.pathname,
+        },
+      });
       return;
     }
 
-    if (typeof onBook !== "function") {
-      setMsg("Booking handler is missing.");
-      return;
-    }
-
-    onBook(event);
+    onBook?.(event);
   }
 
   return (
-    <div className="evCard" role="button" tabIndex={0} onClick={handleCardClick}
-      onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
+    <article
+      className="riEventCard"
+      onClick={() => onOpen?.(event)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onOpen?.(event);
+      }}
     >
-      {/* IMAGE */}
-      <div className="evCardImgWrap">
+      <div className="riEventCardImage">
         <img
-          className="evCardImg"
-          src={getImageSrc(event.image_url)}
-          alt={event.title || "Event"}
-          loading="lazy"
-          onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/900x600")}
+          src={
+            event?.image_url
+              ? getImageSrc(event.image_url, eventFallback)
+              : eventFallback
+          }
+          alt={event?.title || "Event"}
+          onError={(e) => {
+            e.currentTarget.src = eventFallback;
+          }}
         />
-        <div className="evCardPill">
-          <span className="evCardIcon">📅</span>
-          {formatDateTime(event.start_time)}
-        </div>
+
+        <span className={`riCategory ${getCategory(event).toLowerCase()}`}>
+          {getCategory(event)}
+        </span>
       </div>
 
-      {/* BODY */}
-      <div className="evCardBody">
-        <div className="evCardTitleRow">
-          <h3 className="evCardTitle">{event.title || "Untitled event"}</h3>
-          {event.visibility === "private" ? <span className="evCardPrivate">Тусгай</span> : null}
+      <div className="riEventCardBody">
+        <h3>{event?.title || "Untitled event"}</h3>
+
+        <div className="riEventMeta">
+          <span>
+            <FaCalendarDays />
+            {formatDate(event?.start_time)}
+          </span>
+
+          <span>
+            <FaLocationDot />
+            {event?.location ||
+              event?.venue ||
+              event?.address ||
+              "Улаанбаатар"}
+          </span>
         </div>
 
-        <p className="evCardDesc">{event.description || "No description."}</p>
-
-        <div className="evCardFooter">
-          <div className="evCardMeta">
-            <span className="evCardMetaIcon">👥</span>
-            <span>{capacityText}</span>
-          </div>
-
-          <button className="evCardBtn" type="button" onClick={handleBookClick}>
-            Оролцох
-          </button>
+        <div className="riEventProgress">
+          <span style={{ width: `${percentage}%` }} />
         </div>
 
-        {msg ? <div className="evCardMsg">{msg}</div> : null}
+        <div className="riEventCardBottom">
+          <span>
+            <FaUsers />
+            {joined} бүртгүүлсэн
+          </span>
+
+          {capacity > 0 && <span>{remaining} суудал үлдсэн</span>}
+        </div>
+
+        <button type="button" className="riEventJoin" onClick={join}>
+          Оролцох
+        </button>
       </div>
-    </div>
+    </article>
   );
 }

@@ -1,46 +1,78 @@
-import logo from "../assets/registra-logo-def.png";
-const Footer = () => {
+import { Link } from "react-router-dom";
+import {
+  FaFacebookF,
+  FaLinkedinIn,
+  FaGithub,
+  FaInstagram,
+} from "react-icons/fa6";
+
+export default function Footer() {
   return (
-    <footer className="appFooter">
-      <div className="appFooter__container">
-        <div className="appFooter__grid">
-          <div className="appFooter__brand">
-            <div className="appFooter__logo">
-              <img src={logo} alt="Registra" />
-            </div>
+    <footer className="riFooter">
+      <div className="riContainer">
+        <div className="riFooterGrid">
+          <div className="riFooterBrand">
+            <Link to="/" className="riBrand">
+              <span className="riBrandIcon">★</span>
+              <span className="riBrandText">
+                <strong>Khural Plus</strong>
+                <small>REGISTRA</small>
+              </span>
+            </Link>
+
             <p>
-              Building modern solutions for modern teams.
+              Орчин үеийн эвэнт, хурал, уулзалтын бүртгэл болон удирдлагын
+              нэгдсэн платформ.
             </p>
+
+            <div className="riFooterSocials">
+              <a href="#" aria-label="Facebook">
+                <FaFacebookF />
+              </a>
+              <a href="#" aria-label="LinkedIn">
+                <FaLinkedinIn />
+              </a>
+              <a href="#" aria-label="Github">
+                <FaGithub />
+              </a>
+              <a href="#" aria-label="Instagram">
+                <FaInstagram />
+              </a>
+            </div>
           </div>
-          <div className="appFooter__col">
-            <h4>Product</h4>
-            <ul>
-              <li><a href="#">Features</a></li>
-              <li><a href="#">Pricing</a></li>
-              <li><a href="#">Security</a></li>
-            </ul>
+
+          <div className="riFooterColumn">
+            <h4>ХОЛБООС</h4>
+            <Link to="/">Нүүр</Link>
+            <Link to="/events">Эвэнт</Link>
+            <Link to="/news">Мэдээ</Link>
           </div>
-          <div className="appFooter__col">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="#">About</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="#">Contact</a></li>
-            </ul>
+
+          <div className="riFooterColumn">
+            <h4>ҮЙЛЧИЛГЭЭ</h4>
+            <a href="#features">Боломжууд</a>
+            <a href="#how-it-works">Хэрхэн ажиллах</a>
+            <a href="#pricing">Багц</a>
+            <a href="#testimonials">Сэтгэгдэл</a>
           </div>
-          <div className="appFooter__col">
-            <h4>Legal</h4>
-            <ul>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-            </ul>
+
+          <div className="riFooterColumn">
+            <h4>ХОЛБОО БАРИХ</h4>
+            <span>hello@khuralplus.mn</span>
+            <span>+976 7000 0000</span>
+            <span>Улаанбаатар, Монгол</span>
           </div>
         </div>
-        <div className="appFooter__bottom">
-          © {new Date().getFullYear()} Registra. All rights reserved.
+
+        <div className="riFooterBottom">
+          <span>© {new Date().getFullYear()} Khural Plus. All rights reserved.</span>
+
+          <div>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+          </div>
         </div>
       </div>
     </footer>
   );
-};
-export default Footer;
+}

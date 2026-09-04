@@ -1,703 +1,690 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiCalendar,
+} from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
 
 function resolveUrl(url) {
-  const u = String(url || "").trim();
-  if (!u) return "";
-  if (u.startsWith("http://") || u.startsWith("https://")) return u;
-  return `${API_BASE}${u.startsWith("/") ? u : `/${u}`}`;
+  const value = String(url || "").trim();
+
+  if (!value) {
+    return "";
+  }
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  return `${API_BASE}${
+    value.startsWith("/") ? value : `/${value}`
+  }`;
 }
 
 function fallbackImg() {
   return `${API_BASE}/uploads/fallbacks/event-placeholder.png`;
 }
 
-function formatDateTime(dt) {
-  if (!dt) return "";
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString("mn-MN", {
+function parseDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatEventDate(value) {
+  const date = parseDate(value);
+
+  if (!date) {
+    return "";
+  }
+
+  return date.toLocaleString("en-US", {
     timeZone: "Asia/Ulaanbaatar",
+    month: "short",
+    day: "numeric",
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
   });
 }
 
-function formatMonthLabel(date) {
+function monthTitle(date) {
   return date.toLocaleDateString("en-US", {
-    year: "numeric",
     month: "long",
-    timeZone: "Asia/Ulaanbaatar",
+    year: "numeric",
   });
 }
 
-function toDateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function toKey(date) {
+  const year = date.getFullYear();
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
-function dateKeyFromValue(dt) {
-  if (!dt) return "";
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return "";
-  return toDateKey(d);
+function dateKey(value) {
+  const date = parseDate(value);
+
+  if (!date) {
+    return "";
+  }
+
+  return toKey(date);
 }
 
-function isSameDay(a, b) {
-  return toDateKey(a) === toDateKey(b);
-}
-
-function buildCalendarCells(viewDate) {
+function calendarCells(viewDate) {
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const startWeekday = firstDay.getDay();
-  const mondayOffset = startWeekday === 0 ? 6 : startWeekday - 1;
-  const gridStart = new Date(year, month, 1 - mondayOffset);
 
-  return Array.from({ length: 42 }, (_, i) => {
-    const cellDate = new Date(gridStart);
-    cellDate.setDate(gridStart.getDate() + i);
+  const first = new Date(
+    year,
+    month,
+    1,
+  );
 
-    return {
-      date: cellDate,
-      key: toDateKey(cellDate),
-      inCurrentMonth: cellDate.getMonth() === month,
-      isToday: isSameDay(cellDate, new Date()),
-    };
-  });
+  const weekday =
+    first.getDay() === 0
+      ? 6
+      : first.getDay() - 1;
+
+  const start = new Date(
+    year,
+    month,
+    1 - weekday,
+  );
+
+  return Array.from(
+    { length: 42 },
+    (_, index) => {
+      const date = new Date(start);
+
+      date.setDate(
+        start.getDate() + index,
+      );
+
+      return {
+        date,
+        key: toKey(date),
+        current:
+          date.getMonth() === month,
+      };
+    },
+  );
+}
+
+function normalizeArray(data) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  if (Array.isArray(data?.items)) {
+    return data.items;
+  }
+
+  return [];
 }
 
 export default function Home() {
-  const [meetings, setMeetings] = useState([]);
-  const [requests, setRequests] = useState({ pending: [], accepted: [] });
-  const [loadingMeetings, setLoadingMeetings] = useState(true);
-  const [loadingRequests, setLoadingRequests] = useState(true);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [err, setErr] = useState("");
-
-  const [viewDate, setViewDate] = useState(new Date());
-  const [selectedDateKey, setSelectedDateKey] = useState(toDateKey(new Date()));
   const navigate = useNavigate();
 
-  function goEventDetail(ev) {
-    navigate(`/user/event?eventId=${ev.id}`);
-  }
+  const [events, setEvents] =
+    useState([]);
 
-  async function loadMeetings() {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const [pending, setPending] =
+    useState([]);
 
-    setLoadingMeetings(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/events/my-joined`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json().catch(() => []);
+  const [accepted, setAccepted] =
+    useState([]);
 
-      const list = res.ok && Array.isArray(data) ? data : [];
+  const [loading, setLoading] =
+    useState(true);
 
-      const activeOnly = list.filter((ev) => {
-        if (!ev?.end_time) return true;
+  const [selectedDate, setSelectedDate] =
+    useState(() => new Date());
 
-        const end = new Date(ev.end_time).getTime();
+  const [viewDate, setViewDate] =
+    useState(() => {
+      const today = new Date();
 
-        return Number.isFinite(end) && end > Date.now();
-      });
-
-      setMeetings(activeOnly);
-    } catch (e) {
-      console.error(e);
-      setErr("Эвентүүд уншихад алдаа гарлаа.");
-      setMeetings([]);
-    } finally {
-      setLoadingMeetings(false);
-    }
-  }
-
-  async function loadRequests() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
-  setLoadingRequests(true);
-  try {
-    const [inboxRes, acceptedRes] = await Promise.all([
-      fetch(`${API_BASE}/api/meetings/inbox`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-      fetch(`${API_BASE}/api/meetings/accepted`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-    ]);
-
-    const inbox = await inboxRes.json().catch(() => []);
-    const accepted = await acceptedRes.json().catch(() => []);
-
-    setRequests({
-      pending: Array.isArray(inbox)
-        ? inbox.filter((r) => r.status === "pending")
-        : [],
-      accepted: Array.isArray(accepted) ? accepted : [],
-    });
-  } catch (e) {
-    console.error(e);
-    setErr("Хүсэлтүүд уншихад алдаа гарлаа.");
-    setRequests({ pending: [], accepted: [] });
-  } finally {
-    setLoadingRequests(false);
-  }
-}
-
-  useEffect(() => {
-    loadMeetings();
-    loadRequests();
-  }, []);
-
-async function acceptRequest(id) {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    setErr("Please login first.");
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `${API_BASE}/api/meetings/${id}/accept`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      setErr(data?.message || "Accept failed");
-      return;
-    }
-
-    // refresh everything
-    await Promise.all([
-      loadRequests(),
-      loadMeetings(),
-    ]);
-
-    setSuccessMsg("Хэрэглэгч нэмэгдлээ ✅");
-
-  } catch (e) {
-    console.error(e);
-    setErr("Accept network error.");
-  }
-}
-
-async function declineRequest(id) {
-  const token = localStorage.getItem("token");
-  if (!token) return setErr("Please login first.");
-
-  try {
-    const res = await fetch(`${API_BASE}/api/meetings/${id}/decline`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data = await res.json().catch(() => ({}));
-    console.log("DECLINE RESPONSE:", res.status, data);
-
-    if (!res.ok) {
-      setErr(data?.message || `Decline failed: ${res.status}`);
-      return;
-    }
-
-    // instantly remove from pending
-    setRequests((prev) => ({
-      ...prev,
-      pending: prev.pending.filter((r) => r.id !== id),
-    }));
-
-    await loadRequests();
-  } catch (e) {
-    console.error("DECLINE ERROR:", e);
-    setErr("Decline network error.");
-  }
-}
-
-  const calendarEvents = useMemo(() => {
-    const meetingItems = meetings.map((ev) => {
-    const isMeeting =
-      ev.type === "meeting" ||
-      ev.is_meeting === true ||
-      ev.zoom_join_url;
-
-    return {
-      id: `${isMeeting ? "meeting" : "event"}-${ev.id}`,
-
-      source: isMeeting ? "meeting" : "event",
-
-      title: ev.title || (isMeeting ? "Уулзалт" : "Эвент"),
-
-      description: ev.description || "",
-
-      image_url: ev.image_url || "",
-
-      start_time: ev.start_time,
-
-      end_time: ev.end_time,
-
-      raw: ev,
-    };
-  });
-
-    const acceptedItems = (requests.accepted || []).map((r) => {
-  const isEventJoin =
-    r.request_type === "event_join" || r.event_id;
-
-  return {
-    id: `accepted-${r.id}`,
-    source: isEventJoin ? "event" : "meeting",
-    title: r.title || (isEventJoin ? "Эвент" : "Уулзалт"),
-    description: r.description || "",
-    image_url: r.image_url || "",
-    start_time: r.start_time,
-    end_time: r.end_time,
-    raw: r,
-  };
-});
-
-    return [...meetingItems, ...acceptedItems].sort(
-      (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0)
-    );
-  }, [meetings, requests.accepted]);
-
-  const eventsByDate = useMemo(() => {
-    const map = {};
-    for (const item of calendarEvents) {
-      const key = dateKeyFromValue(item.start_time);
-      if (!key) continue;
-      if (!map[key]) map[key] = [];
-      map[key].push(item);
-    }
-
-    Object.keys(map).forEach((key) => {
-      map[key].sort(
-        (a, b) => new Date(a.start_time || 0) - new Date(b.start_time || 0)
+      return new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1,
       );
     });
 
-    return map;
-  }, [calendarEvents]);
+  async function loadDashboard() {
+    const token =
+      localStorage.getItem("token");
 
-  const calendarCells = useMemo(() => buildCalendarCells(viewDate), [viewDate]);
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+      });
 
-  const selectedDayEvents = useMemo(() => {
-    return eventsByDate[selectedDateKey] || [];
-  }, [eventsByDate, selectedDateKey]);
+      return;
+    }
 
-  function goPrevMonth() {
-    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setLoading(true);
+
+    try {
+      const [
+        eventResponse,
+        inboxResponse,
+        acceptedResponse,
+      ] = await Promise.all([
+        fetch(
+          `${API_BASE}/api/events/my-joined`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+        fetch(
+          `${API_BASE}/api/meetings/inbox`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+        fetch(
+          `${API_BASE}/api/meetings/accepted`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      ]);
+
+      const eventData =
+        await eventResponse
+          .json()
+          .catch(() => []);
+
+      const inboxData =
+        await inboxResponse
+          .json()
+          .catch(() => []);
+
+      const acceptedData =
+        await acceptedResponse
+          .json()
+          .catch(() => []);
+
+      const joined =
+        eventResponse.ok
+          ? normalizeArray(eventData)
+          : [];
+
+      setEvents(
+        joined
+          .filter((event) => {
+            const end = parseDate(
+              event.end_time ||
+                event.start_time,
+            );
+
+            if (!end) {
+              return true;
+            }
+
+            return (
+              end.getTime() >= Date.now()
+            );
+          })
+          .sort(
+            (a, b) =>
+              new Date(
+                a.start_time || 0,
+              ) -
+              new Date(
+                b.start_time || 0,
+              ),
+          ),
+      );
+
+      setPending(
+        normalizeArray(
+          inboxData,
+        ).filter(
+          (item) =>
+            item.status === "pending",
+        ),
+      );
+
+      setAccepted(
+        normalizeArray(acceptedData),
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function goNextMonth() {
-    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const upcoming =
+    events[0] || null;
+
+  const allCalendarItems =
+    useMemo(() => {
+      return [
+        ...events.map((event) => ({
+          ...event,
+          calendarType: "event",
+        })),
+        ...accepted.map(
+          (meeting) => ({
+            ...meeting,
+            calendarType: "meeting",
+          }),
+        ),
+      ];
+    }, [events, accepted]);
+
+  const itemsByDate =
+    useMemo(() => {
+      const map = {};
+
+      allCalendarItems.forEach(
+        (item) => {
+          const key = dateKey(
+            item.start_time,
+          );
+
+          if (!key) {
+            return;
+          }
+
+          if (!map[key]) {
+            map[key] = [];
+          }
+
+          map[key].push(item);
+        },
+      );
+
+      return map;
+    }, [allCalendarItems]);
+
+  const cells = useMemo(
+    () => calendarCells(viewDate),
+    [viewDate],
+  );
+
+  const selectedItems =
+    itemsByDate[
+      toKey(selectedDate)
+    ] || [];
+
+  function prevMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() - 1,
+          1,
+        ),
+    );
   }
 
-  function goToday() {
-    const today = new Date();
-    setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
-    setSelectedDateKey(toDateKey(today));
+  function nextMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() + 1,
+          1,
+        ),
+    );
   }
-
-  const weekdayLabels = ["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"];
 
   return (
-  <UserShell title="Khural Plus+">
-  <main className="home-main-fixed">
+    <UserShell title="Нүүр">
+      <main className="rgHomePage">
+        <div className="rgHomeMain">
+          <section className="rgDashboardCard rgUpcomingCard">
+            <div className="rgDashboardCardHeader">
+              <div>
+                <h2>
+                  Удахгүй болох эвэнт
+                </h2>
+              </div>
 
-    {err && <div className="uep-error">{err}</div>}
+              <div className="rgSliderCount">
+                <button type="button">
+                  <FiChevronLeft />
+                </button>
 
-    {successMsg && (
-      <div className="home-success">
-        {successMsg}
-      </div>
-    )}
+                <span>
+                  {events.length
+                    ? `1/${events.length}`
+                    : "0/0"}
+                </span>
 
-    <div className="dashboard-layout">
-
-      {/* LEFT SIDE */}
-      <div className="dashboard-left">
-
-        {/* EVENTS */}
-        <section className="card events-card">
-          <div className="card-head meetings-head">
-            <h2 className="card-title">Эвентүүд</h2>
-
-            <div className="slider-actions">
-              <button
-                type="button"
-                onClick={() =>
-                  document
-                    .querySelector(".meetings-slider")
-                    ?.scrollBy({ left: -320, behavior: "smooth" })
-                }
-              >
-                ‹
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  document
-                    .querySelector(".meetings-slider")
-                    ?.scrollBy({ left: 320, behavior: "smooth" })
-                }
-              >
-                ›
-              </button>
+                <button type="button">
+                  <FiChevronRight />
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="events-body">
-            {loadingMeetings ? (
-              <div className="empty">Уулзалт уншиж байна...</div>
-            ) : meetings.length === 0 ? (
-              <div className="empty">Уулзалт алга.</div>
+            {loading ? (
+              <div className="rgDashboardEmpty">
+                Уншиж байна...
+              </div>
+            ) : !upcoming ? (
+              <div className="rgDashboardEmpty">
+                Удахгүй болох эвэнт
+                байхгүй.
+              </div>
             ) : (
-              <div className="meetings-slider">
-                {meetings.map((ev) => (
-                  <div key={ev.id} className="meeting-card">
+              <div className="rgUpcomingEvent">
+                <div className="rgUpcomingImage">
+                  <img
+                    src={
+                      upcoming.image_url
+                        ? resolveUrl(
+                            upcoming.image_url,
+                          )
+                        : fallbackImg()
+                    }
+                    alt={
+                      upcoming.title ||
+                      "Event"
+                    }
+                    onError={(event) => {
+                      event.currentTarget.src =
+                        fallbackImg();
+                    }}
+                  />
+                </div>
 
-                    <img
-                      src={resolveUrl(ev.image_url) || fallbackImg()}
-                      alt={ev.title}
-                      onError={(e) =>
-                        (e.currentTarget.src = fallbackImg())
-                      }
-                    />
+                <div className="rgUpcomingBody">
+                  <div className="rgUpcomingTop">
+                    <div>
+                      <h3>
+                        {upcoming.title}
+                      </h3>
 
-                    <div className="meeting-body">
-                      <h4>{ev.title}</h4>
-
-                      <div className="meeting-time">
-                        {formatDateTime(ev.start_time)}
-                      </div>
-
-                      <p className="meeting-desc">
-                        {ev.description || "No description"}
-                      </p>
-
-                      <button
-                        type="button"
-                        className="event-see-more"
-                        onClick={() => goEventDetail(ev)}
-                      >
-                        Дэлгэрэнгүй
-                      </button>
+                      <span>
+                        {formatEventDate(
+                          upcoming.start_time,
+                        )}
+                      </span>
                     </div>
 
+                    <span className="rgRegisteredBadge">
+                      Бүртгэгдсэн
+                    </span>
                   </div>
-                ))}
+
+                  <p>
+                    {upcoming.description ||
+                      "Эвэнтийн дэлгэрэнгүй мэдээлэл."}
+                  </p>
+
+                  <button
+                    type="button"
+                    className="rgPurpleButton"
+                    onClick={() =>
+                      navigate(
+                        `/user/event?eventId=${upcoming.id}`,
+                      )
+                    }
+                  >
+                    Дэлгэрэнгүй
+                  </button>
+                </div>
               </div>
             )}
-          </div>
-        </section>
+          </section>
 
-        {/* CALENDAR */}
-        <section className="card calendar-card compact-calendar-card">
+          <section className="rgDashboardCard rgMiniCalendarCard">
+            <div className="rgCalendarHeader">
+              <div>
+                <h3>Календар</h3>
 
-          <div className="card-head calendar-head-clean">
-
-            <h2 className="card-title">Календар</h2>
-
-            <div className="calendar-toolbar">
-
-              <button
-                type="button"
-                className="calendar-nav-btn"
-                onClick={goPrevMonth}
-              >
-                ‹
-              </button>
-
-              <div className="calendar-month-label">
-                {formatMonthLabel(viewDate)}
+                <span>
+                  {monthTitle(viewDate)}
+                </span>
               </div>
 
-              <button
-                type="button"
-                className="calendar-nav-btn"
-                onClick={goNextMonth}
-              >
-                ›
-              </button>
+              <div className="rgCalendarLegend">
+                <span>
+                  <i className="event" />
+                  Events
+                </span>
 
-              <button
-                type="button"
-                className="calendar-today-btn"
-                onClick={goToday}
-              >
-                Өнөөдөр
-              </button>
-
-            </div>
-          </div>
-
-          <div className="calendar-legend">
-            <div className="legend-item">
-              <span className="legend-dot event"></span>
-              <span>Эвент</span>
+                <span>
+                  <i className="meeting" />
+                  Meetings
+                </span>
+              </div>
             </div>
 
-            <div className="legend-item">
-              <span className="legend-dot meeting"></span>
-              <span>Уулзалт</span>
-            </div>
-          </div>
-
-          <div className="calendar-shell">
-            <div className="calendar-layout compact">
-
-              <div className="calendar-grid-wrap compact">
-
-                <div className="calendar-weekdays compact">
-                  {weekdayLabels.map((day) => (
-                    <div key={day} className="calendar-weekday">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="calendar-grid compact">
-
-                  {calendarCells.map((cell) => {
-                    const dayEvents = eventsByDate[cell.key] || [];
-                    const isSelected = cell.key === selectedDateKey;
-
-                    return (
-                      <button
-                        key={cell.key}
-                        type="button"
-                        className={[
-                          "calendar-day",
-                          "compact",
-                          cell.inCurrentMonth ? "" : "is-other-month",
-                          cell.isToday ? "is-today" : "",
-                          isSelected ? "is-selected" : "",
-                          dayEvents.length > 0 ? "has-events" : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                        onClick={() => setSelectedDateKey(cell.key)}
+            <div className="rgMiniCalendarLayout">
+              <div>
+                <div className="rgMiniWeek">
+                  {[
+                    "M",
+                    "T",
+                    "W",
+                    "T",
+                    "F",
+                    "S",
+                    "S",
+                  ].map(
+                    (day, index) => (
+                      <span
+                        key={`${day}-${index}`}
                       >
-
-                        <div className="calendar-day-top">
-                          <span className="calendar-day-number">
-                            {cell.date.getDate()}
-                          </span>
-                        </div>
-
-                        <div className="calendar-dots compact">
-                          {dayEvents.some((ev) => ev.source === "event") && (
-                            <span className="calendar-dot event" />
-                          )}
-
-                          {dayEvents.some((ev) => ev.source === "meeting") && (
-                            <span className="calendar-dot meeting" />
-                          )}
-                        </div>
-
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="calendar-side compact">
-
-                <div className="calendar-side-head">
-                  {selectedDateKey}
+                        {day}
+                      </span>
+                    ),
+                  )}
                 </div>
 
-                {selectedDayEvents.length === 0 ? (
-                  <div className="calendar-empty">
-                    Энэ өдөрт эвент алга.
-                  </div>
-                ) : (
-                  <div className="calendar-event-list">
+                <div className="rgMiniDays">
+                  {cells.map(
+                    (cell) => {
+                      const hasItems =
+                        itemsByDate[
+                          cell.key
+                        ] || [];
 
-                    {selectedDayEvents.map((ev) => {
-                      const isMeeting = ev.source === "meeting";
+                      const active =
+                        cell.key ===
+                        toKey(
+                          selectedDate,
+                        );
 
                       return (
-                        <div
-                          key={ev.id}
-                          className={`calendar-event-item compact ${
-                            ev.source === "event"
-                              ? "event-style"
-                              : "meeting-style"
+                        <button
+                          type="button"
+                          key={cell.key}
+                          className={`${active ? "active" : ""} ${
+                            !cell.current
+                              ? "outside"
+                              : ""
                           }`}
+                          onClick={() =>
+                            setSelectedDate(
+                              cell.date,
+                            )
+                          }
                         >
+                          <span>
+                            {cell.date.getDate()}
+                          </span>
 
-                          <div
-                            className={`calendar-event-badge ${
-                              ev.source === "event"
-                                ? "event-badge"
-                                : "meeting-badge"
-                            }`}
-                          >
-                            {ev.source === "event"
-                              ? "Эвент"
-                              : "Уулзалт"}
-                          </div>
-
-                          <div className="calendar-event-title">
-                            {ev.title}
-                          </div>
-
-                          <div className="calendar-event-time">
-                            {formatDateTime(ev.start_time)}
-                          </div>
-
-                          <div className="calendar-event-desc">
-                            {ev.description || "Тайлбар байхгүй"}
-                          </div>
-
-                          {isMeeting ? (
-                            <a
-                              href={ev.raw?.zoom_join_url || "#"}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="join-meeting-btn"
-                            >
-                              Join Meeting
-                            </a>
-                          ) : (
-                            <button
-                              type="button"
-                              className="event-see-more small event-btn"
-                              onClick={() =>
-                                goEventDetail(ev.raw || ev)
-                              }
-                            >
-                              Дэлгэрэнгүй
-                            </button>
+                          {hasItems.length >
+                            0 && (
+                            <div className="rgCalendarDots">
+                              {hasItems
+                                .slice(
+                                  0,
+                                  2,
+                                )
+                                .map(
+                                  (
+                                    item,
+                                    index,
+                                  ) => (
+                                    <i
+                                      key={
+                                        index
+                                      }
+                                      className={
+                                        item.calendarType
+                                      }
+                                    />
+                                  ),
+                                )}
+                            </div>
                           )}
-
-                        </div>
+                        </button>
                       );
-                    })}
+                    },
+                  )}
+                </div>
+              </div>
+
+              <div className="rgSelectedDay">
+                <strong>
+                  {selectedDate.toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}
+                </strong>
+
+                {selectedItems.length ===
+                0 ? (
+                  <div>
+                    Энэ өдөр эвэнт
+                    байхгүй.
                   </div>
+                ) : (
+                  selectedItems
+                    .slice(0, 3)
+                    .map((item) => (
+                      <button
+                        type="button"
+                        key={`${item.calendarType}-${item.id}`}
+                        onClick={() => {
+                          if (
+                            item.calendarType ===
+                            "event"
+                          ) {
+                            navigate(
+                              `/user/event?eventId=${item.id}`,
+                            );
+                          } else {
+                            navigate(
+                              "/user/calendar",
+                            );
+                          }
+                        }}
+                      >
+                        <FiCalendar />
+
+                        <span>
+                          {item.title ||
+                            "Meeting"}
+                        </span>
+                      </button>
+                    ))
                 )}
               </div>
             </div>
+          </section>
+        </div>
+
+        <aside className="rgRequestPanel">
+          <div className="rgRequestHeading">
+            <h3>Хүсэлтүүд</h3>
+
+            <span>
+              Уулзалтын хүсэлтүүд
+            </span>
           </div>
-        </section>
-      </div>
 
-      {/* RIGHT SIDE */}
-      <div className="dashboard-right">
+          {pending.length === 0 ? (
+            <div className="rgNoRequests">
+              <div>📫</div>
 
-        <section className="card requests-card long-requests">
+              <h4>
+                Хүлээгдэж буй хүсэлт
+                алга
+              </h4>
 
-          <div className="card-head">
-            <h2 className="card-title">Хүсэлтүүд</h2>
-          </div>
-
-          {loadingRequests ? (
-            <div className="empty small">Уншиж байна...</div>
-          ) : requests.pending.length === 0 ? (
-            <div className="empty small">
-              Ирсэн уулзалтын хүсэлт байхгүй.
+              <p>
+                Бусад оролцогчийн
+                уулзалтын хүсэлт энд
+                харагдана.
+              </p>
             </div>
           ) : (
-            <div className="meeting-request-list">
+            <div className="rgRequestList">
+              {pending.map(
+                (request) => (
+                  <button
+                    key={request.id}
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        "/user/calendar",
+                      )
+                    }
+                  >
+                    <strong>
+                      {request.title ||
+                        "Meeting"}
+                    </strong>
 
-              {requests.pending.map((r) => (
-                <div
-                  key={r.id}
-                  className="meeting-request-card"
-                >
-
-                  <div className="meeting-request-top">
-
-                    <div className="meeting-request-icon">
-
-                      <i
-                        className={
-                          r.request_type === "event_join" || r.event_id
-                            ? "fa-solid fa-calendar-days"
-                            : "fa-solid fa-video"
-                        }
-                      ></i>
-
-                    </div>
-
-                    <div className="meeting-request-info">
-
-                      <div className="meeting-request-user">
-                        {r.sender_name ||
-                          r.sender_email ||
-                          "Unknown User"}
-                      </div>
-
-                      <div className="meeting-request-company">
-                        {r.request_from ||
-                          r.sender_company ||
-                          "Direct Request"}
-                      </div>
-
-                      <div className="meeting-request-date">
-                        {formatDateTime(r.start_time)}
-                      </div>
-
-                    </div>
-                  </div>
-
-                  <div className="meeting-request-body">
-                    {r.description ||
-                      r.message ||
-                      r.title ||
-                      "Уулзалтын хүсэлт"}
-                  </div>
-
-                  <div className="meeting-request-actions">
-
-                    <button
-                      type="button"
-                      className="meeting-accept-btn"
-                      onClick={() => acceptRequest(r.id)}
-                    >
-                      Зөвшөөрөх
-                    </button>
-
-                    <button
-                      type="button"
-                      className="meeting-decline-btn"
-                      onClick={() => declineRequest(r.id)}
-                    >
-                      Татгалзах
-                    </button>
-
-                  </div>
-                </div>
-              ))}
-
+                    <span>
+                      {formatEventDate(
+                        request.start_time,
+                      )}
+                    </span>
+                  </button>
+                ),
+              )}
             </div>
           )}
-        </section>
-
-      </div>
-    </div>
-  </main>
-</UserShell>
+        </aside>
+      </main>
+    </UserShell>
   );
 }

@@ -19,6 +19,8 @@ import PublicEvents from "./pages/public/Event";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
+import NewsDetail from "./pages/public/NewsDetail";
+import EventDetail from "./pages/public/EventDetail";
 
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
@@ -38,8 +40,17 @@ function AppRoutes() {
   const isUserArea = location.pathname.startsWith("/user");
   const isSuperAdminArea = location.pathname.startsWith("/super-admin");
   const isProfilePage = location.pathname.startsWith("/profile");
+  const isAuthPage =
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password";
 
-  const showPublicNavbar = !isUserArea && !isSuperAdminArea && !isProfilePage;
+  const showPublicNavbar =
+    !isUserArea &&
+    !isSuperAdminArea &&
+    !isProfilePage &&
+    !isAuthPage;
 
   return (
     <>
@@ -52,11 +63,14 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/news" element={<News />} />
+        <Route path="/news/:id" element={<NewsDetail />}/>
         <Route path="/events" element={<PublicEvents />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/event/invite/:token" element={<EventInvite />} />
         <Route path="/share/event/:id" element={<EventShare />} />
+        <Route path="/events/:id" element={<EventDetail />} />
+
         <Route
           path="/profile"
           element={
@@ -65,11 +79,14 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route path="/user" element={<Navigate to="/user/home" replace />} />
+
         <Route
           path="/super-admin"
           element={<Navigate to="/super-admin/home" replace />}
         />
+
         <Route
           path="/user/home"
           element={
@@ -78,6 +95,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/event"
           element={
@@ -86,6 +104,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/history"
           element={
@@ -94,6 +113,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/notifications"
           element={
@@ -111,6 +131,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/meeting/create"
           element={
@@ -119,10 +140,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/user/calendar"
-          element={<Navigate to="/user/notifications" replace />}
-        />
+
         <Route
           path="/user/profile"
           element={
@@ -131,6 +149,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/password"
           element={
@@ -139,6 +158,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/company"
           element={
@@ -147,6 +167,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/bill"
           element={
@@ -155,6 +176,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/super-admin/home"
           element={
@@ -163,6 +185,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/super-admin/news-create"
           element={
@@ -171,6 +194,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
