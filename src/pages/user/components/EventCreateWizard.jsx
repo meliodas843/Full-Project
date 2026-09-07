@@ -13,9 +13,15 @@ import {
   FiUsers,
 } from "react-icons/fi";
 
-function resolvePreview(imageFile, imageUrl, resolveUrl) {
+function resolvePreview(
+  imageFile,
+  imageUrl,
+  resolveUrl
+) {
   if (imageFile instanceof File) {
-    return URL.createObjectURL(imageFile);
+    return URL.createObjectURL(
+      imageFile
+    );
   }
 
   if (imageUrl) {
@@ -26,22 +32,31 @@ function resolvePreview(imageFile, imageUrl, resolveUrl) {
 }
 
 function formatPreviewDate(value) {
-  if (!value) return "Not set";
+  if (!value) {
+    return "Not specified";
+  }
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return value;
   }
 
-  return date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  return date.toLocaleString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }
+  );
 }
 
 export default function EventCreateWizard({
@@ -63,7 +78,6 @@ export default function EventCreateWizard({
   end_time,
   setEndTime,
   image_url,
-  setImageUrl,
   imageFile,
   setImageFile,
   max_participants,
@@ -81,16 +95,30 @@ export default function EventCreateWizard({
   handleCreate,
   closeCreate,
 }) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] =
+    useState(1);
 
-  const previewImage = useMemo(
-    () => resolvePreview(imageFile, image_url, resolveUrl),
-    [imageFile, image_url, resolveUrl],
-  );
+  const previewImage =
+    useMemo(
+      () =>
+        resolvePreview(
+          imageFile,
+          image_url,
+          resolveUrl
+        ),
+      [
+        imageFile,
+        image_url,
+        resolveUrl,
+      ]
+    );
 
   function validateStepOne() {
     if (!title.trim()) {
-      setErrMsg("Event title is required.");
+      setErrMsg(
+        "Please enter an event title."
+      );
+
       return false;
     }
 
@@ -100,15 +128,26 @@ export default function EventCreateWizard({
 
   function validateStepTwo() {
     if (!start_time) {
-      setErrMsg("Start date and time are required.");
+      setErrMsg(
+        "Please select a start date and time."
+      );
+
       return false;
     }
 
     if (
       end_time &&
-      new Date(end_time).getTime() < new Date(start_time).getTime()
+      new Date(
+        end_time
+      ).getTime() <
+        new Date(
+          start_time
+        ).getTime()
     ) {
-      setErrMsg("End time cannot be earlier than start time.");
+      setErrMsg(
+        "End time cannot be before start time."
+      );
+
       return false;
     }
 
@@ -117,24 +156,58 @@ export default function EventCreateWizard({
   }
 
   function nextStep() {
-    if (step === 1 && !validateStepOne()) return;
-    if (step === 2 && !validateStepTwo()) return;
+    if (
+      step === 1 &&
+      !validateStepOne()
+    ) {
+      return;
+    }
 
-    setStep((current) => Math.min(3, current + 1));
+    if (
+      step === 2 &&
+      !validateStepTwo()
+    ) {
+      return;
+    }
+
+    setStep((current) =>
+      Math.min(
+        3,
+        current + 1
+      )
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function previousStep() {
     setErrMsg("");
-    setStep((current) => Math.max(1, current - 1));
+
+    setStep((current) =>
+      Math.max(
+        1,
+        current - 1
+      )
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function submitEvent(event) {
     if (!validateStepOne()) {
+      event.preventDefault();
       setStep(1);
       return;
     }
 
     if (!validateStepTwo()) {
+      event.preventDefault();
       setStep(2);
       return;
     }
@@ -142,16 +215,15 @@ export default function EventCreateWizard({
     handleCreate(event);
   }
 
-  const currentAvatar = (speaker) => {
-    if (speaker.avatar instanceof File) {
-      return URL.createObjectURL(speaker.avatar);
-    }
-
-    return resolveUrl(getSpeakerAvatar(speaker));
-  };
-
   return (
-    <div className="eventWizard">
+    <div
+      className="eventWizard"
+      style={{
+        width: "100%",
+        maxWidth: "none",
+        margin: 0,
+      }}
+    >
       <div className="eventWizardHeader">
         <button
           type="button"
@@ -162,7 +234,12 @@ export default function EventCreateWizard({
         </button>
 
         <div>
-          <h2>{editingEventId ? "Edit Event" : "Create Event"}</h2>
+          <h2>
+            {editingEventId
+              ? "Edit Event"
+              : "Create Event"}
+          </h2>
+
           <p>
             Step {step} of 3 —{" "}
             {step === 1
@@ -177,41 +254,76 @@ export default function EventCreateWizard({
       <div className="eventWizardSteps">
         <div
           className={`eventWizardStep ${
-            step >= 1 ? "active" : ""
-          } ${step > 1 ? "completed" : ""}`}
+            step >= 1
+              ? "active"
+              : ""
+          } ${
+            step > 1
+              ? "completed"
+              : ""
+          }`}
         >
-          <span>{step > 1 ? <FiCheck /> : "1"}</span>
-          <strong>Basic Info</strong>
+          <span>
+            {step > 1
+              ? <FiCheck />
+              : "1"}
+          </span>
+
+          <strong>
+            Basic Info
+          </strong>
         </div>
 
         <div
           className={`eventWizardLine ${
-            step >= 2 ? "active" : ""
+            step >= 2
+              ? "active"
+              : ""
           }`}
         />
 
         <div
           className={`eventWizardStep ${
-            step >= 2 ? "active" : ""
-          } ${step > 2 ? "completed" : ""}`}
+            step >= 2
+              ? "active"
+              : ""
+          } ${
+            step > 2
+              ? "completed"
+              : ""
+          }`}
         >
-          <span>{step > 2 ? <FiCheck /> : "2"}</span>
-          <strong>Date & Location</strong>
+          <span>
+            {step > 2
+              ? <FiCheck />
+              : "2"}
+          </span>
+
+          <strong>
+            Date & Location
+          </strong>
         </div>
 
         <div
           className={`eventWizardLine ${
-            step >= 3 ? "active" : ""
+            step >= 3
+              ? "active"
+              : ""
           }`}
         />
 
         <div
           className={`eventWizardStep ${
-            step >= 3 ? "active" : ""
+            step >= 3
+              ? "active"
+              : ""
           }`}
         >
           <span>3</span>
-          <strong>Preview & Publish</strong>
+
+          <strong>
+            Preview & Publish
+          </strong>
         </div>
       </div>
 
@@ -222,22 +334,29 @@ export default function EventCreateWizard({
         {step === 1 && (
           <div className="eventWizardPanel">
             <label className="eventWizardField">
-              <span>EVENT TITLE *</span>
+              <span>
+                EVENT TITLE *
+              </span>
 
               <input
                 value={title}
                 onChange={(event) =>
-                  setTitle(event.target.value)
+                  setTitle(
+                    event.target.value
+                  )
                 }
-                placeholder="e.g. Tech Summit 2026"
+                placeholder="Example: Tech Summit 2026"
               />
             </label>
 
             <label className="eventWizardField">
-              <span>VISIBILITY</span>
+              <span>
+                VISIBILITY
+              </span>
 
               <div className="eventWizardSelectIcon">
-                {visibility === "private" ? (
+                {visibility ===
+                "private" ? (
                   <FiLock />
                 ) : (
                   <FiEye />
@@ -246,7 +365,9 @@ export default function EventCreateWizard({
                 <select
                   value={visibility}
                   onChange={(event) =>
-                    setVisibility(event.target.value)
+                    setVisibility(
+                      event.target.value
+                    )
                   }
                 >
                   <option value="public">
@@ -261,36 +382,26 @@ export default function EventCreateWizard({
             </label>
 
             <label className="eventWizardField">
-              <span>FULL DESCRIPTION</span>
+              <span>
+                FULL DESCRIPTION
+              </span>
 
               <textarea
                 value={description}
                 onChange={(event) =>
-                  setDescription(event.target.value)
+                  setDescription(
+                    event.target.value
+                  )
                 }
-                placeholder="Detailed event description — agenda, speakers, what to expect..."
+                placeholder="Enter the event description..."
                 rows={6}
               />
             </label>
 
-            <label className="eventWizardField">
-              <span>COVER IMAGE URL</span>
-
-              <div className="eventWizardInputIcon">
-                <FiImage />
-
-                <input
-                  value={image_url}
-                  onChange={(event) =>
-                    setImageUrl(event.target.value)
-                  }
-                  placeholder="https://..."
-                />
-              </div>
-            </label>
-
             <div className="eventWizardField">
-              <span>UPLOAD COVER IMAGE</span>
+              <span>
+                UPLOAD COVER IMAGE
+              </span>
 
               <label className="eventWizardUpload">
                 <input
@@ -298,20 +409,31 @@ export default function EventCreateWizard({
                   accept=".png,.jpg,.jpeg,.webp,.gif"
                   onChange={(event) => {
                     const file =
-                      event.target.files?.[0] || null;
+                      event.target
+                        .files?.[0] ||
+                      null;
 
                     if (!file) {
-                      setImageFile(null);
+                      setImageFile(
+                        null
+                      );
                       return;
                     }
 
-                    if (isSvgFile(file)) {
+                    if (
+                      isSvgFile(file)
+                    ) {
                       setErrMsg(
-                        "SVG images are not supported.",
+                        "SVG images are not supported."
                       );
 
-                      setImageFile(null);
-                      event.target.value = "";
+                      setImageFile(
+                        null
+                      );
+
+                      event.target.value =
+                        "";
+
                       return;
                     }
 
@@ -326,14 +448,45 @@ export default function EventCreateWizard({
                   <strong>
                     {imageFile
                       ? imageFile.name
-                      : "Choose cover image"}
+                      : image_url
+                        ? "Choose a new cover image"
+                        : "Choose cover image"}
                   </strong>
 
                   <small>
-                    PNG, JPG, JPEG, WEBP, GIF
+                    PNG, JPG, JPEG,
+                    WEBP, GIF
                   </small>
                 </div>
               </label>
+
+              {image_url &&
+              !imageFile ? (
+                <div
+                  style={{
+                    marginTop: 12,
+                    width: "100%",
+                    height: 180,
+                    borderRadius: 12,
+                    overflow: "hidden",
+                  }}
+                >
+                  <img
+                    src={resolveUrl(
+                      image_url
+                    )}
+                    alt="Current cover"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit:
+                        "cover",
+                      display:
+                        "block",
+                    }}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         )}
@@ -342,42 +495,55 @@ export default function EventCreateWizard({
           <div className="eventWizardPanel">
             <div className="eventWizardTwoColumns">
               <label className="eventWizardField">
-                <span>START DATE & TIME *</span>
+                <span>
+                  START DATE & TIME *
+                </span>
 
                 <div className="eventWizardInputIcon">
                   <FiCalendar />
 
                   <input
                     type="datetime-local"
-                    value={start_time}
+                    value={
+                      start_time
+                    }
                     min={
                       editingEventId
                         ? undefined
                         : minDateTime
                     }
                     onChange={(event) => {
-                      const value = event.target.value;
+                      const value =
+                        event.target
+                          .value;
 
                       if (
                         !editingEventId &&
                         value &&
-                        value < minDateTime
+                        value <
+                          minDateTime
                       ) {
                         setErrMsg(
-                          "Past dates are not allowed.",
+                          "Past dates are not allowed."
                         );
+
                         return;
                       }
 
                       setErrMsg("");
-                      setStartTime(value);
+                      setStartTime(
+                        value
+                      );
 
                       if (
                         end_time &&
                         value &&
-                        end_time < value
+                        end_time <
+                          value
                       ) {
-                        setEndTime("");
+                        setEndTime(
+                          ""
+                        );
                       }
                     }}
                   />
@@ -385,7 +551,9 @@ export default function EventCreateWizard({
               </label>
 
               <label className="eventWizardField">
-                <span>END DATE & TIME</span>
+                <span>
+                  END DATE & TIME
+                </span>
 
                 <div className="eventWizardInputIcon">
                   <FiCalendar />
@@ -393,24 +561,35 @@ export default function EventCreateWizard({
                   <input
                     type="datetime-local"
                     value={end_time}
-                    min={start_time || minDateTime}
-                    disabled={!start_time}
+                    min={
+                      start_time ||
+                      minDateTime
+                    }
+                    disabled={
+                      !start_time
+                    }
                     onChange={(event) => {
-                      const value = event.target.value;
+                      const value =
+                        event.target
+                          .value;
 
                       if (
                         start_time &&
                         value &&
-                        value < start_time
+                        value <
+                          start_time
                       ) {
                         setErrMsg(
-                          "End time cannot be earlier than start time.",
+                          "End time cannot be before start time."
                         );
+
                         return;
                       }
 
                       setErrMsg("");
-                      setEndTime(value);
+                      setEndTime(
+                        value
+                      );
                     }}
                   />
                 </div>
@@ -418,7 +597,9 @@ export default function EventCreateWizard({
             </div>
 
             <label className="eventWizardField">
-              <span>CAPACITY</span>
+              <span>
+                MAX PARTICIPANTS
+              </span>
 
               <div className="eventWizardInputIcon">
                 <FiUsers />
@@ -426,38 +607,27 @@ export default function EventCreateWizard({
                 <input
                   type="number"
                   min="0"
-                  value={max_participants}
-                  onChange={(event) =>
-                    setMaxParticipants(event.target.value)
+                  value={
+                    max_participants
                   }
-                  placeholder="Maximum number of attendees"
+                  onChange={(event) =>
+                    setMaxParticipants(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Example: 500"
                 />
               </div>
             </label>
 
-            <div className="eventWizardSummary">
-              <FiCalendar />
-
-              <div>
-                <strong>
-                  {start_time
-                    ? formatPreviewDate(start_time)
-                    : "No date set"}
-                </strong>
-
-                <span>
-                  {max_participants
-                    ? `${max_participants} attendees`
-                    : "Unlimited capacity"}
-                </span>
-              </div>
-            </div>
-
             <div className="eventWizardSectionTitle">
               <div>
-                <h3>Speakers</h3>
+                <h3>
+                  Speakers
+                </h3>
+
                 <p>
-                  Add the speakers participating in
+                  Add speakers for
                   this event.
                 </p>
               </div>
@@ -472,124 +642,165 @@ export default function EventCreateWizard({
             </div>
 
             <div className="eventWizardSpeakers">
-              {speakers.map((speaker, index) => (
-                <div
-                  className="eventWizardSpeaker"
-                  key={index}
-                >
-                  <label className="eventWizardSpeakerAvatar">
-                    <input
-                      type="file"
-                      accept=".png,.jpg,.jpeg,.webp,.gif"
-                      onChange={(event) => {
-                        const file =
-                          event.target.files?.[0] ||
-                          null;
-
-                        if (!file) {
-                          handleSpeakerChange(
-                            index,
-                            "avatar",
-                            null,
-                          );
-                          return;
-                        }
-
-                        if (isSvgFile(file)) {
-                          setErrMsg(
-                            "SVG avatars are not supported.",
-                          );
-
-                          event.target.value = "";
-                          return;
-                        }
-
-                        setErrMsg("");
-
-                        handleSpeakerChange(
-                          index,
-                          "avatar",
-                          file,
+              {speakers.map(
+                (
+                  speaker,
+                  index
+                ) => {
+                  const currentAvatar =
+                    speaker.avatar instanceof
+                    File
+                      ? URL.createObjectURL(
+                          speaker.avatar
+                        )
+                      : resolveUrl(
+                          getSpeakerAvatar(
+                            speaker
+                          )
                         );
-                      }}
-                    />
 
-                    {currentAvatar(speaker) ? (
-                      <img
-                        src={currentAvatar(speaker)}
-                        alt=""
-                      />
-                    ) : (
-                      <FiUploadCloud />
-                    )}
-                  </label>
-
-                  <div className="eventWizardSpeakerFields">
-                    <input
-                      value={speaker.name || ""}
-                      placeholder="Name"
-                      onChange={(event) =>
-                        handleSpeakerChange(
-                          index,
-                          "name",
-                          event.target.value,
-                        )
-                      }
-                    />
-
-                    <input
-                      value={
-                        speaker.organization || ""
-                      }
-                      placeholder="Organization"
-                      onChange={(event) =>
-                        handleSpeakerChange(
-                          index,
-                          "organization",
-                          event.target.value,
-                        )
-                      }
-                    />
-
-                    <input
-                      value={speaker.topic || ""}
-                      placeholder="Topic"
-                      onChange={(event) =>
-                        handleSpeakerChange(
-                          index,
-                          "topic",
-                          event.target.value,
-                        )
-                      }
-                    />
-                  </div>
-
-                  {speakers.length > 1 && (
-                    <button
-                      type="button"
-                      className="eventWizardDelete"
-                      onClick={() =>
-                        removeSpeaker(index)
-                      }
+                  return (
+                    <div
+                      className="eventWizardSpeaker"
+                      key={index}
                     >
-                      <FiTrash2 />
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <label className="eventWizardSpeakerAvatar">
+                        <input
+                          type="file"
+                          accept=".png,.jpg,.jpeg,.webp,.gif"
+                          onChange={(event) => {
+                            const file =
+                              event.target
+                                .files?.[0] ||
+                              null;
+
+                            if (!file) {
+                              handleSpeakerChange(
+                                index,
+                                "avatar",
+                                null
+                              );
+                              return;
+                            }
+
+                            if (
+                              isSvgFile(
+                                file
+                              )
+                            ) {
+                              setErrMsg(
+                                "SVG images are not supported."
+                              );
+
+                              event.target.value =
+                                "";
+                              return;
+                            }
+
+                            handleSpeakerChange(
+                              index,
+                              "avatar",
+                              file
+                            );
+                          }}
+                        />
+
+                        {currentAvatar ? (
+                          <img
+                            src={
+                              currentAvatar
+                            }
+                            alt=""
+                          />
+                        ) : (
+                          <FiUploadCloud />
+                        )}
+                      </label>
+
+                      <div className="eventWizardSpeakerFields">
+                        <input
+                          value={
+                            speaker.name ||
+                            ""
+                          }
+                          placeholder="Name"
+                          onChange={(event) =>
+                            handleSpeakerChange(
+                              index,
+                              "name",
+                              event.target.value
+                            )
+                          }
+                        />
+
+                        <input
+                          value={
+                            speaker.organization ||
+                            ""
+                          }
+                          placeholder="Organization"
+                          onChange={(event) =>
+                            handleSpeakerChange(
+                              index,
+                              "organization",
+                              event.target.value
+                            )
+                          }
+                        />
+
+                        <input
+                          value={
+                            speaker.topic ||
+                            ""
+                          }
+                          placeholder="Topic"
+                          onChange={(event) =>
+                            handleSpeakerChange(
+                              index,
+                              "topic",
+                              event.target.value
+                            )
+                          }
+                        />
+                      </div>
+
+                      {speakers.length >
+                      1 ? (
+                        <button
+                          type="button"
+                          className="eventWizardDelete"
+                          onClick={() =>
+                            removeSpeaker(
+                              index
+                            )
+                          }
+                        >
+                          <FiTrash2 />
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                }
+              )}
             </div>
 
             <div className="eventWizardSectionTitle">
               <div>
-                <h3>Agenda</h3>
+                <h3>
+                  Agenda
+                </h3>
+
                 <p>
-                  Build the schedule for your event.
+                  Add the event
+                  schedule.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={addAgendaItem}
+                onClick={
+                  addAgendaItem
+                }
               >
                 <FiPlus />
                 Add Agenda
@@ -597,48 +808,62 @@ export default function EventCreateWizard({
             </div>
 
             <div className="eventWizardAgenda">
-              {agendas.map((agenda, index) => (
-                <div
-                  className="eventWizardAgendaRow"
-                  key={index}
-                >
-                  <input
-                    type="time"
-                    value={agenda.time || ""}
-                    onChange={(event) =>
-                      handleAgendaChange(
-                        index,
-                        "time",
-                        event.target.value,
-                      )
-                    }
-                  />
-
-                  <input
-                    value={agenda.text || ""}
-                    placeholder="Agenda title"
-                    onChange={(event) =>
-                      handleAgendaChange(
-                        index,
-                        "text",
-                        event.target.value,
-                      )
-                    }
-                  />
-
-                  {agendas.length > 1 && (
-                    <button
-                      type="button"
-                      className="eventWizardDelete"
-                      onClick={() =>
-                        removeAgendaItem(index)
+              {agendas.map(
+                (
+                  agenda,
+                  index
+                ) => (
+                  <div
+                    className="eventWizardAgendaRow"
+                    key={index}
+                  >
+                    <input
+                      type="time"
+                      value={
+                        agenda.time ||
+                        ""
                       }
-                    >
-                      <FiTrash2 />
-                    </button>
-                  )}
-                </div>
-              ))}
+                      onChange={(event) =>
+                        handleAgendaChange(
+                          index,
+                          "time",
+                          event.target.value
+                        )
+                      }
+                    />
+
+                    <input
+                      value={
+                        agenda.text ||
+                        ""
+                      }
+                      placeholder="Agenda title"
+                      onChange={(event) =>
+                        handleAgendaChange(
+                          index,
+                          "text",
+                          event.target.value
+                        )
+                      }
+                    />
+
+                    {agendas.length >
+                    1 ? (
+                      <button
+                        type="button"
+                        className="eventWizardDelete"
+                        onClick={() =>
+                          removeAgendaItem(
+                            index
+                          )
+                        }
+                      >
+                        <FiTrash2 />
+                      </button>
+                    ) : null}
+                  </div>
+                )
+              )}
             </div>
           </div>
         )}
@@ -649,8 +874,13 @@ export default function EventCreateWizard({
               <div className="eventWizardPreviewHero">
                 {previewImage ? (
                   <img
-                    src={previewImage}
-                    alt={title || "Event"}
+                    src={
+                      previewImage
+                    }
+                    alt={
+                      title ||
+                      "Event"
+                    }
                   />
                 ) : (
                   <div className="eventWizardPreviewPlaceholder">
@@ -658,98 +888,118 @@ export default function EventCreateWizard({
                   </div>
                 )}
 
-                <div className="eventWizardPreviewShade" />
-
                 <div className="eventWizardPreviewOverlay">
                   <span>
-                    {visibility === "private"
+                    {visibility ===
+                    "private"
                       ? "Private"
                       : "Public"}
                   </span>
 
                   <h2>
-                    {title.trim() || "Untitled Event"}
+                    {title.trim() ||
+                      "Untitled Event"}
                   </h2>
                 </div>
               </div>
 
               <div className="eventWizardPreviewGrid">
                 <div>
-                  <small>Date & Time</small>
+                  <small>
+                    Start
+                  </small>
 
                   <strong>
-                    {start_time
-                      ? formatPreviewDate(start_time)
-                      : "Not set"}
+                    {formatPreviewDate(
+                      start_time
+                    )}
                   </strong>
                 </div>
 
                 <div>
-                  <small>End</small>
+                  <small>
+                    End
+                  </small>
 
                   <strong>
                     {end_time
-                      ? formatPreviewDate(end_time)
-                      : "Not set"}
+                      ? formatPreviewDate(
+                          end_time
+                        )
+                      : "Not specified"}
                   </strong>
                 </div>
 
                 <div>
-                  <small>Capacity</small>
+                  <small>
+                    Capacity
+                  </small>
 
                   <strong>
                     {max_participants
-                      ? `${max_participants} attendees`
+                      ? `${max_participants} people`
                       : "Unlimited"}
                   </strong>
                 </div>
 
                 <div>
-                  <small>Visibility</small>
+                  <small>
+                    Visibility
+                  </small>
 
                   <strong>
-                    {visibility === "private"
+                    {visibility ===
+                    "private"
                       ? "Private"
                       : "Public"}
                   </strong>
                 </div>
               </div>
 
-              {description && (
+              {description ? (
                 <div className="eventWizardPreviewDescription">
-                  <small>About this Event</small>
-                  <p>{description}</p>
+                  <small>
+                    Description
+                  </small>
+
+                  <p>
+                    {description}
+                  </p>
                 </div>
-              )}
+              ) : null}
             </div>
 
-            {(!title.trim() || !start_time) && (
+            {!title.trim() ||
+            !start_time ? (
               <div className="eventWizardWarning">
-                Event title and start date are required
+                Please enter an event
+                title and start date/time
                 before publishing.
               </div>
-            )}
+            ) : null}
           </>
         )}
 
-        {errMsg && (
+        {errMsg ? (
           <div className="eventWizardError">
             {errMsg}
           </div>
-        )}
+        ) : null}
 
-        {successMsg && (
+        {successMsg ? (
           <div className="eventWizardSuccess">
             {successMsg}
           </div>
-        )}
+        ) : null}
 
         <div className="eventWizardActions">
           {step > 1 ? (
             <button
               type="button"
               className="eventWizardPrevious"
-              onClick={previousStep}
+              onClick={
+                previousStep
+              }
             >
               <FiArrowLeft />
               Previous
@@ -758,7 +1008,9 @@ export default function EventCreateWizard({
             <button
               type="button"
               className="eventWizardPrevious"
-              onClick={closeCreate}
+              onClick={
+                closeCreate
+              }
             >
               Cancel
             </button>
@@ -786,7 +1038,7 @@ export default function EventCreateWizard({
               {creating
                 ? editingEventId
                   ? "Saving..."
-                  : "Publishing..."
+                  : "Creating..."
                 : editingEventId
                   ? "Save Changes"
                   : "Publish Event"}

@@ -1,6 +1,14 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import {
+  useEffect,
+  useState,
+} from "react";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+import {
+  GoogleLogin,
+} from "@react-oauth/google";
 import {
   FiEye,
   FiEyeOff,
@@ -8,170 +16,373 @@ import {
   FiSun,
 } from "react-icons/fi";
 import logo from "../../assets/registra-logo-def.png";
-import { API_BASE } from "../../lib/config";
+import {
+  API_BASE,
+} from "../../lib/config";
 
 export default function Login() {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const [form, setForm] = useState({
+  const [
+    form,
+    setForm,
+  ] = useState({
     email: "",
     password: "",
   });
 
-  const [message, setMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [
+    message,
+    setMessage,
+  ] = useState("");
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("registra-theme") || "light";
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
+
+  const [
+    remember,
+    setRemember,
+  ] = useState(false);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+  const [
+    passwordSetupEmail,
+    setPasswordSetupEmail,
+  ] = useState("");
+
+  const [
+    sendingSetup,
+    setSendingSetup,
+  ] = useState(false);
+
+  const [
+    theme,
+    setTheme,
+  ] = useState(() => {
+    return (
+      localStorage.getItem(
+        "registra-theme"
+      ) || "light"
+    );
   });
 
   useEffect(() => {
-    document.documentElement.dataset.userTheme = theme;
-    localStorage.setItem("registra-theme", theme);
+    document.documentElement.dataset.userTheme =
+      theme;
+
+    localStorage.setItem(
+      "registra-theme",
+      theme
+    );
   }, [theme]);
 
-  const redirectByRole = (user) => {
-    if (user?.role === "super_admin") {
-      navigate("/super-admin/home", {
-        replace: true,
-      });
+  const redirectByRole = (
+    user
+  ) => {
+    if (
+      user?.role ===
+      "super_admin"
+    ) {
+      navigate(
+        "/super-admin/home",
+        {
+          replace: true,
+        }
+      );
 
       return;
     }
 
-    if (!user?.company_name || !user?.phone) {
-      navigate("/profile", {
-        replace: true,
-      });
+    if (
+      !user?.company_name ||
+      !user?.phone
+    ) {
+      navigate(
+        "/profile",
+        {
+          replace: true,
+        }
+      );
 
       return;
     }
 
-    navigate("/user/home", {
-      replace: true,
-    });
+    navigate(
+      "/user/home",
+      {
+        replace: true,
+      }
+    );
   };
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const handleChange = (
+    event
+  ) => {
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    setForm(
+      (current) => ({
+        ...current,
+        [name]: value,
+      })
+    );
+
+    if (
+      name === "email"
+    ) {
+      setPasswordSetupEmail(
+        ""
+      );
+    }
+
+    setMessage("");
   };
 
-  const saveLogin = (data) => {
+  const saveLogin = (
+    data
+  ) => {
     localStorage.setItem(
       "user",
-      JSON.stringify(data.user),
+      JSON.stringify(
+        data.user
+      )
     );
 
     localStorage.setItem(
       "token",
-      data.token,
+      data.token
     );
 
-    if (data?.user?.role) {
+    if (
+      data?.user?.role
+    ) {
       localStorage.setItem(
         "role",
-        data.user.role,
+        data.user.role
       );
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit =
+    async (event) => {
+      event.preventDefault();
 
-    setMessage("");
-    setLoading(true);
-
-    try {
-      const response = await fetch(
-        `${API_BASE}/api/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify(form),
-        },
+      setMessage("");
+      setPasswordSetupEmail(
+        ""
       );
+      setLoading(true);
 
-      const data = await response
-        .json()
-        .catch(() => ({}));
+      try {
+        const response =
+          await fetch(
+            `${API_BASE}/api/auth/login`,
+            {
+              method: "POST",
 
-      if (!response.ok) {
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify(
+                  form
+                ),
+            }
+          );
+
+        const data =
+          await response
+            .json()
+            .catch(
+              () => ({})
+            );
+
+        if (!response.ok) {
+          if (
+            data?.code ===
+            "PASSWORD_NOT_SET"
+          ) {
+            setPasswordSetupEmail(
+              data?.email ||
+                form.email
+            );
+
+            setMessage(
+              "Таны бүртгэл үүссэн байна. Нэвтрэхийн өмнө нууц үгээ үүсгэнэ үү."
+            );
+
+            return;
+          }
+
+          setMessage(
+            data?.message ||
+              "Нэвтрэхэд алдаа гарлаа."
+          );
+
+          return;
+        }
+
+        saveLogin(data);
+
+        redirectByRole(
+          data.user
+        );
+      } catch {
         setMessage(
-          data?.message ||
-            "Нэвтрэхэд алдаа гарлаа.",
+          "Сервертэй холбогдож чадсангүй."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const sendPasswordSetupLink =
+    async () => {
+      const email =
+        String(
+          passwordSetupEmail ||
+            form.email ||
+            ""
+        )
+          .trim()
+          .toLowerCase();
+
+      if (!email) {
+        setMessage(
+          "И-мэйл хаягаа оруулна уу."
         );
 
         return;
       }
 
-      saveLogin(data);
-
-      redirectByRole(data.user);
-    } catch {
-      setMessage(
-        "Сервертэй холбогдож чадсангүй.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async (
-    credentialResponse,
-  ) => {
-    setMessage("");
-    setLoading(true);
-
-    try {
-      const response = await fetch(
-        `${API_BASE}/api/auth/google`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            token:
-              credentialResponse.credential,
-          }),
-        },
-      );
-
-      const data = await response
-        .json()
-        .catch(() => ({}));
-
-      if (!response.ok) {
-        setMessage(
-          data?.message ||
-            "Google нэвтрэлт амжилтгүй.",
+      try {
+        setSendingSetup(
+          true
         );
 
-        return;
+        setMessage("");
+
+        const response =
+          await fetch(
+            `${API_BASE}/api/password/forgot`,
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify({
+                  email,
+                }),
+            }
+          );
+
+        const data =
+          await response
+            .json()
+            .catch(
+              () => ({})
+            );
+
+        if (!response.ok) {
+          setMessage(
+            data?.message ||
+              "Нууц үг үүсгэх холбоос илгээж чадсангүй."
+          );
+
+          return;
+        }
+
+        setMessage(
+          "Нууц үг үүсгэх холбоос таны и-мэйл хаяг руу илгээгдлээ."
+        );
+      } catch {
+        setMessage(
+          "Сервертэй холбогдож чадсангүй."
+        );
+      } finally {
+        setSendingSetup(
+          false
+        );
       }
+    };
 
-      saveLogin(data);
-
-      redirectByRole(data.user);
-    } catch {
-      setMessage(
-        "Google нэвтрэлт амжилтгүй.",
+  const handleGoogleLogin =
+    async (
+      credentialResponse
+    ) => {
+      setMessage("");
+      setPasswordSetupEmail(
+        ""
       );
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+
+      try {
+        const response =
+          await fetch(
+            `${API_BASE}/api/auth/google`,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify({
+                  token:
+                    credentialResponse
+                      .credential,
+                }),
+            }
+          );
+
+        const data =
+          await response
+            .json()
+            .catch(
+              () => ({})
+            );
+
+        if (!response.ok) {
+          setMessage(
+            data?.message ||
+              "Google нэвтрэлт амжилтгүй."
+          );
+
+          return;
+        }
+
+        saveLogin(data);
+
+        redirectByRole(
+          data.user
+        );
+      } catch {
+        setMessage(
+          "Google нэвтрэлт амжилтгүй."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <main className="rgAuthPage">
@@ -180,14 +391,17 @@ export default function Login() {
         className="rgAuthTheme"
         aria-label="Theme"
         onClick={() =>
-          setTheme((current) =>
-            current === "light"
-              ? "dark"
-              : "light",
+          setTheme(
+            (current) =>
+              current ===
+              "light"
+                ? "dark"
+                : "light"
           )
         }
       >
-        {theme === "light" ? (
+        {theme ===
+        "light" ? (
           <FiMoon />
         ) : (
           <FiSun />
@@ -207,16 +421,21 @@ export default function Login() {
 
         <section className="rgAuthCard">
           <div className="rgAuthHeading">
-            <h1>Тавтай морил</h1>
+            <h1>
+              Тавтай морил
+            </h1>
 
             <p>
-              Registra бүртгэлдээ нэвтэрнэ үү
+              Registra бүртгэлдээ
+              нэвтэрнэ үү
             </p>
           </div>
 
           <form
             className="rgAuthForm"
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
           >
             <label>
               И-МЭЙЛ ХАЯГ
@@ -225,8 +444,12 @@ export default function Login() {
             <input
               type="email"
               name="email"
-              value={form.email}
-              onChange={handleChange}
+              value={
+                form.email
+              }
+              onChange={
+                handleChange
+              }
               autoComplete="email"
               placeholder="you@example.com"
               required
@@ -244,8 +467,12 @@ export default function Login() {
                     : "password"
                 }
                 name="password"
-                value={form.password}
-                onChange={handleChange}
+                value={
+                  form.password
+                }
+                onChange={
+                  handleChange
+                }
                 autoComplete="current-password"
                 placeholder="••••••••"
                 required
@@ -256,8 +483,10 @@ export default function Login() {
                 aria-label="Password"
                 onClick={() =>
                   setShowPassword(
-                    (current) =>
-                      !current,
+                    (
+                      current
+                    ) =>
+                      !current
                   )
                 }
               >
@@ -273,10 +502,16 @@ export default function Login() {
               <label className="rgRemember">
                 <input
                   type="checkbox"
-                  checked={remember}
-                  onChange={(event) =>
+                  checked={
+                    remember
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setRemember(
-                      event.target.checked,
+                      event
+                        .target
+                        .checked
                     )
                   }
                 />
@@ -287,7 +522,8 @@ export default function Login() {
               </label>
 
               <Link to="/forgot-password">
-                Нууц үгээ мартсан?
+                Нууц үгээ
+                мартсан?
               </Link>
             </div>
 
@@ -297,10 +533,30 @@ export default function Login() {
               </div>
             )}
 
+            {passwordSetupEmail && (
+              <button
+                type="button"
+                className="rgAuthSetupPassword"
+                onClick={
+                  sendPasswordSetupLink
+                }
+                disabled={
+                  sendingSetup
+                }
+              >
+                {sendingSetup
+                  ? "Илгээж байна..."
+                  : "Нууц үг үүсгэх холбоос авах"}
+              </button>
+            )}
+
             <button
               className="rgAuthSubmit"
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                sendingSetup
+              }
             >
               {loading
                 ? "Нэвтэрч байна..."
@@ -310,7 +566,8 @@ export default function Login() {
 
           <div className="rgAuthSignup">
             <span>
-              Бүртгэлгүй хэрэглэгч?
+              Бүртгэлгүй
+              хэрэглэгч?
             </span>
 
             <Link to="/signup">
@@ -319,7 +576,9 @@ export default function Login() {
           </div>
 
           <div className="rgAuthDivider">
-            <span>эсвэл</span>
+            <span>
+              эсвэл
+            </span>
           </div>
 
           <div className="rgGoogleLogin">
@@ -329,7 +588,7 @@ export default function Login() {
               }
               onError={() =>
                 setMessage(
-                  "Google нэвтрэлт амжилтгүй.",
+                  "Google нэвтрэлт амжилтгүй."
                 )
               }
             />

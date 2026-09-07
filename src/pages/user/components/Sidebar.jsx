@@ -36,14 +36,28 @@ export default function Sidebar({
     });
   };
 
+  const isProfileSection =
+    pathname === "/user/profile" ||
+    pathname.startsWith("/user/profile/") ||
+    pathname === "/user/password" ||
+    pathname.startsWith("/user/password/") ||
+    pathname === "/user/company" ||
+    pathname.startsWith("/user/company/") ||
+    pathname === "/user/bill" ||
+    pathname.startsWith("/user/bill/");
+
   const getLinkClass = (path) => {
     const active =
       pathname === path ||
-      pathname.startsWith(
-        `${path}/`,
-      );
+      pathname.startsWith(`${path}/`);
 
     return active
+      ? "rgSideLink active"
+      : "rgSideLink";
+  };
+
+  const getProfileLinkClass = () => {
+    return isProfileSection
       ? "rgSideLink active"
       : "rgSideLink";
   };
@@ -71,31 +85,21 @@ export default function Sidebar({
             <NavLink
               to="/user/home"
               className={getLinkClass(
-                "/user/home",
+                "/user/home"
               )}
               onClick={onNavigate}
             >
               <FiHome />
 
-              <span>Нүүр</span>
-            </NavLink>
-
-            <NavLink
-              to="/user/event"
-              className={getLinkClass(
-                "/user/event",
-              )}
-              onClick={onNavigate}
-            >
-              <FiGrid />
-
-              <span>Эвэнт</span>
+              <span>
+                Нүүр
+              </span>
             </NavLink>
 
             <NavLink
               to="/user/history"
               className={getLinkClass(
-                "/user/history",
+                "/user/history"
               )}
               onClick={onNavigate}
             >
@@ -107,33 +111,53 @@ export default function Sidebar({
             </NavLink>
 
             <NavLink
+              to="/user/event"
+              className={getLinkClass(
+                "/user/event"
+              )}
+              onClick={onNavigate}
+            >
+              <FiGrid />
+
+              <span>
+                Эвэнт
+              </span>
+            </NavLink>
+
+            <NavLink
               to="/user/calendar"
               className={getLinkClass(
-                "/user/calendar",
+                "/user/calendar"
               )}
               onClick={onNavigate}
             >
               <FiCalendar />
 
-              <span>Календар</span>
+              <span>
+                Календар
+              </span>
             </NavLink>
           </nav>
         </section>
 
         <section className="rgSidebarSection">
-          <h5>ТОХИРГОО</h5>
+          <h5>
+            ТОХИРГОО
+          </h5>
 
           <nav className="rgSidebarMenu">
             <NavLink
               to="/user/profile"
-              className={getLinkClass(
-                "/user/profile",
-              )}
+              className={
+                getProfileLinkClass()
+              }
               onClick={onNavigate}
             >
               <FiUser />
 
-              <span>Профайл</span>
+              <span>
+                Профайл
+              </span>
             </NavLink>
           </nav>
         </section>
@@ -158,7 +182,7 @@ export default function Sidebar({
               onThemeChange(
                 theme === "light"
                   ? "dark"
-                  : "light",
+                  : "light"
               )
             }
           >
@@ -179,7 +203,9 @@ export default function Sidebar({
         >
           <FiLogOut />
 
-          <span>Гарах</span>
+          <span>
+            Гарах
+          </span>
         </button>
       </div>
     </aside>

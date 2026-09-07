@@ -73,38 +73,85 @@ router.post("/register", async (req, res) => {
 /* ================= LOGIN ================= */
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(
+      req.body?.email || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const password = String(
+      req.body?.password || ""
+    );
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message:
+          "Email and password required",
+      });
+    }
 
     const [rows] = await pool.query(
-      "SELECT * FROM users WHERE email = ? LIMIT 1",
+      `
+      SELECT *
+      FROM users
+      WHERE LOWER(email) = ?
+      LIMIT 1
+      `,
       [email]
     );
 
     if (!rows.length) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        message:
+          "Invalid credentials",
+      });
     }
 
     const user = rows[0];
 
     if (!user.password) {
-      return res.status(401).json({
-        message: "Use Google sign-in for this account",
+      return res.status(403).json({
+        code:
+          "PASSWORD_NOT_SET",
+
+        message:
+          "Your account was created by an event organizer. Please set your password first.",
+
+        email:
+          user.email,
       });
     }
 
-    const ok = await bcrypt.compare(password, user.password);
+    const ok =
+      await bcrypt.compare(
+        password,
+        user.password
+      );
+
     if (!ok) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        message:
+          "Invalid credentials",
+      });
     }
 
-    // ✅ include phone + company_name in response
-    res.json({
-      user: toClientUser(user),
-      token: signToken(user),
+    return res.json({
+      user:
+        toClientUser(user),
+
+      token:
+        signToken(user),
     });
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({ message: err.message });
+    console.error(
+      "LOGIN ERROR:",
+      err
+    );
+
+    return res.status(500).json({
+      message:
+        err.message,
+    });
   }
 });
 
