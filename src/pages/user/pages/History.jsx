@@ -741,44 +741,8 @@ export default function History() {
           ? data
           : [];
 
-      const created =
-        list.filter(
-          (event) => {
-            if (
-              event?.relation_type
-            ) {
-              return (
-                String(
-                  event.relation_type
-                ).toLowerCase() ===
-                "created"
-              );
-            }
-
-            if (
-              event?.is_owner !==
-              undefined
-            ) {
-              return Boolean(
-                event.is_owner
-              );
-            }
-
-            if (
-              event?.is_creator !==
-              undefined
-            ) {
-              return Boolean(
-                event.is_creator
-              );
-            }
-
-            return true;
-          }
-        );
-
       setEvents(
-        created
+        list
       );
     } catch (err) {
       console.error(err);
