@@ -1166,16 +1166,16 @@ export default function History() {
         ...events,
       ];
 
-      if (
-        filter !== "all"
-      ) {
-        result =
-          result.filter(
-            (event) =>
-              getEventStatus(
-                event
-              ) === filter
-          );
+      if (filter === "all") {
+        result = result.filter(
+          (event) =>
+            getEventStatus(event) !== "ended"
+        );
+      } else {
+        result = result.filter(
+          (event) =>
+            getEventStatus(event) === filter
+        );
       }
 
       result.sort(

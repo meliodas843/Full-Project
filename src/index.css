@@ -11734,17 +11734,16 @@ html.modal-open {
 }
 
 .user-page-content {
-  padding: 16px 16px;
-  padding-top: 35px;
-  padding-left: 24px;
   width: 100%;
   min-width: 0;
-  box-sizing: border-box;
-  flex: 1 1 auto;
-  height: calc(100dvh - 82px);
+
+  flex: 1;
+  min-height: 0;
+
   overflow-y: auto;
   overflow-x: hidden;
-  scroll-behavior: smooth;
+
+  background: #f6f7fb;
 }
 
 .meeting-request-list {
@@ -11876,16 +11875,21 @@ html.modal-open {
 
 .user-main {
   grid-column: 2;
+
   width: 100%;
   min-width: 0;
-  min-height: 100vh;
+
+  height: 100dvh;
+  min-height: 0;
+
   margin: 0;
   padding: 0;
+
   display: flex;
   flex-direction: column;
+
   background: #f6f7fb;
-  overflow-x: hidden;
-  height: 100dvh;
+
   overflow: hidden;
 }
 
@@ -19797,18 +19801,25 @@ html[data-user-theme="dark"] .rgAuthDivider::before, html[data-user-theme="dark"
 }
 
 .rgTopbar {
-  position: sticky;
-  z-index: 60;
-  top: 0;
+  position: relative;
+
   width: 100%;
-  height: var(--rg-topbar-height);
+
+  height: 82px;
+  min-height: 82px;
+  flex: 0 0 82px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 23px;
-  border-bottom:
-      1px solid var(--rg-border);
-  background: var(--rg-panel);
+
+  padding: 0 24px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e7eaf0;
+
+  z-index: 1000;
 }
 
 .rgTopbarSpacer {
@@ -19818,7 +19829,7 @@ html[data-user-theme="dark"] .rgAuthDivider::before, html[data-user-theme="dark"
 .rgTopbarActions {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
 }
 
 .rgBellButton {
@@ -20920,556 +20931,135 @@ html[data-user-theme="dark"] .rgCalendarLoading {
   font-size: 12px;
 }
 
-.rgMeetingPage {
-  width: 100%;
-  min-height: calc(100vh - 72px);
-  padding: 42px;
-  background: #f6f7fb;
-  box-sizing: border-box;
-}
-
-.rgMeetingCard {
-  width: min(900px, 100%);
-  margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #e7e9f0;
-  border-radius: 22px;
-  box-shadow: 0 18px 55px rgba(15, 23, 42, 0.07);
-  overflow: hidden;
-}
-
-.rgMeetingHeader {
-  min-height: 100px;
-  padding: 24px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  border-bottom: 1px solid #eceef4;
-}
-
-.rgMeetingHeader > div:first-child {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  min-width: 0;
-}
-
-.rgMeetingHeaderIcon {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #5a47f5, #8952ed);
-  color: #ffffff;
-  font-size: 21px;
-  box-shadow: 0 8px 20px rgba(91, 71, 245, 0.22);
-}
-
-.rgMeetingHeader h1 {
-  margin: 0;
-  color: #171c2c;
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.rgMeetingHeader p {
-  margin: 6px 0 0;
-  color: #8a91a2;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.rgMeetingBack {
-  height: 42px;
-  padding: 0 16px;
-  flex-shrink: 0;
-  border: 1px solid #e1e4eb;
-  border-radius: 11px;
-  background: #ffffff;
-  color: #232a3b;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.rgMeetingBack:hover {
-  border-color: #6651ef;
-  color: #5b47ed;
-  background: #f8f7ff;
-}
-
-.rgMeetingForm {
-  padding: 26px 28px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.rgMeetingTabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  padding: 5px;
-  background: #f4f5f9;
-  border-radius: 14px;
-}
-
-.rgMeetingTabs button {
-  min-height: 46px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
-  color: #697184;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  font-size: 14px;
-  font-weight: 750;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.rgMeetingTabs button:hover {
-  color: #5540e8;
-}
-
-.rgMeetingTabs button.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #5845ee, #8650ec);
-  box-shadow: 0 8px 20px rgba(93, 72, 238, 0.2);
-}
-
-.rgMeetingSection {
-  padding: 20px;
-  border: 1px solid #e8eaf0;
-  border-radius: 16px;
-  background: #fcfcfd;
-}
-
-.rgMeetingSectionTitle {
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.rgMeetingSectionTitle span {
-  color: #202638;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.rgMeetingField {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.rgMeetingField label {
-  color: #667086;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.rgMeetingField input, .rgMeetingField select, .rgMeetingField textarea {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #dfe3eb;
-  outline: none;
-  background: #ffffff;
-  color: #151a2a;
-  font: inherit;
-  transition: 0.2s ease;
-}
-
-.rgMeetingField input, .rgMeetingField select {
-  height: 48px;
-  padding: 0 14px;
-  border-radius: 11px;
-}
-
-.rgMeetingField textarea {
-  min-height: 120px;
-  padding: 14px;
-  resize: vertical;
-  border-radius: 12px;
-  line-height: 1.6;
-}
-
-.rgMeetingField input:focus, .rgMeetingField select:focus, .rgMeetingField textarea:focus {
-  border-color: #7659ef;
-  box-shadow: 0 0 0 4px rgba(118, 89, 239, 0.08);
-}
-
-.rgMeetingDateGrid {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr 1fr;
-  gap: 14px;
-}
-
-.rgMeetingPeopleHeader {
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.rgMeetingPeopleHeader h3 {
-  margin: 0;
-  color: #202638;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.rgMeetingPeopleHeader p {
-  margin: 5px 0 0;
-  color: #959cad;
-  font-size: 12px;
-}
-
-.rgMeetingSelectAll {
-  height: 36px;
-  padding: 0 13px;
-  border: 1px solid #deddfb;
-  border-radius: 9px;
-  background: #f5f3ff;
-  color: #6049e8;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.rgMeetingSearch {
-  position: relative;
-  margin-bottom: 13px;
-}
-
-.rgMeetingSearch > svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ba2b2;
-}
-
-.rgMeetingSearch input {
-  width: 100%;
-  height: 44px;
-  box-sizing: border-box;
-  padding: 0 44px 0 40px;
-  border: 1px solid #e0e3ea;
-  border-radius: 11px;
-  outline: none;
-  background: #ffffff;
-  color: #1a2030;
-  font: inherit;
-}
-
-.rgMeetingSearch input:focus {
-  border-color: #7155ed;
-  box-shadow: 0 0 0 4px rgba(113, 85, 237, 0.07);
-}
-
-.rgMeetingSearch button {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  width: 30px;
-  height: 30px;
-  transform: translateY(-50%);
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #9299a9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.rgMeetingPeopleGrid {
-  max-height: 285px;
-  overflow-y: auto;
-  padding-right: 5px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-}
-
-.rgMeetingPeopleGrid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.rgMeetingPeopleGrid::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.rgMeetingPeopleGrid::-webkit-scrollbar-thumb {
-  background: #d7d9e1;
-  border-radius: 999px;
-}
-
-.rgMeetingPerson {
-  min-width: 0;
-  min-height: 67px;
-  padding: 10px 12px;
-  border: 1px solid #e3e5ec;
-  border-radius: 13px;
-  background: #ffffff;
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 24px;
-  align-items: center;
-  gap: 11px;
-  text-align: left;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.rgMeetingPerson:hover {
-  border-color: #c9c0fa;
-  background: #faf9ff;
-  transform: translateY(-1px);
-}
-
-.rgMeetingPerson.active {
-  border-color: #7257ee;
-  background: #f7f5ff;
-  box-shadow: inset 0 0 0 1px rgba(114, 87, 238, 0.12);
-}
-
-.rgMeetingPersonAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #34c7df, #6048ee);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.rgMeetingPersonInfo {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.rgMeetingPersonInfo strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #22283a;
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.rgMeetingPersonInfo small {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #9198a8;
-  font-size: 11px;
-}
-
-.rgMeetingPersonCheck {
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid #d6d9e2;
-  border-radius: 7px;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.rgMeetingPerson.active .rgMeetingPersonCheck {
-  border-color: #654bea;
-  background: #654bea;
-}
-
-.rgMeetingSelected {
-  margin-bottom: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.rgMeetingSelectedChip {
-  max-width: 245px;
-  min-height: 46px;
-  padding: 6px 7px 6px 8px;
-  border: 1px solid #e3e0fa;
-  border-radius: 12px;
-  background: #f8f7ff;
-  display: grid;
-  grid-template-columns: 31px minmax(0, 1fr) 27px;
-  align-items: center;
-  gap: 7px;
-}
-
-.rgMeetingSelectedChip > span {
-  width: 31px;
-  height: 31px;
-  border-radius: 50%;
-  background: #644bea;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.rgMeetingSelectedChip > div {
-  min-width: 0;
-}
-
-.rgMeetingSelectedChip strong, .rgMeetingSelectedChip small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rgMeetingSelectedChip strong {
-  color: #292d3d;
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.rgMeetingSelectedChip small {
-  margin-top: 2px;
-  color: #8e95a5;
-  font-size: 9px;
-}
-
-.rgMeetingSelectedChip button {
-  width: 27px;
-  height: 27px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: #9a9faf;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.rgMeetingSelectedChip button:hover {
-  background: #ece9ff;
-  color: #5f48e7;
-}
-
-.rgMeetingPeopleEmpty {
-  min-height: 96px;
-  border: 1px dashed #dfe2e9;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #989faf;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 13px;
-}
-
-.rgMeetingMessage {
-  padding: 12px 15px;
-  border: 1px solid #ffd1d1;
-  border-radius: 11px;
-  background: #fff6f6;
-  color: #d64545;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.rgMeetingMessage.success {
-  border-color: #bdebd6;
-  background: #f1fcf7;
-  color: #188455;
-}
-
-.rgMeetingActions {
-  padding-top: 20px;
-  border-top: 1px solid #eceef3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.rgMeetingActions > div {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.rgMeetingActions strong {
-  color: #5d46e7;
-  font-size: 20px;
-}
-
-.rgMeetingActions span {
-  color: #969dad;
-  font-size: 12px;
-}
-
-.rgMeetingSubmit {
-  min-width: 190px;
-  height: 48px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #5744ef, #8650ec);
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(90, 69, 238, 0.22);
-  transition: 0.2s ease;
-}
-
-.rgMeetingSubmit:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 13px 30px rgba(90, 69, 238, 0.28);
-}
-
-.rgMeetingSubmit:disabled {
-  opacity: 0.6;
-  cursor: wait;
-  transform: none;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .profileSettingsPage {
   width: 100%;
@@ -23174,92 +22764,9 @@ html[data-user-theme="dark"] .rgCalendarLoading {
   }
 }
 
-@media (max-width: 900px) {
-  .rgMeetingPage {
-    padding: 24px 18px;
-  }
 
-  .rgMeetingPeopleGrid {
-    grid-template-columns: 1fr;
-  }
 
-  .rgMeetingDateGrid {
-    grid-template-columns: 1fr;
-  }
-}
 
-@media (max-width: 600px) {
-  .rgMeetingPage {
-    padding: 14px 10px 30px;
-  }
-
-  .rgMeetingCard {
-    border-radius: 17px;
-  }
-
-  .rgMeetingHeader {
-    padding: 18px;
-    align-items: flex-start;
-  }
-
-  .rgMeetingHeaderIcon {
-    display: none;
-  }
-
-  .rgMeetingHeader h1 {
-    font-size: 19px;
-  }
-
-  .rgMeetingHeader p {
-    font-size: 12px;
-  }
-
-  .rgMeetingBack {
-    width: 40px;
-    padding: 0;
-    font-size: 0;
-  }
-
-  .rgMeetingBack svg {
-    font-size: 18px;
-  }
-
-  .rgMeetingForm {
-    padding: 18px 14px 22px;
-  }
-
-  .rgMeetingTabs {
-    grid-template-columns: 1fr;
-  }
-
-  .rgMeetingSection {
-    padding: 15px;
-  }
-
-  .rgMeetingPeopleHeader {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .rgMeetingSelectAll {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .rgMeetingSelectedChip {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .rgMeetingActions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .rgMeetingSubmit {
-    width: 100%;
-  }
-}
 
 @media (max-width: 1180px) {
   .rgHomePage {
@@ -24829,146 +24336,6 @@ button.uep-refreshBtn:hover {
   box-sizing: border-box;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .eventOrganizer {
   display: flex;
   align-items: center;
@@ -25141,6 +24508,17 @@ button.uep-refreshBtn:hover {
 
 
 
+
+
+
+
+
+
+
+
+/* =========================
+   RESPONSIVE
+   ========================= */
 
 
 
@@ -27340,5 +26718,1879 @@ html[data-user-theme="dark"] .historyAddMessage.success {
 
   .historyAddPersonBtn {
     width: 100%;
+  }
+}
+
+.user-page-content:has(.rgMeetingPage) {
+  padding-top: 24px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 32px;
+}
+
+.rgMeetingPage {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 40px;
+  box-sizing: border-box;
+}
+
+.rgMeetingCard {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #e3e6ed;
+  border-radius: 18px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.rgMeetingHeader {
+  min-height: 96px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  border-bottom: 1px solid #eceef3;
+  background: #ffffff;
+}
+
+.rgMeetingHeader > div:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.rgMeetingHeaderIcon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #5a47f5, #8952ed);
+  color: #ffffff;
+  font-size: 21px;
+  box-shadow: 0 8px 20px rgba(91, 71, 245, 0.22);
+}
+
+.rgMeetingHeader h1 {
+  margin: 0;
+  color: #171c2c;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.rgMeetingHeader p {
+  margin: 5px 0 0;
+  color: #8a91a2;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rgMeetingBack {
+  height: 42px;
+  padding: 0 18px;
+  flex: 0 0 auto;
+  border: 1px solid #e1e4eb;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #232a3b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgMeetingBack:hover {
+  border-color: #6651ef;
+  color: #5b47ed;
+  background: #f8f7ff;
+}
+
+.rgMeetingForm {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #ffffff;
+}
+
+.rgMeetingTabs {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 5px;
+  margin: 0;
+  border-radius: 14px;
+  background: #f4f5f9;
+}
+
+.rgMeetingTabs button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #697184;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgMeetingTabs button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #5845ee, #8650ec);
+  box-shadow: 0 8px 20px rgba(93, 72, 238, 0.2);
+}
+
+.rgMeetingSection {
+  width: 100%;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #e8eaf0;
+  border-radius: 14px;
+  background: #fcfcfd;
+  box-sizing: border-box;
+}
+
+.rgMeetingSectionTitle {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rgMeetingSectionTitle span {
+  color: #202638;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rgMeetingPeopleHeader {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rgMeetingPeopleHeader h3 {
+  margin: 0;
+  color: #202638;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.rgMeetingPeopleHeader p {
+  margin: 3px 0 0;
+  color: #9098aa;
+  font-size: 11px;
+}
+
+.rgMeetingField {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rgMeetingField label {
+  color: #667086;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rgMeetingField input,
+.rgMeetingField select,
+.rgMeetingField textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid #dfe3eb;
+  outline: none;
+  background: #ffffff;
+  color: #151a2a;
+  font: inherit;
+  transition: 0.2s ease;
+}
+
+.rgMeetingField input,
+.rgMeetingField select {
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.rgMeetingField textarea {
+  min-height: 100px;
+  padding: 12px 14px;
+  resize: vertical;
+  border-radius: 12px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.rgMeetingField input:focus,
+.rgMeetingField select:focus,
+.rgMeetingField textarea:focus {
+  border-color: #7257f3;
+  box-shadow: 0 0 0 4px rgba(114, 87, 243, 0.1);
+}
+
+.rgMeetingDateGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 14px;
+}
+
+.rgMeetingPeopleEmpty {
+  min-height: 90px;
+  border: 1px dashed #dfe2e9;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #989faf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+}
+
+.rgMeetingSearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rgMeetingSearch > svg {
+  position: absolute;
+  left: 14px;
+  color: #8891a5;
+  pointer-events: none;
+}
+
+.rgMeetingSearch input {
+  width: 100%;
+  height: 44px;
+  padding: 0 42px 0 40px;
+  border: 1px solid #dfe3eb;
+  border-radius: 11px;
+  outline: none;
+  background: #ffffff;
+  color: #1a2030;
+}
+
+.rgMeetingSearch button {
+  position: absolute;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8a93a7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rgMeetingPeopleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rgMeetingPerson {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #e3e6ed;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #202638;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgMeetingPerson:hover {
+  border-color: #735cff;
+  background: #faf9ff;
+}
+
+.rgMeetingPerson.active {
+  border-color: #735cff;
+  background: #f3f0ff;
+}
+
+.rgMeetingPersonAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #ece9ff;
+  color: #5f49eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rgMeetingPersonInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rgMeetingPersonInfo strong {
+  overflow: hidden;
+  color: #202638;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgMeetingPersonInfo small {
+  overflow: hidden;
+  color: #8b93a5;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgMeetingPersonCheck {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #7257f3;
+}
+
+.rgMeetingSelected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rgMeetingSelectedChip {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #e3e6ed;
+  border-radius: 11px;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 26px;
+  align-items: center;
+  gap: 8px;
+}
+
+.rgMeetingSelectedChip > span {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #ece9ff;
+  color: #5f49eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rgMeetingSelectedChip > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rgMeetingSelectedChip strong {
+  color: #202638;
+  font-size: 11px;
+}
+
+.rgMeetingSelectedChip small {
+  color: #8b93a5;
+  font-size: 9px;
+}
+
+.rgMeetingSelectedChip button {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #8a93a7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rgMeetingSelectedChip button:hover {
+  background: #f0f1f5;
+  color: #252b3b;
+}
+
+.rgMeetingSelectAll {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid #dfdafd;
+  border-radius: 9px;
+  background: #f5f2ff;
+  color: #6650e9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rgMeetingActions {
+  padding-top: 16px;
+  border-top: 1px solid #eceef3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rgMeetingActions > div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.rgMeetingActions strong {
+  color: #644cef;
+  font-size: 16px;
+}
+
+.rgMeetingActions span {
+  color: #8f97a9;
+  font-size: 11px;
+}
+
+.rgMeetingSubmit {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #5845ee, #8650ec);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(93, 72, 238, 0.2);
+}
+
+.rgMeetingSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rgMeetingMessage {
+  padding: 11px 13px;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rgMeetingMessage.success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+html[data-user-theme="dark"] .rgMeetingCard,
+html[data-user-theme="dark"] .rgMeetingHeader,
+html[data-user-theme="dark"] .rgMeetingForm,
+html[data-user-theme="dark"] .rgMeetingSection {
+  background: #171b35;
+  border-color: #292e49;
+  color: #f5f6fb;
+}
+
+html[data-user-theme="dark"] .rgMeetingHeader h1,
+html[data-user-theme="dark"] .rgMeetingSectionTitle span,
+html[data-user-theme="dark"] .rgMeetingPeopleHeader h3,
+html[data-user-theme="dark"] .rgMeetingPersonInfo strong,
+html[data-user-theme="dark"] .rgMeetingSelectedChip strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgMeetingHeader p,
+html[data-user-theme="dark"] .rgMeetingPeopleHeader p,
+html[data-user-theme="dark"] .rgMeetingPersonInfo small,
+html[data-user-theme="dark"] .rgMeetingSelectedChip small,
+html[data-user-theme="dark"] .rgMeetingActions span {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgMeetingBack,
+html[data-user-theme="dark"] .rgMeetingField input,
+html[data-user-theme="dark"] .rgMeetingField select,
+html[data-user-theme="dark"] .rgMeetingField textarea,
+html[data-user-theme="dark"] .rgMeetingPeopleEmpty,
+html[data-user-theme="dark"] .rgMeetingSearch input,
+html[data-user-theme="dark"] .rgMeetingPerson,
+html[data-user-theme="dark"] .rgMeetingSelectedChip {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs {
+  background: #111529;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs button {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs button:hover:not(.active) {
+  background: #222742;
+  color: #ffffff;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #5946ee, #8650ea);
+}
+
+html[data-user-theme="dark"] .rgMeetingField label {
+  color: #aeb5c8;
+}
+
+html[data-user-theme="dark"] .rgMeetingField input,
+html[data-user-theme="dark"] .rgMeetingField select,
+html[data-user-theme="dark"] .rgMeetingField textarea {
+  color-scheme: dark;
+}
+
+html[data-user-theme="dark"] .rgMeetingField input:focus,
+html[data-user-theme="dark"] .rgMeetingField select:focus,
+html[data-user-theme="dark"] .rgMeetingField textarea:focus {
+  border-color: #735cff;
+  box-shadow: 0 0 0 4px rgba(115, 92, 255, 0.12);
+}
+
+html[data-user-theme="dark"] .rgMeetingPerson:hover {
+  border-color: #6754eb;
+  background: #181d35;
+}
+
+html[data-user-theme="dark"] .rgMeetingPerson.active {
+  background: #242043;
+  border-color: #735cff;
+}
+
+html[data-user-theme="dark"] .rgMeetingSelectedChip button {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgMeetingSelectedChip button:hover {
+  background: #252b48;
+  color: #ffffff;
+}
+
+html[data-user-theme="dark"] .rgMeetingSelectAll {
+  background: #201d3d;
+  border-color: #433a77;
+  color: #b9adff;
+}
+
+html[data-user-theme="dark"] .rgMeetingActions {
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .rgMeetingMessage {
+  border-color: #692630;
+  background: #35191f;
+  color: #fecaca;
+}
+
+html[data-user-theme="dark"] .rgMeetingMessage.success {
+  border-color: #226b4a;
+  background: #112b23;
+  color: #bbf7d0;
+}
+
+@media (max-width: 1100px) {
+  .rgMeetingPage {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .rgMeetingPeopleGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .user-page-content:has(.rgMeetingPage) {
+    padding-top: 12px;
+  }
+
+  .rgMeetingHeader {
+    padding: 18px;
+  }
+
+  .rgMeetingForm {
+    padding: 18px;
+  }
+
+  .rgMeetingDateGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .rgMeetingPage {
+    padding-bottom: 24px;
+  }
+
+  .rgMeetingCard {
+    border-radius: 14px;
+  }
+
+  .rgMeetingHeader {
+    min-height: auto;
+    padding: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .rgMeetingHeader > div:first-child {
+    width: 100%;
+  }
+
+  .rgMeetingHeaderIcon {
+    display: none;
+  }
+
+  .rgMeetingHeader h1 {
+    font-size: 19px;
+  }
+
+  .rgMeetingHeader p {
+    font-size: 12px;
+  }
+
+  .rgMeetingBack {
+    width: 100%;
+  }
+
+  .rgMeetingForm {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .rgMeetingTabs {
+    grid-template-columns: 1fr;
+  }
+
+  .rgMeetingSection {
+    padding: 14px;
+  }
+
+  .rgMeetingPeopleHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rgMeetingSelectAll {
+    width: 100%;
+  }
+
+  .rgMeetingActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rgMeetingSubmit {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   USER APP LAYOUT + TOPBAR
+   ========================================================= */
+
+html:has(.user-layout),
+body:has(.user-layout),
+#root:has(.user-layout) {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.user-layout {
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+.user-main {
+  grid-column: 2;
+  width: 100%;
+  min-width: 0;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f6f7fb;
+  overflow: hidden;
+}
+
+.rgTopbar {
+  position: relative;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 82px;
+  min-height: 82px;
+  flex: 0 0 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e7eaf0;
+}
+
+.rgTopbarSpacer {
+  flex: 1;
+}
+
+.rgTopbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rgBellButton {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 0;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fc;
+  color: #657087;
+  font-size: 18px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgBellButton:hover {
+  background: #f0efff;
+  color: #6049ed;
+}
+
+.rgBellDot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rgTopProfile {
+  min-width: 220px;
+  height: 48px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fc;
+  color: #202638;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgTopProfile:hover {
+  background: #f1f0ff;
+}
+
+.rgTopAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #5b47ee, #8b52ee);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rgTopUserText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rgTopUserText strong {
+  overflow: hidden;
+  color: #202638;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgTopUserText small {
+  color: #9299aa;
+  font-size: 10px;
+}
+
+.rgTopChevron {
+  color: #8991a3;
+  font-size: 15px;
+}
+
+.user-page-content {
+  width: 100%;
+  min-width: 0;
+
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #f6f7fb;
+}
+
+.user-page-content:has(.rgMeetingPage) {
+  padding: 18px 24px 32px;
+}
+
+.rgDropdown {
+  z-index: 999999;
+  overflow: hidden;
+  border: 1px solid #e4e7ee;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+}
+
+.rgNotificationDropdown {
+  padding: 14px;
+}
+
+.rgNotificationDropdown h4 {
+  margin: 0 0 10px;
+  color: #1c2233;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.rgNotificationEmpty {
+  padding: 24px 12px;
+  color: #8d95a7;
+  text-align: center;
+  font-size: 12px;
+}
+
+.rgNotificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rgNotificationItem {
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: transparent;
+  color: #1f2536;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rgNotificationItem:hover {
+  background: #f6f5ff;
+}
+
+.rgNotificationBullet {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #684fef;
+}
+
+.rgNotificationItem > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rgNotificationItem strong {
+  color: #202638;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rgNotificationItem small {
+  color: #8e96a8;
+  font-size: 10px;
+}
+
+.rgProfileDropdown {
+  padding: 7px;
+}
+
+.rgProfileDropdown button {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  color: #252b3b;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rgProfileDropdown button:hover {
+  background: #f4f5f8;
+}
+
+.rgProfileDropdown button.danger {
+  color: #ef4444;
+}
+
+.rgProfileDropdown button.danger:hover {
+  background: #fff1f2;
+}
+
+/* =========================================================
+   MEETING CREATE PAGE
+   ========================================================= */
+
+.rgMeetingPage {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 40px;
+  box-sizing: border-box;
+}
+
+.rgMeetingCard {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #e3e6ed;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(20, 26, 45, 0.06);
+  box-sizing: border-box;
+}
+
+.rgMeetingHeader {
+  min-height: 96px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  border-bottom: 1px solid #eceef3;
+  background: #ffffff;
+}
+
+.rgMeetingHeader > div:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.rgMeetingHeaderIcon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #5a47f5, #8952ed);
+  color: #ffffff;
+  font-size: 21px;
+  box-shadow: 0 8px 20px rgba(91, 71, 245, 0.22);
+}
+
+.rgMeetingHeader h1 {
+  margin: 0;
+  color: #171c2c;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.rgMeetingHeader p {
+  margin: 5px 0 0;
+  color: #8a91a2;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rgMeetingBack {
+  height: 42px;
+  padding: 0 18px;
+  flex: 0 0 auto;
+  border: 1px solid #e1e4eb;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #232a3b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgMeetingBack:hover {
+  border-color: #6651ef;
+  color: #5b47ed;
+  background: #f8f7ff;
+}
+
+.rgMeetingForm {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #ffffff;
+}
+
+.rgMeetingTabs {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 5px;
+  margin: 0;
+  border-radius: 14px;
+  background: #f4f5f9;
+}
+
+.rgMeetingTabs button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #697184;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgMeetingTabs button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #5845ee, #8650ec);
+  box-shadow: 0 8px 20px rgba(93, 72, 238, 0.2);
+}
+
+.rgMeetingSection {
+  width: 100%;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #e8eaf0;
+  border-radius: 14px;
+  background: #fcfcfd;
+  box-sizing: border-box;
+}
+
+.rgMeetingSectionTitle {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rgMeetingSectionTitle span {
+  color: #202638;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rgMeetingPeopleHeader {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rgMeetingPeopleHeader h3 {
+  margin: 0;
+  color: #202638;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.rgMeetingPeopleHeader p {
+  margin: 3px 0 0;
+  color: #9098aa;
+  font-size: 11px;
+}
+
+.rgMeetingField {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rgMeetingField label {
+  color: #667086;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rgMeetingField input,
+.rgMeetingField select,
+.rgMeetingField textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid #dfe3eb;
+  outline: none;
+  background: #ffffff;
+  color: #151a2a;
+  font: inherit;
+  transition: 0.2s ease;
+}
+
+.rgMeetingField input,
+.rgMeetingField select {
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.rgMeetingField textarea {
+  min-height: 100px;
+  padding: 12px 14px;
+  resize: vertical;
+  border-radius: 12px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.rgMeetingField input:focus,
+.rgMeetingField select:focus,
+.rgMeetingField textarea:focus {
+  border-color: #7257f3;
+  box-shadow: 0 0 0 4px rgba(114, 87, 243, 0.1);
+}
+
+.rgMeetingDateGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 14px;
+}
+
+.rgMeetingPeopleEmpty {
+  min-height: 90px;
+  border: 1px dashed #dfe2e9;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #989faf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+}
+
+.rgMeetingSearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rgMeetingSearch > svg {
+  position: absolute;
+  left: 14px;
+  color: #8891a5;
+  pointer-events: none;
+}
+
+.rgMeetingSearch input {
+  width: 100%;
+  height: 44px;
+  padding: 0 42px 0 40px;
+  border: 1px solid #dfe3eb;
+  border-radius: 11px;
+  outline: none;
+  background: #ffffff;
+  color: #1a2030;
+}
+
+.rgMeetingSearch button {
+  position: absolute;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8a93a7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rgMeetingPeopleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rgMeetingPerson {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #e3e6ed;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #202638;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rgMeetingPerson:hover {
+  border-color: #735cff;
+  background: #faf9ff;
+}
+
+.rgMeetingPerson.active {
+  border-color: #735cff;
+  background: #f3f0ff;
+}
+
+.rgMeetingPersonAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #ece9ff;
+  color: #5f49eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rgMeetingPersonInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rgMeetingPersonInfo strong {
+  overflow: hidden;
+  color: #202638;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgMeetingPersonInfo small {
+  overflow: hidden;
+  color: #8b93a5;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgMeetingPersonCheck {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #7257f3;
+}
+
+.rgMeetingSelected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rgMeetingSelectedChip {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #e3e6ed;
+  border-radius: 11px;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 26px;
+  align-items: center;
+  gap: 8px;
+}
+
+.rgMeetingSelectedChip > span {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #ece9ff;
+  color: #5f49eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rgMeetingSelectedChip > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rgMeetingSelectedChip strong {
+  color: #202638;
+  font-size: 11px;
+}
+
+.rgMeetingSelectedChip small {
+  color: #8b93a5;
+  font-size: 9px;
+}
+
+.rgMeetingSelectedChip button {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #8a93a7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rgMeetingSelectedChip button:hover {
+  background: #f0f1f5;
+  color: #252b3b;
+}
+
+.rgMeetingSelectAll {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid #dfdafd;
+  border-radius: 9px;
+  background: #f5f2ff;
+  color: #6650e9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rgMeetingActions {
+  padding-top: 16px;
+  border-top: 1px solid #eceef3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rgMeetingActions > div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.rgMeetingActions strong {
+  color: #644cef;
+  font-size: 16px;
+}
+
+.rgMeetingActions span {
+  color: #8f97a9;
+  font-size: 11px;
+}
+
+.rgMeetingSubmit {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #5845ee, #8650ec);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(93, 72, 238, 0.2);
+}
+
+.rgMeetingSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rgMeetingMessage {
+  padding: 11px 13px;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rgMeetingMessage.success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+html[data-user-theme="dark"] .user-main,
+html[data-user-theme="dark"] .user-page-content {
+  background: #0f1426;
+}
+
+html[data-user-theme="dark"] .rgTopbar {
+  background: #171b35;
+  border-bottom-color: #292e49;
+}
+
+html[data-user-theme="dark"] .rgBellButton,
+html[data-user-theme="dark"] .rgTopProfile {
+  background: #111529;
+  color: #dce0ee;
+}
+
+html[data-user-theme="dark"] .rgBellButton:hover,
+html[data-user-theme="dark"] .rgTopProfile:hover {
+  background: #222742;
+}
+
+html[data-user-theme="dark"] .rgTopUserText strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgTopUserText small,
+html[data-user-theme="dark"] .rgTopChevron {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgDropdown {
+  background: #171b35;
+  border-color: #303650;
+}
+
+html[data-user-theme="dark"] .rgNotificationDropdown h4,
+html[data-user-theme="dark"] .rgNotificationItem strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgNotificationItem {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgNotificationItem:hover,
+html[data-user-theme="dark"] .rgProfileDropdown button:hover {
+  background: #222742;
+}
+
+html[data-user-theme="dark"] .rgNotificationItem small,
+html[data-user-theme="dark"] .rgNotificationEmpty {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgProfileDropdown button {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgProfileDropdown button.danger {
+  color: #fb7185;
+}
+
+html[data-user-theme="dark"] .rgProfileDropdown button.danger:hover {
+  background: #35191f;
+}
+
+html[data-user-theme="dark"] .rgMeetingCard,
+html[data-user-theme="dark"] .rgMeetingHeader,
+html[data-user-theme="dark"] .rgMeetingForm,
+html[data-user-theme="dark"] .rgMeetingSection {
+  background: #171b35;
+  border-color: #292e49;
+  color: #f5f6fb;
+}
+
+html[data-user-theme="dark"] .rgMeetingHeader h1,
+html[data-user-theme="dark"] .rgMeetingSectionTitle span,
+html[data-user-theme="dark"] .rgMeetingPeopleHeader h3,
+html[data-user-theme="dark"] .rgMeetingPersonInfo strong,
+html[data-user-theme="dark"] .rgMeetingSelectedChip strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgMeetingHeader p,
+html[data-user-theme="dark"] .rgMeetingPeopleHeader p,
+html[data-user-theme="dark"] .rgMeetingPersonInfo small,
+html[data-user-theme="dark"] .rgMeetingSelectedChip small,
+html[data-user-theme="dark"] .rgMeetingActions span {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgMeetingBack,
+html[data-user-theme="dark"] .rgMeetingField input,
+html[data-user-theme="dark"] .rgMeetingField select,
+html[data-user-theme="dark"] .rgMeetingField textarea,
+html[data-user-theme="dark"] .rgMeetingPeopleEmpty,
+html[data-user-theme="dark"] .rgMeetingSearch input,
+html[data-user-theme="dark"] .rgMeetingPerson,
+html[data-user-theme="dark"] .rgMeetingSelectedChip {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs {
+  background: #111529;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs button {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs button:hover:not(.active) {
+  background: #222742;
+  color: #ffffff;
+}
+
+html[data-user-theme="dark"] .rgMeetingTabs button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #5946ee, #8650ea);
+}
+
+html[data-user-theme="dark"] .rgMeetingField label {
+  color: #aeb5c8;
+}
+
+html[data-user-theme="dark"] .rgMeetingField input,
+html[data-user-theme="dark"] .rgMeetingField select,
+html[data-user-theme="dark"] .rgMeetingField textarea {
+  color-scheme: dark;
+}
+
+html[data-user-theme="dark"] .rgMeetingField input:focus,
+html[data-user-theme="dark"] .rgMeetingField select:focus,
+html[data-user-theme="dark"] .rgMeetingField textarea:focus {
+  border-color: #735cff;
+  box-shadow: 0 0 0 4px rgba(115, 92, 255, 0.12);
+}
+
+html[data-user-theme="dark"] .rgMeetingPerson:hover {
+  border-color: #6754eb;
+  background: #181d35;
+}
+
+html[data-user-theme="dark"] .rgMeetingPerson.active {
+  background: #242043;
+  border-color: #735cff;
+}
+
+html[data-user-theme="dark"] .rgMeetingSelectedChip button {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgMeetingSelectedChip button:hover {
+  background: #252b48;
+  color: #ffffff;
+}
+
+html[data-user-theme="dark"] .rgMeetingSelectAll {
+  background: #201d3d;
+  border-color: #433a77;
+  color: #b9adff;
+}
+
+html[data-user-theme="dark"] .rgMeetingActions {
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .rgMeetingMessage {
+  border-color: #692630;
+  background: #35191f;
+  color: #fecaca;
+}
+
+html[data-user-theme="dark"] .rgMeetingMessage.success {
+  border-color: #226b4a;
+  background: #112b23;
+  color: #bbf7d0;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .rgMeetingPeopleGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .rgTopbar {
+    height: 72px;
+    min-height: 72px;
+    flex-basis: 72px;
+    padding: 0 16px;
+  }
+
+  .rgTopProfile {
+    min-width: 0;
+    grid-template-columns: 38px 18px;
+  }
+
+  .rgTopUserText {
+    display: none;
+  }
+
+  .user-page-content:has(.rgMeetingPage) {
+    padding: 12px 14px 24px;
+  }
+
+  .rgMeetingHeader {
+    padding: 18px;
+  }
+
+  .rgMeetingForm {
+    padding: 18px;
+  }
+
+  .rgMeetingPeopleGrid,
+  .rgMeetingDateGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .rgTopbar {
+    height: 64px;
+    min-height: 64px;
+    flex-basis: 64px;
+    padding: 0 12px;
+  }
+
+  .rgBellButton {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .rgTopProfile {
+    height: 42px;
+    grid-template-columns: 34px 16px;
+    padding: 4px 7px;
+  }
+
+  .rgTopAvatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .rgMeetingPage {
+    padding-bottom: 24px;
+  }
+
+  .rgMeetingCard {
+    border-radius: 14px;
+  }
+
+  .rgMeetingHeader {
+    min-height: auto;
+    padding: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .rgMeetingHeader > div:first-child {
+    width: 100%;
+  }
+
+  .rgMeetingHeaderIcon {
+    display: none;
+  }
+
+  .rgMeetingHeader h1 {
+    font-size: 19px;
+  }
+
+  .rgMeetingHeader p {
+    font-size: 12px;
+  }
+
+  .rgMeetingBack {
+    width: 100%;
+  }
+
+  .rgMeetingForm {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .rgMeetingTabs {
+    grid-template-columns: 1fr;
+  }
+
+  .rgMeetingSection {
+    padding: 14px;
+  }
+
+  .rgMeetingPeopleHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rgMeetingSelectAll,
+  .rgMeetingSubmit {
+    width: 100%;
+  }
+
+  .rgMeetingActions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
