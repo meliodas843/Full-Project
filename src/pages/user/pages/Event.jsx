@@ -270,6 +270,7 @@ export default function Event() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [badge, setBadge] = useState("");
   const [speakers, setSpeakers] = useState([makeSpeaker()]);
   const [start_time, setStartTime] = useState("");
   const [end_time, setEndTime] = useState("");
@@ -784,10 +785,19 @@ export default function Event() {
     setEditingEventId(null);
     setTitle("");
     setDescription("");
-    setSpeakers([makeSpeaker()]);
-    setAgendas([
-      { text: "", time: "" },
+    setBadge("");
+
+    setSpeakers([
+      makeSpeaker(),
     ]);
+
+    setAgendas([
+      {
+        text: "",
+        time: "",
+      },
+    ]);
+
     setStartTime("");
     setEndTime("");
     setImageUrl("");
@@ -837,6 +847,9 @@ export default function Event() {
     setTitle(ev.title || "");
     setDescription(
       ev.description || ""
+    );
+    setBadge(
+      ev.badge || ""
     );
 
     setSpeakers(
@@ -922,6 +935,7 @@ export default function Event() {
 
     if (
       !title.trim() ||
+      !badge.trim() ||
       !start_time
     ) {
       setErrMsg(
@@ -1016,6 +1030,11 @@ export default function Event() {
       fd.append(
         "description",
         description.trim()
+      );
+
+      fd.append(
+        "badge",
+        badge.trim()
       );
 
       fd.append(
@@ -1897,6 +1916,8 @@ export default function Event() {
               setDescription={
                 setDescription
               }
+              badge={badge}
+              setBadge={setBadge}
               speakers={speakers}
               handleSpeakerChange={
                 handleSpeakerChange

@@ -530,7 +530,8 @@ router.get("/requests", authMiddleware, async (req, res) => {
           WHERE eb2.event_id = e.id
         ) AS booked_count
       FROM events e
-      WHERE e.created_by_email = ?
+      WHERE LOWER(e.created_by_email) = LOWER(?)
+        AND e.archived = 0
       ORDER BY e.created_at DESC
       `,
       [userEmail],
@@ -540,6 +541,65 @@ router.get("/requests", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("GET /api/events/requests error:", err);
     return res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================================================
+   DELETE notification from my requests
+========================================================= */
+router.delete("/requests/:id", authMiddleware, async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const userEmail = String(req.user?.email || "").trim().toLowerCase();
+
+    if (!Number.isFinite(eventId)) {
+      return res.status(400).json({ message: "Invalid event id" });
+    }
+
+    if (!userEmail) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    const [rows] = await pool.query(
+      `
+      SELECT id, created_by_email
+      FROM events
+      WHERE id = ?
+        AND LOWER(created_by_email) = ?
+      LIMIT 1
+      `,
+      [eventId, userEmail]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        message: "Notification not found or not allowed",
+      });
+    }
+
+    await pool.query(
+      `
+      UPDATE events
+      SET archived = 1,
+          archived_at = NOW()
+      WHERE id = ?
+        AND LOWER(created_by_email) = ?
+      `,
+      [eventId, userEmail]
+    );
+
+    return res.json({
+      success: true,
+      message: "Notification deleted",
+      id: eventId,
+    });
+  } catch (err) {
+    console.error("DELETE /api/events/requests/:id error:", err);
+
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 

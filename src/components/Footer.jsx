@@ -5,6 +5,7 @@ import {
   FaGithub,
   FaInstagram,
 } from "react-icons/fa6";
+import registraLogo from "../assets/registra-logo-def.png";
 
 export default function Footer() {
   return (
@@ -13,11 +14,11 @@ export default function Footer() {
         <div className="riFooterGrid">
           <div className="riFooterBrand">
             <Link to="/" className="riBrand">
-              <span className="riBrandIcon">★</span>
-              <span className="riBrandText">
-                <strong>Khural Plus</strong>
-                <small>REGISTRA</small>
-              </span>
+              <img
+                src={registraLogo}
+                alt="REGISTRA"
+                className="riBrandLogo"
+              />
             </Link>
 
             <p>
@@ -65,7 +66,9 @@ export default function Footer() {
         </div>
 
         <div className="riFooterBottom">
-          <span>© {new Date().getFullYear()} Khural Plus. All rights reserved.</span>
+          <span>
+            © {new Date().getFullYear()} Khural Plus. All rights reserved.
+          </span>
 
           <div>
             <a href="#">Privacy Policy</a>

@@ -1,4 +1,9 @@
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   FiArrowLeft,
   FiArrowRight,
@@ -8,35 +13,60 @@ import {
   FiImage,
   FiLock,
   FiPlus,
+  FiTag,
   FiTrash2,
   FiUploadCloud,
   FiUsers,
 } from "react-icons/fi";
+
+const BADGE_OPTIONS = [
+  "Technology",
+  "Business",
+  "Education",
+  "Conference",
+  "Workshop",
+  "Networking",
+  "Community",
+  "Sports",
+  "Entertainment",
+];
 
 function resolvePreview(
   imageFile,
   imageUrl,
   resolveUrl
 ) {
-  if (imageFile instanceof File) {
+  if (
+    typeof File !== "undefined" &&
+    imageFile instanceof File
+  ) {
     return URL.createObjectURL(
       imageFile
     );
   }
 
-  if (imageUrl) {
-    return resolveUrl(imageUrl);
+  if (
+    imageUrl &&
+    typeof resolveUrl ===
+      "function"
+  ) {
+    return resolveUrl(
+      imageUrl
+    );
   }
 
   return "";
 }
 
-function formatPreviewDate(value) {
+function formatPreviewDate(
+  value
+) {
   if (!value) {
     return "Not specified";
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
   if (
     Number.isNaN(
@@ -61,42 +91,115 @@ function formatPreviewDate(value) {
 
 export default function EventCreateWizard({
   editingEventId,
+
   title,
   setTitle,
+
   description,
   setDescription,
-  speakers,
+
+  badge = "",
+  setBadge,
+
+  speakers = [],
   handleSpeakerChange,
   addSpeaker,
   removeSpeaker,
-  agendas,
+
+  agendas = [],
   handleAgendaChange,
   addAgendaItem,
   removeAgendaItem,
+
   start_time,
   setStartTime,
+
   end_time,
   setEndTime,
+
   image_url,
+
   imageFile,
   setImageFile,
+
   max_participants,
   setMaxParticipants,
+
   visibility,
   setVisibility,
+
   creating,
+
   errMsg,
   setErrMsg,
+
   successMsg,
+
   minDateTime,
+
   resolveUrl,
+
   getSpeakerAvatar,
+
   isSvgFile,
+
   handleCreate,
+
   closeCreate,
 }) {
   const [step, setStep] =
     useState(1);
+
+  const [
+    badgeMode,
+    setBadgeMode,
+  ] = useState("");
+
+  const [
+    customBadge,
+    setCustomBadge,
+  ] = useState("");
+
+  /*
+   * Keep the local badge selector
+   * synchronized with the badge
+   * received from Event.jsx.
+   *
+   * This is especially important
+   * when editing an existing event.
+   */
+  useEffect(() => {
+    const currentBadge =
+      String(
+        badge || ""
+      ).trim();
+
+    if (!currentBadge) {
+      setBadgeMode("");
+      setCustomBadge("");
+      return;
+    }
+
+    if (
+      BADGE_OPTIONS.includes(
+        currentBadge
+      )
+    ) {
+      setBadgeMode(
+        currentBadge
+      );
+
+      setCustomBadge("");
+
+      return;
+    }
+
+    setBadgeMode("custom");
+
+    setCustomBadge(
+      currentBadge
+    );
+  }, [badge]);
 
   const previewImage =
     useMemo(
@@ -113,22 +216,134 @@ export default function EventCreateWizard({
       ]
     );
 
+  /*
+   * Single safe function for
+   * updating the parent badge.
+   */
+  function updateBadge(
+    value
+  ) {
+    if (
+      typeof setBadge !==
+      "function"
+    ) {
+      console.error(
+        "EventCreateWizard: setBadge must be passed from Event.jsx.",
+        {
+          received:
+            setBadge,
+          value,
+        }
+      );
+
+      if (
+        typeof setErrMsg ===
+        "function"
+      ) {
+        setErrMsg(
+          "Badge тохиргооны алдаа гарлаа. Event.jsx дээр setBadge prop дамжуулсан эсэхийг шалгана уу."
+        );
+      }
+
+      return false;
+    }
+
+    setBadge(value);
+
+    return true;
+  }
+
+  function handleBadgeSelect(
+    event
+  ) {
+    const value =
+      event.target.value;
+
+    setBadgeMode(value);
+
+    if (
+      typeof setErrMsg ===
+      "function"
+    ) {
+      setErrMsg("");
+    }
+
+    if (!value) {
+      setCustomBadge("");
+      updateBadge("");
+      return;
+    }
+
+    if (
+      value === "custom"
+    ) {
+      updateBadge(
+        customBadge.trim()
+      );
+
+      return;
+    }
+
+    setCustomBadge("");
+
+    updateBadge(value);
+  }
+
+  function handleCustomBadge(
+    event
+  ) {
+    const value =
+      event.target.value;
+
+    setCustomBadge(value);
+
+    if (
+      typeof setErrMsg ===
+      "function"
+    ) {
+      setErrMsg("");
+    }
+
+    updateBadge(value);
+  }
+
   function validateStepOne() {
-    if (!title.trim()) {
-      setErrMsg(
+    if (!title?.trim()) {
+      setErrMsg?.(
         "Please enter an event title."
       );
 
       return false;
     }
 
-    setErrMsg("");
+    if (
+      badgeMode ===
+        "custom" &&
+      !customBadge.trim()
+    ) {
+      setErrMsg?.(
+        "Please enter a custom badge."
+      );
+
+      return false;
+    }
+
+    if (!badge?.trim()) {
+      setErrMsg?.(
+        "Please select or enter a badge."
+      );
+
+      return false;
+    }
+
+    setErrMsg?.("");
+
     return true;
   }
 
   function validateStepTwo() {
     if (!start_time) {
-      setErrMsg(
+      setErrMsg?.(
         "Please select a start date and time."
       );
 
@@ -144,14 +359,15 @@ export default function EventCreateWizard({
           start_time
         ).getTime()
     ) {
-      setErrMsg(
+      setErrMsg?.(
         "End time cannot be before start time."
       );
 
       return false;
     }
 
-    setErrMsg("");
+    setErrMsg?.("");
+
     return true;
   }
 
@@ -170,11 +386,12 @@ export default function EventCreateWizard({
       return;
     }
 
-    setStep((current) =>
-      Math.min(
-        3,
-        current + 1
-      )
+    setStep(
+      (current) =>
+        Math.min(
+          3,
+          current + 1
+        )
     );
 
     window.scrollTo({
@@ -184,13 +401,14 @@ export default function EventCreateWizard({
   }
 
   function previousStep() {
-    setErrMsg("");
+    setErrMsg?.("");
 
-    setStep((current) =>
-      Math.max(
-        1,
-        current - 1
-      )
+    setStep(
+      (current) =>
+        Math.max(
+          1,
+          current - 1
+        )
     );
 
     window.scrollTo({
@@ -199,20 +417,35 @@ export default function EventCreateWizard({
     });
   }
 
-  function submitEvent(event) {
-    if (!validateStepOne()) {
+  function submitEvent(
+    event
+  ) {
+    if (
+      !validateStepOne()
+    ) {
       event.preventDefault();
+
       setStep(1);
+
       return;
     }
 
-    if (!validateStepTwo()) {
+    if (
+      !validateStepTwo()
+    ) {
       event.preventDefault();
+
       setStep(2);
+
       return;
     }
 
-    handleCreate(event);
+    if (
+      typeof handleCreate ===
+      "function"
+    ) {
+      handleCreate(event);
+    }
   }
 
   return (
@@ -228,7 +461,9 @@ export default function EventCreateWizard({
         <button
           type="button"
           className="eventWizardBack"
-          onClick={closeCreate}
+          onClick={
+            closeCreate
+          }
         >
           <FiArrowLeft />
         </button>
@@ -241,7 +476,9 @@ export default function EventCreateWizard({
           </h2>
 
           <p>
-            Step {step} of 3 —{" "}
+            Step {step} of 3
+            {" — "}
+
             {step === 1
               ? "Basic Info"
               : step === 2
@@ -264,9 +501,11 @@ export default function EventCreateWizard({
           }`}
         >
           <span>
-            {step > 1
-              ? <FiCheck />
-              : "1"}
+            {step > 1 ? (
+              <FiCheck />
+            ) : (
+              "1"
+            )}
           </span>
 
           <strong>
@@ -294,9 +533,11 @@ export default function EventCreateWizard({
           }`}
         >
           <span>
-            {step > 2
-              ? <FiCheck />
-              : "2"}
+            {step > 2 ? (
+              <FiCheck />
+            ) : (
+              "2"
+            )}
           </span>
 
           <strong>
@@ -319,7 +560,9 @@ export default function EventCreateWizard({
               : ""
           }`}
         >
-          <span>3</span>
+          <span>
+            3
+          </span>
 
           <strong>
             Preview & Publish
@@ -329,7 +572,9 @@ export default function EventCreateWizard({
 
       <form
         className="eventWizardForm"
-        onSubmit={submitEvent}
+        onSubmit={
+          submitEvent
+        }
       >
         {step === 1 && (
           <div className="eventWizardPanel">
@@ -339,15 +584,105 @@ export default function EventCreateWizard({
               </span>
 
               <input
-                value={title}
-                onChange={(event) =>
-                  setTitle(
-                    event.target.value
+                value={
+                  title || ""
+                }
+                onChange={(
+                  event
+                ) =>
+                  setTitle?.(
+                    event.target
+                      .value
                   )
                 }
                 placeholder="Example: Tech Summit 2026"
               />
             </label>
+
+            <label className="eventWizardField">
+              <span>
+                SELECT BADGE *
+              </span>
+
+              <div className="eventWizardSelectIcon">
+                <FiTag />
+
+                <select
+                  value={
+                    badgeMode
+                  }
+                  onChange={
+                    handleBadgeSelect
+                  }
+                >
+                  <option value="">
+                    Select badge
+                  </option>
+
+                  {BADGE_OPTIONS.map(
+                    (
+                      option
+                    ) => (
+                      <option
+                        key={
+                          option
+                        }
+                        value={
+                          option
+                        }
+                      >
+                        {option}
+                      </option>
+                    )
+                  )}
+
+                  <option value="custom">
+                    Other / Custom
+                  </option>
+                </select>
+              </div>
+            </label>
+
+            {badgeMode ===
+              "custom" && (
+              <label className="eventWizardField">
+                <span>
+                  CUSTOM BADGE *
+                </span>
+
+                <div className="eventWizardInputIcon">
+                  <FiTag />
+
+                  <input
+                    type="text"
+                    value={
+                      customBadge
+                    }
+                    onChange={
+                      handleCustomBadge
+                    }
+                    placeholder="Example: Cybersecurity"
+                    maxLength={
+                      40
+                    }
+                    autoFocus
+                  />
+                </div>
+
+                <small
+                  style={{
+                    display:
+                      "block",
+                    marginTop: 6,
+                    opacity: 0.65,
+                  }}
+                >
+                  Can't find the
+                  right badge? Write
+                  your own.
+                </small>
+              </label>
+            )}
 
             <label className="eventWizardField">
               <span>
@@ -363,10 +698,16 @@ export default function EventCreateWizard({
                 )}
 
                 <select
-                  value={visibility}
-                  onChange={(event) =>
-                    setVisibility(
-                      event.target.value
+                  value={
+                    visibility ||
+                    "public"
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setVisibility?.(
+                      event.target
+                        .value
                     )
                   }
                 >
@@ -387,10 +728,16 @@ export default function EventCreateWizard({
               </span>
 
               <textarea
-                value={description}
-                onChange={(event) =>
-                  setDescription(
-                    event.target.value
+                value={
+                  description ||
+                  ""
+                }
+                onChange={(
+                  event
+                ) =>
+                  setDescription?.(
+                    event.target
+                      .value
                   )
                 }
                 placeholder="Enter the event description..."
@@ -407,27 +754,32 @@ export default function EventCreateWizard({
                 <input
                   type="file"
                   accept=".png,.jpg,.jpeg,.webp,.gif"
-                  onChange={(event) => {
+                  onChange={(
+                    event
+                  ) => {
                     const file =
                       event.target
                         .files?.[0] ||
                       null;
 
                     if (!file) {
-                      setImageFile(
+                      setImageFile?.(
                         null
                       );
+
                       return;
                     }
 
                     if (
+                      typeof isSvgFile ===
+                        "function" &&
                       isSvgFile(file)
                     ) {
-                      setErrMsg(
+                      setErrMsg?.(
                         "SVG images are not supported."
                       );
 
-                      setImageFile(
+                      setImageFile?.(
                         null
                       );
 
@@ -437,8 +789,11 @@ export default function EventCreateWizard({
                       return;
                     }
 
-                    setErrMsg("");
-                    setImageFile(file);
+                    setErrMsg?.("");
+
+                    setImageFile?.(
+                      file
+                    );
                   }}
                 />
 
@@ -454,8 +809,9 @@ export default function EventCreateWizard({
                   </strong>
 
                   <small>
-                    PNG, JPG, JPEG,
-                    WEBP, GIF
+                    PNG, JPG,
+                    JPEG, WEBP,
+                    GIF
                   </small>
                 </div>
               </label>
@@ -464,21 +820,33 @@ export default function EventCreateWizard({
               !imageFile ? (
                 <div
                   style={{
-                    marginTop: 12,
-                    width: "100%",
-                    height: 180,
-                    borderRadius: 12,
-                    overflow: "hidden",
+                    marginTop:
+                      12,
+                    width:
+                      "100%",
+                    height:
+                      180,
+                    borderRadius:
+                      12,
+                    overflow:
+                      "hidden",
                   }}
                 >
                   <img
-                    src={resolveUrl(
-                      image_url
-                    )}
+                    src={
+                      typeof resolveUrl ===
+                      "function"
+                        ? resolveUrl(
+                            image_url
+                          )
+                        : image_url
+                    }
                     alt="Current cover"
                     style={{
-                      width: "100%",
-                      height: "100%",
+                      width:
+                        "100%",
+                      height:
+                        "100%",
                       objectFit:
                         "cover",
                       display:
@@ -505,33 +873,41 @@ export default function EventCreateWizard({
                   <input
                     type="datetime-local"
                     value={
-                      start_time
+                      start_time ||
+                      ""
                     }
                     min={
                       editingEventId
                         ? undefined
                         : minDateTime
                     }
-                    onChange={(event) => {
+                    onChange={(
+                      event
+                    ) => {
                       const value =
-                        event.target
+                        event
+                          .target
                           .value;
 
                       if (
                         !editingEventId &&
                         value &&
+                        minDateTime &&
                         value <
                           minDateTime
                       ) {
-                        setErrMsg(
+                        setErrMsg?.(
                           "Past dates are not allowed."
                         );
 
                         return;
                       }
 
-                      setErrMsg("");
-                      setStartTime(
+                      setErrMsg?.(
+                        ""
+                      );
+
+                      setStartTime?.(
                         value
                       );
 
@@ -541,7 +917,7 @@ export default function EventCreateWizard({
                         end_time <
                           value
                       ) {
-                        setEndTime(
+                        setEndTime?.(
                           ""
                         );
                       }
@@ -560,7 +936,10 @@ export default function EventCreateWizard({
 
                   <input
                     type="datetime-local"
-                    value={end_time}
+                    value={
+                      end_time ||
+                      ""
+                    }
                     min={
                       start_time ||
                       minDateTime
@@ -568,9 +947,12 @@ export default function EventCreateWizard({
                     disabled={
                       !start_time
                     }
-                    onChange={(event) => {
+                    onChange={(
+                      event
+                    ) => {
                       const value =
-                        event.target
+                        event
+                          .target
                           .value;
 
                       if (
@@ -579,15 +961,18 @@ export default function EventCreateWizard({
                         value <
                           start_time
                       ) {
-                        setErrMsg(
+                        setErrMsg?.(
                           "End time cannot be before start time."
                         );
 
                         return;
                       }
 
-                      setErrMsg("");
-                      setEndTime(
+                      setErrMsg?.(
+                        ""
+                      );
+
+                      setEndTime?.(
                         value
                       );
                     }}
@@ -608,11 +993,15 @@ export default function EventCreateWizard({
                   type="number"
                   min="0"
                   value={
-                    max_participants
+                    max_participants ||
+                    ""
                   }
-                  onChange={(event) =>
-                    setMaxParticipants(
-                      event.target.value
+                  onChange={(
+                    event
+                  ) =>
+                    setMaxParticipants?.(
+                      event.target
+                        .value
                     )
                   }
                   placeholder="Example: 500"
@@ -634,9 +1023,12 @@ export default function EventCreateWizard({
 
               <button
                 type="button"
-                onClick={addSpeaker}
+                onClick={
+                  addSpeaker
+                }
               >
                 <FiPlus />
+
                 Add Speaker
               </button>
             </div>
@@ -647,57 +1039,87 @@ export default function EventCreateWizard({
                   speaker,
                   index
                 ) => {
-                  const currentAvatar =
+                  let currentAvatar =
+                    "";
+
+                  if (
+                    typeof File !==
+                      "undefined" &&
                     speaker.avatar instanceof
-                    File
-                      ? URL.createObjectURL(
-                          speaker.avatar
-                        )
-                      : resolveUrl(
-                          getSpeakerAvatar(
-                            speaker
+                      File
+                  ) {
+                    currentAvatar =
+                      URL.createObjectURL(
+                        speaker.avatar
+                      );
+                  } else if (
+                    typeof getSpeakerAvatar ===
+                    "function"
+                  ) {
+                    const avatar =
+                      getSpeakerAvatar(
+                        speaker
+                      );
+
+                    currentAvatar =
+                      typeof resolveUrl ===
+                      "function"
+                        ? resolveUrl(
+                            avatar
                           )
-                        );
+                        : avatar;
+                  }
 
                   return (
                     <div
                       className="eventWizardSpeaker"
-                      key={index}
+                      key={
+                        index
+                      }
                     >
                       <label className="eventWizardSpeakerAvatar">
                         <input
                           type="file"
                           accept=".png,.jpg,.jpeg,.webp,.gif"
-                          onChange={(event) => {
+                          onChange={(
+                            event
+                          ) => {
                             const file =
-                              event.target
+                              event
+                                .target
                                 .files?.[0] ||
                               null;
 
-                            if (!file) {
-                              handleSpeakerChange(
+                            if (
+                              !file
+                            ) {
+                              handleSpeakerChange?.(
                                 index,
                                 "avatar",
                                 null
                               );
+
                               return;
                             }
 
                             if (
+                              typeof isSvgFile ===
+                                "function" &&
                               isSvgFile(
                                 file
                               )
                             ) {
-                              setErrMsg(
+                              setErrMsg?.(
                                 "SVG images are not supported."
                               );
 
                               event.target.value =
                                 "";
+
                               return;
                             }
 
-                            handleSpeakerChange(
+                            handleSpeakerChange?.(
                               index,
                               "avatar",
                               file
@@ -724,11 +1146,15 @@ export default function EventCreateWizard({
                             ""
                           }
                           placeholder="Name"
-                          onChange={(event) =>
-                            handleSpeakerChange(
+                          onChange={(
+                            event
+                          ) =>
+                            handleSpeakerChange?.(
                               index,
                               "name",
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
                           }
                         />
@@ -739,11 +1165,15 @@ export default function EventCreateWizard({
                             ""
                           }
                           placeholder="Organization"
-                          onChange={(event) =>
-                            handleSpeakerChange(
+                          onChange={(
+                            event
+                          ) =>
+                            handleSpeakerChange?.(
                               index,
                               "organization",
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
                           }
                         />
@@ -754,11 +1184,15 @@ export default function EventCreateWizard({
                             ""
                           }
                           placeholder="Topic"
-                          onChange={(event) =>
-                            handleSpeakerChange(
+                          onChange={(
+                            event
+                          ) =>
+                            handleSpeakerChange?.(
                               index,
                               "topic",
-                              event.target.value
+                              event
+                                .target
+                                .value
                             )
                           }
                         />
@@ -770,7 +1204,7 @@ export default function EventCreateWizard({
                           type="button"
                           className="eventWizardDelete"
                           onClick={() =>
-                            removeSpeaker(
+                            removeSpeaker?.(
                               index
                             )
                           }
@@ -803,6 +1237,7 @@ export default function EventCreateWizard({
                 }
               >
                 <FiPlus />
+
                 Add Agenda
               </button>
             </div>
@@ -815,7 +1250,9 @@ export default function EventCreateWizard({
                 ) => (
                   <div
                     className="eventWizardAgendaRow"
-                    key={index}
+                    key={
+                      index
+                    }
                   >
                     <input
                       type="time"
@@ -823,11 +1260,15 @@ export default function EventCreateWizard({
                         agenda.time ||
                         ""
                       }
-                      onChange={(event) =>
-                        handleAgendaChange(
+                      onChange={(
+                        event
+                      ) =>
+                        handleAgendaChange?.(
                           index,
                           "time",
-                          event.target.value
+                          event
+                            .target
+                            .value
                         )
                       }
                     />
@@ -838,11 +1279,15 @@ export default function EventCreateWizard({
                         ""
                       }
                       placeholder="Agenda title"
-                      onChange={(event) =>
-                        handleAgendaChange(
+                      onChange={(
+                        event
+                      ) =>
+                        handleAgendaChange?.(
                           index,
                           "text",
-                          event.target.value
+                          event
+                            .target
+                            .value
                         )
                       }
                     />
@@ -853,7 +1298,7 @@ export default function EventCreateWizard({
                         type="button"
                         className="eventWizardDelete"
                         onClick={() =>
-                          removeAgendaItem(
+                          removeAgendaItem?.(
                             index
                           )
                         }
@@ -889,15 +1334,33 @@ export default function EventCreateWizard({
                 )}
 
                 <div className="eventWizardPreviewOverlay">
-                  <span>
-                    {visibility ===
-                    "private"
-                      ? "Private"
-                      : "Public"}
-                  </span>
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      alignItems:
+                        "center",
+                      gap: 8,
+                      flexWrap:
+                        "wrap",
+                    }}
+                  >
+                    <span>
+                      {visibility ===
+                      "private"
+                        ? "Private"
+                        : "Public"}
+                    </span>
+
+                    {badge?.trim() ? (
+                      <span>
+                        {badge.trim()}
+                      </span>
+                    ) : null}
+                  </div>
 
                   <h2>
-                    {title.trim() ||
+                    {title?.trim() ||
                       "Untitled Event"}
                   </h2>
                 </div>
@@ -954,6 +1417,17 @@ export default function EventCreateWizard({
                       : "Public"}
                   </strong>
                 </div>
+
+                <div>
+                  <small>
+                    Badge
+                  </small>
+
+                  <strong>
+                    {badge?.trim() ||
+                      "Not specified"}
+                  </strong>
+                </div>
               </div>
 
               {description ? (
@@ -969,11 +1443,14 @@ export default function EventCreateWizard({
               ) : null}
             </div>
 
-            {!title.trim() ||
+            {!title?.trim() ||
+            !badge?.trim() ||
             !start_time ? (
               <div className="eventWizardWarning">
-                Please enter an event
-                title and start date/time
+                Please enter an
+                event title, select
+                a badge and choose
+                a start date/time
                 before publishing.
               </div>
             ) : null}
@@ -1002,6 +1479,7 @@ export default function EventCreateWizard({
               }
             >
               <FiArrowLeft />
+
               Previous
             </button>
           ) : (
@@ -1020,9 +1498,12 @@ export default function EventCreateWizard({
             <button
               type="button"
               className="eventWizardContinue"
-              onClick={nextStep}
+              onClick={
+                nextStep
+              }
             >
               Continue
+
               <FiArrowRight />
             </button>
           ) : (
@@ -1031,7 +1512,8 @@ export default function EventCreateWizard({
               className="eventWizardContinue"
               disabled={
                 creating ||
-                !title.trim() ||
+                !title?.trim() ||
+                !badge?.trim() ||
                 !start_time
               }
             >

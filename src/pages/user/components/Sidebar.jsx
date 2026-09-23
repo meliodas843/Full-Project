@@ -3,17 +3,26 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
 import {
   FiCalendar,
   FiGrid,
   FiHome,
+  FiLock,
   FiLogOut,
   FiMoon,
   FiStar,
   FiSun,
   FiUser,
 } from "react-icons/fi";
-import logo from "../../../assets/registra-logo-def.png";
+
+import logo from "../../../assets/reigistra-logo-def.png";
+
+function getProfileComplete() {
+  return (
+    localStorage.getItem("profileComplete") === "true"
+  );
+}
 
 export default function Sidebar({
   onNavigate = () => {},
@@ -24,10 +33,16 @@ export default function Sidebar({
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  const profileComplete =
+    getProfileComplete();
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem(
+      "profileComplete"
+    );
 
     onNavigate();
 
@@ -36,22 +51,43 @@ export default function Sidebar({
     });
   };
 
+  const isPathActive = (path) => {
+    return (
+      pathname === path ||
+      pathname.startsWith(
+        `${path}/`
+      )
+    );
+  };
+
   const isProfileSection =
     pathname === "/user/profile" ||
-    pathname.startsWith("/user/profile/") ||
+    pathname.startsWith(
+      "/user/profile/"
+    ) ||
+    pathname === "/profile" ||
+    pathname.startsWith(
+      "/profile/"
+    ) ||
     pathname === "/user/password" ||
-    pathname.startsWith("/user/password/") ||
+    pathname.startsWith(
+      "/user/password/"
+    ) ||
     pathname === "/user/company" ||
-    pathname.startsWith("/user/company/") ||
+    pathname.startsWith(
+      "/user/company/"
+    ) ||
     pathname === "/user/bill" ||
-    pathname.startsWith("/user/bill/");
+    pathname.startsWith(
+      "/user/bill/"
+    );
 
   const getLinkClass = (path) => {
-    const active =
-      pathname === path ||
-      pathname.startsWith(`${path}/`);
+    if (!profileComplete) {
+      return "rgSideLink rgSideLinkLocked";
+    }
 
-    return active
+    return isPathActive(path)
       ? "rgSideLink active"
       : "rgSideLink";
   };
@@ -60,6 +96,23 @@ export default function Sidebar({
     return isProfileSection
       ? "rgSideLink active"
       : "rgSideLink";
+  };
+
+  const handleLockedClick = (
+    event
+  ) => {
+    if (profileComplete) {
+      onNavigate();
+      return;
+    }
+
+    event.preventDefault();
+
+    navigate("/user/profile", {
+      replace: false,
+    });
+
+    onNavigate();
   };
 
   return (
@@ -79,7 +132,9 @@ export default function Sidebar({
 
       <div className="rgSidebarBody">
         <section className="rgSidebarSection">
-          <h5>MAIN</h5>
+          <h5>
+            MAIN
+          </h5>
 
           <nav className="rgSidebarMenu">
             <NavLink
@@ -87,13 +142,22 @@ export default function Sidebar({
               className={getLinkClass(
                 "/user/home"
               )}
-              onClick={onNavigate}
+              onClick={
+                handleLockedClick
+              }
+              aria-disabled={
+                !profileComplete
+              }
             >
               <FiHome />
 
               <span>
                 Нүүр
               </span>
+
+              {!profileComplete && (
+                <FiLock className="rgSideLock" />
+              )}
             </NavLink>
 
             <NavLink
@@ -101,13 +165,22 @@ export default function Sidebar({
               className={getLinkClass(
                 "/user/history"
               )}
-              onClick={onNavigate}
+              onClick={
+                handleLockedClick
+              }
+              aria-disabled={
+                !profileComplete
+              }
             >
               <FiStar />
 
               <span>
                 Миний эвэнтүүд
               </span>
+
+              {!profileComplete && (
+                <FiLock className="rgSideLock" />
+              )}
             </NavLink>
 
             <NavLink
@@ -115,13 +188,22 @@ export default function Sidebar({
               className={getLinkClass(
                 "/user/event"
               )}
-              onClick={onNavigate}
+              onClick={
+                handleLockedClick
+              }
+              aria-disabled={
+                !profileComplete
+              }
             >
               <FiGrid />
 
               <span>
                 Эвэнт
               </span>
+
+              {!profileComplete && (
+                <FiLock className="rgSideLock" />
+              )}
             </NavLink>
 
             <NavLink
@@ -129,13 +211,22 @@ export default function Sidebar({
               className={getLinkClass(
                 "/user/calendar"
               )}
-              onClick={onNavigate}
+              onClick={
+                handleLockedClick
+              }
+              aria-disabled={
+                !profileComplete
+              }
             >
               <FiCalendar />
 
               <span>
                 Календар
               </span>
+
+              {!profileComplete && (
+                <FiLock className="rgSideLock" />
+              )}
             </NavLink>
           </nav>
         </section>
@@ -158,6 +249,12 @@ export default function Sidebar({
               <span>
                 Профайл
               </span>
+
+              {!profileComplete && (
+                <span className="rgProfileRequired">
+                  Required
+                </span>
+              )}
             </NavLink>
           </nav>
         </section>

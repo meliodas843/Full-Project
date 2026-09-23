@@ -594,6 +594,11 @@ export default function History() {
   ] = useState("");
 
   const [
+    badge,
+    setBadge,
+  ] = useState("");
+
+  const [
     speakers,
     setSpeakers,
   ] = useState([
@@ -1238,6 +1243,7 @@ export default function History() {
   function resetForm() {
     setTitle("");
     setDescription("");
+    setBadge("");
 
     setSpeakers([
       makeSpeaker(),
@@ -1310,6 +1316,10 @@ export default function History() {
     setDescription(
       event.description ||
         ""
+    );
+
+    setBadge(
+      event.badge || ""
     );
 
     const parsedSpeakers =
@@ -1562,10 +1572,11 @@ export default function History() {
 
     if (
       !title.trim() ||
+      !badge.trim() ||
       !start_time
     ) {
       setFormError(
-        "Title and start time are required."
+        "Title, badge and start time are required."
       );
 
       return;
@@ -1689,6 +1700,11 @@ export default function History() {
       formData.append(
         "description",
         description.trim()
+      );
+
+      formData.append(
+        "badge",
+        badge.trim()
       );
 
       formData.append(
@@ -1921,6 +1937,8 @@ export default function History() {
             setDescription={
               setDescription
             }
+            badge={badge}
+            setBadge={setBadge}
             speakers={speakers}
             handleSpeakerChange={
               handleSpeakerChange

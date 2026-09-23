@@ -3,25 +3,87 @@ import {
   useState,
 } from "react";
 import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import {
   FiMenu,
   FiX,
 } from "react-icons/fi";
+
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+
 import logo from "../../../assets/registra-logo-def.png";
+
+import { API_BASE } from "@/lib/config";
+
+function getToken() {
+  return localStorage.getItem(
+    "token"
+  );
+}
+
+function isProfileComplete(user) {
+  if (!user) {
+    return false;
+  }
+
+  const firstName = String(
+    user.firstName ||
+      user.first_name ||
+      ""
+  ).trim();
+
+  const lastName = String(
+    user.lastName ||
+      user.last_name ||
+      ""
+  ).trim();
+
+  const company = String(
+    user.company_name ||
+      user.company ||
+      ""
+  ).trim();
+
+  const phone = String(
+    user.phone || ""
+  )
+    .replace(/\D/g, "")
+    .trim();
+
+  return Boolean(
+    firstName &&
+      lastName &&
+      company &&
+      /^\d{8}$/.test(phone)
+  );
+}
 
 export default function UserShell({
   title = "Registra",
   children,
 }) {
+  const navigate =
+    useNavigate();
+
+  const location =
+    useLocation();
+
   const [open, setOpen] =
     useState(false);
+
+  const [
+    checkingProfile,
+    setCheckingProfile,
+  ] = useState(true);
 
   const [theme, setTheme] =
     useState(() => {
       return (
         localStorage.getItem(
-          "registra-theme",
+          "registra-theme"
         ) || "light"
       );
     });
@@ -32,7 +94,7 @@ export default function UserShell({
 
     localStorage.setItem(
       "registra-theme",
-      theme,
+      theme
     );
   }, [theme]);
 
@@ -49,7 +111,8 @@ export default function UserShell({
   useEffect(() => {
     function handleKey(event) {
       if (
-        event.key === "Escape"
+        event.key ===
+        "Escape"
       ) {
         setOpen(false);
       }
@@ -57,21 +120,193 @@ export default function UserShell({
 
     document.addEventListener(
       "keydown",
-      handleKey,
+      handleKey
     );
 
-    return () =>
+    return () => {
       document.removeEventListener(
         "keydown",
-        handleKey,
+        handleKey
       );
+    };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkProfile() {
+      const token =
+        getToken();
+
+      if (!token) {
+        if (!cancelled) {
+          setCheckingProfile(
+            false
+          );
+
+          navigate(
+            "/login",
+            {
+              replace: true,
+            }
+          );
+        }
+
+        return;
+      }
+
+      try {
+        setCheckingProfile(
+          true
+        );
+
+        const response =
+          await fetch(
+            `${API_BASE}/api/profile/me`,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const data =
+          await response
+            .json()
+            .catch(() => ({}));
+
+        if (!response.ok) {
+          if (
+            response.status ===
+              401 ||
+            response.status ===
+              403
+          ) {
+            localStorage.removeItem(
+              "token"
+            );
+
+            localStorage.removeItem(
+              "profileComplete"
+            );
+
+            if (!cancelled) {
+              navigate(
+                "/login",
+                {
+                  replace: true,
+                }
+              );
+            }
+          }
+
+          return;
+        }
+
+        const profile =
+          data?.user ||
+          data;
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            profile
+          )
+        );
+
+        const complete =
+          isProfileComplete(
+            profile
+          );
+
+        localStorage.setItem(
+          "profileComplete",
+          complete
+            ? "true"
+            : "false"
+        );
+
+        const isProfilePage =
+          location.pathname ===
+            "/user/profile" ||
+          location.pathname ===
+            "/profile";
+
+        if (
+          !complete &&
+          !isProfilePage &&
+          !cancelled
+        ) {
+          navigate(
+            "/user/profile",
+            {
+              replace: true,
+
+              state: {
+                profileRequired:
+                  true,
+
+                from:
+                  location.pathname,
+              },
+            }
+          );
+
+          return;
+        }
+      } catch (error) {
+        console.error(
+          "Profile check error:",
+          error
+        );
+      } finally {
+        if (!cancelled) {
+          setCheckingProfile(
+            false
+          );
+        }
+      }
+    }
+
+    checkProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    location.pathname,
+    navigate,
+  ]);
+
+  if (checkingProfile) {
+    return (
+      <div
+        className="rgProfileChecking"
+        style={{
+          minHeight: "100vh",
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent:
+            "center",
+        }}
+      >
+        <span>
+          Профайл шалгаж
+          байна...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="rgUserLayout">
       <Sidebar
         theme={theme}
-        onThemeChange={setTheme}
+        onThemeChange={
+          setTheme
+        }
       />
 
       <div className="rgUserMain">
@@ -83,10 +318,13 @@ export default function UserShell({
             alt="Registra"
           />
 
-          <span>{title}</span>
+          <span>
+            {title}
+          </span>
 
           <button
             type="button"
+            aria-label="Цэс нээх"
             onClick={() =>
               setOpen(true)
             }
@@ -102,7 +340,9 @@ export default function UserShell({
 
       <div
         className={`rgMobileOverlay ${
-          open ? "show" : ""
+          open
+            ? "show"
+            : ""
         }`}
         onClick={() =>
           setOpen(false)
@@ -111,12 +351,15 @@ export default function UserShell({
 
       <aside
         className={`rgMobileDrawer ${
-          open ? "open" : ""
+          open
+            ? "open"
+            : ""
         }`}
       >
         <button
           type="button"
           className="rgMobileClose"
+          aria-label="Цэс хаах"
           onClick={() =>
             setOpen(false)
           }
@@ -127,7 +370,9 @@ export default function UserShell({
         <Sidebar
           mobile
           theme={theme}
-          onThemeChange={setTheme}
+          onThemeChange={
+            setTheme
+          }
           onNavigate={() =>
             setOpen(false)
           }
