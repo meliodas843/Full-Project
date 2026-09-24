@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import {
+  NavLink,
   useLocation,
   useNavigate,
 } from "react-router-dom";
@@ -153,6 +154,48 @@ function isProfileComplete(profile) {
     status.contact &&
     status.organization &&
     status.interests
+  );
+}
+
+function ProfileTabs() {
+  return (
+    <aside className="rgProfileTabs">
+      <NavLink
+        to="/user/profile"
+        className={({ isActive }) =>
+          isActive ? "active" : ""
+        }
+      >
+        Профайл
+      </NavLink>
+
+      <NavLink
+        to="/user/password"
+        className={({ isActive }) =>
+          isActive ? "active" : ""
+        }
+      >
+        Нууц үг солих
+      </NavLink>
+
+      <NavLink
+        to="/user/company"
+        className={({ isActive }) =>
+          isActive ? "active" : ""
+        }
+      >
+        Компани
+      </NavLink>
+
+      <NavLink
+        to="/user/bill"
+        className={({ isActive }) =>
+          isActive ? "active" : ""
+        }
+      >
+        Төлбөр
+      </NavLink>
+    </aside>
   );
 }
 
@@ -701,8 +744,12 @@ export default function Profile() {
 
   return (
     <UserShell title="Профайл">
-      <main className="rgOnboardingPage">
-        <div className="rgOnboardingContainer">
+      <main className="rgProfilePage">
+        <ProfileTabs />
+
+        <section className="rgProfileMain">
+          <main className="rgOnboardingPage">
+          <div className="rgOnboardingContainer">
           {!profileSaved && (
             <section className="rgOnboardingWelcome">
               <div className="rgOnboardingWelcomeIcon">
@@ -803,11 +850,6 @@ export default function Profile() {
               </div>
             </section>
           )}
-
-          <div className="rgOnboardingRequiredText">
-            <span>*</span>
-            Заавал бөглөх талбарууд
-          </div>
 
           {error && (
             <div className="rgOnboardingError">
@@ -1087,6 +1129,8 @@ export default function Profile() {
             </div>
           </div>
         )}
+          </main>
+        </section>
       </main>
     </UserShell>
   );

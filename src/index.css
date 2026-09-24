@@ -20733,12 +20733,16 @@ html[data-user-theme="dark"] .rgCalendarLoading {
 }
 
 .rgProfilePage {
+  width: 100%;
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  gap: 20px;
+  gap: 22px;
+  align-items: start;
 }
 
 .rgProfileTabs {
+  width: 260px;
+  min-width: 260px;
   height: fit-content;
   overflow: hidden;
   border: 1px solid var(--rg-border);
@@ -20747,11 +20751,33 @@ html[data-user-theme="dark"] .rgCalendarLoading {
   box-shadow: var(--rg-shadow);
 }
 
+.rgProfileMain {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.rgProfileMain .rgOnboardingPage {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.rgProfileMain .rgOnboardingContainer {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 .rgProfileTabs a {
+  width: 100%;
   min-height: 50px;
   display: flex;
   align-items: center;
   padding: 0 20px;
+  box-sizing: border-box;
   border-bottom: 1px solid var(--rg-border);
   color: var(--rg-muted);
   font-size: 12px;
@@ -20763,13 +20789,14 @@ html[data-user-theme="dark"] .rgCalendarLoading {
 }
 
 .rgProfileTabs a.active {
+  padding-left: 16px;
   border-left: 4px solid #24c7e6;
   background: linear-gradient(
-      110deg,
-      #5845eb,
-      #8651ef
-    );
-  color: #fff;
+    110deg,
+    #5845eb,
+    #8651ef
+  );
+  color: #ffffff;
 }
 
 .rgProfileCard {
@@ -27351,6 +27378,254 @@ html[data-user-theme="dark"] .uep-wrap.is-detail .uep-right {
   grid-template-columns: minmax(0, 1fr) 315px;
   gap: 20px;
   align-items: start;
+}
+
+/* =========================================
+   PROFILE INNER SETTINGS SIDEBAR
+========================================= */
+
+.rgProfileSettingsLayout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+  background: #f7f8fc;
+}
+
+.rgProfileSettingsSidebar {
+  width: 300px;
+  min-width: 300px;
+  height: fit-content;
+  overflow: hidden;
+  border: 1px solid var(--rg-border);
+  border-radius: 14px;
+  background: var(--rg-panel);
+  box-shadow: var(--rg-shadow);
+}
+
+.rgProfileSettingsNav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rgProfileSettingsLink {
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--rg-border);
+  border-radius: 0;
+  background: var(--rg-panel);
+  color: var(--rg-muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.rgProfileSettingsLink:last-child {
+  border-bottom: 0;
+}
+
+.rgProfileSettingsLink:hover {
+  background: #f7f6ff;
+  color: #604cf2;
+}
+
+.rgProfileSettingsLink.active {
+  padding-left: 16px;
+  border-left: 4px solid #24c7e6;
+  background: linear-gradient(
+    110deg,
+    #5845eb,
+    #8651ef
+  );
+  color: #ffffff;
+}
+
+.rgProfileSettingsIcon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  font-size: 16px;
+}
+
+.rgProfileSettingsIcon svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+}
+
+.rgProfileSettingsIcon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  font-size: 16px;
+}
+
+.rgProfileSettingsIcon svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+}
+
+.rgProfileSettingsMain {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: #f7f8fc;
+}
+
+.rgProfileSettingsMain .rgOnboardingContainer {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-top: 0;
+}
+
+.rgProfileSettingsMain .rgOnboardingSection {
+  width: 100%;
+}
+
+.rgProfileSettingsMain .rgOnboardingWelcome {
+  width: 100%;
+}
+
+/* DARK MODE */
+
+html[data-user-theme="dark"] .rgProfileSettingsLayout {
+  background: #0d1022;
+}
+
+html[data-user-theme="dark"] .rgProfileSettingsSidebar {
+  border-color: #292e50;
+  background: #181c38;
+  box-shadow: none;
+}
+
+html[data-user-theme="dark"] .rgProfileSettingsLink {
+  border-bottom-color: #292e50;
+  background: #181c38;
+  color: #9ba4c0;
+}
+
+html[data-user-theme="dark"] .rgProfileSettingsLink:hover {
+  background: #242844;
+  color: #b8adff;
+}
+
+html[data-user-theme="dark"] .rgProfileSettingsLink.active {
+  background: linear-gradient(
+    135deg,
+    #5847ee 0%,
+    #8656ee 100%
+  );
+  color: #ffffff;
+}
+
+html[data-user-theme="dark"] .rgProfileSettingsMain {
+  background: #0d1022;
+}
+
+/* TABLET */
+
+@media (max-width: 1100px) {
+  .rgProfileSettingsLayout {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .rgProfileSettingsSidebar {
+    width: 240px;
+    min-width: 240px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 760px) {
+  .rgProfileSettingsLayout {
+    width: 100%;
+    display: block;
+  }
+
+  .rgProfileSettingsSidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    border-radius: 12px;
+  }
+
+  .rgProfileSettingsNav {
+    width: max-content;
+    min-width: 100%;
+    flex-direction: row;
+  }
+
+  .rgProfileSettingsLink {
+    width: auto;
+    min-width: max-content;
+    min-height: 44px;
+    padding: 0 14px;
+    justify-content: center;
+    border-right: 1px solid #e7e9ef;
+    border-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .rgProfileSettingsLink:last-child {
+    border-right: 0;
+  }
+
+  .rgProfileSettingsLink.active::before {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: 3px;
+  }
+
+  .rgProfileSettingsIcon {
+    width: 17px;
+    height: 17px;
+    flex-basis: 17px;
+    font-size: 15px;
+  }
+
+  .rgProfileSettingsMain {
+    width: 100%;
+  }
+
+  .rgProfileSettingsMain .rgOnboardingContainer {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-top: 0;
+  }
+
+  html[data-user-theme="dark"] .rgProfileSettingsLink {
+    border-right-color: #292e50;
+  }
 }
 
 .eventDetailMain,
