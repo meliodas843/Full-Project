@@ -23,7 +23,7 @@ function getDisplayName(person) {
     String(person?.name || "").trim() ||
     `${person?.first_name || ""} ${person?.last_name || ""}`.trim() ||
     String(person?.email || "").trim() ||
-    "User"
+    "Хэрэглэгч"
   );
 }
 
@@ -162,7 +162,7 @@ export default function Meeting() {
 
       setMyEvents(normalizeArray(data));
     } catch {
-      setMessage("Эвэнтүүдийг ачаалж чадсангүй.");
+      setMessage("Эвентүүдийг ачаалж чадсангүй.");
     }
   }
 
@@ -484,7 +484,7 @@ export default function Meeting() {
       mode === "event" &&
       !selectedEventId
     ) {
-      setMessage("Эвэнт сонгоно уу.");
+      setMessage("Эвент сонгоно уу.");
       return;
     }
 
@@ -519,8 +519,8 @@ export default function Meeting() {
         title:
           mode === "event"
             ? selectedEvent?.title ||
-              "Event Meeting"
-            : `${company} Meeting`,
+              "Эвентийн уулзалт"
+            : `${company} уулзалт`,
       };
 
       if (mode === "company") {
@@ -602,7 +602,7 @@ export default function Meeting() {
                 </h1>
 
                 <p>
-                  Эвэнт эсвэл байгууллагын
+                  Эвент эсвэл байгууллагын
                   хүмүүсээс сонгон уулзалтын
                   хүсэлт илгээнэ үү.
                 </p>
@@ -638,7 +638,7 @@ export default function Meeting() {
                 }
               >
                 <FiCalendar />
-                Миний эвэнтүүдээр
+                Миний эвентүүдээр
               </button>
 
               <button
@@ -661,7 +661,7 @@ export default function Meeting() {
               <div className="rgMeetingSectionTitle">
                 <span>
                   {mode === "event"
-                    ? "Эвэнт сонгох"
+                    ? "Эвент сонгох"
                     : "Байгууллага сонгох"}
                 </span>
               </div>
@@ -669,7 +669,7 @@ export default function Meeting() {
               {mode === "event" ? (
                 <div className="rgMeetingField">
                   <label>
-                    Миний эвэнт
+                    Миний эвент
                   </label>
 
                   <select
@@ -683,7 +683,7 @@ export default function Meeting() {
                     }
                   >
                     <option value="">
-                      Эвэнт сонгоно уу
+                      Эвент сонгоно уу
                     </option>
 
                     {myEvents.map(
@@ -850,7 +850,7 @@ export default function Meeting() {
                           );
                         }
                       }}
-                      placeholder="Нэр эсвэл имэйлээр хайх..."
+                      placeholder="Нэр эсвэл и-мэйлээр хайх..."
                     />
 
                     {(mode === "event"
@@ -967,7 +967,7 @@ export default function Meeting() {
               ) : (
                 <div className="rgMeetingPeopleEmpty">
                   {mode === "event"
-                    ? "Эхлээд эвэнт сонгоно уу."
+                    ? "Эхлээд эвент сонгоно уу."
                     : "Эхлээд байгууллага сонгоно уу."}
                 </div>
               )}

@@ -108,7 +108,7 @@ function isImageName(name) {
   return /\.(png|jpe?g|gif|webp|bmp)$/i.test(String(name || ""));
 }
 
-function parseAgenda(agendaValue) {
+function parseХөтөлбөр(agendaValue) {
   if (!agendaValue) return [];
 
   if (Array.isArray(agendaValue)) {
@@ -124,7 +124,7 @@ function parseAgenda(agendaValue) {
   }
 }
 
-function parseSpeakers(value) {
+function parseИлтгэгчид(value) {
   if (!value) return [];
 
   if (Array.isArray(value)) {
@@ -271,7 +271,7 @@ export default function Event() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [badge, setBadge] = useState("");
-  const [speakers, setSpeakers] = useState([makeSpeaker()]);
+  const [speakers, setИлтгэгчид] = useState([makeSpeaker()]);
   const [start_time, setStartTime] = useState("");
   const [end_time, setEndTime] = useState("");
   const [image_url, setImageUrl] = useState("");
@@ -289,7 +289,7 @@ export default function Event() {
   const [errMsg, setErrMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [bookedIds, setBookedIds] = useState([]);
-  const [agendas, setAgendas] = useState([
+  const [agendas, setХөтөлбөрs] = useState([
     { text: "", time: "" },
   ]);
 
@@ -358,8 +358,8 @@ export default function Event() {
     );
   }
 
-  function handleAgendaChange(index, field, value) {
-    setAgendas((prev) =>
+  function handleХөтөлбөрChange(index, field, value) {
+    setХөтөлбөрs((prev) =>
       prev.map((item, i) =>
         i === index
           ? { ...item, [field]: value }
@@ -368,15 +368,15 @@ export default function Event() {
     );
   }
 
-  function addAgendaItem() {
-    setAgendas((prev) => [
+  function addХөтөлбөрItem() {
+    setХөтөлбөрs((prev) => [
       ...prev,
       { text: "", time: "" },
     ]);
   }
 
-  function removeAgendaItem(index) {
-    setAgendas((prev) => {
+  function removeХөтөлбөрItem(index) {
+    setХөтөлбөрs((prev) => {
       if (prev.length === 1) {
         return prev;
       }
@@ -386,7 +386,7 @@ export default function Event() {
   }
 
   function handleSpeakerChange(index, field, value) {
-    setSpeakers((prev) =>
+    setИлтгэгчид((prev) =>
       prev.map((item, i) =>
         i === index
           ? { ...item, [field]: value }
@@ -396,14 +396,14 @@ export default function Event() {
   }
 
   function addSpeaker() {
-    setSpeakers((prev) => [
+    setИлтгэгчид((prev) => [
       ...prev,
       makeSpeaker(),
     ]);
   }
 
   function removeSpeaker(index) {
-    setSpeakers((prev) => {
+    setИлтгэгчид((prev) => {
       if (prev.length === 1) {
         return prev;
       }
@@ -429,7 +429,7 @@ export default function Event() {
         setEvents([]);
         setErrMsg(
           data?.message ||
-            "Failed to load events"
+            "Эвентүүдийг ачаалж чадсангүй."
         );
         return;
       }
@@ -442,7 +442,7 @@ export default function Event() {
     } catch (e) {
       console.error(e);
       setErrMsg(
-        "Network error while loading events"
+        "Эвентүүдийг ачаалах үед сүлжээний алдаа гарлаа."
       );
       setEvents([]);
     } finally {
@@ -666,17 +666,17 @@ export default function Event() {
     myEvents,
   ]);
 
-  const selectedSpeakers = useMemo(
+  const selectedИлтгэгчид = useMemo(
     () =>
-      parseSpeakers(
+      parseИлтгэгчид(
         selectedEvent?.speaker
       ),
     [selectedEvent?.speaker]
   );
 
-  const selectedAgendaItems = useMemo(
+  const selectedХөтөлбөрItems = useMemo(
     () =>
-      parseAgenda(
+      parseХөтөлбөр(
         selectedEvent?.agenda
       ),
     [selectedEvent?.agenda]
@@ -787,11 +787,11 @@ export default function Event() {
     setDescription("");
     setBadge("");
 
-    setSpeakers([
+    setИлтгэгчид([
       makeSpeaker(),
     ]);
 
-    setAgendas([
+    setХөтөлбөрs([
       {
         text: "",
         time: "",
@@ -838,11 +838,11 @@ export default function Event() {
     setShowCreate(true);
     setSelectedEventId(null);
 
-    const parsedSpeakers =
-      parseSpeakers(ev.speaker);
+    const parsedИлтгэгчид =
+      parseИлтгэгчид(ev.speaker);
 
-    const parsedAgenda =
-      parseAgenda(ev.agenda);
+    const parsedХөтөлбөр =
+      parseХөтөлбөр(ev.agenda);
 
     setTitle(ev.title || "");
     setDescription(
@@ -852,15 +852,15 @@ export default function Event() {
       ev.badge || ""
     );
 
-    setSpeakers(
-      parsedSpeakers.length
-        ? parsedSpeakers
+    setИлтгэгчид(
+      parsedИлтгэгчид.length
+        ? parsedИлтгэгчид
         : [makeSpeaker()]
     );
 
-    setAgendas(
-      parsedAgenda.length
-        ? parsedAgenda
+    setХөтөлбөрs(
+      parsedХөтөлбөр.length
+        ? parsedХөтөлбөр
         : [{ text: "", time: "" }]
     );
 
@@ -939,7 +939,7 @@ export default function Event() {
       !start_time
     ) {
       setErrMsg(
-        "Title and start time are required."
+        "Гарчиг болон эхлэх огноо, цагийг заавал оруулна уу."
       );
       return;
     }
@@ -976,12 +976,12 @@ export default function Event() {
 
       if (!token) {
         setErrMsg(
-          "Please login first."
+          "Эхлээд нэвтэрнэ үү."
         );
         return;
       }
 
-      const cleanedAgendas =
+      const cleanedХөтөлбөрs =
         agendas
           .map((item) => ({
             text: String(
@@ -997,7 +997,7 @@ export default function Event() {
               item.time
           );
 
-      const cleanedSpeakers =
+      const cleanedИлтгэгчид =
         speakers
           .map((sp) => ({
             name: String(
@@ -1040,14 +1040,14 @@ export default function Event() {
       fd.append(
         "speaker",
         JSON.stringify(
-          cleanedSpeakers
+          cleanedИлтгэгчид
         )
       );
 
       fd.append(
         "agenda",
         JSON.stringify(
-          cleanedAgendas
+          cleanedХөтөлбөрs
         )
       );
 
@@ -1136,8 +1136,8 @@ export default function Event() {
         setErrMsg(
           data?.message ||
             (editingEventId
-              ? "Failed to update event"
-              : "Failed to create event")
+              ? "Эвентийг шинэчилж чадсангүй."
+              : "Эвент үүсгэж чадсангүй.")
         );
         return;
       }
@@ -1147,8 +1147,8 @@ export default function Event() {
 
       setSuccessMsg(
         editingEventId
-          ? "Event updated ✅"
-          : "Event created ✅"
+          ? "Эвент амжилттай шинэчлэгдлээ ✅"
+          : "Эвент амжилттай үүслээ ✅"
       );
 
       await fetchEvents();
@@ -1167,8 +1167,8 @@ export default function Event() {
 
       setErrMsg(
         editingEventId
-          ? "Network error while updating event"
-          : "Network error while creating event"
+          ? "Эвентийг шинэчлэх үед сүлжээний алдаа гарлаа."
+          : "Эвент үүсгэх үед сүлжээний алдаа гарлаа."
       );
     } finally {
       setCreating(false);
@@ -1200,7 +1200,7 @@ export default function Event() {
 
       if (!token) {
         setErrMsg(
-          "Please login first."
+          "Эхлээд нэвтэрнэ үү."
         );
         return;
       }
@@ -1223,7 +1223,7 @@ export default function Event() {
       if (!res.ok) {
         setErrMsg(
           data?.message ||
-            "Failed to send request"
+            "Хүсэлт илгээж чадсангүй."
         );
         return;
       }
@@ -1245,7 +1245,7 @@ export default function Event() {
       console.error(e);
 
       setErrMsg(
-        "Network error while sending request"
+        "Хүсэлт илгээх үед сүлжээний алдаа гарлаа."
       );
     }
   }
@@ -1330,13 +1330,13 @@ export default function Event() {
       if (!res.ok) {
         setErrMsg(
           data?.message ||
-            "Upload failed"
+            "Файл оруулж чадсангүй."
         );
         return;
       }
 
       setSuccessMsg(
-        "Files uploaded ✅"
+        "Файлууд амжилттай орлоо ✅"
       );
 
       setFileNote("");
@@ -1563,7 +1563,7 @@ export default function Event() {
     }, [events, now]);
 
   return (
-    <UserShell title="Events">
+    <UserShell title="Эвентүүд">
       <div
         className={`uep-wrap ${
           selectedEvent &&
@@ -1606,7 +1606,7 @@ export default function Event() {
                 }
               >
                 <span>←</span>
-                Back
+                Буцах
               </button>
 
               <div className="eventDetailHero">
@@ -1619,7 +1619,7 @@ export default function Event() {
                   }
                   alt={
                     selectedEvent.title ||
-                    "Event"
+                    "Эвент"
                   }
                   className="eventDetailHeroImage"
                   onError={(e) => {
@@ -1633,7 +1633,7 @@ export default function Event() {
                 <div className="eventDetailHeroContent">
                   <h1 className="eventDetailHeroTitle">
                     {selectedEvent.title ||
-                      "Untitled Event"}
+                      "Нэргүй эвент"}
                   </h1>
                 </div>
 
@@ -1641,14 +1641,14 @@ export default function Event() {
                   {isEventFinished(
                     selectedEvent
                   )
-                    ? "Ended"
+                    ? "Дууссан"
                     : bookedIds.includes(
                           Number(
                             selectedEvent.id
                           )
                         )
-                      ? "Registered"
-                      : "Published"}
+                      ? "Бүртгэгдсэн"
+                      : "Нийтлэгдсэн"}
                 </span>
               </div>
 
@@ -1656,18 +1656,18 @@ export default function Event() {
                 <div className="eventDetailMain">
                   <section className="eventDetailSection">
                     <h2>
-                      About this Event
+                      Эвентийн тухай
                     </h2>
 
                     <p className="eventDetailDescription">
                       {selectedEvent.description ||
-                        "No event description."}
+                        "Эвентийн тайлбар оруулаагүй байна."}
                     </p>
                   </section>
 
                   <section className="eventDetailSection">
                     <h2>
-                      Organizer
+                      Зохион байгуулагч
                     </h2>
 
                     <div className="eventOrganizer">
@@ -1675,7 +1675,7 @@ export default function Event() {
                         {getInitials(
                           selectedEvent.created_by_name ||
                             selectedEvent.created_by_email ||
-                            "Organizer"
+                            "Зохион байгуулагч"
                         )}
                       </div>
 
@@ -1684,25 +1684,25 @@ export default function Event() {
                           {selectedEvent.created_by_name ||
                             selectedEvent.organizer_name ||
                             selectedEvent.created_by_email ||
-                            "Organizer"}
+                            "Зохион байгуулагч"}
                         </strong>
 
                         <span>
-                          Organizer
+                          Зохион байгуулагч
                         </span>
                       </div>
                     </div>
                   </section>
 
-                  {selectedSpeakers.length >
+                  {selectedИлтгэгчид.length >
                   0 ? (
                     <section className="eventDetailSection">
                       <h2>
-                        Speakers
+                        Илтгэгчид
                       </h2>
 
-                      <div className="eventDetailSpeakers">
-                        {selectedSpeakers.map(
+                      <div className="eventDetailИлтгэгчид">
+                        {selectedИлтгэгчид.map(
                           (
                             speaker,
                             index
@@ -1727,14 +1727,14 @@ export default function Event() {
                                       )}
                                       alt={
                                         speaker.name ||
-                                        "Speaker"
+                                        "Илтгэгч"
                                       }
                                     />
                                   ) : (
                                     <span>
                                       {getInitials(
                                         speaker.name ||
-                                          "Speaker"
+                                          "Илтгэгч"
                                       )}
                                     </span>
                                   )}
@@ -1765,21 +1765,21 @@ export default function Event() {
                     </section>
                   ) : null}
 
-                  {selectedAgendaItems.length >
+                  {selectedХөтөлбөрItems.length >
                   0 ? (
                     <section className="eventDetailSection">
                       <h2>
-                        Agenda
+                        Хөтөлбөр
                       </h2>
 
-                      <div className="eventDetailAgenda">
-                        {selectedAgendaItems.map(
+                      <div className="eventDetailХөтөлбөр">
+                        {selectedХөтөлбөрItems.map(
                           (
                             item,
                             index
                           ) => (
                             <div
-                              className="eventDetailAgendaItem"
+                              className="eventDetailХөтөлбөрItem"
                               key={
                                 index
                               }
@@ -1804,7 +1804,7 @@ export default function Event() {
                 <aside className="eventDetailSidebar">
                   <section className="eventDetailSideCard">
                     <h2>
-                      Event Details
+                      Эвентийн мэдээлэл
                     </h2>
 
                     <div className="eventDetailInfoRow">
@@ -1814,7 +1814,7 @@ export default function Event() {
 
                       <div>
                         <span>
-                          Start
+                          Эхлэх
                         </span>
 
                         <strong>
@@ -1826,7 +1826,7 @@ export default function Event() {
                         {selectedEvent.end_time ? (
                           <>
                             <span className="eventDetailInfoSub">
-                              End
+                              Дуусах
                             </span>
 
                             <strong>
@@ -1854,7 +1854,7 @@ export default function Event() {
                             )
                           }
                         >
-                          Manage Event
+                          Эвент удирдах
                         </button>
 
                         <button
@@ -1866,7 +1866,7 @@ export default function Event() {
                             )
                           }
                         >
-                          Edit Details
+                          Мэдээлэл засах
                         </button>
                       </>
                     ) : (
@@ -1889,7 +1889,7 @@ export default function Event() {
                             selectedEvent.id
                           )
                         )
-                          ? "Registered"
+                          ? "Бүртгэгдсэн"
                           : "Register"}
                       </button>
                     )}
@@ -1929,14 +1929,14 @@ export default function Event() {
                 removeSpeaker
               }
               agendas={agendas}
-              handleAgendaChange={
-                handleAgendaChange
+              handleХөтөлбөрChange={
+                handleХөтөлбөрChange
               }
-              addAgendaItem={
-                addAgendaItem
+              addХөтөлбөрItem={
+                addХөтөлбөрItem
               }
-              removeAgendaItem={
-                removeAgendaItem
+              removeХөтөлбөрItem={
+                removeХөтөлбөрItem
               }
               start_time={
                 start_time
@@ -2006,7 +2006,7 @@ export default function Event() {
             <>
               <div className="uep-rightHeader">
                 <h3 className="uep-rightTitle">
-                  All Events
+                  Бүх эвент
                 </h3>
 
                 <div
@@ -2092,7 +2092,7 @@ export default function Event() {
                               }
                               alt={
                                 ev.title ||
-                                "Event"
+                                "Эвент"
                               }
                               onError={(
                                 e
@@ -2131,7 +2131,7 @@ export default function Event() {
 
                             <p className="uep-desc">
                               {ev.description ||
-                                "No description"}
+                                "Тайлбар байхгүй"}
                             </p>
 
                             <div

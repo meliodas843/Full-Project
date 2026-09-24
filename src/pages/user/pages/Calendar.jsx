@@ -164,6 +164,18 @@ function uniqueMeetings(items) {
   return Array.from(map.values());
 }
 
+function statusLabel(value) {
+  const status = String(value || "").toLowerCase();
+
+  if (status === "pending") return "Хүлээгдэж буй";
+  if (status === "accepted") return "Зөвшөөрсөн";
+  if (status === "declined") return "Татгалзсан";
+  if (status === "cancelled") return "Цуцалсан";
+  if (status === "completed") return "Дууссан";
+
+  return value || "";
+}
+
 export default function Calendar() {
   const navigate = useNavigate();
 
@@ -433,10 +445,10 @@ export default function Calendar() {
 
   const title =
     viewDate.toLocaleDateString(
-      "en-US",
+      "mn-MN",
       {
-        month: "long",
         year: "numeric",
+        month: "long",
       },
     );
 
@@ -506,12 +518,11 @@ export default function Calendar() {
             <div className="rgInboxHeader">
               <div>
                 <h3>
-                  Request Inbox
+                  Уулзалтын хүсэлтүүд
                 </h3>
 
                 <span>
-                  {pendingInbox.length}{" "}
-                  pending
+                  Хүлээгдэж буй: {pendingInbox.length}
                 </span>
               </div>
 
@@ -527,7 +538,7 @@ export default function Calendar() {
             ) : pendingInbox.length ===
               0 ? (
               <div className="rgInboxEmpty">
-                Empty
+                Хүсэлт алга
               </div>
             ) : (
               <div className="rgInboxRequests">
@@ -545,7 +556,7 @@ export default function Calendar() {
                       <div>
                         <strong>
                           {meeting.title ||
-                            "Meeting"}
+                            "Уулзалт"}
                         </strong>
 
                         <small>
@@ -576,19 +587,18 @@ export default function Calendar() {
           >
             <FiPlus />
 
-            Send Request
+            Уулзалтын хүсэлт илгээх
           </button>
 
           <section className="rgDashboardCard rgMyMeetingsCard">
             <div className="rgMyMeetingsHeading">
               <div>
                 <h3>
-                  My Meetings
+                  Миний уулзалтууд
                 </h3>
 
                 <span>
-                  {myMeetings.length}{" "}
-                  item(s)
+                  Нийт: {myMeetings.length}
                 </span>
               </div>
             </div>
@@ -600,7 +610,7 @@ export default function Calendar() {
             ) : myMeetings.length ===
               0 ? (
               <div>
-                No meetings scheduled.
+                Товлосон уулзалт алга.
               </div>
             ) : (
               <div className="rgMyMeetingList">
@@ -622,7 +632,7 @@ export default function Calendar() {
                         <div>
                           <strong>
                             {meeting.title ||
-                              "Meeting"}
+                              "Уулзалт"}
                           </strong>
 
                           <small>
@@ -638,8 +648,9 @@ export default function Calendar() {
                             ""
                           }`}
                         >
-                          {meeting.status ||
-                            "accepted"}
+                          {statusLabel(
+                            meeting.status || "accepted",
+                          )}
                         </span>
                       </button>
                     ),
@@ -654,14 +665,11 @@ export default function Calendar() {
               <div className="rgMyMeetingsHeading">
                 <div>
                   <h3>
-                    Sent Requests
+                    Илгээсэн хүсэлтүүд
                   </h3>
 
                   <span>
-                    {
-                      pendingSent.length
-                    }{" "}
-                    pending
+                    Хүлээгдэж буй: {pendingSent.length}
                   </span>
                 </div>
               </div>
@@ -685,18 +693,18 @@ export default function Calendar() {
                         <div>
                           <strong>
                             {meeting.title ||
-                              "Meeting"}
+                              "Уулзалт"}
                           </strong>
 
                           <small>
-                            To:{" "}
+                            Хүлээн авагч:{" "}
                             {meeting.recipient_email ||
                               ""}
                           </small>
                         </div>
 
                         <span className="rgMeetingStatus pending">
-                          pending
+                          Хүлээгдэж буй
                         </span>
                       </button>
                     ),
@@ -737,13 +745,13 @@ export default function Calendar() {
 
           <div className="rgBigWeekdays">
             {[
-              "Mon",
-              "Tue",
-              "Wed",
-              "Thu",
-              "Fri",
-              "Sat",
-              "Sun",
+              "Да",
+              "Мя",
+              "Лх",
+              "Пү",
+              "Ба",
+              "Бя",
+              "Ня",
             ].map((day) => (
               <span key={day}>
                 {day}
@@ -834,7 +842,7 @@ export default function Calendar() {
                     <div>
                       <strong>
                         {meeting.title ||
-                          "Meeting"}
+                          "Уулзалт"}
                       </strong>
 
                       <small>
@@ -844,11 +852,11 @@ export default function Calendar() {
                             "user",
                           ) || "{}",
                         )?.email
-                          ? `To: ${
+                          ? `Хүлээн авагч: ${
                               meeting.recipient_email ||
                               ""
                             }`
-                          : `From: ${
+                          : `Илгээгч: ${
                               meeting.creator_email ||
                               ""
                             }`}
@@ -861,8 +869,9 @@ export default function Calendar() {
                         ""
                       }`}
                     >
-                      {meeting.status ||
-                        ""}
+                      {statusLabel(
+                        meeting.status,
+                      )}
                     </b>
                   </div>
                 ),
@@ -872,7 +881,7 @@ export default function Calendar() {
 
           {loading && (
             <div className="rgCalendarLoading">
-              Loading...
+              Уншиж байна...
             </div>
           )}
         </section>

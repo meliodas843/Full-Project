@@ -20,15 +20,15 @@ import {
 } from "react-icons/fi";
 
 const BADGE_OPTIONS = [
-  "Technology",
-  "Business",
-  "Education",
-  "Conference",
-  "Workshop",
-  "Networking",
-  "Community",
-  "Sports",
-  "Entertainment",
+  { value: "Technology", label: "Технологи" },
+  { value: "Business", label: "Бизнес" },
+  { value: "Education", label: "Боловсрол" },
+  { value: "Conference", label: "Хурал, конференц" },
+  { value: "Workshop", label: "Сургалт" },
+  { value: "Networking", label: "Танилцах, харилцаа холбоо" },
+  { value: "Community", label: "Нийгэмлэг" },
+  { value: "Sports", label: "Спорт" },
+  { value: "Entertainment", label: "Энтертайнмент" },
 ];
 
 function resolvePreview(
@@ -62,7 +62,7 @@ function formatPreviewDate(
   value
 ) {
   if (!value) {
-    return "Not specified";
+    return "Тодорхойгүй";
   }
 
   const date =
@@ -77,14 +77,14 @@ function formatPreviewDate(
   }
 
   return date.toLocaleString(
-    "en-US",
+    "mn-MN",
     {
-      month: "short",
+      month: "long",
       day: "numeric",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: false,
     }
   );
 }
@@ -181,8 +181,9 @@ export default function EventCreateWizard({
     }
 
     if (
-      BADGE_OPTIONS.includes(
-        currentBadge
+      BADGE_OPTIONS.some(
+        (option) =>
+          option.value === currentBadge
       )
     ) {
       setBadgeMode(
@@ -241,7 +242,7 @@ export default function EventCreateWizard({
         "function"
       ) {
         setErrMsg(
-          "Badge тохиргооны алдаа гарлаа. Event.jsx дээр setBadge prop дамжуулсан эсэхийг шалгана уу."
+          "Эвентийн төрөл тохируулахад алдаа гарлаа. Event.jsx дээр setBadge prop дамжуулсан эсэхийг шалгана уу."
         );
       }
 
@@ -310,7 +311,7 @@ export default function EventCreateWizard({
   function validateStepOne() {
     if (!title?.trim()) {
       setErrMsg?.(
-        "Please enter an event title."
+        "Эвентийн гарчгийг оруулна уу."
       );
 
       return false;
@@ -322,7 +323,7 @@ export default function EventCreateWizard({
       !customBadge.trim()
     ) {
       setErrMsg?.(
-        "Please enter a custom badge."
+        "Төрлийн нэрийг оруулна уу."
       );
 
       return false;
@@ -330,7 +331,7 @@ export default function EventCreateWizard({
 
     if (!badge?.trim()) {
       setErrMsg?.(
-        "Please select or enter a badge."
+        "Эвентийн төрлийг сонгох эсвэл оруулна уу."
       );
 
       return false;
@@ -344,7 +345,7 @@ export default function EventCreateWizard({
   function validateStepTwo() {
     if (!start_time) {
       setErrMsg?.(
-        "Please select a start date and time."
+        "Эхлэх огноо, цагийг сонгоно уу."
       );
 
       return false;
@@ -360,7 +361,7 @@ export default function EventCreateWizard({
         ).getTime()
     ) {
       setErrMsg?.(
-        "End time cannot be before start time."
+        "Дуусах хугацаа эхлэх хугацаанаас өмнө байж болохгүй."
       );
 
       return false;
@@ -471,19 +472,19 @@ export default function EventCreateWizard({
         <div>
           <h2>
             {editingEventId
-              ? "Edit Event"
-              : "Create Event"}
+              ? "Эвент засах"
+              : "Эвент үүсгэх"}
           </h2>
 
           <p>
-            Step {step} of 3
+            3 алхмын {step}-р алхам
             {" — "}
 
             {step === 1
-              ? "Basic Info"
+              ? "Үндсэн мэдээлэл"
               : step === 2
-                ? "Date & Location"
-                : "Preview & Publish"}
+                ? "Огноо ба дэлгэрэнгүй"
+                : "Урьдчилан харах ба нийтлэх"}
           </p>
         </div>
       </div>
@@ -509,7 +510,7 @@ export default function EventCreateWizard({
           </span>
 
           <strong>
-            Basic Info
+            Үндсэн мэдээлэл
           </strong>
         </div>
 
@@ -541,7 +542,7 @@ export default function EventCreateWizard({
           </span>
 
           <strong>
-            Date & Location
+            Огноо ба дэлгэрэнгүй
           </strong>
         </div>
 
@@ -565,7 +566,7 @@ export default function EventCreateWizard({
           </span>
 
           <strong>
-            Preview & Publish
+            Урьдчилан харах ба нийтлэх
           </strong>
         </div>
       </div>
@@ -580,7 +581,7 @@ export default function EventCreateWizard({
           <div className="eventWizardPanel">
             <label className="eventWizardField">
               <span>
-                EVENT TITLE *
+                ЭВЕНТИЙН НЭР *
               </span>
 
               <input
@@ -595,13 +596,13 @@ export default function EventCreateWizard({
                       .value
                   )
                 }
-                placeholder="Example: Tech Summit 2026"
+                placeholder="Жишээ: Tech Summit 2026"
               />
             </label>
 
             <label className="eventWizardField">
               <span>
-                SELECT BADGE *
+                ЭВЕНТИЙН ТӨРӨЛ *
               </span>
 
               <div className="eventWizardSelectIcon">
@@ -616,28 +617,22 @@ export default function EventCreateWizard({
                   }
                 >
                   <option value="">
-                    Select badge
+                    Төрөл сонгох
                   </option>
 
                   {BADGE_OPTIONS.map(
-                    (
-                      option
-                    ) => (
+                    (option) => (
                       <option
-                        key={
-                          option
-                        }
-                        value={
-                          option
-                        }
+                        key={option.value}
+                        value={option.value}
                       >
-                        {option}
+                        {option.label}
                       </option>
                     )
                   )}
 
                   <option value="custom">
-                    Other / Custom
+                    Бусад / Өөрөө оруулах
                   </option>
                 </select>
               </div>
@@ -647,7 +642,7 @@ export default function EventCreateWizard({
               "custom" && (
               <label className="eventWizardField">
                 <span>
-                  CUSTOM BADGE *
+                  БУСАД ТӨРӨЛ *
                 </span>
 
                 <div className="eventWizardInputIcon">
@@ -661,7 +656,7 @@ export default function EventCreateWizard({
                     onChange={
                       handleCustomBadge
                     }
-                    placeholder="Example: Cybersecurity"
+                    placeholder="Жишээ: Кибер аюулгүй байдал"
                     maxLength={
                       40
                     }
@@ -686,7 +681,7 @@ export default function EventCreateWizard({
 
             <label className="eventWizardField">
               <span>
-                VISIBILITY
+                ХАРАГДАХ БАЙДАЛ
               </span>
 
               <div className="eventWizardSelectIcon">
@@ -712,11 +707,11 @@ export default function EventCreateWizard({
                   }
                 >
                   <option value="public">
-                    Public Event
+                    Нийтийн эвент
                   </option>
 
                   <option value="private">
-                    Private Event
+                    Хаалттай эвент
                   </option>
                 </select>
               </div>
@@ -724,7 +719,7 @@ export default function EventCreateWizard({
 
             <label className="eventWizardField">
               <span>
-                FULL DESCRIPTION
+                ДЭЛГЭРЭНГҮЙ ТАЙЛБАР
               </span>
 
               <textarea
@@ -740,14 +735,14 @@ export default function EventCreateWizard({
                       .value
                   )
                 }
-                placeholder="Enter the event description..."
+                placeholder="Эвентийн тайлбарыг оруулна уу..."
                 rows={6}
               />
             </label>
 
             <div className="eventWizardField">
               <span>
-                UPLOAD COVER IMAGE
+                НҮҮР ЗУРАГ ОРУУЛАХ
               </span>
 
               <label className="eventWizardUpload">
@@ -776,7 +771,7 @@ export default function EventCreateWizard({
                       isSvgFile(file)
                     ) {
                       setErrMsg?.(
-                        "SVG images are not supported."
+                        "SVG зураг дэмжигдэхгүй."
                       );
 
                       setImageFile?.(
@@ -804,8 +799,8 @@ export default function EventCreateWizard({
                     {imageFile
                       ? imageFile.name
                       : image_url
-                        ? "Choose a new cover image"
-                        : "Choose cover image"}
+                        ? "Шинэ нүүр зураг сонгох"
+                        : "Нүүр зураг сонгох"}
                   </strong>
 
                   <small>
@@ -841,7 +836,7 @@ export default function EventCreateWizard({
                           )
                         : image_url
                     }
-                    alt="Current cover"
+                    alt="Одоогийн нүүр зураг"
                     style={{
                       width:
                         "100%",
@@ -864,7 +859,7 @@ export default function EventCreateWizard({
             <div className="eventWizardTwoColumns">
               <label className="eventWizardField">
                 <span>
-                  START DATE & TIME *
+                  ЭХЛЭХ ОГНОО, ЦАГ *
                 </span>
 
                 <div className="eventWizardInputIcon">
@@ -897,7 +892,7 @@ export default function EventCreateWizard({
                           minDateTime
                       ) {
                         setErrMsg?.(
-                          "Past dates are not allowed."
+                          "Өнгөрсөн огноо сонгох боломжгүй."
                         );
 
                         return;
@@ -928,7 +923,7 @@ export default function EventCreateWizard({
 
               <label className="eventWizardField">
                 <span>
-                  END DATE & TIME
+                  ДУУСАХ ОГНОО, ЦАГ
                 </span>
 
                 <div className="eventWizardInputIcon">
@@ -962,7 +957,7 @@ export default function EventCreateWizard({
                           start_time
                       ) {
                         setErrMsg?.(
-                          "End time cannot be before start time."
+                          "Дуусах хугацаа эхлэх хугацаанаас өмнө байж болохгүй."
                         );
 
                         return;
@@ -983,7 +978,7 @@ export default function EventCreateWizard({
 
             <label className="eventWizardField">
               <span>
-                MAX PARTICIPANTS
+                ОРОЛЦОГЧИЙН ДЭЭД ТОО
               </span>
 
               <div className="eventWizardInputIcon">
@@ -1004,7 +999,7 @@ export default function EventCreateWizard({
                         .value
                     )
                   }
-                  placeholder="Example: 500"
+                  placeholder="Жишээ: 500"
                 />
               </div>
             </label>
@@ -1012,7 +1007,7 @@ export default function EventCreateWizard({
             <div className="eventWizardSectionTitle">
               <div>
                 <h3>
-                  Speakers
+                  Илтгэгчид
                 </h3>
 
                 <p>
@@ -1029,7 +1024,7 @@ export default function EventCreateWizard({
               >
                 <FiPlus />
 
-                Add Speaker
+                Илтгэгч нэмэх
               </button>
             </div>
 
@@ -1110,7 +1105,7 @@ export default function EventCreateWizard({
                               )
                             ) {
                               setErrMsg?.(
-                                "SVG images are not supported."
+                                "SVG зураг дэмжигдэхгүй."
                               );
 
                               event.target.value =
@@ -1145,7 +1140,7 @@ export default function EventCreateWizard({
                             speaker.name ||
                             ""
                           }
-                          placeholder="Name"
+                          placeholder="Нэр"
                           onChange={(
                             event
                           ) =>
@@ -1164,7 +1159,7 @@ export default function EventCreateWizard({
                             speaker.organization ||
                             ""
                           }
-                          placeholder="Organization"
+                          placeholder="Байгууллага"
                           onChange={(
                             event
                           ) =>
@@ -1183,7 +1178,7 @@ export default function EventCreateWizard({
                             speaker.topic ||
                             ""
                           }
-                          placeholder="Topic"
+                          placeholder="Сэдэв"
                           onChange={(
                             event
                           ) =>
@@ -1221,7 +1216,7 @@ export default function EventCreateWizard({
             <div className="eventWizardSectionTitle">
               <div>
                 <h3>
-                  Agenda
+                  Хөтөлбөр
                 </h3>
 
                 <p>
@@ -1238,7 +1233,7 @@ export default function EventCreateWizard({
               >
                 <FiPlus />
 
-                Add Agenda
+                Хөтөлбөр нэмэх
               </button>
             </div>
 
@@ -1278,7 +1273,7 @@ export default function EventCreateWizard({
                         agenda.text ||
                         ""
                       }
-                      placeholder="Agenda title"
+                      placeholder="Хөтөлбөрийн нэр"
                       onChange={(
                         event
                       ) =>
@@ -1324,7 +1319,7 @@ export default function EventCreateWizard({
                     }
                     alt={
                       title ||
-                      "Event"
+                      "Эвент"
                     }
                   />
                 ) : (
@@ -1348,8 +1343,8 @@ export default function EventCreateWizard({
                     <span>
                       {visibility ===
                       "private"
-                        ? "Private"
-                        : "Public"}
+                        ? "Хаалттай"
+                        : "Нийтийн"}
                     </span>
 
                     {badge?.trim() ? (
@@ -1361,7 +1356,7 @@ export default function EventCreateWizard({
 
                   <h2>
                     {title?.trim() ||
-                      "Untitled Event"}
+                      "Нэргүй эвент"}
                   </h2>
                 </div>
               </div>
@@ -1369,7 +1364,7 @@ export default function EventCreateWizard({
               <div className="eventWizardPreviewGrid">
                 <div>
                   <small>
-                    Start
+                    Эхлэх
                   </small>
 
                   <strong>
@@ -1381,7 +1376,7 @@ export default function EventCreateWizard({
 
                 <div>
                   <small>
-                    End
+                    Дуусах
                   </small>
 
                   <strong>
@@ -1389,43 +1384,43 @@ export default function EventCreateWizard({
                       ? formatPreviewDate(
                           end_time
                         )
-                      : "Not specified"}
+                      : "Тодорхойгүй"}
                   </strong>
                 </div>
 
                 <div>
                   <small>
-                    Capacity
+                    Багтаамж
                   </small>
 
                   <strong>
                     {max_participants
-                      ? `${max_participants} people`
-                      : "Unlimited"}
+                      ? `${max_participants} хүн`
+                      : "Хязгааргүй"}
                   </strong>
                 </div>
 
                 <div>
                   <small>
-                    Visibility
+                    Харагдах байдал
                   </small>
 
                   <strong>
                     {visibility ===
                     "private"
-                      ? "Private"
-                      : "Public"}
+                      ? "Хаалттай"
+                      : "Нийтийн"}
                   </strong>
                 </div>
 
                 <div>
                   <small>
-                    Badge
+                    Төрөл
                   </small>
 
                   <strong>
                     {badge?.trim() ||
-                      "Not specified"}
+                      "Тодорхойгүй"}
                   </strong>
                 </div>
               </div>
@@ -1433,7 +1428,7 @@ export default function EventCreateWizard({
               {description ? (
                 <div className="eventWizardPreviewDescription">
                   <small>
-                    Description
+                    Тайлбар
                   </small>
 
                   <p>
@@ -1480,7 +1475,7 @@ export default function EventCreateWizard({
             >
               <FiArrowLeft />
 
-              Previous
+              Өмнөх
             </button>
           ) : (
             <button
@@ -1490,7 +1485,7 @@ export default function EventCreateWizard({
                 closeCreate
               }
             >
-              Cancel
+              Цуцлах
             </button>
           )}
 
@@ -1502,7 +1497,7 @@ export default function EventCreateWizard({
                 nextStep
               }
             >
-              Continue
+              Үргэлжлүүлэх
 
               <FiArrowRight />
             </button>
@@ -1519,11 +1514,11 @@ export default function EventCreateWizard({
             >
               {creating
                 ? editingEventId
-                  ? "Saving..."
-                  : "Creating..."
+                  ? "Хадгалж байна..."
+                  : "Үүсгэж байна..."
                 : editingEventId
-                  ? "Save Changes"
-                  : "Publish Event"}
+                  ? "Өөрчлөлт хадгалах"
+                  : "Эвент нийтлэх"}
             </button>
           )}
         </div>

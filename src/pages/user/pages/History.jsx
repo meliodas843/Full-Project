@@ -68,7 +68,7 @@ function formatDateTime(value) {
     }
 
     return date.toLocaleString(
-      "en-US",
+      "mn-MN",
       {
         timeZone:
           "Asia/Ulaanbaatar",
@@ -97,7 +97,7 @@ function formatDateTime(value) {
   }
 
   return date.toLocaleString(
-    "en-US",
+    "mn-MN",
     {
       month: "short",
       day: "2-digit",
@@ -272,7 +272,7 @@ function makeSpeaker() {
   };
 }
 
-function parseSpeakers(value) {
+function parseИлтгэгчид(value) {
   if (!value) return [];
 
   if (
@@ -305,7 +305,7 @@ function parseSpeakers(value) {
   }
 }
 
-function parseAgenda(value) {
+function parseХөтөлбөр(value) {
   if (!value) return [];
 
   if (
@@ -357,7 +357,7 @@ function getParticipantName(
   user
 ) {
   if (!user) {
-    return "Unknown user";
+    return "Тодорхойгүй хэрэглэгч";
   }
 
   if (
@@ -401,7 +401,7 @@ function getParticipantName(
       .join(" ") ||
     user.email ||
     user.user?.email ||
-    "Unknown user"
+    "Тодорхойгүй хэрэглэгч"
   );
 }
 
@@ -600,14 +600,14 @@ export default function History() {
 
   const [
     speakers,
-    setSpeakers,
+    setИлтгэгчид,
   ] = useState([
     makeSpeaker(),
   ]);
 
   const [
     agendas,
-    setAgendas,
+    setХөтөлбөрs,
   ] = useState([
     {
       text: "",
@@ -617,12 +617,12 @@ export default function History() {
 
   const [
     start_time,
-    setStartTime,
+    setЭхлэхTime,
   ] = useState("");
 
   const [
     end_time,
-    setEndTime,
+    setДуусахTime,
   ] = useState("");
 
   const [
@@ -706,7 +706,7 @@ export default function History() {
         setEvents([]);
 
         setError(
-          "Please login first."
+          "Эхлээд нэвтэрнэ үү."
         );
 
         return;
@@ -735,7 +735,7 @@ export default function History() {
 
         setError(
           data?.message ||
-            "Failed to load events"
+            "Эвентүүдийг ачаалж чадсангүй."
         );
 
         return;
@@ -755,7 +755,7 @@ export default function History() {
       setEvents([]);
 
       setError(
-        "Network error"
+        "Сүлжээний алдаа гарлаа."
       );
     } finally {
       setLoading(false);
@@ -893,7 +893,7 @@ export default function History() {
 
     if (!eventId) {
       setAddPeopleError(
-        "Event not found."
+        "Эвент олдсонгүй."
       );
 
       return;
@@ -901,7 +901,7 @@ export default function History() {
 
     if (!email) {
       setAddPeopleError(
-        "Email is required."
+        "И-мэйл хаяг оруулна уу."
       );
 
       return;
@@ -913,7 +913,7 @@ export default function History() {
       )
     ) {
       setAddPeopleError(
-        "Enter a valid email address."
+        "Зөв и-мэйл хаяг оруулна уу."
       );
 
       return;
@@ -921,7 +921,7 @@ export default function History() {
 
     if (!firstName) {
       setAddPeopleError(
-        "Name is required."
+        "Нэр оруулна уу."
       );
 
       return;
@@ -929,7 +929,7 @@ export default function History() {
 
     if (!lastName) {
       setAddPeopleError(
-        "Family name is required."
+        "Овог оруулна уу."
       );
 
       return;
@@ -937,7 +937,7 @@ export default function History() {
 
     if (!phone) {
       setAddPeopleError(
-        "Phone number is required."
+        "Утасны дугаар оруулна уу."
       );
 
       return;
@@ -961,7 +961,7 @@ export default function History() {
 
       if (!token) {
         setAddPeopleError(
-          "Please login first."
+          "Эхлээд нэвтэрнэ үү."
         );
 
         return;
@@ -999,7 +999,7 @@ export default function History() {
         setAddPeopleError(
           data?.message ||
             data?.error ||
-            "Failed to create and add user."
+            "Хэрэглэгч үүсгэж эвентэд нэмж чадсангүй."
         );
 
         return;
@@ -1007,15 +1007,15 @@ export default function History() {
 
       if (data?.already_joined) {
         setAddPeopleSuccess(
-          "This user is already added to the event."
+          "Энэ хэрэглэгч эвентэд аль хэдийн нэмэгдсэн байна."
         );
       } else if (data?.created) {
         setAddPeopleSuccess(
-          "User created and added to the event."
+          "Хэрэглэгч үүсгэж эвентэд амжилттай нэмлээ."
         );
       } else {
         setAddPeopleSuccess(
-          "Existing user added to the event."
+          "Бүртгэлтэй хэрэглэгчийг эвентэд амжилттай нэмлээ."
         );
       }
 
@@ -1033,7 +1033,7 @@ export default function History() {
       console.error(err);
 
       setAddPeopleError(
-        "Network error while adding person."
+        "Хэрэглэгч нэмэх үед сүлжээний алдаа гарлаа."
       );
     } finally {
       setAddPeopleLoading(
@@ -1058,7 +1058,7 @@ export default function History() {
       !userId
     ) {
       setAddPeopleError(
-        "Invalid user."
+        "Хэрэглэгчийн мэдээлэл буруу байна."
       );
 
       return;
@@ -1084,7 +1084,7 @@ export default function History() {
 
       if (!token) {
         setAddPeopleError(
-          "Please login first."
+          "Эхлээд нэвтэрнэ үү."
         );
 
         return;
@@ -1123,7 +1123,7 @@ export default function History() {
       ) {
         setAddPeopleError(
           data?.message ||
-            "Failed to add person."
+            "Хэрэглэгчийг нэмж чадсангүй."
         );
 
         return;
@@ -1132,7 +1132,7 @@ export default function History() {
       setAddPeopleSuccess(
         `${getParticipantName(
           person
-        )} added successfully.`
+        )} амжилттай нэмэгдлээ.`
       );
 
       setPeopleResults(
@@ -1152,7 +1152,7 @@ export default function History() {
       console.error(err);
 
       setAddPeopleError(
-        "Network error while adding person."
+        "Хэрэглэгч нэмэх үед сүлжээний алдаа гарлаа."
       );
     } finally {
       setAddingUserId(
@@ -1222,19 +1222,19 @@ export default function History() {
       .toISOString()
       .slice(0, 16);
 
-  const viewSpeakers =
+  const viewИлтгэгчид =
     useMemo(
       () =>
-        parseSpeakers(
+        parseИлтгэгчид(
           selectedEvent?.speaker
         ),
       [selectedEvent]
     );
 
-  const viewAgenda =
+  const viewХөтөлбөр =
     useMemo(
       () =>
-        parseAgenda(
+        parseХөтөлбөр(
           selectedEvent?.agenda
         ),
       [selectedEvent]
@@ -1245,19 +1245,19 @@ export default function History() {
     setDescription("");
     setBadge("");
 
-    setSpeakers([
+    setИлтгэгчид([
       makeSpeaker(),
     ]);
 
-    setAgendas([
+    setХөтөлбөрs([
       {
         text: "",
         time: "",
       },
     ]);
 
-    setStartTime("");
-    setEndTime("");
+    setЭхлэхTime("");
+    setДуусахTime("");
     setImageUrl("");
     setImageFile(null);
 
@@ -1266,7 +1266,7 @@ export default function History() {
     );
 
     setVisibility(
-      "public"
+      "Нийтийн"
     );
 
     setFormError("");
@@ -1322,25 +1322,25 @@ export default function History() {
       event.badge || ""
     );
 
-    const parsedSpeakers =
-      parseSpeakers(
+    const parsedИлтгэгчид =
+      parseИлтгэгчид(
         event.speaker
       );
 
-    const parsedAgenda =
-      parseAgenda(
+    const parsedХөтөлбөр =
+      parseХөтөлбөр(
         event.agenda
       );
 
-    setSpeakers(
-      parsedSpeakers.length
-        ? parsedSpeakers
+    setИлтгэгчид(
+      parsedИлтгэгчид.length
+        ? parsedИлтгэгчид
         : [makeSpeaker()]
     );
 
-    setAgendas(
-      parsedAgenda.length
-        ? parsedAgenda
+    setХөтөлбөрs(
+      parsedХөтөлбөр.length
+        ? parsedХөтөлбөр
         : [
             {
               text: "",
@@ -1349,13 +1349,13 @@ export default function History() {
           ]
     );
 
-    setStartTime(
+    setЭхлэхTime(
       toDateTimeLocal(
         event.start_time
       )
     );
 
-    setEndTime(
+    setДуусахTime(
       toDateTimeLocal(
         event.end_time
       )
@@ -1459,12 +1459,12 @@ export default function History() {
     );
   }
 
-  function handleAgendaChange(
+  function handleХөтөлбөрChange(
     index,
     field,
     value
   ) {
-    setAgendas(
+    setХөтөлбөрs(
       (current) =>
         current.map(
           (item, i) =>
@@ -1479,8 +1479,8 @@ export default function History() {
     );
   }
 
-  function addAgendaItem() {
-    setAgendas(
+  function addХөтөлбөрItem() {
+    setХөтөлбөрs(
       (current) => [
         ...current,
         {
@@ -1491,10 +1491,10 @@ export default function History() {
     );
   }
 
-  function removeAgendaItem(
+  function removeХөтөлбөрItem(
     index
   ) {
-    setAgendas(
+    setХөтөлбөрs(
       (current) => {
         if (
           current.length ===
@@ -1516,7 +1516,7 @@ export default function History() {
     field,
     value
   ) {
-    setSpeakers(
+    setИлтгэгчид(
       (current) =>
         current.map(
           (speaker, i) =>
@@ -1532,7 +1532,7 @@ export default function History() {
   }
 
   function addSpeaker() {
-    setSpeakers(
+    setИлтгэгчид(
       (current) => [
         ...current,
         makeSpeaker(),
@@ -1543,7 +1543,7 @@ export default function History() {
   function removeSpeaker(
     index
   ) {
-    setSpeakers(
+    setИлтгэгчид(
       (current) => {
         if (
           current.length ===
@@ -1576,7 +1576,7 @@ export default function History() {
       !start_time
     ) {
       setFormError(
-        "Title, badge and start time are required."
+        "Гарчиг, төрөл болон эхлэх огноо, цагийг заавал оруулна уу."
       );
 
       return;
@@ -1636,13 +1636,13 @@ export default function History() {
 
       if (!token) {
         setFormError(
-          "Please login first."
+          "Эхлээд нэвтэрнэ үү."
         );
 
         return;
       }
 
-      const cleanedAgendas =
+      const cleanedХөтөлбөрs =
         agendas
           .map(
             (item) => ({
@@ -1661,7 +1661,7 @@ export default function History() {
               item.time
           );
 
-      const cleanedSpeakers =
+      const cleanedИлтгэгчид =
         speakers
           .map(
             (speaker) => ({
@@ -1710,14 +1710,14 @@ export default function History() {
       formData.append(
         "speaker",
         JSON.stringify(
-          cleanedSpeakers
+          cleanedИлтгэгчид
         )
       );
 
       formData.append(
         "agenda",
         JSON.stringify(
-          cleanedAgendas
+          cleanedХөтөлбөрs
         )
       );
 
@@ -1813,8 +1813,8 @@ export default function History() {
         setFormError(
           data?.message ||
             (editingEventId
-              ? "Failed to update event"
-              : "Failed to create event")
+              ? "Эвентийг шинэчилж чадсангүй."
+              : "Эвент үүсгэж чадсангүй.")
         );
 
         return;
@@ -1835,7 +1835,7 @@ export default function History() {
       console.error(err);
 
       setFormError(
-        "Network error"
+        "Сүлжээний алдаа гарлаа."
       );
     } finally {
       setCreating(false);
@@ -1848,7 +1848,7 @@ export default function History() {
     const confirmed =
       window.confirm(
         `"${event.title ||
-          "Event"}" эвентыг устгах уу?`
+          "Эвент"}" эвентыг устгах уу?`
       );
 
     if (!confirmed) {
@@ -1888,7 +1888,7 @@ export default function History() {
 
         setError(
           data?.message ||
-            "Failed to delete event"
+            "Эвентийг устгаж чадсангүй."
         );
 
         return;
@@ -1908,7 +1908,7 @@ export default function History() {
       );
     } catch {
       setError(
-        "Network error"
+        "Сүлжээний алдаа гарлаа."
       );
     } finally {
       setDeletingId(
@@ -1918,7 +1918,7 @@ export default function History() {
   }
 
   return (
-    <UserShell title="My Events">
+    <UserShell title="Миний эвентүүд">
       <div className="myEventsPage">
         {showForm ? (
           <EventCreateWizard
@@ -1950,26 +1950,26 @@ export default function History() {
               removeSpeaker
             }
             agendas={agendas}
-            handleAgendaChange={
-              handleAgendaChange
+            handleХөтөлбөрChange={
+              handleХөтөлбөрChange
             }
-            addAgendaItem={
-              addAgendaItem
+            addХөтөлбөрItem={
+              addХөтөлбөрItem
             }
-            removeAgendaItem={
-              removeAgendaItem
+            removeХөтөлбөрItem={
+              removeХөтөлбөрItem
             }
             start_time={
               start_time
             }
-            setStartTime={
-              setStartTime
+            setЭхлэхTime={
+              setЭхлэхTime
             }
             end_time={
               end_time
             }
-            setEndTime={
-              setEndTime
+            setДуусахTime={
+              setДуусахTime
             }
             image_url={
               image_url
@@ -2032,7 +2032,7 @@ export default function History() {
                 closeView
               }
             >
-              ← Back to My Events
+              ← Миний эвентүүд рүү буцах
             </button>
 
             <div className="eventDetailHero">
@@ -2043,7 +2043,7 @@ export default function History() {
                 )}
                 alt={
                   selectedEvent.title ||
-                  "Event"
+                  "Эвент"
                 }
               />
 
@@ -2052,7 +2052,7 @@ export default function History() {
               <div className="eventDetailHeroContent">
                 <span className="eventDetailTag">
                   {selectedEvent.visibility ||
-                    "public"}
+                    "Нийтийн"}
                 </span>
 
                 <h1>
@@ -2065,24 +2065,24 @@ export default function History() {
               <div className="eventDetailMain">
                 <section className="eventDetailSection">
                   <h2>
-                    About this Event
+                    Эвентийн тухай
                   </h2>
 
                   <p>
                     {selectedEvent.description ||
-                      "No description."}
+                      "Тайлбар байхгүй."}
                   </p>
                 </section>
 
-                {viewSpeakers.length >
+                {viewИлтгэгчид.length >
                 0 ? (
                   <section className="eventDetailSection">
                     <h2>
-                      Speakers
+                      Илтгэгчид
                     </h2>
 
-                    <div className="eventDetailSpeakers">
-                      {viewSpeakers.map(
+                    <div className="eventDetailИлтгэгчид">
+                      {viewИлтгэгчид.map(
                         (
                           speaker,
                           index
@@ -2127,20 +2127,20 @@ export default function History() {
                   </section>
                 ) : null}
 
-                {viewAgenda.length >
+                {viewХөтөлбөр.length >
                 0 ? (
                   <section className="eventDetailSection">
                     <h2>
-                      Agenda
+                      Хөтөлбөр
                     </h2>
 
-                    {viewAgenda.map(
+                    {viewХөтөлбөр.map(
                       (
                         item,
                         index
                       ) => (
                         <div
-                          className="eventDetailAgendaItem"
+                          className="eventDetailХөтөлбөрItem"
                           key={
                             index
                           }
@@ -2166,11 +2166,11 @@ export default function History() {
               <aside className="eventDetailSidebar">
                 <section className="eventDetailSideCard">
                   <h2>
-                    Event Details
+                    Эвентийн мэдээлэл
                   </h2>
 
                   <p>
-                    Start
+                    Эхлэх
                   </p>
 
                   <strong>
@@ -2180,7 +2180,7 @@ export default function History() {
                   </strong>
 
                   <p>
-                    End
+                    Дуусах
                   </p>
 
                   <strong>
@@ -2203,7 +2203,7 @@ export default function History() {
                         )
                       }
                     >
-                      Edit Event
+                      Эвент засах
                     </button>
                   ) : null}
 
@@ -2215,7 +2215,7 @@ export default function History() {
                     }
                   >
                     <FiUserPlus />
-                    Add People
+                    Хүн нэмэх
                   </button>
 
                   <button
@@ -2232,7 +2232,7 @@ export default function History() {
                     }}
                   >
                     <FiUsers />
-                    View Joined People
+                    Оролцогчдыг харах
                   </button>
                 </section>
               </aside>
@@ -2243,11 +2243,11 @@ export default function History() {
             <div className="myEventsHeader">
               <div>
                 <h1>
-                  My Events
+                  Миний эвентүүд
                 </h1>
 
                 <p>
-                  Events you've created and organized
+                  Таны үүсгэсэн болон зохион байгуулсан эвентүүд
                 </p>
               </div>
 
@@ -2257,7 +2257,7 @@ export default function History() {
                   openCreate
                 }
               >
-                + Create Event
+                + Эвент үүсгэх
               </button>
             </div>
 
@@ -2286,14 +2286,12 @@ export default function History() {
                         )
                       }
                     >
-                      {item
-                        .charAt(
-                          0
-                        )
-                        .toUpperCase() +
-                        item.slice(
-                          1
-                        )}
+                      {{
+                        all: "Бүгд",
+                        draft: "Ноорог",
+                        published: "Нийтлэгдсэн",
+                        ended: "Дууссан",
+                      }[item]}
                     </button>
                   )
                 )}
@@ -2313,18 +2311,18 @@ export default function History() {
                 }
               >
                 <option value="newest">
-                  Newest first
+                  Шинэ нь эхэнд
                 </option>
 
                 <option value="oldest">
-                  Oldest first
+                  Хуучин нь эхэнд
                 </option>
               </select>
             </div>
 
             {loading ? (
               <div className="myEventsLoading">
-                Loading...
+                Уншиж байна...
               </div>
             ) : (
               <div className="myEventsGrid">
@@ -2434,7 +2432,7 @@ export default function History() {
             <div className="historyModalHeader">
               <div>
                 <h2>
-                  Add People
+                  Хүн нэмэх
                 </h2>
 
                 <p>
@@ -2469,7 +2467,7 @@ export default function History() {
               >
                 <div className="historyInviteField">
                   <label htmlFor="invite-email">
-                    Email
+                    И-мэйл
                   </label>
 
                   <input
@@ -2506,7 +2504,7 @@ export default function History() {
                       onChange={
                         handleAddPeopleChange
                       }
-                      placeholder="Name"
+                      placeholder="Нэр"
                       autoComplete="given-name"
                       disabled={
                         addPeopleLoading
@@ -2516,7 +2514,7 @@ export default function History() {
 
                   <div className="historyInviteField">
                     <label htmlFor="invite-last-name">
-                      Family name
+                      Овог
                     </label>
 
                     <input
@@ -2529,7 +2527,7 @@ export default function History() {
                       onChange={
                         handleAddPeopleChange
                       }
-                      placeholder="Family name"
+                      placeholder="Овог"
                       autoComplete="family-name"
                       disabled={
                         addPeopleLoading
@@ -2540,7 +2538,7 @@ export default function History() {
 
                 <div className="historyInviteField">
                   <label htmlFor="invite-phone">
-                    Phone number
+                    Утасны дугаар
                   </label>
 
                   <input
@@ -2580,7 +2578,7 @@ export default function History() {
                 <div className="historyInviteActions">
                   <button
                     type="button"
-                    className="historyInviteCancelBtn"
+                    className="historyInviteЦуцлахBtn"
                     disabled={
                       addPeopleLoading
                     }
@@ -2590,7 +2588,7 @@ export default function History() {
                       )
                     }
                   >
-                    Cancel
+                    Цуцлах
                   </button>
 
                   <button
@@ -2601,8 +2599,8 @@ export default function History() {
                     }
                   >
                     {addPeopleLoading
-                      ? "Creating..."
-                      : "Create & Add"}
+                      ? "Үүсгэж байна..."
+                      : "Үүсгээд нэмэх"}
                   </button>
                 </div>
               </form>
@@ -2616,7 +2614,7 @@ export default function History() {
           <div className="historyModal">
             <div className="historyModalHeader">
               <h2>
-                Joined People
+                Оролцогчид
               </h2>
 
               <button
@@ -2633,12 +2631,12 @@ export default function History() {
             <div className="historyModalBody">
               {participantsLoading ? (
                 <p>
-                  Loading...
+                  Уншиж байна...
                 </p>
               ) : participants.length ===
                 0 ? (
                 <p>
-                  No joined people.
+                  Оролцогч байхгүй.
                 </p>
               ) : (
                 participants.map(
@@ -2669,7 +2667,7 @@ export default function History() {
                         </strong>
 
                         <span>
-                          {getParticipantEmail(
+                          {getParticipantИ-мэйл(
                             person
                           )}
                         </span>

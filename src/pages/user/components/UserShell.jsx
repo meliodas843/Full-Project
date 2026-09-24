@@ -2,10 +2,12 @@ import {
   useEffect,
   useState,
 } from "react";
+
 import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
 import {
   FiMenu,
   FiX,
@@ -24,40 +26,91 @@ function getToken() {
   );
 }
 
+function getInterests(user) {
+  const value =
+    user?.interests ||
+    user?.professional_interests ||
+    user?.professionalInterests ||
+    [];
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed =
+        JSON.parse(value);
+
+      if (
+        Array.isArray(parsed)
+      ) {
+        return parsed;
+      }
+    } catch {
+      return value
+        .split(",")
+        .map((item) =>
+          item.trim()
+        )
+        .filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
 function isProfileComplete(user) {
   if (!user) {
     return false;
   }
 
-  const firstName = String(
-    user.firstName ||
-      user.first_name ||
-      ""
-  ).trim();
+  const firstName =
+    String(
+      user.firstName ||
+        user.first_name ||
+        ""
+    ).trim();
 
-  const lastName = String(
-    user.lastName ||
-      user.last_name ||
-      ""
-  ).trim();
+  const lastName =
+    String(
+      user.lastName ||
+        user.last_name ||
+        ""
+    ).trim();
 
-  const company = String(
-    user.company_name ||
-      user.company ||
-      ""
-  ).trim();
+  const company =
+    String(
+      user.company_name ||
+        user.company ||
+        user.organization ||
+        ""
+    ).trim();
 
-  const phone = String(
-    user.phone || ""
-  )
-    .replace(/\D/g, "")
-    .trim();
+  const phone =
+    String(
+      user.phone || ""
+    )
+      .replace(/\D/g, "")
+      .trim();
+
+  const jobTitle =
+    String(
+      user.job_title ||
+        user.jobTitle ||
+        ""
+    ).trim();
+
+  const interests =
+    getInterests(user);
 
   return Boolean(
     firstName &&
       lastName &&
       company &&
-      /^\d{8}$/.test(phone)
+      /^\d{8}$/.test(phone) &&
+      jobTitle &&
+      interests.length > 0
   );
 }
 
@@ -100,7 +153,9 @@ export default function UserShell({
 
   useEffect(() => {
     document.body.style.overflow =
-      open ? "hidden" : "";
+      open
+        ? "hidden"
+        : "";
 
     return () => {
       document.body.style.overflow =
@@ -155,6 +210,30 @@ export default function UserShell({
         return;
       }
 
+      const isProfilePage =
+        location.pathname ===
+          "/user/profile" ||
+        location.pathname ===
+          "/profile";
+
+      const savedComplete =
+        localStorage.getItem(
+          "profileComplete"
+        ) === "true";
+
+      if (
+        savedComplete &&
+        !isProfilePage
+      ) {
+        if (!cancelled) {
+          setCheckingProfile(
+            false
+          );
+        }
+
+        return;
+      }
+
       try {
         setCheckingProfile(
           true
@@ -185,6 +264,10 @@ export default function UserShell({
           ) {
             localStorage.removeItem(
               "token"
+            );
+
+            localStorage.removeItem(
+              "user"
             );
 
             localStorage.removeItem(
@@ -226,12 +309,6 @@ export default function UserShell({
             ? "true"
             : "false"
         );
-
-        const isProfilePage =
-          location.pathname ===
-            "/user/profile" ||
-          location.pathname ===
-            "/profile";
 
         if (
           !complete &&
@@ -287,14 +364,14 @@ export default function UserShell({
           minHeight: "100vh",
           width: "100%",
           display: "flex",
-          alignItems: "center",
+          alignItems:
+            "center",
           justifyContent:
             "center",
         }}
       >
         <span>
-          Профайл шалгаж
-          байна...
+          Профайл шалгаж байна...
         </span>
       </div>
     );

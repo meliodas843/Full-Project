@@ -20,14 +20,14 @@ import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
 
 const INTEREST_OPTIONS = [
-  "Technology",
-  "Design",
-  "Startups",
-  "AI & ML",
-  "Finance",
-  "Marketing",
-  "Leadership",
-  "Data Science",
+  { value: "Technology", label: "Технологи" },
+  { value: "Design", label: "Дизайн" },
+  { value: "Startups", label: "Стартап" },
+  { value: "AI & ML", label: "Хиймэл оюун ба машин сургалт" },
+  { value: "Finance", label: "Санхүү" },
+  { value: "Marketing", label: "Маркетинг" },
+  { value: "Leadership", label: "Манлайлал" },
+  { value: "Data Science", label: "Өгөгдлийн шинжлэх ухаан" },
 ];
 
 function getToken() {
@@ -57,7 +57,8 @@ function getInterests(profile) {
 
   if (typeof value === "string") {
     try {
-      const parsed = JSON.parse(value);
+      const parsed =
+        JSON.parse(value);
 
       if (Array.isArray(parsed)) {
         return parsed;
@@ -65,7 +66,9 @@ function getInterests(profile) {
     } catch {
       return value
         .split(",")
-        .map((item) => item.trim())
+        .map((item) =>
+          item.trim()
+        )
         .filter(Boolean);
     }
   }
@@ -73,44 +76,59 @@ function getInterests(profile) {
   return [];
 }
 
-function getInitials(profile) {
-  const firstName = getText(
-    profile?.firstName ||
-      profile?.first_name
-  );
+function createProfileForm(profile) {
+  return {
+    firstName: getText(
+      profile?.firstName ||
+        profile?.first_name
+    ),
 
-  const lastName = getText(
-    profile?.lastName ||
-      profile?.last_name
-  );
+    lastName: getText(
+      profile?.lastName ||
+        profile?.last_name
+    ),
 
-  if (firstName || lastName) {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`
-      .toUpperCase();
-  }
+    company_name: getText(
+      profile?.company_name ||
+        profile?.company ||
+        profile?.organization
+    ),
 
-  const email = getText(profile?.email);
+    phone: getPhone(
+      profile?.phone
+    ),
 
-  if (email) {
-    return email
-      .slice(0, 2)
-      .toUpperCase();
-  }
+    job_title: getText(
+      profile?.job_title ||
+        profile?.jobTitle
+    ),
 
-  return "U";
+    interests:
+      getInterests(profile),
+  };
 }
 
 function getSectionStatus(form) {
   const personal =
-    Boolean(form.firstName.trim()) &&
-    Boolean(form.lastName.trim());
+    Boolean(
+      form.firstName.trim()
+    ) &&
+    Boolean(
+      form.lastName.trim()
+    );
 
   const contact =
-    /^\d{8}$/.test(form.phone);
+    /^\d{8}$/.test(
+      form.phone
+    );
 
   const organization =
-    Boolean(form.company_name.trim()) &&
-    Boolean(form.job_title.trim());
+    Boolean(
+      form.company_name.trim()
+    ) &&
+    Boolean(
+      form.job_title.trim()
+    );
 
   const interests =
     form.interests.length > 0;
@@ -123,16 +141,24 @@ function getSectionStatus(form) {
   };
 }
 
-function getRequiredProfileComplete(form) {
-  return Boolean(
-    form.firstName.trim() &&
-      form.lastName.trim() &&
-      form.company_name.trim() &&
-      /^\d{8}$/.test(form.phone)
+function isProfileComplete(profile) {
+  const form =
+    createProfileForm(profile);
+
+  const status =
+    getSectionStatus(form);
+
+  return (
+    status.personal &&
+    status.contact &&
+    status.organization &&
+    status.interests
   );
 }
 
-function SectionStatus({ complete }) {
+function SectionStatus({
+  complete,
+}) {
   return (
     <span
       className={`rgOnboardingStatus ${
@@ -142,15 +168,18 @@ function SectionStatus({ complete }) {
       }`}
     >
       {complete
-        ? "Complete"
-        : "Incomplete"}
+        ? "Бүрэн"
+        : "Дутуу"}
     </span>
   );
 }
 
 export default function Profile() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate =
+    useNavigate();
+
+  const location =
+    useLocation();
 
   const [user, setUser] =
     useState(null);
@@ -164,8 +193,15 @@ export default function Profile() {
   const [error, setError] =
     useState("");
 
-  const [showCompleteModal, setShowCompleteModal] =
-    useState(false);
+  const [
+    profileSaved,
+    setProfileSaved,
+  ] = useState(false);
+
+  const [
+    showCompleteModal,
+    setShowCompleteModal,
+  ] = useState(false);
 
   const [form, setForm] =
     useState({
@@ -177,40 +213,9 @@ export default function Profile() {
       interests: [],
     });
 
-  function fillForm(profile) {
-    setForm({
-      firstName: getText(
-        profile?.firstName ||
-          profile?.first_name
-      ),
-
-      lastName: getText(
-        profile?.lastName ||
-          profile?.last_name
-      ),
-
-      company_name: getText(
-        profile?.company_name ||
-          profile?.company ||
-          profile?.organization
-      ),
-
-      phone: getPhone(
-        profile?.phone
-      ),
-
-      job_title: getText(
-        profile?.job_title ||
-          profile?.jobTitle
-      ),
-
-      interests:
-        getInterests(profile),
-    });
-  }
-
   async function loadProfile() {
-    const token = getToken();
+    const token =
+      getToken();
 
     if (!token) {
       navigate(
@@ -253,6 +258,10 @@ export default function Profile() {
           );
 
           localStorage.removeItem(
+            "user"
+          );
+
+          localStorage.removeItem(
             "profileComplete"
           );
 
@@ -277,49 +286,36 @@ export default function Profile() {
       const profile =
         data?.user || data;
 
+      const loadedForm =
+        createProfileForm(
+          profile
+        );
+
+      const complete =
+        isProfileComplete(
+          profile
+        );
+
       setUser(profile);
-      fillForm(profile);
+
+      setForm(
+        loadedForm
+      );
+
+      setProfileSaved(
+        complete
+      );
 
       localStorage.setItem(
         "user",
-        JSON.stringify(profile)
+        JSON.stringify(
+          profile
+        )
       );
-
-      const initialForm = {
-        firstName: getText(
-          profile?.firstName ||
-            profile?.first_name
-        ),
-
-        lastName: getText(
-          profile?.lastName ||
-            profile?.last_name
-        ),
-
-        company_name: getText(
-          profile?.company_name ||
-            profile?.company ||
-            profile?.organization
-        ),
-
-        phone: getPhone(
-          profile?.phone
-        ),
-
-        job_title: getText(
-          profile?.job_title ||
-            profile?.jobTitle
-        ),
-
-        interests:
-          getInterests(profile),
-      };
 
       localStorage.setItem(
         "profileComplete",
-        getRequiredProfileComplete(
-          initialForm
-        )
+        complete
           ? "true"
           : "false"
       );
@@ -344,7 +340,9 @@ export default function Profile() {
   const sectionStatus =
     useMemo(
       () =>
-        getSectionStatus(form),
+        getSectionStatus(
+          form
+        ),
       [form]
     );
 
@@ -357,15 +355,6 @@ export default function Profile() {
 
   const progress =
     completedCount * 25;
-
-  const requiredComplete =
-    useMemo(
-      () =>
-        getRequiredProfileComplete(
-          form
-        ),
-      [form]
-    );
 
   const allSectionsComplete =
     completedCount === 4;
@@ -383,7 +372,10 @@ export default function Profile() {
         [name]:
           name === "phone"
             ? value
-                .replace(/\D/g, "")
+                .replace(
+                  /\D/g,
+                  ""
+                )
                 .slice(0, 8)
             : value,
       })
@@ -395,32 +387,38 @@ export default function Profile() {
   function toggleInterest(
     interest
   ) {
-    setForm((current) => {
-      const selected =
-        current.interests.includes(
-          interest
-        );
+    setForm(
+      (current) => {
+        const selected =
+          current.interests.includes(
+            interest
+          );
 
-      return {
-        ...current,
+        return {
+          ...current,
 
-        interests: selected
-          ? current.interests.filter(
-              (item) =>
-                item !== interest
-            )
-          : [
-              ...current.interests,
-              interest,
-            ],
-      };
-    });
+          interests:
+            selected
+              ? current.interests.filter(
+                  (item) =>
+                    item !==
+                    interest
+                )
+              : [
+                  ...current.interests,
+                  interest,
+                ],
+        };
+      }
+    );
 
     setError("");
   }
 
   function validate() {
-    if (!form.firstName.trim()) {
+    if (
+      !form.firstName.trim()
+    ) {
       setError(
         "Нэрээ оруулна уу."
       );
@@ -428,7 +426,9 @@ export default function Profile() {
       return false;
     }
 
-    if (!form.lastName.trim()) {
+    if (
+      !form.lastName.trim()
+    ) {
       setError(
         "Овгоо оруулна уу."
       );
@@ -469,7 +469,8 @@ export default function Profile() {
     }
 
     if (
-      form.interests.length === 0
+      form.interests.length ===
+      0
     ) {
       setError(
         "Сонирхлын чиглэлээс дор хаяж нэгийг сонгоно уу."
@@ -488,7 +489,8 @@ export default function Profile() {
       return;
     }
 
-    const token = getToken();
+    const token =
+      getToken();
 
     if (!token) {
       navigate(
@@ -582,6 +584,9 @@ export default function Profile() {
         company:
           payload.company_name,
 
+        organization:
+          payload.company_name,
+
         phone:
           payload.phone,
 
@@ -596,13 +601,28 @@ export default function Profile() {
 
         professional_interests:
           payload.interests,
+
+        professionalInterests:
+          payload.interests,
       };
 
       setUser(updated);
 
+      setForm(
+        createProfileForm(
+          updated
+        )
+      );
+
+      setProfileSaved(
+        true
+      );
+
       localStorage.setItem(
         "user",
-        JSON.stringify(updated)
+        JSON.stringify(
+          updated
+        )
       );
 
       localStorage.setItem(
@@ -627,7 +647,9 @@ export default function Profile() {
         );
       }
 
-      setShowCompleteModal(true);
+      setShowCompleteModal(
+        true
+      );
     } catch (err) {
       console.error(
         "Save profile error:",
@@ -643,13 +665,17 @@ export default function Profile() {
   }
 
   function goToDashboard() {
-    setShowCompleteModal(false);
+    localStorage.setItem(
+      "profileComplete",
+      "true"
+    );
 
-    navigate(
-      "/user/home",
-      {
-        replace: true,
-      }
+    setShowCompleteModal(
+      false
+    );
+
+    window.location.replace(
+      "/user/home"
     );
   }
 
@@ -677,30 +703,24 @@ export default function Profile() {
     <UserShell title="Профайл">
       <main className="rgOnboardingPage">
         <div className="rgOnboardingContainer">
-          <section className="rgOnboardingWelcome">
+          {!profileSaved && (
+            <section className="rgOnboardingWelcome">
               <div className="rgOnboardingWelcomeIcon">
                 <FiShield />
               </div>
 
               <div className="rgOnboardingWelcomeContent">
                 <h1>
-                  Welcome to Registra!
-                  Complete your profile
-                  to get started
+                  Registra-д тавтай морил!
+                  Эхлэхийн тулд профайлаа бүрэн бөглөнө үү.
                 </h1>
 
                 <p>
-                  To register for events
-                  and connect with other
-                  attendees, please fill
-                  in all required fields
-                  below. Other pages will
-                  unlock once your
-                  profile is complete.
+                  Эвентүүдэд бүртгүүлж, бусад оролцогчидтой холбогдохын тулд доорх шаардлагатай бүх талбарыг бөглөнө үү. Таны профайл бүрэн бөглөгдсөний дараа бусад хуудсууд нээгдэнэ.
                 </p>
 
                 <strong className="rgOnboardingProgressText">
-                  Profile completion:{" "}
+                  Профайл бөглөлт:{" "}
                   {progress}% (
                   {completedCount} of 4
                   sections done)
@@ -709,7 +729,8 @@ export default function Profile() {
                 <div className="rgOnboardingProgress">
                   <span
                     style={{
-                      width: `${progress}%`,
+                      width:
+                        `${progress}%`,
                     }}
                   />
                 </div>
@@ -728,7 +749,7 @@ export default function Profile() {
                       ) : null}
                     </i>
 
-                    Personal information
+                    Хувийн мэдээлэл
                   </span>
 
                   <span
@@ -744,7 +765,7 @@ export default function Profile() {
                       ) : null}
                     </i>
 
-                    Contact details
+                    Холбоо барих мэдээлэл
                   </span>
 
                   <span
@@ -760,7 +781,7 @@ export default function Profile() {
                       ) : null}
                     </i>
 
-                    Organization & job title
+                    Байгууллага ба албан тушаал
                   </span>
 
                   <span
@@ -776,15 +797,16 @@ export default function Profile() {
                       ) : null}
                     </i>
 
-                    Professional interests
+                    Мэргэжлийн сонирхол
                   </span>
                 </div>
               </div>
             </section>
+          )}
 
           <div className="rgOnboardingRequiredText">
             <span>*</span>
-            Required fields
+            Заавал бөглөх талбарууд
           </div>
 
           {error && (
@@ -796,7 +818,7 @@ export default function Profile() {
           <section className="rgOnboardingSection">
             <header className="rgOnboardingSectionHeader">
               <h2>
-                Personal Information
+                Хувийн мэдээлэл
               </h2>
 
               <SectionStatus
@@ -810,7 +832,7 @@ export default function Profile() {
               <div className="rgOnboardingTwoColumns">
                 <div className="rgOnboardingField">
                   <label>
-                    FIRST NAME
+                    НЭР
                     <span>*</span>
                   </label>
 
@@ -819,15 +841,17 @@ export default function Profile() {
                     value={
                       form.firstName
                     }
-                    onChange={change}
-                    placeholder="First name"
+                    onChange={
+                      change
+                    }
+                    placeholder="Нэр"
                     autoComplete="given-name"
                   />
                 </div>
 
                 <div className="rgOnboardingField">
                   <label>
-                    LAST NAME
+                    ОВОГ
                     <span>*</span>
                   </label>
 
@@ -836,8 +860,10 @@ export default function Profile() {
                     value={
                       form.lastName
                     }
-                    onChange={change}
-                    placeholder="Last name"
+                    onChange={
+                      change
+                    }
+                    placeholder="Овог"
                     autoComplete="family-name"
                   />
                 </div>
@@ -845,11 +871,12 @@ export default function Profile() {
 
               <div className="rgOnboardingReadonly">
                 <span>
-                  Email (from account)
+                  И-мэйл (бүртгэлээс)
                 </span>
 
                 <strong>
-                  {user.email || "—"}
+                  {user.email ||
+                    "—"}
                 </strong>
               </div>
             </div>
@@ -858,7 +885,7 @@ export default function Profile() {
           <section className="rgOnboardingSection">
             <header className="rgOnboardingSectionHeader">
               <h2>
-                Contact Details
+                Холбоо барих мэдээлэл
               </h2>
 
               <SectionStatus
@@ -871,7 +898,7 @@ export default function Profile() {
             <div className="rgOnboardingSectionBody">
               <div className="rgOnboardingField">
                 <label>
-                  PHONE NUMBER
+                  УТАСНЫ ДУГААР
                   <span>*</span>
                 </label>
 
@@ -879,9 +906,13 @@ export default function Profile() {
                   name="phone"
                   type="tel"
                   inputMode="numeric"
-                  value={form.phone}
-                  onChange={change}
-                  placeholder="e.g. 9909 1442"
+                  value={
+                    form.phone
+                  }
+                  onChange={
+                    change
+                  }
+                  placeholder="Жишээ: 99091442"
                   maxLength={8}
                   autoComplete="tel"
                 />
@@ -892,7 +923,7 @@ export default function Profile() {
           <section className="rgOnboardingSection">
             <header className="rgOnboardingSectionHeader">
               <h2>
-                Organization & Job Title
+                Байгууллага ба албан тушаал
               </h2>
 
               <SectionStatus
@@ -906,7 +937,7 @@ export default function Profile() {
               <div className="rgOnboardingTwoColumns">
                 <div className="rgOnboardingField">
                   <label>
-                    ORGANIZATION
+                    БАЙГУУЛЛАГА
                     <span>*</span>
                   </label>
 
@@ -915,15 +946,17 @@ export default function Profile() {
                     value={
                       form.company_name
                     }
-                    onChange={change}
-                    placeholder="Please enter your organization name"
+                    onChange={
+                      change
+                    }
+                    placeholder="Байгууллагын нэрээ оруулна уу"
                     autoComplete="organization"
                   />
                 </div>
 
                 <div className="rgOnboardingField">
                   <label>
-                    JOB TITLE
+                    АЛБАН ТУШААЛ
                     <span>*</span>
                   </label>
 
@@ -932,8 +965,10 @@ export default function Profile() {
                     value={
                       form.job_title
                     }
-                    onChange={change}
-                    placeholder="e.g. Software Engineer"
+                    onChange={
+                      change
+                    }
+                    placeholder="Жишээ: Програм хангамжийн инженер"
                     autoComplete="organization-title"
                   />
                 </div>
@@ -944,7 +979,7 @@ export default function Profile() {
           <section className="rgOnboardingSection">
             <header className="rgOnboardingSectionHeader">
               <h2>
-                Professional Interests
+                Мэргэжлийн сонирхол
               </h2>
 
               <SectionStatus
@@ -957,7 +992,7 @@ export default function Profile() {
             <div className="rgOnboardingSectionBody">
               <div className="rgOnboardingField">
                 <label>
-                  SELECT YOUR INTERESTS
+                  СОНИРХЛЫН ЧИГЛЭЛЭЭ СОНГОНО УУ
                   <span>*</span>
                 </label>
 
@@ -966,12 +1001,14 @@ export default function Profile() {
                     (interest) => {
                       const selected =
                         form.interests.includes(
-                          interest
+                          interest.value
                         );
 
                       return (
                         <button
-                          key={interest}
+                          key={
+                            interest.value
+                          }
                           type="button"
                           className={
                             selected
@@ -980,7 +1017,7 @@ export default function Profile() {
                           }
                           onClick={() =>
                             toggleInterest(
-                              interest
+                              interest.value
                             )
                           }
                         >
@@ -988,7 +1025,7 @@ export default function Profile() {
                             <FiCheck />
                           )}
 
-                          {interest}
+                          {interest.label}
                         </button>
                       );
                     }
@@ -1012,8 +1049,10 @@ export default function Profile() {
           >
             <span>
               {saving
-                ? "Saving..."
-                : "Save & Continue"}
+                ? "Хадгалж байна..."
+                : profileSaved
+                  ? "Өөрчлөлт хадгалах"
+                  : "Хадгалаад үргэлжлүүлэх"}
             </span>
 
             {!saving && (
@@ -1021,38 +1060,34 @@ export default function Profile() {
             )}
           </button>
         </footer>
-      </main>
 
-      {showCompleteModal && (
-        <div className="rgProfileCompleteOverlay">
-          <div className="rgProfileCompleteModal">
-            <div className="rgProfileCompleteIcon">
-              <FiCheckCircle />
+        {showCompleteModal && (
+          <div className="rgProfileCompleteOverlay">
+            <div className="rgProfileCompleteModal">
+              <div className="rgProfileCompleteIcon">
+                <FiCheckCircle />
+              </div>
+
+              <h2>
+                Таны профайл бүрэн боллоо!
+              </h2>
+
+              <p>
+                Та одоо Registra-ийн бүх боломжийг ашиглах эрхтэй боллоо. Удахгүй болох IT эвентүүдийг үзэж, бусад оролцогчидтой холбогдоорой.
+              </p>
+
+              <button
+                type="button"
+                onClick={
+                  goToDashboard
+                }
+              >
+                Дашбоард руу очих
+              </button>
             </div>
-
-            <h2>
-              Your profile is complete!
-            </h2>
-
-            <p>
-              You now have full access
-              to Registra. Explore
-              upcoming IT events and
-              connect with other
-              attendees.
-            </p>
-
-            <button
-              type="button"
-              onClick={
-                goToDashboard
-              }
-            >
-              Go to Dashboard
-            </button>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </UserShell>
   );
 }
