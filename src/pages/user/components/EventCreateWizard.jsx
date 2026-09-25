@@ -58,6 +58,47 @@ function resolvePreview(
   return "";
 }
 
+function normalizeDateTimeLocalValue(value) {
+  if (!value) return "";
+
+  const raw = String(value).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw)) {
+    return raw.slice(0, 16);
+  }
+
+  const date = new Date(raw);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (number) => String(number).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getDatePart(value) {
+  const normalized = normalizeDateTimeLocalValue(value);
+  return normalized ? normalized.slice(0, 10) : "";
+}
+
+function getTimePart(value) {
+  const normalized = normalizeDateTimeLocalValue(value);
+  return normalized ? normalized.slice(11, 16) : "";
+}
+
+function combineDateAndTime(date, time) {
+  if (!date) return "";
+  return `${date}T${time || "09:00"}`;
+}
+
 function formatPreviewDate(
   value
 ) {
@@ -110,12 +151,17 @@ export default function EventCreateWizard({
   handleAgendaChange,
   addAgendaItem,
   removeAgendaItem,
+  handleХөтөлбөрChange,
+  addХөтөлбөрItem,
+  removeХөтөлбөрItem,
 
   start_time,
   setStartTime,
+  setЭхлэхTime,
 
   end_time,
   setEndTime,
+  setДуусахTime,
 
   image_url,
 
@@ -147,8 +193,61 @@ export default function EventCreateWizard({
 
   closeCreate,
 }) {
+  const updateAgenda =
+    handleAgendaChange || handleХөтөлбөрChange;
+
+  const addAgenda =
+    addAgendaItem || addХөтөлбөрItem;
+
+  const removeAgenda =
+    removeAgendaItem || removeХөтөлбөрItem;
+
+  const updateStartTime =
+    setStartTime || setЭхлэхTime;
+
+  const updateEndTime =
+    setEndTime || setДуусахTime;
+
   const [step, setStep] =
     useState(1);
+
+  const startDateTimeValue =
+    normalizeDateTimeLocalValue(start_time);
+
+  const endDateTimeValue =
+    normalizeDateTimeLocalValue(end_time);
+
+  const minimumDateTimeValue =
+    normalizeDateTimeLocalValue(minDateTime);
+
+  const [localStartDate, setLocalStartDate] = useState(
+    getDatePart(startDateTimeValue)
+  );
+  const [localStartTime, setLocalStartTime] = useState(
+    getTimePart(startDateTimeValue)
+  );
+  const [localEndDate, setLocalEndDate] = useState(
+    getDatePart(endDateTimeValue)
+  );
+  const [localEndTime, setLocalEndTime] = useState(
+    getTimePart(endDateTimeValue)
+  );
+
+  useEffect(() => {
+    const date = getDatePart(startDateTimeValue);
+    const time = getTimePart(startDateTimeValue);
+
+    if (date) setLocalStartDate(date);
+    if (time) setLocalStartTime(time);
+  }, [startDateTimeValue]);
+
+  useEffect(() => {
+    const date = getDatePart(endDateTimeValue);
+    const time = getTimePart(endDateTimeValue);
+
+    if (date) setLocalEndDate(date);
+    if (time) setLocalEndTime(time);
+  }, [endDateTimeValue]);
 
   const [
     badgeMode,
@@ -862,59 +961,87 @@ export default function EventCreateWizard({
                   ЭХЛЭХ ОГНОО, ЦАГ *
                 </span>
 
-                <div className="eventWizardInputIcon">
-                  <FiCalendar />
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(0, 1fr) 150px",
+                    gap: 10,
+                  }}
+                >
+                  <div className="eventWizardInputIcon">
+                    <FiCalendar />
+
+                    <input
+                      type="date"
+                      value={localStartDate}
+                      min={
+                        editingEventId
+                          ? undefined
+                          : getDatePart(minimumDateTimeValue) || undefined
+                      }
+                      onChange={(event) => {
+                        const date = event.target.value;
+                        setLocalStartDate(date);
+
+                        if (!date) {
+                          setLocalStartTime("");
+                          setLocalEndDate("");
+                          setLocalEndTime("");
+                          updateStartTime?.("");
+                          updateEndTime?.("");
+                          return;
+                        }
+
+                        const time = localStartTime || "09:00";
+
+                        if (!localStartTime) {
+                          setLocalStartTime(time);
+                        }
+
+                        const value = combineDateAndTime(date, time);
+
+                        setErrMsg?.("");
+                        updateStartTime?.(value);
+
+                        if (
+                          endDateTimeValue &&
+                          endDateTimeValue < value
+                        ) {
+                          setLocalEndDate("");
+                          setLocalEndTime("");
+                          updateEndTime?.("");
+                        }
+                      }}
+                    />
+                  </div>
 
                   <input
-                    type="datetime-local"
-                    value={
-                      start_time ||
-                      ""
-                    }
-                    min={
-                      editingEventId
-                        ? undefined
-                        : minDateTime
-                    }
-                    onChange={(
-                      event
-                    ) => {
-                      const value =
-                        event
-                          .target
-                          .value;
+                    type="time"
+                    step="60"
+                    value={localStartTime}
+                    onChange={(event) => {
+                      const time = event.target.value;
+                      setLocalStartTime(time);
 
-                      if (
-                        !editingEventId &&
-                        value &&
-                        minDateTime &&
-                        value <
-                          minDateTime
-                      ) {
-                        setErrMsg?.(
-                          "Өнгөрсөн огноо сонгох боломжгүй."
-                        );
-
+                      if (!localStartDate || !time) {
                         return;
                       }
 
-                      setErrMsg?.(
-                        ""
+                      const value = combineDateAndTime(
+                        localStartDate,
+                        time
                       );
 
-                      setStartTime?.(
-                        value
-                      );
+                      setErrMsg?.("");
+                      updateStartTime?.(value);
 
                       if (
-                        end_time &&
-                        value &&
-                        end_time <
-                          value
+                        endDateTimeValue &&
+                        endDateTimeValue < value
                       ) {
-                        setEndTime?.(
-                          ""
-                        );
+                        setLocalEndDate("");
+                        setLocalEndTime("");
+                        updateEndTime?.("");
                       }
                     }}
                   />
@@ -926,50 +1053,88 @@ export default function EventCreateWizard({
                   ДУУСАХ ОГНОО, ЦАГ
                 </span>
 
-                <div className="eventWizardInputIcon">
-                  <FiCalendar />
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(0, 1fr) 150px",
+                    gap: 10,
+                  }}
+                >
+                  <div className="eventWizardInputIcon">
+                    <FiCalendar />
+
+                    <input
+                      type="date"
+                      value={localEndDate}
+                      min={localStartDate || undefined}
+                      disabled={!localStartDate}
+                      onChange={(event) => {
+                        const date = event.target.value;
+                        setLocalEndDate(date);
+
+                        if (!date) {
+                          setLocalEndTime("");
+                          updateEndTime?.("");
+                          return;
+                        }
+
+                        const time =
+                          localEndTime ||
+                          localStartTime ||
+                          "10:00";
+
+                        if (!localEndTime) {
+                          setLocalEndTime(time);
+                        }
+
+                        const value = combineDateAndTime(date, time);
+
+                        if (
+                          startDateTimeValue &&
+                          value < startDateTimeValue
+                        ) {
+                          setErrMsg?.(
+                            "Дуусах хугацаа эхлэх хугацаанаас өмнө байж болохгүй."
+                          );
+                          return;
+                        }
+
+                        setErrMsg?.("");
+                        updateEndTime?.(value);
+                      }}
+                    />
+                  </div>
 
                   <input
-                    type="datetime-local"
-                    value={
-                      end_time ||
-                      ""
-                    }
-                    min={
-                      start_time ||
-                      minDateTime
-                    }
-                    disabled={
-                      !start_time
-                    }
-                    onChange={(
-                      event
-                    ) => {
-                      const value =
-                        event
-                          .target
-                          .value;
+                    type="time"
+                    step="60"
+                    value={localEndTime}
+                    disabled={!localStartDate}
+                    onChange={(event) => {
+                      const time = event.target.value;
+                      setLocalEndTime(time);
+
+                      const date =
+                        localEndDate || localStartDate;
+
+                      if (!date || !time) {
+                        return;
+                      }
+
+                      const value = combineDateAndTime(date, time);
 
                       if (
-                        start_time &&
-                        value &&
-                        value <
-                          start_time
+                        startDateTimeValue &&
+                        value < startDateTimeValue
                       ) {
                         setErrMsg?.(
                           "Дуусах хугацаа эхлэх хугацаанаас өмнө байж болохгүй."
                         );
-
                         return;
                       }
 
-                      setErrMsg?.(
-                        ""
-                      );
-
-                      setEndTime?.(
-                        value
-                      );
+                      setErrMsg?.("");
+                      updateEndTime?.(value);
                     }}
                   />
                 </div>
@@ -1227,9 +1392,7 @@ export default function EventCreateWizard({
 
               <button
                 type="button"
-                onClick={
-                  addAgendaItem
-                }
+                onClick={() => addAgenda?.()}
               >
                 <FiPlus />
 
@@ -1258,7 +1421,7 @@ export default function EventCreateWizard({
                       onChange={(
                         event
                       ) =>
-                        handleAgendaChange?.(
+                        updateAgenda?.(
                           index,
                           "time",
                           event
@@ -1269,6 +1432,7 @@ export default function EventCreateWizard({
                     />
 
                     <input
+                      type="text"
                       value={
                         agenda.text ||
                         ""
@@ -1277,7 +1441,7 @@ export default function EventCreateWizard({
                       onChange={(
                         event
                       ) =>
-                        handleAgendaChange?.(
+                        updateAgenda?.(
                           index,
                           "text",
                           event
@@ -1293,9 +1457,7 @@ export default function EventCreateWizard({
                         type="button"
                         className="eventWizardDelete"
                         onClick={() =>
-                          removeAgendaItem?.(
-                            index
-                          )
+                          removeAgenda?.(index)
                         }
                       >
                         <FiTrash2 />

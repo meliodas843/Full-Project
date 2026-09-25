@@ -108,7 +108,7 @@ function isImageName(name) {
   return /\.(png|jpe?g|gif|webp|bmp)$/i.test(String(name || ""));
 }
 
-function parseХөтөлбөр(agendaValue) {
+function parseAgenda(agendaValue) {
   if (!agendaValue) return [];
 
   if (Array.isArray(agendaValue)) {
@@ -124,7 +124,7 @@ function parseХөтөлбөр(agendaValue) {
   }
 }
 
-function parseИлтгэгчид(value) {
+function parseSpeakers(value) {
   if (!value) return [];
 
   if (Array.isArray(value)) {
@@ -246,6 +246,36 @@ function canEditEvent(ev) {
   );
 }
 
+function normalizeDateTimeLocalValue(value) {
+  if (!value) return "";
+
+  const raw = String(value).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw)) {
+    return raw.slice(0, 16);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(raw)) {
+    return raw.replace(" ", "T").slice(0, 16);
+  }
+
+  const date = new Date(raw);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (number) => String(number).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export default function Event() {
   const rightTopRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -271,7 +301,7 @@ export default function Event() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [badge, setBadge] = useState("");
-  const [speakers, setИлтгэгчид] = useState([makeSpeaker()]);
+  const [speakers, setSpeakers] = useState([makeSpeaker()]);
   const [start_time, setStartTime] = useState("");
   const [end_time, setEndTime] = useState("");
   const [image_url, setImageUrl] = useState("");
@@ -289,7 +319,7 @@ export default function Event() {
   const [errMsg, setErrMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [bookedIds, setBookedIds] = useState([]);
-  const [agendas, setХөтөлбөрs] = useState([
+  const [agendas, setAgendas] = useState([
     { text: "", time: "" },
   ]);
 
@@ -358,8 +388,8 @@ export default function Event() {
     );
   }
 
-  function handleХөтөлбөрChange(index, field, value) {
-    setХөтөлбөрs((prev) =>
+  function handleAgendaChange(index, field, value) {
+    setAgendas((prev) =>
       prev.map((item, i) =>
         i === index
           ? { ...item, [field]: value }
@@ -368,15 +398,15 @@ export default function Event() {
     );
   }
 
-  function addХөтөлбөрItem() {
-    setХөтөлбөрs((prev) => [
+  function addAgendaItem() {
+    setAgendas((prev) => [
       ...prev,
       { text: "", time: "" },
     ]);
   }
 
-  function removeХөтөлбөрItem(index) {
-    setХөтөлбөрs((prev) => {
+  function removeAgendaItem(index) {
+    setAgendas((prev) => {
       if (prev.length === 1) {
         return prev;
       }
@@ -386,7 +416,7 @@ export default function Event() {
   }
 
   function handleSpeakerChange(index, field, value) {
-    setИлтгэгчид((prev) =>
+    setSpeakers((prev) =>
       prev.map((item, i) =>
         i === index
           ? { ...item, [field]: value }
@@ -396,14 +426,14 @@ export default function Event() {
   }
 
   function addSpeaker() {
-    setИлтгэгчид((prev) => [
+    setSpeakers((prev) => [
       ...prev,
       makeSpeaker(),
     ]);
   }
 
   function removeSpeaker(index) {
-    setИлтгэгчид((prev) => {
+    setSpeakers((prev) => {
       if (prev.length === 1) {
         return prev;
       }
@@ -666,17 +696,17 @@ export default function Event() {
     myEvents,
   ]);
 
-  const selectedИлтгэгчид = useMemo(
+  const selectedSpeakers = useMemo(
     () =>
-      parseИлтгэгчид(
+      parseSpeakers(
         selectedEvent?.speaker
       ),
     [selectedEvent?.speaker]
   );
 
-  const selectedХөтөлбөрItems = useMemo(
+  const selectedAgendaItems = useMemo(
     () =>
-      parseХөтөлбөр(
+      parseAgenda(
         selectedEvent?.agenda
       ),
     [selectedEvent?.agenda]
@@ -773,13 +803,25 @@ export default function Event() {
     );
   }, [eventFiles]);
 
-  const minDateTime = new Date(
-    Date.now() -
-      new Date().getTimezoneOffset() *
-        60000
-  )
-    .toISOString()
-    .slice(0, 16);
+  const minDateTime = normalizeDateTimeLocalValue(new Date());
+
+  function handleStartTimeChange(value) {
+    const nextValue = normalizeDateTimeLocalValue(value);
+
+    setStartTime(nextValue);
+
+    if (
+      end_time &&
+      nextValue &&
+      normalizeDateTimeLocalValue(end_time) < nextValue
+    ) {
+      setEndTime("");
+    }
+  }
+
+  function handleEndTimeChange(value) {
+    setEndTime(normalizeDateTimeLocalValue(value));
+  }
 
   function resetForm() {
     setEditingEventId(null);
@@ -787,11 +829,11 @@ export default function Event() {
     setDescription("");
     setBadge("");
 
-    setИлтгэгчид([
+    setSpeakers([
       makeSpeaker(),
     ]);
 
-    setХөтөлбөрs([
+    setAgendas([
       {
         text: "",
         time: "",
@@ -838,11 +880,11 @@ export default function Event() {
     setShowCreate(true);
     setSelectedEventId(null);
 
-    const parsedИлтгэгчид =
-      parseИлтгэгчид(ev.speaker);
+    const parsedSpeakers =
+      parseSpeakers(ev.speaker);
 
-    const parsedХөтөлбөр =
-      parseХөтөлбөр(ev.agenda);
+    const parsedAgenda =
+      parseAgenda(ev.agenda);
 
     setTitle(ev.title || "");
     setDescription(
@@ -852,27 +894,31 @@ export default function Event() {
       ev.badge || ""
     );
 
-    setИлтгэгчид(
-      parsedИлтгэгчид.length
-        ? parsedИлтгэгчид
+    setSpeakers(
+      parsedSpeakers.length
+        ? parsedSpeakers
         : [makeSpeaker()]
     );
 
-    setХөтөлбөрs(
-      parsedХөтөлбөр.length
-        ? parsedХөтөлбөр
+    setAgendas(
+      parsedAgenda.length
+        ? parsedAgenda
         : [{ text: "", time: "" }]
     );
 
     setStartTime(
-      toDateTimeLocal(
-        ev.start_time
+      normalizeDateTimeLocalValue(
+        toDateTimeLocal(
+          ev.start_time
+        )
       )
     );
 
     setEndTime(
-      toDateTimeLocal(
-        ev.end_time
+      normalizeDateTimeLocalValue(
+        toDateTimeLocal(
+          ev.end_time
+        )
       )
     );
 
@@ -981,7 +1027,7 @@ export default function Event() {
         return;
       }
 
-      const cleanedХөтөлбөрs =
+      const cleanedAgendas =
         agendas
           .map((item) => ({
             text: String(
@@ -997,7 +1043,7 @@ export default function Event() {
               item.time
           );
 
-      const cleanedИлтгэгчид =
+      const cleanedSpeakers =
         speakers
           .map((sp) => ({
             name: String(
@@ -1040,14 +1086,14 @@ export default function Event() {
       fd.append(
         "speaker",
         JSON.stringify(
-          cleanedИлтгэгчид
+          cleanedSpeakers
         )
       );
 
       fd.append(
         "agenda",
         JSON.stringify(
-          cleanedХөтөлбөрs
+          cleanedAgendas
         )
       );
 
@@ -1694,15 +1740,15 @@ export default function Event() {
                     </div>
                   </section>
 
-                  {selectedИлтгэгчид.length >
+                  {selectedSpeakers.length >
                   0 ? (
                     <section className="eventDetailSection">
                       <h2>
                         Илтгэгчид
                       </h2>
 
-                      <div className="eventDetailИлтгэгчид">
-                        {selectedИлтгэгчид.map(
+                      <div className="eventDetailSpeakers">
+                        {selectedSpeakers.map(
                           (
                             speaker,
                             index
@@ -1765,21 +1811,21 @@ export default function Event() {
                     </section>
                   ) : null}
 
-                  {selectedХөтөлбөрItems.length >
+                  {selectedAgendaItems.length >
                   0 ? (
                     <section className="eventDetailSection">
                       <h2>
                         Хөтөлбөр
                       </h2>
 
-                      <div className="eventDetailХөтөлбөр">
-                        {selectedХөтөлбөрItems.map(
+                      <div className="eventDetailAgenda">
+                        {selectedAgendaItems.map(
                           (
                             item,
                             index
                           ) => (
                             <div
-                              className="eventDetailХөтөлбөрItem"
+                              className="eventDetailAgendaItem"
                               key={
                                 index
                               }
@@ -1929,24 +1975,24 @@ export default function Event() {
                 removeSpeaker
               }
               agendas={agendas}
-              handleХөтөлбөрChange={
-                handleХөтөлбөрChange
+              handleAgendaChange={
+                handleAgendaChange
               }
-              addХөтөлбөрItem={
-                addХөтөлбөрItem
+              addAgendaItem={
+                addAgendaItem
               }
-              removeХөтөлбөрItem={
-                removeХөтөлбөрItem
+              removeAgendaItem={
+                removeAgendaItem
               }
               start_time={
                 start_time
               }
               setStartTime={
-                setStartTime
+                handleStartTimeChange
               }
               end_time={end_time}
               setEndTime={
-                setEndTime
+                handleEndTimeChange
               }
               image_url={
                 image_url

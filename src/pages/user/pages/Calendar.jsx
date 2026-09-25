@@ -4,6 +4,11 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiPlus,
+  FiEdit3,
+  FiCheck,
+  FiX,
+  FiCalendar,
+  FiClock,
 } from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
@@ -176,6 +181,31 @@ function statusLabel(value) {
   return value || "";
 }
 
+
+function meetingPersonName(meeting) {
+  return (
+    meeting?.creator_name ||
+    meeting?.sender_name ||
+    meeting?.creator_full_name ||
+    meeting?.sender_full_name ||
+    meeting?.creator_email ||
+    meeting?.sender_email ||
+    "Хэрэглэгч"
+  );
+}
+
+function meetingPersonEmail(meeting) {
+  return meeting?.creator_email || meeting?.sender_email || "";
+}
+
+function personInitials(value) {
+  const text = String(value || "").trim();
+  if (!text) return "U";
+  const parts = text.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
 export default function Calendar() {
   const navigate = useNavigate();
 
@@ -193,6 +223,14 @@ export default function Calendar() {
 
   const [message, setMessage] =
     useState("");
+
+  const [respondingId, setRespondingId] =
+    useState(null);
+
+  const [editingMeeting, setEditingMeeting] = useState(null);
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const [viewDate, setViewDate] =
     useState(() => {
@@ -452,6 +490,139 @@ export default function Calendar() {
       },
     );
 
+  async function respondToMeeting(meeting, status) {
+    if (!meeting?.id || respondingId) return;
+
+    try {
+      setRespondingId(meeting.id);
+      setMessage("");
+
+      let response = await authFetch(
+        `${API_BASE}/api/meetings/${meeting.id}/respond`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status }),
+        },
+      );
+
+      if (!response) return;
+
+      if (response.status === 404 || response.status === 405) {
+        response = await authFetch(
+          `${API_BASE}/api/meetings/${meeting.id}/status`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status }),
+          },
+        );
+      }
+
+      if (!response) return;
+
+      const data = await response
+        .json()
+        .catch(() => ({}));
+
+      if (!response.ok) {
+        setMessage(
+          data?.message ||
+            (status === "accepted"
+              ? "Уулзалтын хүсэлтийг зөвшөөрөхөд алдаа гарлаа."
+              : "Уулзалтын хүсэлтээс татгалзахад алдаа гарлаа."),
+        );
+        return;
+      }
+
+      setMessage(
+        status === "accepted"
+          ? "Уулзалтын хүсэлтийг зөвшөөрлөө."
+          : "Уулзалтын хүсэлтээс татгалзлаа.",
+      );
+
+      await load();
+    } catch {
+      setMessage("Сервертэй холбогдож чадсангүй.");
+    } finally {
+      setRespondingId(null);
+    }
+  }
+
+  function openEditMeeting(meeting) {
+    const date = parseDate(meeting?.start_time);
+    if (!date) return;
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+
+    setEditingMeeting(meeting);
+    setEditDate(`${year}-${month}-${day}`);
+    setEditTime(`${hour}:${minute}`);
+    setMessage("");
+  }
+
+  function closeEditMeeting() {
+    if (savingEdit) return;
+    setEditingMeeting(null);
+    setEditDate("");
+    setEditTime("");
+  }
+
+  async function saveMeetingSchedule() {
+    if (!editingMeeting?.id || !editDate || !editTime || savingEdit) return;
+
+    const startTime = `${editDate}T${editTime}:00`;
+
+    try {
+      setSavingEdit(true);
+      setMessage("");
+
+      const endpoints = [
+        { url: `${API_BASE}/api/meetings/${editingMeeting.id}/reschedule`, method: "PATCH" },
+        { url: `${API_BASE}/api/meetings/${editingMeeting.id}`, method: "PATCH" },
+        { url: `${API_BASE}/api/meetings/${editingMeeting.id}`, method: "PUT" },
+      ];
+
+      let response = null;
+      let data = {};
+
+      for (const endpoint of endpoints) {
+        response = await authFetch(endpoint.url, {
+          method: endpoint.method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ start_time: startTime }),
+        });
+
+        if (!response) return;
+        data = await response.json().catch(() => ({}));
+
+        if (response.ok) break;
+        if (response.status !== 404 && response.status !== 405) break;
+      }
+
+      if (!response?.ok) {
+        setMessage(data?.message || "Уулзалтын огноо, цагийг өөрчлөхөд алдаа гарлаа.");
+        return;
+      }
+
+      setMessage("Уулзалтын огноо, цагийг амжилттай өөрчиллөө.");
+      closeEditMeeting();
+      await load();
+    } catch {
+      setMessage("Сервертэй холбогдож чадсангүй.");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   function openMeetingCreate() {
     const token = getToken();
 
@@ -542,40 +713,85 @@ export default function Calendar() {
               </div>
             ) : (
               <div className="rgInboxRequests">
-                {pendingInbox.map(
-                  (meeting) => (
-                    <button
-                      type="button"
-                      key={meeting.id}
-                      onClick={() =>
-                        selectMeeting(
-                          meeting,
-                        )
-                      }
-                    >
-                      <div>
-                        <strong>
-                          {meeting.title ||
-                            "Уулзалт"}
-                        </strong>
+                {pendingInbox.map((meeting) => {
+                  const senderName = meetingPersonName(meeting);
+                  const senderEmail = meetingPersonEmail(meeting);
+                  const busy = respondingId === meeting.id;
 
-                        <small>
-                          {meeting.creator_email ||
-                            meeting.sender_email ||
-                            ""}
-                        </small>
+                  return (
+                    <article
+                      className="rgProfessionalInvite"
+                      key={meeting.id}
+                    >
+                      <button
+                        type="button"
+                        className="rgInvitePerson"
+                        onClick={() => selectMeeting(meeting)}
+                      >
+                        <span className="rgInviteAvatar">
+                          {personInitials(senderName)}
+                        </span>
+
+                        <span className="rgInvitePersonInfo">
+                          <strong>{senderName}</strong>
+                          {senderEmail && (
+                            <small>{senderEmail}</small>
+                          )}
+                        </span>
+
+                        <span className="rgInviteTime">
+                          {formatTime(meeting.start_time)}
+                        </span>
+                      </button>
+
+                      <div className="rgInviteDetails">
+                        <strong>
+                          {meeting.title || "Уулзалтын хүсэлт"}
+                        </strong>
+                        <span>Танд уулзалтын хүсэлт илгээлээ.</span>
                       </div>
 
-                      <span>
-                        {formatTime(
-                          meeting.start_time,
-                        )}
-                      </span>
-                    </button>
-                  ),
-                )}
+                      <div className="rgInviteActions">
+                        <button
+                          type="button"
+                          className="rgInviteAccept"
+                          disabled={busy}
+                          onClick={() =>
+                            respondToMeeting(meeting, "accepted")
+                          }
+                        >
+                          <FiCheck />
+                          {busy ? "Түр хүлээнэ үү..." : "Зөвшөөрөх"}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="rgInviteDecline"
+                          disabled={busy}
+                          onClick={() =>
+                            respondToMeeting(meeting, "declined")
+                          }
+                        >
+                          <FiX />
+                          Татгалзах
+                        </button>
+
+                        <button
+                          type="button"
+                          className="rgInviteEdit"
+                          disabled={busy}
+                          onClick={() => openEditMeeting(meeting)}
+                        >
+                          <FiEdit3 />
+                          Засах
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
+
           </section>
 
           <button
@@ -885,6 +1101,74 @@ export default function Calendar() {
             </div>
           )}
         </section>
+
+        {editingMeeting && (
+          <div className="rgMeetingEditOverlay" onMouseDown={closeEditMeeting}>
+            <section
+              className="rgMeetingEditModal"
+              onMouseDown={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="meeting-edit-title"
+            >
+              <header className="rgMeetingEditHeader">
+                <div className="rgMeetingEditIcon"><FiEdit3 /></div>
+                <div>
+                  <h3 id="meeting-edit-title">Уулзалтын цаг өөрчлөх</h3>
+                  <p>Танд тохирох шинэ огноо, цагийг сонгоно уу.</p>
+                </div>
+                <button type="button" className="rgMeetingEditClose" onClick={closeEditMeeting}>
+                  <FiX />
+                </button>
+              </header>
+
+              <div className="rgMeetingEditPerson">
+                <span className="rgInviteAvatar">
+                  {personInitials(meetingPersonName(editingMeeting))}
+                </span>
+                <div>
+                  <strong>{meetingPersonName(editingMeeting)}</strong>
+                  <small>{meetingPersonEmail(editingMeeting)}</small>
+                </div>
+              </div>
+
+              <div className="rgMeetingEditFields">
+                <label>
+                  <span><FiCalendar /> Огноо</span>
+                  <input
+                    type="date"
+                    value={editDate}
+                    onChange={(event) => setEditDate(event.target.value)}
+                  />
+                </label>
+
+                <label>
+                  <span><FiClock /> Цаг</span>
+                  <input
+                    type="time"
+                    value={editTime}
+                    onChange={(event) => setEditTime(event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="rgMeetingEditActions">
+                <button type="button" className="rgMeetingEditCancel" onClick={closeEditMeeting} disabled={savingEdit}>
+                  Цуцлах
+                </button>
+                <button
+                  type="button"
+                  className="rgMeetingEditSave"
+                  onClick={saveMeetingSchedule}
+                  disabled={!editDate || !editTime || savingEdit}
+                >
+                  <FiCheck />
+                  {savingEdit ? "Хадгалж байна..." : "Өөрчлөлт хадгалах"}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
       </main>
     </UserShell>
   );

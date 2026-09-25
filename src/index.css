@@ -18520,64 +18520,918 @@ html[data-public-theme="light"] .riNewsRelatedBox {
 }
 
 .riEventScheduleSection {
-  margin-top: 50px;
+  margin-top: 18px;
+  padding: 26px 28px 28px;
+  background: #ffffff;
+  border: 1px solid #e7e9f2;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
 }
 
-.riEventScheduleSection h2 {
+.riEventScheduleSection > h2 {
   margin: 0 0 22px;
-  color: var(--ri-text);
-  font-size: 23px;
+  font-size: 18px;
   font-weight: 800;
+  line-height: 1.3;
+  color: #171b2e;
+  letter-spacing: -0.02em;
 }
 
 .riEventSchedule {
-  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.riEventSchedule::before {
+  content: "";
+  position: absolute;
+  left: 67px;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  background: #ece9ff;
 }
 
 .riScheduleItem {
+  position: relative;
   display: grid;
-  grid-template-columns: 82px minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--ri-border);
+  grid-template-columns: 54px 1fr;
+  gap: 30px;
+  align-items: center;
+  min-height: 76px;
+  padding: 10px 14px 10px 0;
+  border-radius: 12px;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.riScheduleItem:hover {
+  background: #faf9ff;
+  transform: translateX(3px);
+}
+
+/* timeline dot */
+.riScheduleItem::before {
+  content: "";
+  position: absolute;
+  left: 62px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: #7047eb;
+  box-shadow: 0 0 0 2px #ded6ff;
+  transform: translateY(-50%);
+  z-index: 2;
 }
 
 .riScheduleTime {
-  color: var(--ri-cyan);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 14px;
+  width: 54px;
+  padding: 7px 0;
+  border-radius: 8px;
+  background: #f3efff;
+  color: #7047eb;
+  font-size: 13px;
   font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: -0.01em;
 }
 
+/* Content */
 .riScheduleContent {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+}
+
+.riScheduleContent:hover {
+  transform: translateY(-2px);
+  border-color: rgba(88, 71, 238, 0.42);
+  background: rgba(88, 71, 238, 0.035);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 }
 
 .riScheduleContent strong {
   display: block;
-  color: var(--ri-text);
+  margin: 0;
+  color: #171b2e;
   font-size: 15px;
-  line-height: 1.45;
   font-weight: 700;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .riScheduleContent span {
   display: block;
-  margin-top: 5px;
-  color: var(--ri-muted);
-  font-size: 12px;
-  line-height: 1.5;
+  margin: 0;
+  color: #8a91a3;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
+/* Empty program */
 .riEventScheduleEmpty {
-  padding: 28px;
-  border: 1px solid var(--ri-border);
-  border-radius: 14px;
-  background: var(--ri-card);
-  color: var(--ri-muted);
+  padding: 24px;
+  border: 1px dashed #dcdfea;
+  border-radius: 12px;
+  background: #fafbfe;
+  color: #8a91a3;
+  font-size: 14px;
   text-align: center;
+}
+
+/* =========================================
+   PASSWORD PAGE
+========================================= */
+
+.passwordProfileContent {
+  min-width: 0;
+  width: 100%;
+}
+
+.passwordProfileCard {
+  width: 100%;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.passwordProfileCardHeader {
+  min-height: 62px;
+  padding: 0 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  border-bottom: 1px solid #e8ebf2;
+}
+
+.passwordProfileCardHeader h2 {
+  margin: 0;
+
+  color: #171b2e;
+
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.passwordSecurityBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 78px;
+  height: 26px;
+  padding: 0 16px;
+
+  border-radius: 999px;
+
+  background: #e4faff;
+  color: #19b9dc;
+
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* FORM */
+
+.passwordProfileForm {
+  padding: 28px 26px 26px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.passwordProfileField {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.passwordProfileField > label {
+  margin: 0;
+
+  color: #8992a8;
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+
+  text-transform: uppercase;
+}
+
+.passwordProfileField > label span {
+  color: #7352f4;
+}
+
+/* INPUT */
+
+.passwordProfileInput {
+  position: relative;
+
+  width: 100%;
+}
+
+.passwordProfileInput input {
+  display: block;
+
+  width: 100%;
+  height: 46px;
+
+  padding: 0 52px 0 15px;
+
+  outline: none;
+
+  border: 1px solid #dce1eb;
+  border-radius: 11px;
+
+  background: #fafbfe;
+  color: #171b2e;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.passwordProfileInput input:hover {
+  border-color: #cbd1de;
+}
+
+.passwordProfileInput input:focus {
+  background: #ffffff;
+  border-color: #7450f5;
+
+  box-shadow:
+    0 0 0 3px rgba(116, 80, 245, 0.09);
+}
+
+/* EYE BUTTON */
+
+.passwordProfileInput button {
+  position: absolute;
+
+  top: 50%;
+  right: 10px;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateY(-50%);
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #8f98aa;
+
+  cursor: pointer;
+
+  font-size: 17px;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.passwordProfileInput button:hover {
+  color: #6845ee;
+  background: #f2efff;
+}
+
+/* MESSAGES */
+
+.passwordProfileMessage {
+  min-height: 44px;
+
+  padding: 11px 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  border-radius: 10px;
+
   font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.passwordProfileMessage.error {
+  background: #fff2f3;
+  border: 1px solid #ffd7db;
+  color: #dc3545;
+}
+
+.passwordProfileMessage.success {
+  background: #edfff7;
+  border: 1px solid #c8f5df;
+  color: #159764;
+}
+
+.passwordProfileMessage svg {
+  flex-shrink: 0;
+  font-size: 17px;
+}
+
+/* ACTION AREA */
+
+.passwordProfileActions {
+  margin-top: 2px;
+  padding-top: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+
+  border-top: 1px solid #eceef4;
+}
+
+.passwordProfileCancel,
+.passwordProfileSave {
+  height: 44px;
+
+  padding: 0 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.passwordProfileCancel {
+  min-width: 92px;
+
+  border: 1px solid #dce1eb;
+
+  background: #ffffff;
+  color: #536078;
+}
+
+.passwordProfileCancel:hover {
+  border-color: #c8cfdb;
+  background: #f9fafc;
+}
+
+.passwordProfileSave {
+  min-width: 170px;
+
+  border: 0;
+
+  background: linear-gradient(
+    135deg,
+    #593df1 0%,
+    #8650ef 100%
+  );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 7px 17px rgba(101, 70, 239, 0.2);
+}
+
+.passwordProfileSave:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 22px rgba(101, 70, 239, 0.27);
+}
+
+.passwordProfileSave:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.passwordProfileCancel:disabled,
+.passwordProfileSave:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* =========================================
+   DARK MODE
+========================================= */
+
+html[data-user-theme="dark"]
+.passwordProfileCardHeader {
+  border-bottom-color: #2b304d;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileCardHeader h2 {
+  color: #f4f5fb;
+}
+
+html[data-user-theme="dark"]
+.passwordSecurityBadge {
+  background: rgba(38, 201, 232, 0.12);
+  color: #45d3ee;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileField > label {
+  color: #9ba4c0;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileInput input {
+  background: #171b34;
+  border-color: #303652;
+  color: #f5f6fb;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileInput input:hover {
+  border-color: #414866;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileInput input:focus {
+  background: #1a1f39;
+  border-color: #7657f4;
+
+  box-shadow:
+    0 0 0 3px rgba(118, 87, 244, 0.12);
+}
+
+html[data-user-theme="dark"]
+.passwordProfileInput button {
+  color: #9ca6c1;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileInput button:hover {
+  color: #c3b7ff;
+  background: rgba(116, 80, 245, 0.12);
+}
+
+html[data-user-theme="dark"]
+.passwordProfileActions {
+  border-top-color: #2b304d;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileCancel {
+  background: #1b2039;
+  border-color: #343a59;
+  color: #d4d8e5;
+}
+
+html[data-user-theme="dark"]
+.passwordProfileCancel:hover {
+  background: #202640;
+}
+
+/* =========================================
+   PASSWORD REQUIREMENTS
+========================================= */
+
+.passwordRequirements {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px 18px;
+
+  margin-top: 3px;
+}
+
+.passwordRequirement {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #8e96a8;
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  transition: color 0.2s ease;
+}
+
+.passwordRequirementIcon {
+  width: 16px;
+  height: 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #f0f2f6;
+  color: #9ba3b4;
+
+  font-size: 11px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.passwordRequirement.valid {
+  color: #159764;
+}
+
+.passwordRequirement.valid
+.passwordRequirementIcon {
+  background: #dcf8ec;
+  color: #159764;
+}
+
+/* =========================================
+   CONFIRM PASSWORD MATCH
+========================================= */
+
+.passwordMatch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 3px;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.passwordMatch svg {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.passwordMatch.valid {
+  color: #159764;
+}
+
+.passwordMatch.invalid {
+  color: #e34856;
+}
+
+/* =========================================
+   DISABLED SAVE BUTTON
+========================================= */
+
+.passwordProfileSave:disabled {
+  cursor: not-allowed;
+
+  background: #c8c4dc;
+  color: #ffffff;
+
+  box-shadow: none;
+
+  opacity: 0.7;
+
+  transform: none;
+}
+
+/* =========================================
+   DARK MODE
+========================================= */
+
+html[data-user-theme="dark"]
+.passwordRequirement {
+  color: #8f98b4;
+}
+
+html[data-user-theme="dark"]
+.passwordRequirementIcon {
+  background: #282d48;
+  color: #9ba4c0;
+}
+
+html[data-user-theme="dark"]
+.passwordRequirement.valid {
+  color: #4bd49a;
+}
+
+html[data-user-theme="dark"]
+.passwordRequirement.valid
+.passwordRequirementIcon {
+  background: rgba(36, 190, 125, 0.15);
+  color: #4bd49a;
+}
+
+html[data-user-theme="dark"]
+.passwordMatch.valid {
+  color: #4bd49a;
+}
+
+html[data-user-theme="dark"]
+.passwordMatch.invalid {
+  color: #ff7782;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 640px) {
+  .passwordRequirements {
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 7px;
+  }
+
+  .passwordRequirement {
+    font-size: 10px;
+  }
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+  .passwordProfileCardHeader {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .passwordProfileForm {
+    padding: 24px 20px;
+  }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 640px) {
+  .passwordProfileCardHeader {
+    min-height: 58px;
+
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .passwordProfileCardHeader h2 {
+    font-size: 14px;
+  }
+
+  .passwordSecurityBadge {
+    min-width: auto;
+    height: 24px;
+
+    padding: 0 11px;
+
+    font-size: 10px;
+  }
+
+  .passwordProfileForm {
+    padding: 20px 16px;
+
+    gap: 18px;
+  }
+
+  .passwordProfileInput input {
+    height: 44px;
+
+    padding-left: 13px;
+
+    font-size: 13px;
+  }
+
+  .passwordProfileActions {
+    gap: 10px;
+  }
+
+  .passwordProfileCancel,
+  .passwordProfileSave {
+    flex: 1;
+
+    min-width: 0;
+    height: 43px;
+
+    padding-left: 12px;
+    padding-right: 12px;
+
+    font-size: 12px;
+  }
+}
+
+html[data-public-theme="light"] .riEventScheduleSection,
+html[data-user-theme="light"] .riEventScheduleSection {
+  border-color: #e2e5ef;
+  background: #ffffff;
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, 0.025),
+    0 10px 28px rgba(15, 23, 42, 0.045);
+}
+
+html[data-public-theme="light"] .riEventScheduleSection > h2,
+html[data-user-theme="light"] .riEventScheduleSection > h2 {
+  color: #171b2e;
+}
+
+html[data-public-theme="light"] .riEventSchedule::before,
+html[data-user-theme="light"] .riEventSchedule::before {
+  background: linear-gradient(
+    180deg,
+    #e9e5ff,
+    #d8f4f7,
+    #eeeaff
+  );
+}
+
+html[data-public-theme="light"] .riScheduleItem::before,
+html[data-user-theme="light"] .riScheduleItem::before {
+  border-color: #ffffff;
+  box-shadow:
+    0 0 0 3px #eeeaff,
+    0 4px 12px rgba(88, 71, 238, 0.16);
+}
+
+html[data-public-theme="light"] .riScheduleTime,
+html[data-user-theme="light"] .riScheduleTime {
+  color: #604cf0;
+}
+
+html[data-public-theme="light"] .riScheduleContent,
+html[data-user-theme="light"] .riScheduleContent {
+  border-color: #e5e7ef;
+  background: #fafbfe;
+}
+
+html[data-public-theme="light"] .riScheduleContent:hover,
+html[data-user-theme="light"] .riScheduleContent:hover {
+  border-color: #d5ceff;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(75, 58, 164, 0.08);
+}
+
+html[data-public-theme="light"] .riScheduleContent strong,
+html[data-user-theme="light"] .riScheduleContent strong {
+  color: #171b2e;
+}
+
+html[data-public-theme="light"] .riScheduleContent span,
+html[data-user-theme="light"] .riScheduleContent span {
+  color: #7c859b;
+}
+
+html[data-public-theme="light"] .riEventScheduleEmpty,
+html[data-user-theme="light"] .riEventScheduleEmpty {
+  border-color: #dfe2ec;
+  background: #fafbfe;
+  color: #8b93a6;
+}
+
+html[data-public-theme="dark"] .riEventScheduleSection,
+html[data-user-theme="dark"] .riEventScheduleSection {
+  border-color: #292e50;
+  background: #181c38;
+  box-shadow: none;
+}
+
+html[data-public-theme="dark"] .riScheduleItem::before,
+html[data-user-theme="dark"] .riScheduleItem::before {
+  border-color: #181c38;
+}
+
+html[data-public-theme="dark"] .riScheduleContent,
+html[data-user-theme="dark"] .riScheduleContent {
+  border-color: #292e50;
+  background: #141830;
+}
+
+html[data-public-theme="dark"] .riScheduleContent:hover,
+html[data-user-theme="dark"] .riScheduleContent:hover {
+  border-color: #514a87;
+  background: #1c203d;
+  box-shadow: none;
+}
+
+@media (max-width: 560px) {
+  .riEventScheduleSection {
+    margin-top: 22px;
+    padding: 20px 16px;
+    border-radius: 14px;
+  }
+
+  .riEventScheduleSection > h2 {
+    margin-bottom: 18px;
+    font-size: 17px;
+  }
+
+  .riEventSchedule {
+    gap: 8px;
+  }
+
+  .riEventSchedule::before {
+    left: 62px;
+    top: 27px;
+    bottom: 27px;
+  }
+
+  .riScheduleItem {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 29px;
+    min-height: 72px;
+    padding: 7px 0;
+  }
+
+  .riScheduleItem::before {
+    left: 56px;
+    width: 12px;
+    height: 12px;
+  }
+
+  .riScheduleTime {
+    font-size: 11px;
+  }
+
+  .riScheduleContent {
+    padding: 14px;
+    border-radius: 11px;
+  }
+
+  .riScheduleContent strong {
+    font-size: 13px;
+  }
+
+  .riScheduleContent span {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .riEventScheduleSection {
+    padding: 20px 18px;
+    border-radius: 14px;
+  }
+
+  .riEventScheduleSection > h2 {
+    margin-bottom: 18px;
+    font-size: 17px;
+  }
+
+  .riEventSchedule::before {
+    left: 55px;
+  }
+
+  .riScheduleItem {
+    grid-template-columns: 44px 1fr;
+    gap: 26px;
+    min-height: 70px;
+    padding-right: 6px;
+  }
+
+  .riScheduleItem::before {
+    left: 50px;
+    width: 10px;
+    height: 10px;
+  }
+
+  .riScheduleTime {
+    width: 44px;
+    font-size: 12px;
+  }
+
+  .riScheduleContent strong {
+    font-size: 14px;
+  }
+
+  .riScheduleContent span {
+    font-size: 12px;
+  }
 }
 
 .riEventBookingCard {
@@ -30452,4 +31306,410 @@ html[data-user-theme="dark"] .rgMeetingMessage.success {
   align-items: stretch;
   flex-direction: column;
 }
+}
+
+/* Calendar incoming meeting requests */
+.rgInboxRequests {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rgProfessionalInvite {
+  overflow: hidden;
+  border: 1px solid #e5e9f2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.rgInvitePerson {
+  width: 100%;
+  padding: 14px 14px 10px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rgInvitePerson:hover {
+  background: #fafbff;
+}
+
+.rgInviteAvatar {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b48ed, #8452ee);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+.rgInvitePersonInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rgInvitePersonInfo strong {
+  overflow: hidden;
+  color: #1d2433;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgInvitePersonInfo small {
+  overflow: hidden;
+  color: #8b95a7;
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgInviteTime {
+  align-self: start;
+  padding-top: 2px;
+  color: #8b95a7;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rgInviteDetails {
+  padding: 0 14px 12px 66px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rgInviteDetails strong {
+  overflow: hidden;
+  color: #30384a;
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rgInviteDetails span {
+  color: #929bad;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.rgInviteActions {
+  padding: 10px 12px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border-top: 1px solid #eef1f6;
+  background: #fafbfc;
+}
+
+.rgInviteAccept,
+.rgInviteDecline {
+  min-width: 0;
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 800;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  cursor: pointer;
+}
+
+.rgInviteAccept {
+  border: 0;
+  background: linear-gradient(135deg, #5a47ed, #8150ee);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(91, 72, 237, .18);
+}
+
+.rgInviteAccept:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(91, 72, 237, .25);
+}
+
+.rgInviteDecline {
+  border: 1px solid #dce1ea;
+  background: #fff;
+  color: #626d80;
+}
+
+.rgInviteDecline:hover:not(:disabled) {
+  background: #f4f6fa;
+}
+
+.rgInviteAccept:disabled,
+.rgInviteDecline:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+html[data-user-theme="dark"] .rgProfessionalInvite,
+html[data-theme="dark"] .rgProfessionalInvite {
+  border-color: #292e50;
+  background: #181c38;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .18);
+}
+
+html[data-user-theme="dark"] .rgInvitePerson:hover,
+html[data-theme="dark"] .rgInvitePerson:hover {
+  background: #1c2141;
+}
+
+html[data-user-theme="dark"] .rgInvitePersonInfo strong,
+html[data-user-theme="dark"] .rgInviteDetails strong,
+html[data-theme="dark"] .rgInvitePersonInfo strong,
+html[data-theme="dark"] .rgInviteDetails strong {
+  color: #f3f5ff;
+}
+
+html[data-user-theme="dark"] .rgInvitePersonInfo small,
+html[data-user-theme="dark"] .rgInviteTime,
+html[data-user-theme="dark"] .rgInviteDetails span,
+html[data-theme="dark"] .rgInvitePersonInfo small,
+html[data-theme="dark"] .rgInviteTime,
+html[data-theme="dark"] .rgInviteDetails span {
+  color: #99a2be;
+}
+
+html[data-user-theme="dark"] .rgInviteActions,
+html[data-theme="dark"] .rgInviteActions {
+  border-top-color: #292e50;
+  background: #141832;
+}
+
+html[data-user-theme="dark"] .rgInviteDecline,
+html[data-theme="dark"] .rgInviteDecline {
+  border-color: #343a60;
+  background: #1c2141;
+  color: #c0c7dc;
+}
+
+@media (max-width: 1100px) {
+  .rgInvitePerson {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .rgInviteAvatar {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .rgInviteDetails {
+    padding-left: 62px;
+  }
+}
+
+@media (max-width: 640px) {
+  .rgInvitePerson {
+    padding: 12px;
+  }
+
+  .rgInviteDetails {
+    padding: 0 12px 10px 60px;
+  }
+
+  .rgInviteActions {
+    padding: 9px 10px 10px;
+  }
+}
+
+
+/* Professional calendar invitation refresh */
+.rgInboxRequests { gap: 14px; }
+.rgProfessionalInvite {
+  border: 1px solid #e6e9f2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 38, 62, .07);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.rgProfessionalInvite:hover {
+  transform: translateY(-2px);
+  border-color: #d8d3ff;
+  box-shadow: 0 14px 32px rgba(72, 58, 170, .11);
+}
+.rgInvitePerson { padding: 15px 15px 11px; gap: 12px; }
+.rgInviteAvatar {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  background: linear-gradient(135deg, #604cf2, #8357ef);
+  box-shadow: 0 7px 16px rgba(96, 76, 242, .22);
+}
+.rgInvitePersonInfo strong { font-size: 12px; color: #1c2333; }
+.rgInvitePersonInfo small { font-size: 10px; color: #9199aa; }
+.rgInviteTime {
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: #f5f3ff;
+  color: #6754e8;
+  font-weight: 800;
+}
+.rgInviteDetails { padding: 1px 15px 14px 71px; }
+.rgInviteDetails strong { font-size: 11px; color: #2a3243; }
+.rgInviteActions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 11px 12px 12px;
+  background: #fbfbfd;
+}
+.rgInviteAccept, .rgInviteDecline, .rgInviteEdit {
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+.rgInviteAccept svg, .rgInviteDecline svg, .rgInviteEdit svg { width: 13px; height: 13px; }
+.rgInviteAccept { border: 0; background: linear-gradient(135deg, #5b48ed, #8150ee); color: #fff; }
+.rgInviteDecline { border: 1px solid #e2e5ec; background: #fff; color: #697386; }
+.rgInviteEdit { border: 1px solid #d8d3ff; background: #f5f3ff; color: #604cf2; }
+.rgInviteEdit:hover:not(:disabled) { transform: translateY(-1px); background: #ebe7ff; border-color: #bdb3ff; }
+.rgInviteAccept:disabled, .rgInviteDecline:disabled, .rgInviteEdit:disabled { opacity: .55; cursor: not-allowed; }
+
+.rgMeetingEditOverlay {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(14, 18, 35, .46);
+  backdrop-filter: blur(5px);
+}
+.rgMeetingEditModal {
+  width: min(480px, 100%);
+  overflow: hidden;
+  border: 1px solid #e5e8f0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(20, 25, 48, .24);
+}
+.rgMeetingEditHeader {
+  padding: 20px 20px 17px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 34px;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #edf0f5;
+}
+.rgMeetingEditIcon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #f0edff;
+  color: #604cf2;
+  font-size: 19px;
+}
+.rgMeetingEditHeader h3 { margin: 0 0 4px; color: #1c2333; font-size: 16px; font-weight: 800; }
+.rgMeetingEditHeader p { margin: 0; color: #8b94a7; font-size: 11px; line-height: 1.45; }
+.rgMeetingEditClose {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e5e8ef;
+  border-radius: 10px;
+  background: #fff;
+  color: #7b8496;
+  cursor: pointer;
+}
+.rgMeetingEditPerson {
+  margin: 18px 20px 0;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #eceef4;
+  border-radius: 13px;
+  background: #fafbfe;
+}
+.rgMeetingEditPerson div { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.rgMeetingEditPerson strong { color: #242b3b; font-size: 12px; }
+.rgMeetingEditPerson small { overflow: hidden; color: #929bad; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.rgMeetingEditFields { padding: 18px 20px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rgMeetingEditFields label { display: flex; flex-direction: column; gap: 8px; }
+.rgMeetingEditFields label > span { display: flex; align-items: center; gap: 6px; color: #687286; font-size: 10px; font-weight: 800; }
+.rgMeetingEditFields input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #dfe3ec;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: #202737;
+  font-size: 12px;
+}
+.rgMeetingEditFields input:focus { border-color: #7967ef; box-shadow: 0 0 0 3px rgba(96, 76, 242, .1); }
+.rgMeetingEditActions {
+  padding: 14px 20px 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  border-top: 1px solid #edf0f5;
+  background: #fbfbfd;
+}
+.rgMeetingEditCancel, .rgMeetingEditSave {
+  min-height: 40px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.rgMeetingEditCancel { border: 1px solid #dfe3eb; background: #fff; color: #697386; }
+.rgMeetingEditSave { border: 0; background: linear-gradient(135deg, #5b48ed, #8150ee); color: #fff; box-shadow: 0 8px 18px rgba(91, 72, 237, .22); }
+.rgMeetingEditSave:disabled, .rgMeetingEditCancel:disabled { opacity: .55; cursor: not-allowed; }
+
+html[data-user-theme="dark"] .rgInviteEdit, html[data-theme="dark"] .rgInviteEdit { border-color: #494078; background: #262143; color: #c5bbff; }
+html[data-user-theme="dark"] .rgInviteTime, html[data-theme="dark"] .rgInviteTime { background: #252044; color: #c3b9ff; }
+html[data-user-theme="dark"] .rgMeetingEditModal, html[data-theme="dark"] .rgMeetingEditModal { border-color: #292e50; background: #181c38; }
+html[data-user-theme="dark"] .rgMeetingEditHeader, html[data-theme="dark"] .rgMeetingEditHeader,
+html[data-user-theme="dark"] .rgMeetingEditActions, html[data-theme="dark"] .rgMeetingEditActions { border-color: #292e50; background: #151932; }
+html[data-user-theme="dark"] .rgMeetingEditHeader h3, html[data-theme="dark"] .rgMeetingEditHeader h3,
+html[data-user-theme="dark"] .rgMeetingEditPerson strong, html[data-theme="dark"] .rgMeetingEditPerson strong { color: #f5f6ff; }
+html[data-user-theme="dark"] .rgMeetingEditPerson, html[data-theme="dark"] .rgMeetingEditPerson { border-color: #292e50; background: #141832; }
+html[data-user-theme="dark"] .rgMeetingEditFields input, html[data-theme="dark"] .rgMeetingEditFields input,
+html[data-user-theme="dark"] .rgMeetingEditClose, html[data-theme="dark"] .rgMeetingEditClose,
+html[data-user-theme="dark"] .rgMeetingEditCancel, html[data-theme="dark"] .rgMeetingEditCancel { border-color: #343a60; background: #1c2141; color: #e3e6f2; }
+
+@media (max-width: 640px) {
+  .rgInviteActions { grid-template-columns: 1fr; }
+  .rgMeetingEditFields { grid-template-columns: 1fr; }
+  .rgMeetingEditActions { flex-direction: column-reverse; }
+  .rgMeetingEditCancel, .rgMeetingEditSave { width: 100%; }
 }
