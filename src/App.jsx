@@ -20,6 +20,7 @@ import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
 import EventStatistics from "./pages/user/pages/EventStatistics";
+import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
 
@@ -41,15 +42,12 @@ import NewsCreate from "./pages/super_admin/pages/NewsCreate";
 function AppRoutes() {
   const location = useLocation();
 
-  const isUserArea =
-    location.pathname.startsWith("/user");
+  const isUserArea = location.pathname.startsWith("/user");
 
-  const isSuperAdminArea =
-    location.pathname.startsWith("/super-admin");
+  const isSuperAdminArea = location.pathname.startsWith("/super-admin");
 
   const isProfilePage =
-    location.pathname === "/profile" ||
-    location.pathname === "/user/profile";
+    location.pathname === "/profile" || location.pathname === "/user/profile";
 
   const isAuthPage =
     location.pathname === "/login" ||
@@ -58,84 +56,43 @@ function AppRoutes() {
     location.pathname === "/reset-password";
 
   const showPublicNavbar =
-    !isUserArea &&
-    !isSuperAdminArea &&
-    !isProfilePage &&
-    !isAuthPage;
+    !isUserArea && !isSuperAdminArea && !isProfilePage && !isAuthPage;
 
   return (
     <>
       <ScrollToTop />
 
-      {showPublicNavbar && (
-        <Navbar />
-      )}
+      {showPublicNavbar && <Navbar />}
 
       <Routes>
-        <Route
-          path="/"
-          element={<Home />}
-        />
+        <Route path="/" element={<Home />} />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+        <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/signup"
-          element={<Signup />}
-        />
+        <Route path="/signup" element={<Signup />} />
 
-        <Route
-          path="/news"
-          element={<News />}
-        />
+        <Route path="/news" element={<News />} />
 
-        <Route
-          path="/news/:id"
-          element={<NewsDetail />}
-        />
+        <Route path="/news/:id" element={<NewsDetail />} />
 
-        <Route
-          path="/events"
-          element={<PublicEvents />}
-        />
+        <Route path="/events" element={<PublicEvents />} />
 
-        <Route
-          path="/events/:id"
-          element={<EventDetail />}
-        />
+        <Route path="/events/:id" element={<EventDetail />} />
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
+        <Route path="/organization" element={<Organization />} />
 
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <Route
-          path="/event/invite/:token"
-          element={<EventInvite />}
-        />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-        <Route
-          path="/share/event/:id"
-          element={<EventShare />}
-        />
+        <Route path="/event/invite/:token" element={<EventInvite />} />
+
+        <Route path="/share/event/:id" element={<EventShare />} />
 
         <Route
           path="/profile"
           element={
-            <ProtectedRoute
-              roles={[
-                "user",
-                "super_admin",
-              ]}
-            >
+            <ProtectedRoute roles={["user", "super_admin"]}>
               <Profile />
             </ProtectedRoute>
           }
@@ -150,22 +107,12 @@ function AppRoutes() {
           }
         />
 
-        <Route
-          path="/user"
-          element={
-            <Navigate
-              to="/user/home"
-              replace
-            />
-          }
-        />
+        <Route path="/user" element={<Navigate to="/user/home" replace />} />
 
         <Route
           path="/user/home"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <UserHome />
             </ProtectedRoute>
           }
@@ -174,9 +121,7 @@ function AppRoutes() {
         <Route
           path="/user/event"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <UserEvents />
             </ProtectedRoute>
           }
@@ -185,9 +130,7 @@ function AppRoutes() {
         <Route
           path="/user/history"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <History />
             </ProtectedRoute>
           }
@@ -196,9 +139,7 @@ function AppRoutes() {
         <Route
           path="/user/notifications"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Calendar />
             </ProtectedRoute>
           }
@@ -207,9 +148,7 @@ function AppRoutes() {
         <Route
           path="/user/calendar"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Calendar />
             </ProtectedRoute>
           }
@@ -218,9 +157,7 @@ function AppRoutes() {
         <Route
           path="/user/organizations"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Organizations />
             </ProtectedRoute>
           }
@@ -229,9 +166,7 @@ function AppRoutes() {
         <Route
           path="/user/organizations/:id"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <OrganizationDetail />
             </ProtectedRoute>
           }
@@ -240,9 +175,7 @@ function AppRoutes() {
         <Route
           path="/user/meeting/create"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Meeting />
             </ProtectedRoute>
           }
@@ -251,9 +184,7 @@ function AppRoutes() {
         <Route
           path="/user/profile"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Profile />
             </ProtectedRoute>
           }
@@ -262,9 +193,7 @@ function AppRoutes() {
         <Route
           path="/user/password"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Password />
             </ProtectedRoute>
           }
@@ -273,9 +202,7 @@ function AppRoutes() {
         <Route
           path="/user/company"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Company />
             </ProtectedRoute>
           }
@@ -284,9 +211,7 @@ function AppRoutes() {
         <Route
           path="/user/bill"
           element={
-            <ProtectedRoute
-              roles={["user"]}
-            >
+            <ProtectedRoute roles={["user"]}>
               <Bill />
             </ProtectedRoute>
           }
@@ -294,22 +219,13 @@ function AppRoutes() {
 
         <Route
           path="/super-admin"
-          element={
-            <Navigate
-              to="/super-admin/home"
-              replace
-            />
-          }
+          element={<Navigate to="/super-admin/home" replace />}
         />
 
         <Route
           path="/super-admin/home"
           element={
-            <ProtectedRoute
-              roles={[
-                "super_admin",
-              ]}
-            >
+            <ProtectedRoute roles={["super_admin"]}>
               <SuperAdminHome />
             </ProtectedRoute>
           }
@@ -318,25 +234,13 @@ function AppRoutes() {
         <Route
           path="/super-admin/news-create"
           element={
-            <ProtectedRoute
-              roles={[
-                "super_admin",
-              ]}
-            >
+            <ProtectedRoute roles={["super_admin"]}>
               <NewsCreate />
             </ProtectedRoute>
           }
         />
 
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/"
-              replace
-            />
-          }
-        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
