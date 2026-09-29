@@ -34,7 +34,7 @@ const categories = [
 ];
 
 const getPasswordRules = (password) => ({
-  length: password.length >= 8,
+  length: password.length >= 10,
   uppercase: /[A-Z]/.test(password),
   lowercase: /[a-z]/.test(password),
   number: /\d/.test(password),
@@ -698,7 +698,7 @@ export default function Signup() {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="you\@example.com"
+                  placeholder="you@example.com"
                   autoComplete="email"
                   required
                 />

@@ -116,7 +116,7 @@ export default function Login() {
 
       saveAuth(data);
 
-      navigate("/profile", {
+      navigate("/user/home", {
         replace: true,
       });
     } catch {
