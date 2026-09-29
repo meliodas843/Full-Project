@@ -19,6 +19,7 @@ import PublicEvents from "./pages/public/Event";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
+import EventStatistics from "./pages/user/pages/EventStatistics";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
 
@@ -31,39 +32,30 @@ import History from "./pages/user/pages/History";
 import Password from "./pages/user/pages/Password";
 import Company from "./pages/user/pages/Company";
 import Bill from "./pages/user/pages/Bill";
+import Organizations from "./pages/user/pages/Organizations";
+import OrganizationDetail from "./pages/user/pages/OrganizationDetail";
 
 import SuperAdminHome from "./pages/super_admin/pages/Home";
 import NewsCreate from "./pages/super_admin/pages/NewsCreate";
 
 function AppRoutes() {
-  const location =
-    useLocation();
+  const location = useLocation();
 
   const isUserArea =
-    location.pathname.startsWith(
-      "/user"
-    );
+    location.pathname.startsWith("/user");
 
   const isSuperAdminArea =
-    location.pathname.startsWith(
-      "/super-admin"
-    );
+    location.pathname.startsWith("/super-admin");
 
   const isProfilePage =
-    location.pathname ===
-      "/profile" ||
-    location.pathname ===
-      "/user/profile";
+    location.pathname === "/profile" ||
+    location.pathname === "/user/profile";
 
   const isAuthPage =
-    location.pathname ===
-      "/login" ||
-    location.pathname ===
-      "/signup" ||
-    location.pathname ===
-      "/forgot-password" ||
-    location.pathname ===
-      "/reset-password";
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password";
 
   const showPublicNavbar =
     !isUserArea &&
@@ -107,9 +99,7 @@ function AppRoutes() {
 
         <Route
           path="/events"
-          element={
-            <PublicEvents />
-          }
+          element={<PublicEvents />}
         />
 
         <Route
@@ -119,16 +109,12 @@ function AppRoutes() {
 
         <Route
           path="/forgot-password"
-          element={
-            <ForgotPassword />
-          }
+          element={<ForgotPassword />}
         />
 
         <Route
           path="/reset-password"
-          element={
-            <ResetPassword />
-          }
+          element={<ResetPassword />}
         />
 
         <Route
@@ -151,6 +137,15 @@ function AppRoutes() {
               ]}
             >
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/history/:id/statistics"
+          element={
+            <ProtectedRoute>
+              <EventStatistics />
             </ProtectedRoute>
           }
         />
@@ -216,6 +211,28 @@ function AppRoutes() {
               roles={["user"]}
             >
               <Calendar />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/organizations"
+          element={
+            <ProtectedRoute
+              roles={["user"]}
+            >
+              <Organizations />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/organizations/:id"
+          element={
+            <ProtectedRoute
+              roles={["user"]}
+            >
+              <OrganizationDetail />
             </ProtectedRoute>
           }
         />

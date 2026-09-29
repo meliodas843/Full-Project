@@ -14,14 +14,13 @@ import {
   FiStar,
   FiSun,
   FiUser,
+  FiUsers,
 } from "react-icons/fi";
 
 import logo from "../../../assets/reigistra-logo-def.png";
 
 function getProfileComplete() {
-  return (
-    localStorage.getItem("profileComplete") === "true"
-  );
+  return localStorage.getItem("profileComplete") === "true";
 }
 
 export default function Sidebar({
@@ -33,16 +32,13 @@ export default function Sidebar({
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const profileComplete =
-    getProfileComplete();
+  const profileComplete = getProfileComplete();
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    localStorage.removeItem(
-      "profileComplete"
-    );
+    localStorage.removeItem("profileComplete");
 
     onNavigate();
 
@@ -54,33 +50,21 @@ export default function Sidebar({
   const isPathActive = (path) => {
     return (
       pathname === path ||
-      pathname.startsWith(
-        `${path}/`
-      )
+      pathname.startsWith(`${path}/`)
     );
   };
 
   const isProfileSection =
     pathname === "/user/profile" ||
-    pathname.startsWith(
-      "/user/profile/"
-    ) ||
+    pathname.startsWith("/user/profile/") ||
     pathname === "/profile" ||
-    pathname.startsWith(
-      "/profile/"
-    ) ||
+    pathname.startsWith("/profile/") ||
     pathname === "/user/password" ||
-    pathname.startsWith(
-      "/user/password/"
-    ) ||
+    pathname.startsWith("/user/password/") ||
     pathname === "/user/company" ||
-    pathname.startsWith(
-      "/user/company/"
-    ) ||
+    pathname.startsWith("/user/company/") ||
     pathname === "/user/bill" ||
-    pathname.startsWith(
-      "/user/bill/"
-    );
+    pathname.startsWith("/user/bill/");
 
   const getLinkClass = (path) => {
     if (!profileComplete) {
@@ -98,9 +82,7 @@ export default function Sidebar({
       : "rgSideLink";
   };
 
-  const handleLockedClick = (
-    event
-  ) => {
+  const handleLockedClick = (event) => {
     if (profileComplete) {
       onNavigate();
       return;
@@ -114,6 +96,34 @@ export default function Sidebar({
 
     onNavigate();
   };
+
+  const mainLinks = [
+    {
+      to: "/user/home",
+      icon: <FiHome />,
+      label: "Нүүр",
+    },
+    {
+      to: "/user/history",
+      icon: <FiStar />,
+      label: "Миний эвэнтүүд",
+    },
+    {
+      to: "/user/event",
+      icon: <FiGrid />,
+      label: "Эвэнт",
+    },
+    {
+      to: "/user/calendar",
+      icon: <FiCalendar />,
+      label: "Календар",
+    },
+    {
+      to: "/user/organizations",
+      icon: <FiUsers />,
+      label: "Байгууллагууд",
+    },
+  ];
 
   return (
     <aside
@@ -132,116 +142,38 @@ export default function Sidebar({
 
       <div className="rgSidebarBody">
         <section className="rgSidebarSection">
-          <h5>
-            MAIN
-          </h5>
+          <h5>MAIN</h5>
 
           <nav className="rgSidebarMenu">
-            <NavLink
-              to="/user/home"
-              className={getLinkClass(
-                "/user/home"
-              )}
-              onClick={
-                handleLockedClick
-              }
-              aria-disabled={
-                !profileComplete
-              }
-            >
-              <FiHome />
+            {mainLinks.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={getLinkClass(item.to)}
+                onClick={handleLockedClick}
+                aria-disabled={!profileComplete}
+              >
+                {item.icon}
 
-              <span>
-                Нүүр
-              </span>
+                <span>
+                  {item.label}
+                </span>
 
-              {!profileComplete && (
-                <FiLock className="rgSideLock" />
-              )}
-            </NavLink>
-
-            <NavLink
-              to="/user/history"
-              className={getLinkClass(
-                "/user/history"
-              )}
-              onClick={
-                handleLockedClick
-              }
-              aria-disabled={
-                !profileComplete
-              }
-            >
-              <FiStar />
-
-              <span>
-                Миний эвэнтүүд
-              </span>
-
-              {!profileComplete && (
-                <FiLock className="rgSideLock" />
-              )}
-            </NavLink>
-
-            <NavLink
-              to="/user/event"
-              className={getLinkClass(
-                "/user/event"
-              )}
-              onClick={
-                handleLockedClick
-              }
-              aria-disabled={
-                !profileComplete
-              }
-            >
-              <FiGrid />
-
-              <span>
-                Эвэнт
-              </span>
-
-              {!profileComplete && (
-                <FiLock className="rgSideLock" />
-              )}
-            </NavLink>
-
-            <NavLink
-              to="/user/calendar"
-              className={getLinkClass(
-                "/user/calendar"
-              )}
-              onClick={
-                handleLockedClick
-              }
-              aria-disabled={
-                !profileComplete
-              }
-            >
-              <FiCalendar />
-
-              <span>
-                Календар
-              </span>
-
-              {!profileComplete && (
-                <FiLock className="rgSideLock" />
-              )}
-            </NavLink>
+                {!profileComplete && (
+                  <FiLock className="rgSideLock" />
+                )}
+              </NavLink>
+            ))}
           </nav>
         </section>
 
         <section className="rgSidebarSection">
-          <h5>
-            ТОХИРГОО
-          </h5>
+          <h5>ТОХИРГОО</h5>
 
           <nav className="rgSidebarMenu">
             <NavLink
               to="/user/profile"
-              className={
-                getProfileLinkClass()
-              }
+              className={getProfileLinkClass()}
               onClick={onNavigate}
             >
               <FiUser />

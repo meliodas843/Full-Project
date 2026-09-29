@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -9,10 +11,12 @@ import {
   FiX,
   FiCalendar,
   FiClock,
+  FiVideo,
 } from "react-icons/fi";
-import UserShell from "../components/UserShell";
-import { API_BASE } from "@/lib/config";
 
+import UserShell from "../components/UserShell";
+
+import { API_BASE } from "@/lib/config";
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -22,77 +26,56 @@ function parseDate(value) {
 
   const raw = String(value).trim();
 
-  const date = new Date(
-    raw.includes("T")
-      ? raw
-      : raw.replace(" ", "T"),
-  );
+  const date = new Date(raw.includes("T") ? raw : raw.replace(" ", "T"));
 
-  return Number.isNaN(date.getTime())
-    ? null
-    : date;
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function isoKey(value) {
-  const date =
-    value instanceof Date
-      ? value
-      : parseDate(value);
+  const date = value instanceof Date ? value : parseDate(value);
 
   if (!date) return "";
 
   const year = date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
 function monthGrid(date) {
   const year = date.getFullYear();
+
   const month = date.getMonth();
 
   const first = new Date(
     year,
+
     month,
+
     1,
   );
 
-  const start =
-    first.getDay() === 0
-      ? 6
-      : first.getDay() - 1;
+  const start = first.getDay() === 0 ? 6 : first.getDay() - 1;
 
   const days = new Date(
     year,
+
     month + 1,
+
     0,
   ).getDate();
 
   const result = [];
 
-  for (
-    let index = 0;
-    index < start;
-    index += 1
-  ) {
+  for (let index = 0; index < start; index += 1) {
     result.push(null);
   }
 
-  for (
-    let day = 1;
-    day <= days;
-    day += 1
-  ) {
-    result.push(
-      new Date(year, month, day),
-    );
+  for (let day = 1; day <= days; day += 1) {
+    result.push(new Date(year, month, day));
   }
 
   while (result.length % 7 !== 0) {
@@ -109,10 +92,14 @@ function formatTime(value) {
 
   return date.toLocaleTimeString(
     "mn-MN",
+
     {
       timeZone: "Asia/Ulaanbaatar",
+
       hour: "2-digit",
+
       minute: "2-digit",
+
       hour12: false,
     },
   );
@@ -125,13 +112,20 @@ function formatDateTime(value) {
 
   return date.toLocaleString(
     "mn-MN",
+
     {
       timeZone: "Asia/Ulaanbaatar",
+
       year: "numeric",
+
       month: "2-digit",
+
       day: "2-digit",
+
       hour: "2-digit",
+
       minute: "2-digit",
+
       hour12: false,
     },
   );
@@ -173,14 +167,17 @@ function statusLabel(value) {
   const status = String(value || "").toLowerCase();
 
   if (status === "pending") return "Хүлээгдэж буй";
+
   if (status === "accepted") return "Зөвшөөрсөн";
+
   if (status === "declined") return "Татгалзсан";
+
   if (status === "cancelled") return "Цуцалсан";
+
   if (status === "completed") return "Дууссан";
 
   return value || "";
 }
-
 
 function meetingPersonName(meeting) {
   return (
@@ -200,60 +197,65 @@ function meetingPersonEmail(meeting) {
 
 function personInitials(value) {
   const text = String(value || "").trim();
+
   if (!text) return "U";
+
   const parts = text.split(/\s+/).filter(Boolean);
+
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 export default function Calendar() {
   const navigate = useNavigate();
 
-  const [sent, setSent] =
-    useState([]);
+  const [sent, setSent] = useState([]);
 
-  const [accepted, setAccepted] =
-    useState([]);
+  const [accepted, setAccepted] = useState([]);
 
-  const [inbox, setInbox] =
-    useState([]);
+  const [inbox, setInbox] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [message, setMessage] =
-    useState("");
+  const [message, setMessage] = useState("");
 
-  const [respondingId, setRespondingId] =
-    useState(null);
+  const [respondingId, setRespondingId] = useState(null);
+
+  const [events, setEvents] = useState([]);
 
   const [editingMeeting, setEditingMeeting] = useState(null);
+
   const [editDate, setEditDate] = useState("");
+
   const [editTime, setEditTime] = useState("");
+
   const [savingEdit, setSavingEdit] = useState(false);
 
-  const [viewDate, setViewDate] =
-    useState(() => {
-      const today = new Date();
+  const [viewDate, setViewDate] = useState(() => {
+    const today = new Date();
 
-      return new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1,
-      );
-    });
+    return new Date(
+      today.getFullYear(),
 
-  const [selectedDate, setSelectedDate] =
-    useState(() => new Date());
+      today.getMonth(),
+
+      1,
+    );
+  });
+
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   async function authFetch(
     url,
+
     options = {},
   ) {
     const token = getToken();
 
     if (!token) {
       localStorage.removeItem("user");
+
       localStorage.removeItem("token");
 
       navigate("/login", {
@@ -265,11 +267,15 @@ export default function Calendar() {
 
     const response = await fetch(
       url,
+
       {
         ...options,
+
         headers: {
           ...(options.headers || {}),
+
           Authorization: `Bearer ${token}`,
+
           Accept: "application/json",
         },
       },
@@ -277,6 +283,7 @@ export default function Calendar() {
 
     if (response.status === 401) {
       localStorage.removeItem("user");
+
       localStorage.removeItem("token");
 
       navigate("/login", {
@@ -291,84 +298,58 @@ export default function Calendar() {
 
   async function load() {
     setLoading(true);
+
     setMessage("");
 
     try {
-      const [
-        sentResponse,
-        acceptedResponse,
-        inboxResponse,
-      ] = await Promise.all([
-        authFetch(
-          `${API_BASE}/api/meetings/sent`,
-        ),
-        authFetch(
-          `${API_BASE}/api/meetings/accepted`,
-        ),
-        authFetch(
-          `${API_BASE}/api/meetings/inbox`,
-        ),
-      ]);
+      const [sentResponse, acceptedResponse, inboxResponse] = await Promise.all(
+        [
+          authFetch(`${API_BASE}/api/meetings/sent`),
 
-      if (
-        !sentResponse ||
-        !acceptedResponse ||
-        !inboxResponse
-      ) {
+          authFetch(`${API_BASE}/api/meetings/accepted`),
+
+          authFetch(`${API_BASE}/api/meetings/inbox`),
+        ],
+      );
+
+      if (!sentResponse || !acceptedResponse || !inboxResponse) {
         return;
       }
 
-      const sentData =
-        await sentResponse
-          .json()
-          .catch(() => []);
+      const sentData = await sentResponse
 
-      const acceptedData =
-        await acceptedResponse
-          .json()
-          .catch(() => []);
+        .json()
 
-      const inboxData =
-        await inboxResponse
-          .json()
-          .catch(() => []);
+        .catch(() => []);
 
-      setSent(
-        sentResponse.ok
-          ? normalizeArray(sentData)
-          : [],
-      );
+      const acceptedData = await acceptedResponse
 
-      setAccepted(
-        acceptedResponse.ok
-          ? normalizeArray(
-              acceptedData,
-            )
-          : [],
-      );
+        .json()
 
-      setInbox(
-        inboxResponse.ok
-          ? normalizeArray(inboxData)
-          : [],
-      );
+        .catch(() => []);
 
-      if (
-        !sentResponse.ok ||
-        !acceptedResponse.ok ||
-        !inboxResponse.ok
-      ) {
-        setMessage(
-          "Уулзалтын мэдээлэл уншихад алдаа гарлаа.",
-        );
+      const inboxData = await inboxResponse
+
+        .json()
+
+        .catch(() => []);
+
+      setSent(sentResponse.ok ? normalizeArray(sentData) : []);
+
+      setAccepted(acceptedResponse.ok ? normalizeArray(acceptedData) : []);
+
+      setInbox(inboxResponse.ok ? normalizeArray(inboxData) : []);
+
+      if (!sentResponse.ok || !acceptedResponse.ok || !inboxResponse.ok) {
+        setMessage("Уулзалтын мэдээлэл уншихад алдаа гарлаа.");
       }
     } catch {
-      setMessage(
-        "Сервертэй холбогдож чадсангүй.",
-      );
+      setMessage("Сервертэй холбогдож чадсангүй.");
 
       setSent([]);
+
       setAccepted([]);
+
       setInbox([]);
     } finally {
       setLoading(false);
@@ -382,24 +363,18 @@ export default function Calendar() {
   const pendingInbox = useMemo(
     () =>
       inbox.filter(
-        (meeting) =>
-          String(
-            meeting?.status || "",
-          ).toLowerCase() ===
-          "pending",
+        (meeting) => String(meeting?.status || "").toLowerCase() === "pending",
       ),
+
     [inbox],
   );
 
   const pendingSent = useMemo(
     () =>
       sent.filter(
-        (meeting) =>
-          String(
-            meeting?.status || "",
-          ).toLowerCase() ===
-          "pending",
+        (meeting) => String(meeting?.status || "").toLowerCase() === "pending",
       ),
+
     [sent],
   );
 
@@ -407,103 +382,88 @@ export default function Calendar() {
     () =>
       uniqueMeetings([
         ...accepted,
+
         ...sent.filter(
           (meeting) =>
-            String(
-              meeting?.status || "",
-            ).toLowerCase() !==
-            "pending",
+            String(meeting?.status || "").toLowerCase() !== "pending",
         ),
       ]),
+
     [accepted, sent],
   );
 
   const allMeetings = useMemo(
-    () =>
-      uniqueMeetings([
-        ...sent,
-        ...accepted,
-        ...inbox,
-      ]),
+    () => uniqueMeetings([...sent, ...accepted, ...inbox]),
+
     [sent, accepted, inbox],
   );
 
   const byDay = useMemo(() => {
     const map = {};
 
-    allMeetings.forEach(
-      (meeting) => {
-        const key = isoKey(
-          meeting.start_time,
-        );
+    allMeetings.forEach((meeting) => {
+      const key = isoKey(meeting.start_time);
 
-        if (!key) return;
+      if (!key) return;
 
-        if (!map[key]) {
-          map[key] = [];
-        }
+      if (!map[key]) {
+        map[key] = [];
+      }
 
-        map[key].push(meeting);
-      },
-    );
+      map[key].push(meeting);
+    });
 
-    Object.keys(map).forEach(
-      (key) => {
-        map[key].sort(
-          (a, b) => {
-            const first =
-              parseDate(
-                a.start_time,
-              )?.getTime() || 0;
+    Object.keys(map).forEach((key) => {
+      map[key].sort((a, b) => {
+        const first = parseDate(a.start_time)?.getTime() || 0;
 
-            const second =
-              parseDate(
-                b.start_time,
-              )?.getTime() || 0;
+        const second = parseDate(b.start_time)?.getTime() || 0;
 
-            return first - second;
-          },
-        );
-      },
-    );
+        return first - second;
+      });
+    });
 
     return map;
   }, [allMeetings]);
 
   const grid = useMemo(
     () => monthGrid(viewDate),
+
     [viewDate],
   );
 
-  const selectedKey =
-    isoKey(selectedDate);
+  const selectedKey = isoKey(selectedDate);
 
-  const selectedMeetings =
-    byDay[selectedKey] || [];
+  const selectedMeetings = byDay[selectedKey] || [];
 
-  const title =
-    viewDate.toLocaleDateString(
-      "mn-MN",
-      {
-        year: "numeric",
-        month: "long",
-      },
-    );
+  const title = viewDate.toLocaleDateString(
+    "mn-MN",
+
+    {
+      year: "numeric",
+
+      month: "long",
+    },
+  );
 
   async function respondToMeeting(meeting, status) {
     if (!meeting?.id || respondingId) return;
 
     try {
       setRespondingId(meeting.id);
+
       setMessage("");
 
       let response = await authFetch(
         `${API_BASE}/api/meetings/${meeting.id}/respond`,
+
         {
           method: "PATCH",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify({ status }),
         },
       );
@@ -513,11 +473,14 @@ export default function Calendar() {
       if (response.status === 404 || response.status === 405) {
         response = await authFetch(
           `${API_BASE}/api/meetings/${meeting.id}/status`,
+
           {
             method: "PUT",
+
             headers: {
               "Content-Type": "application/json",
             },
+
             body: JSON.stringify({ status }),
           },
         );
@@ -526,7 +489,9 @@ export default function Calendar() {
       if (!response) return;
 
       const data = await response
+
         .json()
+
         .catch(() => ({}));
 
       if (!response.ok) {
@@ -536,6 +501,7 @@ export default function Calendar() {
               ? "Уулзалтын хүсэлтийг зөвшөөрөхөд алдаа гарлаа."
               : "Уулзалтын хүсэлтээс татгалзахад алдаа гарлаа."),
         );
+
         return;
       }
 
@@ -555,24 +521,35 @@ export default function Calendar() {
 
   function openEditMeeting(meeting) {
     const date = parseDate(meeting?.start_time);
+
     if (!date) return;
 
     const year = date.getFullYear();
+
     const month = String(date.getMonth() + 1).padStart(2, "0");
+
     const day = String(date.getDate()).padStart(2, "0");
+
     const hour = String(date.getHours()).padStart(2, "0");
+
     const minute = String(date.getMinutes()).padStart(2, "0");
 
     setEditingMeeting(meeting);
+
     setEditDate(`${year}-${month}-${day}`);
+
     setEditTime(`${hour}:${minute}`);
+
     setMessage("");
   }
 
   function closeEditMeeting() {
     if (savingEdit) return;
+
     setEditingMeeting(null);
+
     setEditDate("");
+
     setEditTime("");
   }
 
@@ -583,38 +560,57 @@ export default function Calendar() {
 
     try {
       setSavingEdit(true);
+
       setMessage("");
 
       const endpoints = [
-        { url: `${API_BASE}/api/meetings/${editingMeeting.id}/reschedule`, method: "PATCH" },
-        { url: `${API_BASE}/api/meetings/${editingMeeting.id}`, method: "PATCH" },
+        {
+          url: `${API_BASE}/api/meetings/${editingMeeting.id}/reschedule`,
+          method: "PATCH",
+        },
+
+        {
+          url: `${API_BASE}/api/meetings/${editingMeeting.id}`,
+          method: "PATCH",
+        },
+
         { url: `${API_BASE}/api/meetings/${editingMeeting.id}`, method: "PUT" },
       ];
 
       let response = null;
+
       let data = {};
 
       for (const endpoint of endpoints) {
         response = await authFetch(endpoint.url, {
           method: endpoint.method,
+
           headers: { "Content-Type": "application/json" },
+
           body: JSON.stringify({ start_time: startTime }),
         });
 
         if (!response) return;
+
         data = await response.json().catch(() => ({}));
 
         if (response.ok) break;
+
         if (response.status !== 404 && response.status !== 405) break;
       }
 
       if (!response?.ok) {
-        setMessage(data?.message || "Уулзалтын огноо, цагийг өөрчлөхөд алдаа гарлаа.");
+        setMessage(
+          data?.message || "Уулзалтын огноо, цагийг өөрчлөхөд алдаа гарлаа.",
+        );
+
         return;
       }
 
       setMessage("Уулзалтын огноо, цагийг амжилттай өөрчиллөө.");
+
       closeEditMeeting();
+
       await load();
     } catch {
       setMessage("Сервертэй холбогдож чадсангүй.");
@@ -634,9 +630,7 @@ export default function Calendar() {
       return;
     }
 
-    navigate(
-      "/user/meeting/create",
-    );
+    navigate("/user/meeting/create");
   }
 
   function goPreviousMonth() {
@@ -644,7 +638,9 @@ export default function Calendar() {
       (current) =>
         new Date(
           current.getFullYear(),
+
           current.getMonth() - 1,
+
           1,
         ),
     );
@@ -655,18 +651,16 @@ export default function Calendar() {
       (current) =>
         new Date(
           current.getFullYear(),
+
           current.getMonth() + 1,
+
           1,
         ),
     );
   }
 
-  function selectMeeting(
-    meeting,
-  ) {
-    const date = parseDate(
-      meeting?.start_time,
-    );
+  function selectMeeting(meeting) {
+    const date = parseDate(meeting?.start_time);
 
     if (!date) return;
 
@@ -675,431 +669,316 @@ export default function Calendar() {
     setViewDate(
       new Date(
         date.getFullYear(),
+
         date.getMonth(),
+
         1,
       ),
     );
   }
 
+  const eventsByDay = useMemo(() => {
+    const map = {};
+    events.forEach((event) => {
+      const key = isoKey(event.start_time || event.start_date);
+      if (!key) return;
+      if (!map[key]) map[key] = [];
+      map[key].push(event);
+    });
+    return map;
+  }, [events]);
+
+  const selectedEvents = eventsByDay[selectedKey] || [];
+
+  const selectedDateLabel = selectedDate.toLocaleDateString("mn-MN", {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+
+  function goToday() {
+    const today = new Date();
+    setSelectedDate(today);
+    setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
+  }
+
   return (
     <UserShell title="Календар">
-      <main className="rgCalendarPage">
-        <aside className="rgCalendarSidebar">
-          <section className="rgDashboardCard rgInboxCard">
-            <div className="rgInboxHeader">
-              <div>
-                <h3>
-                  Уулзалтын хүсэлтүүд
-                </h3>
-
-                <span>
-                  Хүлээгдэж буй: {pendingInbox.length}
-                </span>
-              </div>
-
-              <b>
-                {pendingInbox.length}
-              </b>
-            </div>
-
-            {loading ? (
-              <div className="rgInboxEmpty">
-                Уншиж байна...
-              </div>
-            ) : pendingInbox.length ===
-              0 ? (
-              <div className="rgInboxEmpty">
-                Хүсэлт алга
-              </div>
-            ) : (
-              <div className="rgInboxRequests">
-                {pendingInbox.map((meeting) => {
-                  const senderName = meetingPersonName(meeting);
-                  const senderEmail = meetingPersonEmail(meeting);
-                  const busy = respondingId === meeting.id;
-
-                  return (
-                    <article
-                      className="rgProfessionalInvite"
-                      key={meeting.id}
-                    >
-                      <button
-                        type="button"
-                        className="rgInvitePerson"
-                        onClick={() => selectMeeting(meeting)}
-                      >
-                        <span className="rgInviteAvatar">
-                          {personInitials(senderName)}
-                        </span>
-
-                        <span className="rgInvitePersonInfo">
-                          <strong>{senderName}</strong>
-                          {senderEmail && (
-                            <small>{senderEmail}</small>
-                          )}
-                        </span>
-
-                        <span className="rgInviteTime">
-                          {formatTime(meeting.start_time)}
-                        </span>
-                      </button>
-
-                      <div className="rgInviteDetails">
-                        <strong>
-                          {meeting.title || "Уулзалтын хүсэлт"}
-                        </strong>
-                        <span>Танд уулзалтын хүсэлт илгээлээ.</span>
-                      </div>
-
-                      <div className="rgInviteActions">
-                        <button
-                          type="button"
-                          className="rgInviteAccept"
-                          disabled={busy}
-                          onClick={() =>
-                            respondToMeeting(meeting, "accepted")
-                          }
-                        >
-                          <FiCheck />
-                          {busy ? "Түр хүлээнэ үү..." : "Зөвшөөрөх"}
-                        </button>
-
-                        <button
-                          type="button"
-                          className="rgInviteDecline"
-                          disabled={busy}
-                          onClick={() =>
-                            respondToMeeting(meeting, "declined")
-                          }
-                        >
-                          <FiX />
-                          Татгалзах
-                        </button>
-
-                        <button
-                          type="button"
-                          className="rgInviteEdit"
-                          disabled={busy}
-                          onClick={() => openEditMeeting(meeting)}
-                        >
-                          <FiEdit3 />
-                          Засах
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-
-          </section>
-
-          <button
-            type="button"
-            className="rgSendRequestButton"
-            onClick={
-              openMeetingCreate
-            }
-          >
-            <FiPlus />
-
-            Уулзалтын хүсэлт илгээх
-          </button>
-
-          <section className="rgDashboardCard rgMyMeetingsCard">
-            <div className="rgMyMeetingsHeading">
-              <div>
-                <h3>
-                  Миний уулзалтууд
-                </h3>
-
-                <span>
-                  Нийт: {myMeetings.length}
-                </span>
-              </div>
-            </div>
-
-            {loading ? (
-              <div>
-                Уншиж байна...
-              </div>
-            ) : myMeetings.length ===
-              0 ? (
-              <div>
-                Товлосон уулзалт алга.
-              </div>
-            ) : (
-              <div className="rgMyMeetingList">
-                {myMeetings
-                  .slice(0, 6)
-                  .map(
-                    (meeting) => (
-                      <button
-                        type="button"
-                        key={
-                          meeting.id
-                        }
-                        onClick={() =>
-                          selectMeeting(
-                            meeting,
-                          )
-                        }
-                      >
-                        <div>
-                          <strong>
-                            {meeting.title ||
-                              "Уулзалт"}
-                          </strong>
-
-                          <small>
-                            {formatDateTime(
-                              meeting.start_time,
-                            )}
-                          </small>
-                        </div>
-
-                        <span
-                          className={`rgMeetingStatus ${
-                            meeting.status ||
-                            ""
-                          }`}
-                        >
-                          {statusLabel(
-                            meeting.status || "accepted",
-                          )}
-                        </span>
-                      </button>
-                    ),
-                  )}
-              </div>
-            )}
-          </section>
-
-          {pendingSent.length >
-            0 && (
-            <section className="rgDashboardCard rgMyMeetingsCard">
-              <div className="rgMyMeetingsHeading">
-                <div>
-                  <h3>
-                    Илгээсэн хүсэлтүүд
-                  </h3>
-
-                  <span>
-                    Хүлээгдэж буй: {pendingSent.length}
-                  </span>
-                </div>
-              </div>
-
-              <div className="rgMyMeetingList">
-                {pendingSent
-                  .slice(0, 5)
-                  .map(
-                    (meeting) => (
-                      <button
-                        key={
-                          meeting.id
-                        }
-                        type="button"
-                        onClick={() =>
-                          selectMeeting(
-                            meeting,
-                          )
-                        }
-                      >
-                        <div>
-                          <strong>
-                            {meeting.title ||
-                              "Уулзалт"}
-                          </strong>
-
-                          <small>
-                            Хүлээн авагч:{" "}
-                            {meeting.recipient_email ||
-                              ""}
-                          </small>
-                        </div>
-
-                        <span className="rgMeetingStatus pending">
-                          Хүлээгдэж буй
-                        </span>
-                      </button>
-                    ),
-                  )}
-              </div>
-            </section>
-          )}
-
-          {message && (
-            <div className="rgCalendarMessage">
-              {message}
-            </div>
-          )}
-        </aside>
-
-        <section className="rgDashboardCard rgBigCalendar">
-          <header className="rgBigCalendarHeader">
-            <h2>{title}</h2>
-
-            <div>
-              <button
-                type="button"
-                onClick={
-                  goPreviousMonth
-                }
-              >
-                <FiChevronLeft />
-              </button>
-
-              <button
-                type="button"
-                onClick={goNextMonth}
-              >
-                <FiChevronRight />
-              </button>
-            </div>
-          </header>
-
-          <div className="rgBigWeekdays">
-            {[
-              "Да",
-              "Мя",
-              "Лх",
-              "Пү",
-              "Ба",
-              "Бя",
-              "Ня",
-            ].map((day) => (
-              <span key={day}>
-                {day}
-              </span>
-            ))}
+      <main className="calPage">
+        <header className="calTop">
+          <div>
+            <h1>Календар</h1>
+            <p>Эвэнт болон эвэнтийн дараах 1:1 уулзалтууд</p>
           </div>
 
-          <div className="rgBigCalendarGrid">
-            {grid.map(
-              (date, index) => {
+          <div className="calTopActions">
+            <button type="button" className="calToday" onClick={goToday}>
+              Өнөөдөр
+            </button>
+            <button
+              type="button"
+              className="calCreate"
+              onClick={openMeetingCreate}
+            >
+              <FiPlus />
+              Уулзалт товлох
+            </button>
+          </div>
+        </header>
+
+        <section className="calWorkspace">
+          <div className="calMain">
+            <div className="calToolbar">
+              <div className="calMonthNav">
+                <button type="button" onClick={goPreviousMonth}>
+                  <FiChevronLeft />
+                </button>
+                <button type="button" onClick={goNextMonth}>
+                  <FiChevronRight />
+                </button>
+                <h2>{title}</h2>
+              </div>
+
+              <div className="calLegend">
+                <span>
+                  <i className="eventDot" /> Эвэнт · {events.length}
+                </span>
+                <span>
+                  <i className="meetingDot" /> Уулзалт · {myMeetings.length}
+                </span>
+                <span>
+                  <i className="pendingDot" /> Хүлээгдэж буй ·{" "}
+                  {pendingInbox.length}
+                </span>
+              </div>
+            </div>
+
+            <div className="calWeekdays">
+              {[
+                "ДАВАА",
+                "МЯГМАР",
+                "ЛХАГВА",
+                "ПҮРЭВ",
+                "БААСАН",
+                "БЯМБА",
+                "НЯМ",
+              ].map((day) => (
+                <span key={day}>{day}</span>
+              ))}
+            </div>
+
+            <div className="calGrid">
+              {grid.map((date, index) => {
                 if (!date) {
                   return (
                     <div
+                      className="calCell calCellEmpty"
                       key={`empty-${index}`}
                     />
                   );
                 }
 
-                const key =
-                  isoKey(date);
-
-                const meetings =
-                  byDay[key] || [];
-
-                const active =
-                  key ===
-                  selectedKey;
+                const key = isoKey(date);
+                const meetings = byDay[key] || [];
+                const dayEvents = eventsByDay[key] || [];
+                const active = key === selectedKey;
+                const today = key === isoKey(new Date());
 
                 return (
                   <button
                     type="button"
                     key={key}
-                    className={
-                      active
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() =>
-                      setSelectedDate(
-                        date,
-                      )
-                    }
+                    className={`calCell ${active ? "selected" : ""} ${today ? "today" : ""}`}
+                    onClick={() => setSelectedDate(date)}
                   >
-                    <span>
-                      {date.getDate()}
-                    </span>
+                    <span className="calDayNumber">{date.getDate()}</span>
 
-                    {meetings.length >
-                      0 && (
-                      <div className="rgBigMeetingDots">
-                        {meetings
-                          .slice(
-                            0,
-                            3,
-                          )
-                          .map(
-                            (
-                              meeting,
-                              dotIndex,
-                            ) => (
-                              <i
-                                key={`${meeting.id}-${dotIndex}`}
-                              />
-                            ),
-                          )}
-                      </div>
-                    )}
+                    <div className="calCellItems">
+                      {dayEvents.slice(0, 2).map((event) => (
+                        <span
+                          className="calItem event"
+                          key={`event-${event.id}`}
+                        >
+                          <FiCalendar />
+                          {formatTime(
+                            event.start_time || event.start_date,
+                          )}{" "}
+                          {event.title || "Эвэнт"}
+                        </span>
+                      ))}
+
+                      {meetings
+                        .slice(0, Math.max(0, 3 - dayEvents.length))
+                        .map((meeting) => (
+                          <span
+                            className={`calItem ${
+                              String(meeting.status || "").toLowerCase() ===
+                              "pending"
+                                ? "pending"
+                                : "meeting"
+                            }`}
+                            key={`meeting-${meeting.id}-${meeting.start_time}`}
+                          >
+                            <FiClock />
+                            {formatTime(meeting.start_time)}{" "}
+                            {meeting.title || meetingPersonName(meeting)}
+                          </span>
+                        ))}
+
+                      {dayEvents.length + meetings.length > 3 && (
+                        <small>
+                          +{dayEvents.length + meetings.length - 3} бусад
+                        </small>
+                      )}
+                    </div>
                   </button>
                 );
-              },
-            )}
+              })}
+            </div>
           </div>
 
-          {selectedMeetings.length >
-            0 && (
-            <div className="rgCalendarSelected">
-              {selectedMeetings.map(
-                (meeting) => (
-                  <div
-                    key={`${meeting.id}-${meeting.start_time}`}
-                  >
-                    <span>
-                      {formatTime(
-                        meeting.start_time,
-                      )}
-                    </span>
+          <aside className="calRight">
+            <section className="calSideCard">
+              <div className="calSideHeading">
+                <div>
+                  <small>СОНГОСОН ӨДӨР</small>
+                  <h3>{selectedDateLabel}</h3>
+                </div>
+              </div>
 
-                    <div>
-                      <strong>
-                        {meeting.title ||
-                          "Уулзалт"}
-                      </strong>
+              <div className="calSchedule">
+                {selectedEvents.length === 0 &&
+                selectedMeetings.length === 0 ? (
+                  <div className="calEmpty">Энэ өдөр товлосон зүйл алга.</div>
+                ) : (
+                  <>
+                    {selectedEvents.map((event) => (
+                      <article
+                        className="calScheduleItem event"
+                        key={`side-event-${event.id}`}
+                      >
+                        <div className="calScheduleTime">
+                          {formatTime(event.start_time || event.start_date)}
+                        </div>
+                        <div className="calScheduleBody">
+                          <strong>{event.title || "Эвэнт"}</strong>
+                          <span>
+                            {event.location || event.address || "Эвэнт"}
+                          </span>
+                        </div>
+                        <span className="calVideoIcon">
+                          <FiCalendar />
+                        </span>
+                      </article>
+                    ))}
 
-                      <small>
-                        {meeting.creator_email ===
-                        JSON.parse(
-                          localStorage.getItem(
-                            "user",
-                          ) || "{}",
-                        )?.email
-                          ? `Хүлээн авагч: ${
-                              meeting.recipient_email ||
-                              ""
-                            }`
-                          : `Илгээгч: ${
-                              meeting.creator_email ||
-                              ""
-                            }`}
-                      </small>
-                    </div>
+                    {selectedMeetings.map((meeting) => (
+                      <article
+                        className={`calScheduleItem ${
+                          String(meeting.status || "").toLowerCase() ===
+                          "pending"
+                            ? "pending"
+                            : "meeting"
+                        }`}
+                        key={`side-meeting-${meeting.id}-${meeting.start_time}`}
+                      >
+                        <div className="calScheduleTime">
+                          {formatTime(meeting.start_time)}
+                        </div>
+                        <div className="calAvatar">
+                          {personInitials(meetingPersonName(meeting))}
+                        </div>
+                        <div className="calScheduleBody">
+                          <strong>{meetingPersonName(meeting)}</strong>
+                          <span>{meeting.title || "1:1 уулзалт"}</span>
+                        </div>
+                        <span className="calVideoIcon">
+                          <FiVideo />
+                        </span>
+                      </article>
+                    ))}
+                  </>
+                )}
+              </div>
 
-                    <b
-                      className={`rgMeetingStatus ${
-                        meeting.status ||
-                        ""
-                      }`}
-                    >
-                      {statusLabel(
-                        meeting.status,
-                      )}
-                    </b>
-                  </div>
-                ),
+              <button
+                type="button"
+                className="calAddMeeting"
+                onClick={openMeetingCreate}
+              >
+                <FiPlus />
+                Сул цаг — уулзалт товлох
+              </button>
+            </section>
+
+            <section className="calSideCard calRequests">
+              <div className="calRequestHeader">
+                <h3>Хүсэлтүүд</h3>
+                <span>Ирсэн · {pendingInbox.length}</span>
+              </div>
+
+              {loading ? (
+                <div className="calEmpty">Уншиж байна...</div>
+              ) : pendingInbox.length === 0 ? (
+                <div className="calEmpty">Хүлээгдэж буй хүсэлт алга.</div>
+              ) : (
+                <div className="calRequestList">
+                  {pendingInbox.slice(0, 5).map((meeting) => {
+                    const busy = respondingId === meeting.id;
+                    const name = meetingPersonName(meeting);
+
+                    return (
+                      <article className="calRequest" key={meeting.id}>
+                        <div className="calAvatar">{personInitials(name)}</div>
+                        <div className="calRequestInfo">
+                          <strong>{name}</strong>
+                          <span>
+                            {formatTime(meeting.start_time)} ·{" "}
+                            {meeting.title || "Уулзалт"}
+                          </span>
+                        </div>
+                        <div className="calRequestActions">
+                          <button
+                            type="button"
+                            className="edit"
+                            disabled={busy}
+                            onClick={() => openEditMeeting(meeting)}
+                            title="Цаг өөрчлөх"
+                          >
+                            <FiEdit3 />
+                          </button>
+                          <button
+                            type="button"
+                            className="decline"
+                            disabled={busy}
+                            onClick={() =>
+                              respondToMeeting(meeting, "declined")
+                            }
+                            title="Татгалзах"
+                          >
+                            <FiX />
+                          </button>
+                          <button
+                            type="button"
+                            className="accept"
+                            disabled={busy}
+                            onClick={() =>
+                              respondToMeeting(meeting, "accepted")
+                            }
+                            title="Зөвшөөрөх"
+                          >
+                            <FiCheck />
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
               )}
-            </div>
-          )}
+            </section>
 
-          {loading && (
-            <div className="rgCalendarLoading">
-              Уншиж байна...
-            </div>
-          )}
+            {message && <div className="calMessage">{message}</div>}
+          </aside>
         </section>
 
         {editingMeeting && (
@@ -1112,12 +991,18 @@ export default function Calendar() {
               aria-labelledby="meeting-edit-title"
             >
               <header className="rgMeetingEditHeader">
-                <div className="rgMeetingEditIcon"><FiEdit3 /></div>
+                <div className="rgMeetingEditIcon">
+                  <FiEdit3 />
+                </div>
                 <div>
                   <h3 id="meeting-edit-title">Уулзалтын цаг өөрчлөх</h3>
                   <p>Танд тохирох шинэ огноо, цагийг сонгоно уу.</p>
                 </div>
-                <button type="button" className="rgMeetingEditClose" onClick={closeEditMeeting}>
+                <button
+                  type="button"
+                  className="rgMeetingEditClose"
+                  onClick={closeEditMeeting}
+                >
                   <FiX />
                 </button>
               </header>
@@ -1134,16 +1019,19 @@ export default function Calendar() {
 
               <div className="rgMeetingEditFields">
                 <label>
-                  <span><FiCalendar /> Огноо</span>
+                  <span>
+                    <FiCalendar /> Огноо
+                  </span>
                   <input
                     type="date"
                     value={editDate}
                     onChange={(event) => setEditDate(event.target.value)}
                   />
                 </label>
-
                 <label>
-                  <span><FiClock /> Цаг</span>
+                  <span>
+                    <FiClock /> Цаг
+                  </span>
                   <input
                     type="time"
                     value={editTime}
@@ -1153,7 +1041,12 @@ export default function Calendar() {
               </div>
 
               <div className="rgMeetingEditActions">
-                <button type="button" className="rgMeetingEditCancel" onClick={closeEditMeeting} disabled={savingEdit}>
+                <button
+                  type="button"
+                  className="rgMeetingEditCancel"
+                  onClick={closeEditMeeting}
+                  disabled={savingEdit}
+                >
                   Цуцлах
                 </button>
                 <button

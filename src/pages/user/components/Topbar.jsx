@@ -1,15 +1,9 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { createPortal } from "react-dom";
-import {
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+
+import { useLocation, useNavigate } from "react-router-dom";
+
 import {
   FiBell,
   FiChevronDown,
@@ -17,34 +11,37 @@ import {
   FiTrash2,
   FiUser,
 } from "react-icons/fi";
+
 import { API_BASE } from "../../../lib/config";
 
 function initials(value) {
-  const text = String(
-    value || "",
-  ).trim();
+  const text = String(value || "").trim();
 
   if (!text) return "U";
 
   if (text.includes("@")) {
     return text
+
       .slice(0, 2)
+
       .toUpperCase();
   }
 
   const words = text
+
     .split(/\s+/)
+
     .filter(Boolean);
 
   if (words.length === 1) {
     return words[0]
+
       .slice(0, 2)
+
       .toUpperCase();
   }
 
-  return `${words[0][0]}${
-    words[words.length - 1][0]
-  }`.toUpperCase();
+  return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase();
 }
 
 function formatDateTime(value) {
@@ -52,21 +49,22 @@ function formatDateTime(value) {
 
   const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
   return date.toLocaleString(
     "mn-MN",
+
     {
       year: "numeric",
+
       month: "short",
+
       day: "numeric",
+
       hour: "2-digit",
+
       minute: "2-digit",
     },
   );
@@ -81,31 +79,22 @@ function getNotificationType(item) {
       "",
   )
     .trim()
+
     .toLowerCase();
 
-  if (
-    raw.includes("meeting")
-  ) {
+  if (raw.includes("meeting")) {
     return "meeting";
   }
 
-  if (
-    raw.includes("event")
-  ) {
+  if (raw.includes("event")) {
     return "event";
   }
 
-  if (
-    item?.meeting_id ||
-    item?.meeting?.id
-  ) {
+  if (item?.meeting_id || item?.meeting?.id) {
     return "meeting";
   }
 
-  if (
-    item?.event_id ||
-    item?.event?.id
-  ) {
+  if (item?.event_id || item?.event?.id) {
     return "event";
   }
 
@@ -114,11 +103,7 @@ function getNotificationType(item) {
 
 function getEventId(item) {
   return (
-    item?.event_id ||
-    item?.event?.id ||
-    item?.eventId ||
-    item?.eventID ||
-    null
+    item?.event_id || item?.event?.id || item?.eventId || item?.eventID || null
   );
 }
 
@@ -133,16 +118,12 @@ function getMeetingId(item) {
 }
 
 function getRequestId(item) {
-  return (
-    item?.request_id ||
-    item?.notification_id ||
-    item?.id ||
-    null
-  );
+  return item?.request_id || item?.notification_id || item?.id || null;
 }
 
 function getNotificationKey(
   item,
+
   index,
 ) {
   return (
@@ -157,57 +138,40 @@ function getNotificationKey(
 
 export default function Topbar({
   className = "",
+
   onNavigate = () => {},
 } = {}) {
   const navigate = useNavigate();
+
   const location = useLocation();
 
-  const [openBell, setOpenBell] =
-    useState(false);
+  const [openBell, setOpenBell] = useState(false);
 
-  const [
-    openProfile,
-    setOpenProfile,
-  ] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
 
-  const [
-    pending,
-    setPending,
-  ] = useState([]);
+  const [pending, setPending] = useState([]);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+  const [bellViewed, setBellViewed] = useState(false);
 
-  const [
-    deletingId,
-    setDeletingId,
-  ] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const [deletingId, setDeletingId] = useState(null);
 
   const bellRef = useRef(null);
+
   const profileRef = useRef(null);
+
   const bellMenuRef = useRef(null);
-  const profileMenuRef =
-    useRef(null);
 
-  const [
-    bellPosition,
-    setBellPosition,
-  ] = useState(null);
+  const profileMenuRef = useRef(null);
 
-  const [
-    profilePosition,
-    setProfilePosition,
-  ] = useState(null);
+  const [bellPosition, setBellPosition] = useState(null);
+
+  const [profilePosition, setProfilePosition] = useState(null);
 
   const user = useMemo(() => {
     try {
-      return JSON.parse(
-        localStorage.getItem(
-          "user",
-        ) || "{}",
-      );
+      return JSON.parse(localStorage.getItem("user") || "{}");
     } catch {
       return {};
     }
@@ -215,32 +179,24 @@ export default function Topbar({
 
   const fullName =
     `${user?.firstName || user?.first_name || ""} ${
-      user?.lastName ||
-      user?.last_name ||
-      ""
+      user?.lastName || user?.last_name || ""
     }`.trim() ||
     user?.name ||
     user?.email ||
     "User";
 
-  const role =
-    user?.role === "super_admin"
-      ? "Administrator"
-      : "Хэрэглэгч";
+  const role = user?.role === "super_admin" ? "Administrator" : "Хэрэглэгч";
 
   function menuPosition(
     reference,
+
     width,
   ) {
-    const rect =
-      reference.current?.getBoundingClientRect();
+    const rect = reference.current?.getBoundingClientRect();
 
     if (!rect) return null;
 
-    const maxLeft =
-      window.innerWidth -
-      width -
-      14;
+    const maxLeft = window.innerWidth - width - 14;
 
     return {
       top: rect.bottom + 10,
@@ -248,10 +204,13 @@ export default function Topbar({
       left: Math.min(
         Math.max(
           14,
+
           rect.right - width,
         ),
+
         Math.max(
           14,
+
           maxLeft,
         ),
       ),
@@ -260,125 +219,103 @@ export default function Topbar({
     };
   }
 
-  const loadNotifications =
-    useCallback(async () => {
-      const token =
-        localStorage.getItem(
-          "token",
+  const loadNotifications = useCallback(async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setPending([]);
+
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/events/requests`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("user");
+
+        localStorage.removeItem("role");
+
+        setPending([]);
+
+        navigate(
+          "/login",
+
+          {
+            replace: true,
+          },
         );
 
-      if (!token) {
-        setPending([]);
         return;
       }
 
-      setLoading(true);
+      const data = await response
 
-      try {
-        const response =
-          await fetch(
-            `${API_BASE}/api/events/requests`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
+        .json()
 
-        if (
-          response.status ===
-          401
-        ) {
-          localStorage.removeItem(
-            "token",
-          );
+        .catch(() => ({}));
 
-          localStorage.removeItem(
-            "user",
-          );
+      if (!response.ok) {
+        setPending([]);
 
-          localStorage.removeItem(
-            "role",
-          );
-
-          setPending([]);
-
-          navigate(
-            "/login",
-            {
-              replace: true,
-            },
-          );
-
-          return;
-        }
-
-        const data =
-          await response
-            .json()
-            .catch(() => ({}));
-
-        if (!response.ok) {
-          setPending([]);
-          return;
-        }
-
-        if (
-          Array.isArray(
-            data?.pending,
-          )
-        ) {
-          setPending(
-            data.pending,
-          );
-        } else if (
-          Array.isArray(
-            data?.notifications,
-          )
-        ) {
-          setPending(
-            data.notifications,
-          );
-        } else if (
-          Array.isArray(
-            data?.requests,
-          )
-        ) {
-          setPending(
-            data.requests,
-          );
-        } else if (
-          Array.isArray(data)
-        ) {
-          setPending(data);
-        } else {
-          setPending([]);
-        }
-      } catch (error) {
-        console.error(
-          "Notification load error:",
-          error,
-        );
-      } finally {
-        setLoading(false);
+        return;
       }
-    }, [navigate]);
+
+      if (Array.isArray(data?.pending)) {
+        setPending(data.pending);
+      } else if (Array.isArray(data?.notifications)) {
+        setPending(data.notifications);
+      } else if (Array.isArray(data?.requests)) {
+        setPending(data.requests);
+      } else if (Array.isArray(data)) {
+        setPending(data);
+      } else {
+        setPending([]);
+      }
+    } catch (error) {
+      console.error(
+        "Notification load error:",
+
+        error,
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (pending.length > 0) {
+      setBellViewed(false);
+    }
+  }, [pending.length]);
 
   async function deleteNotification(
     item,
+
     event,
   ) {
     event.preventDefault();
+
     event.stopPropagation();
 
-    const token =
-      localStorage.getItem(
-        "token",
-      );
+    const token = localStorage.getItem("token");
 
     if (!token) {
       navigate(
         "/login",
+
         {
           replace: true,
         },
@@ -387,60 +324,51 @@ export default function Topbar({
       return;
     }
 
-    const requestId =
-      getRequestId(item);
+    const requestId = getRequestId(item);
 
     if (!requestId) {
       console.error(
         "Notification ID not found:",
+
         item,
       );
 
       return;
     }
 
-    setDeletingId(
-      requestId,
-    );
+    setDeletingId(requestId);
 
     try {
-      const response =
-        await fetch(
-          `${API_BASE}/api/events/requests/${requestId}`,
-          {
-            method: "DELETE",
+      const response = await fetch(
+        `${API_BASE}/api/events/requests/${requestId}`,
 
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type":
-                "application/json",
-            },
+        {
+          method: "DELETE",
+
+          headers: {
+            Authorization: `Bearer ${token}`,
+
+            "Content-Type": "application/json",
           },
-        );
+        },
+      );
 
-      const data =
-        await response
-          .json()
-          .catch(() => ({}));
+      const data = await response
 
-      if (
-        response.status ===
-        401
-      ) {
-        localStorage.removeItem(
-          "token",
-        );
+        .json()
 
-        localStorage.removeItem(
-          "user",
-        );
+        .catch(() => ({}));
 
-        localStorage.removeItem(
-          "role",
-        );
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("user");
+
+        localStorage.removeItem("role");
 
         navigate(
           "/login",
+
           {
             replace: true,
           },
@@ -451,92 +379,75 @@ export default function Topbar({
 
       if (!response.ok) {
         console.error(
-          data?.message ||
-            data?.error ||
-            "Failed to delete notification",
+          data?.message || data?.error || "Failed to delete notification",
         );
 
         return;
       }
 
-      setPending(
-        (current) =>
-          current.filter(
-            (
-              notification,
-            ) => {
-              const id =
-                getRequestId(
-                  notification,
-                );
+      setPending((current) =>
+        current.filter((notification) => {
+          const id = getRequestId(notification);
 
-              return (
-                String(id) !==
-                String(
-                  requestId,
-                )
-              );
-            },
-          ),
+          return String(id) !== String(requestId);
+        }),
       );
     } catch (error) {
       console.error(
         "Delete notification error:",
+
         error,
       );
     } finally {
-      setDeletingId(
-        null,
-      );
+      setDeletingId(null);
     }
   }
 
   useEffect(() => {
     loadNotifications();
 
-    const interval =
-      window.setInterval(
-        () => {
-          loadNotifications();
-        },
-        30000,
-      );
+    const interval = window.setInterval(
+      () => {
+        loadNotifications();
+      },
+
+      30000,
+    );
 
     function handleFocus() {
       loadNotifications();
     }
 
     function handleVisibility() {
-      if (
-        document.visibilityState ===
-        "visible"
-      ) {
+      if (document.visibilityState === "visible") {
         loadNotifications();
       }
     }
 
     window.addEventListener(
       "focus",
+
       handleFocus,
     );
 
     document.addEventListener(
       "visibilitychange",
+
       handleVisibility,
     );
 
     return () => {
-      window.clearInterval(
-        interval,
-      );
+      window.clearInterval(interval);
 
       window.removeEventListener(
         "focus",
+
         handleFocus,
       );
 
       document.removeEventListener(
         "visibilitychange",
+
         handleVisibility,
       );
     };
@@ -544,10 +455,7 @@ export default function Topbar({
 
   useEffect(() => {
     loadNotifications();
-  }, [
-    location.pathname,
-    loadNotifications,
-  ]);
+  }, [location.pathname, loadNotifications]);
 
   useEffect(() => {
     if (!openBell) {
@@ -557,13 +465,11 @@ export default function Topbar({
     setBellPosition(
       menuPosition(
         bellRef,
+
         340,
       ),
     );
-  }, [
-    openBell,
-    pending.length,
-  ]);
+  }, [openBell, pending.length]);
 
   useEffect(() => {
     if (!openProfile) {
@@ -573,6 +479,7 @@ export default function Topbar({
     setProfilePosition(
       menuPosition(
         profileRef,
+
         250,
       ),
     );
@@ -580,88 +487,89 @@ export default function Topbar({
 
   useEffect(() => {
     function handleClick(event) {
-      const target =
-        event.target;
+      const target = event.target;
 
       if (
-        bellRef.current?.contains(
-          target,
-        ) ||
-        profileRef.current?.contains(
-          target,
-        ) ||
-        bellMenuRef.current?.contains(
-          target,
-        ) ||
-        profileMenuRef.current?.contains(
-          target,
-        )
+        bellRef.current?.contains(target) ||
+        profileRef.current?.contains(target) ||
+        bellMenuRef.current?.contains(target) ||
+        profileMenuRef.current?.contains(target)
       ) {
         return;
       }
 
       setOpenBell(false);
+
       setOpenProfile(false);
     }
 
     function handleKey(event) {
-      if (
-        event.key === "Escape"
-      ) {
+      if (event.key === "Escape") {
         setOpenBell(false);
+
         setOpenProfile(false);
       }
     }
 
     function handleResize() {
       setOpenBell(false);
+
       setOpenProfile(false);
     }
 
     document.addEventListener(
       "mousedown",
+
       handleClick,
     );
 
     document.addEventListener(
       "keydown",
+
       handleKey,
     );
 
     window.addEventListener(
       "resize",
+
       handleResize,
     );
 
     return () => {
       document.removeEventListener(
         "mousedown",
+
         handleClick,
       );
 
       document.removeEventListener(
         "keydown",
+
         handleKey,
       );
 
       window.removeEventListener(
         "resize",
+
         handleResize,
       );
     };
   }, []);
 
   function toggleBell() {
-    const next =
-      !openBell;
+    const next = !openBell;
 
     setOpenBell(next);
+
     setOpenProfile(false);
 
     if (next) {
+      setBellViewed(true);
+
       setBellPosition(
         menuPosition(
           bellRef,
+
           340,
         ),
       );
@@ -671,16 +579,17 @@ export default function Topbar({
   }
 
   function toggleProfile() {
-    const next =
-      !openProfile;
+    const next = !openProfile;
 
     setOpenProfile(next);
+
     setOpenBell(false);
 
     if (next) {
       setProfilePosition(
         menuPosition(
           profileRef,
+
           250,
         ),
       );
@@ -688,17 +597,11 @@ export default function Topbar({
   }
 
   function logout() {
-    localStorage.removeItem(
-      "user",
-    );
+    localStorage.removeItem("user");
 
-    localStorage.removeItem(
-      "token",
-    );
+    localStorage.removeItem("token");
 
-    localStorage.removeItem(
-      "role",
-    );
+    localStorage.removeItem("role");
 
     setPending([]);
 
@@ -706,40 +609,33 @@ export default function Topbar({
 
     navigate(
       "/login",
+
       {
         replace: true,
       },
     );
   }
 
-  function openNotification(
-    item,
-  ) {
+  function openNotification(item) {
     setOpenBell(false);
 
-    const type =
-      getNotificationType(
-        item,
-      );
+    const type = getNotificationType(item);
 
-    const eventId =
-      getEventId(item);
+    const eventId = getEventId(item);
 
-    const meetingId =
-      getMeetingId(item);
+    const meetingId = getMeetingId(item);
 
     onNavigate();
 
-    if (
-      type === "meeting"
-    ) {
+    if (type === "meeting") {
       navigate(
         "/user/calendar",
+
         {
           state: {
             meetingId,
-            notification:
-              item,
+
+            notification: item,
           },
         },
       );
@@ -750,11 +646,12 @@ export default function Topbar({
     if (eventId) {
       navigate(
         `/user/event/${eventId}`,
+
         {
           state: {
             eventId,
-            notification:
-              item,
+
+            notification: item,
           },
         },
       );
@@ -764,19 +661,17 @@ export default function Topbar({
 
     navigate(
       "/user/event",
+
       {
         state: {
-          notification:
-            item,
+          notification: item,
         },
       },
     );
   }
 
   return (
-    <header
-      className={`rgTopbar ${className}`.trim()}
-    >
+    <header className={`rgTopbar ${className}`.trim()}>
       <div className="rgTopbarSpacer" />
 
       <div className="rgTopbarActions">
@@ -784,23 +679,15 @@ export default function Topbar({
           ref={bellRef}
           type="button"
           className="rgBellButton"
-          onClick={
-            toggleBell
-          }
+          onClick={toggleBell}
           aria-label="Notifications"
-          aria-expanded={
-            openBell
-          }
+          aria-expanded={openBell}
         >
           <FiBell />
 
-          {pending.length >
-            0 && (
+          {pending.length > 0 && !bellViewed && (
             <span className="rgBellDot">
-              {pending.length >
-              99
-                ? "99+"
-                : pending.length}
+              {pending.length > 99 ? "99+" : pending.length}
             </span>
           )}
         </button>
@@ -809,28 +696,15 @@ export default function Topbar({
           ref={profileRef}
           type="button"
           className="rgTopProfile"
-          onClick={
-            toggleProfile
-          }
-          aria-expanded={
-            openProfile
-          }
+          onClick={toggleProfile}
+          aria-expanded={openProfile}
         >
-          <span className="rgTopAvatar">
-            {initials(
-              fullName,
-            )}
-          </span>
+          <span className="rgTopAvatar">{initials(fullName)}</span>
 
           <span className="rgTopUserText">
-            <strong>
-              {user?.email ||
-                fullName}
-            </strong>
+            <strong>{user?.email || fullName}</strong>
 
-            <small>
-              {role}
-            </small>
+            <small>{role}</small>
           </span>
 
           <FiChevronDown className="rgTopChevron" />
@@ -841,96 +715,66 @@ export default function Topbar({
         bellPosition &&
         createPortal(
           <div
-            ref={
-              bellMenuRef
-            }
+            ref={bellMenuRef}
             className="rgDropdown rgNotificationDropdown"
             style={{
-              position:
-                "fixed",
+              position: "fixed",
 
-              top:
-                bellPosition.top,
+              top: bellPosition.top,
 
-              left:
-                bellPosition.left,
+              left: bellPosition.left,
 
-              width:
-                bellPosition.width,
+              width: bellPosition.width,
 
               zIndex: 99999,
             }}
           >
             <div className="rgNotificationHeader">
-              <h4>
-                Notifications
-              </h4>
+              <h4>Notifications</h4>
 
-              {loading &&
-                pending.length >
-                  0 && (
-                  <span className="rgNotificationRefreshing">
-                    Уншиж
-                    байна...
-                  </span>
-                )}
+              {loading && pending.length > 0 && (
+                <span className="rgNotificationRefreshing">Уншиж байна...</span>
+              )}
             </div>
 
-            {loading &&
-            pending.length ===
-              0 ? (
-              <div className="rgNotificationEmpty">
-                Уншиж
-                байна...
-              </div>
-            ) : pending.length ===
-              0 ? (
-              <div className="rgNotificationEmpty">
-                Шинэ
-                мэдэгдэл
-                байхгүй.
-              </div>
+            {loading && pending.length === 0 ? (
+              <div className="rgNotificationEmpty">Уншиж байна...</div>
+            ) : pending.length === 0 ? (
+              <div className="rgNotificationEmpty">Шинэ мэдэгдэл байхгүй.</div>
             ) : (
               <div className="rgNotificationList">
                 {pending
+
                   .slice(
                     0,
+
                     10,
                   )
+
                   .map(
                     (
                       item,
+
                       index,
                     ) => {
-                      const requestId =
-                        getRequestId(
-                          item,
-                        );
+                      const requestId = getRequestId(item);
 
                       const isDeleting =
-                        String(
-                          deletingId,
-                        ) ===
-                        String(
-                          requestId,
-                        );
+                        String(deletingId) === String(requestId);
 
                       return (
                         <div
                           className="rgNotificationItemRow"
                           key={getNotificationKey(
                             item,
+
                             index,
                           )}
                         >
                           <button
                             type="button"
                             className="rgNotificationItem"
-                            onClick={() =>
-                              openNotification(
-                                item,
-                              )
-                            }
+                            onClick={() => openNotification(item)}
                           >
                             <span className="rgNotificationBullet" />
 
@@ -942,12 +786,10 @@ export default function Topbar({
                                   "Notification"}
                               </strong>
 
-                              {(item.start_time ||
-                                item.created_at) && (
+                              {(item.start_time || item.created_at) && (
                                 <small>
                                   {formatDateTime(
-                                    item.start_time ||
-                                      item.created_at,
+                                    item.start_time || item.created_at,
                                   )}
                                 </small>
                               )}
@@ -959,14 +801,11 @@ export default function Topbar({
                             className="rgNotificationDelete"
                             title="Мэдэгдэл устгах"
                             aria-label="Мэдэгдэл устгах"
-                            disabled={
-                              isDeleting
-                            }
-                            onClick={(
-                              event,
-                            ) =>
+                            disabled={isDeleting}
+                            onClick={(event) =>
                               deleteNotification(
                                 item,
+
                                 event,
                               )
                             }
@@ -980,6 +819,7 @@ export default function Topbar({
               </div>
             )}
           </div>,
+
           document.body,
         )}
 
@@ -987,22 +827,16 @@ export default function Topbar({
         profilePosition &&
         createPortal(
           <div
-            ref={
-              profileMenuRef
-            }
+            ref={profileMenuRef}
             className="rgDropdown rgProfileDropdown"
             style={{
-              position:
-                "fixed",
+              position: "fixed",
 
-              top:
-                profilePosition.top,
+              top: profilePosition.top,
 
-              left:
-                profilePosition.left,
+              left: profilePosition.left,
 
-              width:
-                profilePosition.width,
+              width: profilePosition.width,
 
               zIndex: 99999,
             }}
@@ -1010,34 +844,23 @@ export default function Topbar({
             <button
               type="button"
               onClick={() => {
-                setOpenProfile(
-                  false,
-                );
+                setOpenProfile(false);
 
                 onNavigate();
 
-                navigate(
-                  "/user/profile",
-                );
+                navigate("/user/profile");
               }}
             >
               <FiUser />
-
               Профайл
             </button>
 
-            <button
-              type="button"
-              className="danger"
-              onClick={
-                logout
-              }
-            >
+            <button type="button" className="danger" onClick={logout}>
               <FiLogOut />
-
               Гарах
             </button>
           </div>,
+
           document.body,
         )}
     </header>

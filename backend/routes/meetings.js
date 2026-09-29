@@ -1,124 +1,163 @@
 import express from "express";
+
 import pool from "../db.js";
+
 import authMiddleware from "../middleware/authMiddleware.js";
+
 import { createZoomMeeting } from "../utils/zoom.js";
 
 const router = express.Router();
 
 const TZ = "Asia/Ulaanbaatar";
 
-/* =========================
-   Helpers
-========================= */
+
 function toDateTime(date, time) {
-  // date: YYYY-MM-DD, time: HH:MM
+
   return `${date} ${time}:00`;
 }
 
-// Parse MySQL DATETIME or ISO-ish string safely -> Date
 function parseDBDate(dt) {
   if (!dt) return null;
+
   const s = String(dt).trim();
+
   if (!s) return null;
 
-  // "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
   const isoLike = s.includes("T") ? s : s.replace(" ", "T");
+
   const d = new Date(isoLike);
 
   if (Number.isNaN(d.getTime())) return null;
+
   return d;
 }
 
-// Meeting end time rule:
-// - if end_time exists: use it
-// - else: start_time + 30 minutes
 function getEndDate(m) {
   const start = parseDBDate(m.start_time);
+
   if (!start) return null;
 
   const end = parseDBDate(m.end_time);
+
   if (end) return end;
 
   // default 30 mins
+
   return new Date(start.getTime() + 30 * 60 * 1000);
 }
 
 function isEnded(m, now = new Date()) {
   const end = getEndDate(m);
+
   if (!end) return false; // if invalid time, do not treat as ended
+
   return end.getTime() < now.getTime();
 }
 
 // duration in minutes for Zoom
+
 function durationMinutes(m) {
   const start = parseDBDate(m.start_time);
+
   const end = parseDBDate(m.end_time);
+
   if (!start) return 30;
+
   if (!end) return 30;
+
   const diff = Math.round((end.getTime() - start.getTime()) / 60000);
+
   return Math.max(15, diff || 30);
 }
 
+async function ensureFinishedMeetingTable(conn) {
+  await conn.query(`
+    CREATE TABLE IF NOT EXISTS finished_meeting LIKE meetings
+  `);
+}
+
 async function cleanupEndedMeetings(conn) {
-  // Pull candidates (we only need minimal columns)
+  await ensureFinishedMeetingTable(conn);
+
   const [rows] = await conn.query(`
-    SELECT id, start_time, end_time
+    SELECT *
     FROM meetings
   `);
 
   const now = new Date();
-  const toDeleteIds = [];
+  const finishedIds = [];
 
-  for (const m of rows) {
-    const end = getEndDate(m);
+  for (const meeting of rows) {
+    const end = getEndDate(meeting);
     if (!end) continue;
-    if (end.getTime() < now.getTime()) {
-      toDeleteIds.push(m.id);
+
+    if (end.getTime() <= now.getTime()) {
+      finishedIds.push(meeting.id);
     }
   }
 
-  if (toDeleteIds.length > 0) {
-    // delete notifications first to avoid orphans
-    await conn.query(
-      `DELETE FROM notifications
-       WHERE type IN ('meeting_request','meeting_update')
-         AND ref_id IN (${toDeleteIds.map(() => "?").join(",")})`,
-      toDeleteIds
-    );
+  if (finishedIds.length === 0) return;
 
-    await conn.query(
-      `DELETE FROM meetings
-       WHERE id IN (${toDeleteIds.map(() => "?").join(",")})`,
-      toDeleteIds
-    );
-  }
+  const placeholders = finishedIds.map(() => "?").join(",");
 
-  // also cleanup any orphan notifications just in case
-  await conn.query(`
-    DELETE n FROM notifications n
-    LEFT JOIN meetings m ON m.id = n.ref_id
-    WHERE n.type IN ('meeting_request','meeting_update')
-      AND m.id IS NULL
-  `);
+  await conn.query(
+    `
+    INSERT IGNORE INTO finished_meeting
+    SELECT *
+    FROM meetings
+    WHERE id IN (${placeholders})
+    `,
+    finishedIds,
+  );
+
+  await conn.query(
+    `
+    DELETE FROM notifications
+    WHERE type IN ('meeting_request', 'meeting_update')
+      AND ref_id IN (${placeholders})
+    `,
+    finishedIds,
+  );
+
+  await conn.query(
+    `
+    DELETE FROM meetings
+    WHERE id IN (${placeholders})
+    `,
+    finishedIds,
+  );
 }
 
-/* =========================
-   CREATE MEETING
-   POST /api/meetings
-========================= */
 router.post("/", authMiddleware, async (req, res) => {
-  const { mode, company, eventId, title, date, startTime, endTime, reason, invitees } = req.body;
+  const {
+    mode,
+    company,
+    eventId,
+    title,
+    date,
+    startTime,
+    endTime,
+    reason,
+    invitees,
+  } = req.body;
 
   if (!date || !startTime || !reason?.trim()) {
-    return res.status(400).json({ message: "date, startTime, reason are required" });
+    return res
+      .status(400)
+      .json({ message: "date, startTime, reason are required" });
   }
 
   const creatorId = req.user?.id;
-  if (!creatorId) return res.status(401).json({ message: "Invalid token (no user id)" });
+
+  if (!creatorId)
+    return res.status(401).json({ message: "Invalid token (no user id)" });
 
   const m = String(mode || "").toLowerCase();
+
   if (m !== "event" && m !== "company") {
-    return res.status(400).json({ message: "mode must be 'event' or 'company'" });
+    return res
+      .status(400)
+      .json({ message: "mode must be 'event' or 'company'" });
   }
 
   if (m === "company" && !String(company || "").trim()) {
@@ -127,12 +166,16 @@ router.post("/", authMiddleware, async (req, res) => {
 
   if (m === "event") {
     const evId = Number(eventId);
+
     if (!Number.isFinite(evId)) {
-      return res.status(400).json({ message: "eventId is required in event mode" });
+      return res
+        .status(400)
+        .json({ message: "eventId is required in event mode" });
     }
   }
 
   const startDT = toDateTime(date, startTime);
+
   const endDT = endTime ? toDateTime(date, endTime) : null;
 
   const finalTitle =
@@ -147,35 +190,52 @@ router.post("/", authMiddleware, async (req, res) => {
     : [];
 
   const conn = await pool.getConnection();
+
   try {
     await conn.beginTransaction();
 
     await cleanupEndedMeetings(conn);
 
     // No invitees -> personal accepted (no zoom)
+
     if (inviteList.length === 0) {
       const [result] = await conn.query(
         `INSERT INTO meetings
+
          (creator_user_id, recipient_user_id, title, description, start_time, end_time, status)
+
          VALUES (?, ?, ?, ?, ?, ?, 'accepted')`,
-        [creatorId, creatorId, finalTitle, description, startDT, endDT]
+
+        [creatorId, creatorId, finalTitle, description, startDT, endDT],
       );
 
       await conn.commit();
-      return res.status(201).json({ message: "Saved", meetingId: result.insertId });
+
+      return res
+        .status(201)
+        .json({ message: "Saved", meetingId: result.insertId });
     }
 
     // Find recipients by email
+
     const [rows] = await conn.query(
       `SELECT id, email FROM users WHERE LOWER(email) IN (${inviteList.map(() => "?").join(",")})`,
-      inviteList
+
+      inviteList,
     );
 
-    const foundByEmail = new Map(rows.map((r) => [String(r.email).toLowerCase(), r.id]));
+    const foundByEmail = new Map(
+      rows.map((r) => [String(r.email).toLowerCase(), r.id]),
+    );
+
     const missing = inviteList.filter((e) => !foundByEmail.has(e));
+
     if (missing.length) {
       await conn.rollback();
-      return res.status(400).json({ message: "Some invitee emails do not exist", missing });
+
+      return res
+        .status(400)
+        .json({ message: "Some invitee emails do not exist", missing });
     }
 
     const createdMeetingIds = [];
@@ -185,79 +245,120 @@ router.post("/", authMiddleware, async (req, res) => {
 
       const [ins] = await conn.query(
         `INSERT INTO meetings
+
          (creator_user_id, recipient_user_id, title, description, start_time, end_time, status)
+
          VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
-        [creatorId, recipientId, finalTitle, description, startDT, endDT]
+
+        [creatorId, recipientId, finalTitle, description, startDT, endDT],
       );
 
       const meetingId = ins.insertId;
+
       createdMeetingIds.push(meetingId);
 
       const [[recipientUser]] = await conn.query(
         `SELECT email, company_name, first_name, last_name FROM users WHERE id=?`,
-        [recipientId]
+
+        [recipientId],
       );
 
       await conn.query(
         `
+
         INSERT INTO notifications
+
         (user_id, type, ref_id, is_read)
+
         VALUES (?, 'meeting_request', ?, 0)
+
         `,
-        [recipientId, meetingId]
+
+        [recipientId, meetingId],
       );
     }
 
     await conn.commit();
-    return res.status(201).json({ message: "Meeting request(s) sent", meetingIds: createdMeetingIds });
+
+    return res
+      .status(201)
+      .json({
+        message: "Meeting request(s) sent",
+        meetingIds: createdMeetingIds,
+      });
   } catch (err) {
     await conn.rollback();
+
     console.error("POST /api/meetings ERROR:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
+
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
   }
 });
 
-/* =========================
-   INBOX
-   GET /api/meetings/inbox
-========================= */
 router.get("/inbox", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
 
     const [rows] = await pool.query(
       `
+
       SELECT
+
         m.*,
 
+
+
         cu.email AS sender_email,
+
         TRIM(CONCAT(COALESCE(cu.first_name,''), ' ', COALESCE(cu.last_name,''))) AS sender_name,
+
         cu.company_name AS sender_company,
+
+
 
         ru.email AS recipient_email,
 
+
+
         CASE
+
           WHEN m.title IS NOT NULL AND m.title != ''
+
           THEN m.title
+
           ELSE 'Direct Request'
+
         END AS request_from
+
+
 
       FROM meetings m
 
+
+
       JOIN users cu ON cu.id = m.creator_user_id
+
       JOIN users ru ON ru.id = m.recipient_user_id
 
+
+
       WHERE m.recipient_user_id = ?
+
       ORDER BY m.created_at DESC
+
       `,
-      [userId]
+
+      [userId],
     );
 
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/inbox ERROR:", err);
+
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -265,11 +366,13 @@ router.get("/inbox", authMiddleware, async (req, res) => {
 router.post("/:id/join-request", authMiddleware, async (req, res) => {
   try {
     const eventId = Number(req.params.id);
+
     const userId = req.user.id;
 
     const [[event]] = await pool.query(
       `SELECT id, title, created_by FROM events WHERE id = ?`,
-      [eventId]
+
+      [eventId],
     );
 
     if (!event) {
@@ -282,10 +385,14 @@ router.post("/:id/join-request", authMiddleware, async (req, res) => {
 
     const [[exists]] = await pool.query(
       `
+
       SELECT id FROM event_join_requests
+
       WHERE event_id = ? AND user_id = ? AND status = 'pending'
+
       `,
-      [eventId, userId]
+
+      [eventId, userId],
     );
 
     if (exists) {
@@ -294,19 +401,26 @@ router.post("/:id/join-request", authMiddleware, async (req, res) => {
 
     const [result] = await pool.query(
       `
+
       INSERT INTO event_join_requests
+
       (event_id, user_id, creator_user_id, status)
+
       VALUES (?, ?, ?, 'pending')
+
       `,
-      [eventId, userId, event.created_by]
+
+      [eventId, userId, event.created_by],
     );
 
     res.status(201).json({
       message: "Join request sent",
+
       requestId: result.insertId,
     });
   } catch (err) {
     console.error("POST /events/:id/join-request ERROR:", err);
+
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -317,23 +431,36 @@ router.get("/join-requests/inbox", authMiddleware, async (req, res) => {
 
     const [rows] = await pool.query(
       `
+
       SELECT
+
         r.*,
+
         e.title AS event_title,
+
         u.email AS sender_email,
+
         TRIM(CONCAT(COALESCE(u.first_name,''), ' ', COALESCE(u.last_name,''))) AS sender_name
+
       FROM event_join_requests r
+
       JOIN events e ON e.id = r.event_id
+
       JOIN users u ON u.id = r.user_id
+
       WHERE r.creator_user_id = ?
+
       ORDER BY r.created_at DESC
+
       `,
-      [userId]
+
+      [userId],
     );
 
     res.json(rows);
   } catch (err) {
     console.error("GET /join-requests/inbox ERROR:", err);
+
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -345,44 +472,63 @@ router.patch("/join-requests/:id/accept", authMiddleware, async (req, res) => {
     await conn.beginTransaction();
 
     const requestId = Number(req.params.id);
+
     const userId = req.user.id;
 
     const [[r]] = await conn.query(
       `
+
       SELECT * FROM event_join_requests
+
       WHERE id = ? AND creator_user_id = ? AND status = 'pending'
+
       `,
-      [requestId, userId]
+
+      [requestId, userId],
     );
 
     if (!r) {
       await conn.rollback();
+
       return res.status(404).json({ message: "Request not found" });
     }
 
     await conn.query(
       `
+
       INSERT IGNORE INTO event_bookings
+
       (event_id, user_id)
+
       VALUES (?, ?)
+
       `,
-      [r.event_id, r.user_id]
+
+      [r.event_id, r.user_id],
     );
 
     await conn.query(
       `
+
       UPDATE event_join_requests
+
       SET status = 'accepted'
+
       WHERE id = ?
+
       `,
-      [requestId]
+
+      [requestId],
     );
 
     await conn.commit();
+
     res.json({ message: "Accepted and user added" });
   } catch (err) {
     await conn.rollback();
+
     console.error("ACCEPT JOIN REQUEST ERROR:", err);
+
     res.status(500).json({ message: "Server error" });
   } finally {
     conn.release();
@@ -392,125 +538,165 @@ router.patch("/join-requests/:id/accept", authMiddleware, async (req, res) => {
 router.patch("/join-requests/:id/decline", authMiddleware, async (req, res) => {
   try {
     const requestId = Number(req.params.id);
+
     const userId = req.user.id;
 
     await pool.query(
       `
+
       UPDATE event_join_requests
+
       SET status = 'declined'
+
       WHERE id = ? AND creator_user_id = ?
+
       `,
-      [requestId, userId]
+
+      [requestId, userId],
     );
 
     res.json({ message: "Declined" });
   } catch (err) {
     console.error("DECLINE JOIN REQUEST ERROR:", err);
+
     res.status(500).json({ message: "Server error" });
   }
 });
+
 /* =========================
+
    SENT
+
    GET /api/meetings/sent
+
 ========================= */
+
 router.get("/sent", authMiddleware, async (req, res) => {
   try {
-    const userEmail = String(req.user?.email || "").trim().toLowerCase();
+    const userEmail = String(req.user?.email || "")
+      .trim()
+      .toLowerCase();
 
     const [[user]] = await pool.query(
       `SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1`,
-      [userEmail]
+
+      [userEmail],
     );
 
     if (!user) return res.status(401).json({ message: "User not found" });
 
     const [rows] = await pool.query(
       `
+
       SELECT
+
         m.*,
+
         cu.email AS creator_email,
+
         ru.email AS recipient_email,
+
         TRIM(CONCAT(COALESCE(cu.first_name,''), ' ', COALESCE(cu.last_name,''))) AS creator_name,
+
         TRIM(CONCAT(COALESCE(ru.first_name,''), ' ', COALESCE(ru.last_name,''))) AS recipient_name
+
       FROM meetings m
+
       JOIN users cu ON cu.id = m.creator_user_id
+
       JOIN users ru ON ru.id = m.recipient_user_id
+
       WHERE m.creator_user_id = ?
+
       ORDER BY m.created_at DESC
+
       `,
-      [user.id]
+
+      [user.id],
     );
 
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/sent ERROR:", err);
+
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
-/* =========================
-   ACCEPTED
-   GET /api/meetings/accepted
-========================= */
 router.get("/accepted", authMiddleware, async (req, res) => {
   const userId = req.user?.id;
-  if (!userId) return res.status(401).json({ message: "Invalid token (no user id)" });
+
+  if (!userId)
+    return res.status(401).json({ message: "Invalid token (no user id)" });
 
   const conn = await pool.getConnection();
+
   try {
     await cleanupEndedMeetings(conn);
 
     const [rows] = await conn.query(
-    `
+      `
+
     SELECT
+
       m.*,
 
       cu.email AS creator_email,
+
       ru.email AS recipient_email,
 
       cu.first_name AS creator_first_name,
+
       cu.last_name AS creator_last_name,
 
       ru.first_name AS recipient_first_name,
+
       ru.last_name AS recipient_last_name,
 
       CONCAT(cu.first_name, ' ', cu.last_name) AS creator_name,
+
       CONCAT(ru.first_name, ' ', ru.last_name) AS recipient_name
 
     FROM meetings m
+
     JOIN users cu ON cu.id = m.creator_user_id
+
     JOIN users ru ON ru.id = m.recipient_user_id
 
     WHERE (m.creator_user_id = ? OR m.recipient_user_id = ?)
+
     AND m.status = 'accepted'
 
     ORDER BY m.created_at DESC
+
     `,
-    [userId, userId]
-  );
+
+      [userId, userId],
+    );
+
     res.json(rows);
   } catch (err) {
     console.error("GET /api/meetings/accepted ERROR:", err);
+
     res.status(500).json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
   }
 });
 
-/* =========================
-   ACCEPT (creates Zoom meeting)
-   PATCH /api/meetings/:id/accept
-   ✅ DOES NOT redirect. Returns zoom_join_url only.
-   ✅ If meeting ended -> 410 Gone
-========================= */
 router.patch("/:id/accept", authMiddleware, async (req, res) => {
   const userId = req.user?.id;
+
   const meetingId = Number(req.params.id);
 
-  if (!userId) return res.status(401).json({ message: "Invalid token (no user id)" });
-  if (!Number.isFinite(meetingId)) return res.status(400).json({ message: "Invalid meeting id" });
+  if (!userId)
+    return res.status(401).json({ message: "Invalid token (no user id)" });
+
+  if (!Number.isFinite(meetingId))
+    return res.status(400).json({ message: "Invalid meeting id" });
 
   const conn = await pool.getConnection();
+
   try {
     await conn.beginTransaction();
 
@@ -518,190 +704,307 @@ router.patch("/:id/accept", authMiddleware, async (req, res) => {
 
     const [[m]] = await conn.query(
       `SELECT * FROM meetings WHERE id=? AND recipient_user_id=?`,
-      [meetingId, userId]
+
+      [meetingId, userId],
     );
 
     if (!m) {
       await conn.rollback();
-      return res.status(404).json({ message: "Meeting not found (maybe ended and removed)" });
+
+      return res
+        .status(404)
+        .json({ message: "Meeting not found (maybe ended and removed)" });
     }
 
     // Prevent accepting/joining ended
+
     if (isEnded(m)) {
       // delete it now
+
       await conn.query(`DELETE FROM notifications WHERE ref_id=?`, [meetingId]);
+
       await conn.query(`DELETE FROM meetings WHERE id=?`, [meetingId]);
+
       await conn.commit();
-      return res.status(410).json({ message: "Meeting already ended and was removed" });
+
+      return res
+        .status(410)
+        .json({ message: "Meeting already ended and was removed" });
     }
 
     // If already accepted with zoom
+
     if (m.status === "accepted" && m.zoom_join_url) {
       await conn.commit();
+
       return res.json({
         message: "Already accepted",
+
         zoom_join_url: m.zoom_join_url,
+
         zoom_meeting_id: m.zoom_meeting_id || null,
       });
     }
 
     const start = parseDBDate(m.start_time);
+
     if (!start) {
       await conn.rollback();
+
       return res.status(400).json({ message: "Invalid start_time in DB" });
     }
 
     // Zoom wants ISO string; we also pass timezone in zoom.js
+
     const startISO = start.toISOString();
+
     const duration = durationMinutes(m);
 
     const zoom = await createZoomMeeting({
       topic: m.title || "Meeting",
+
       start_time: startISO,
+
       duration_min: duration,
+
       timezone: TZ, // optional if you want to pass it through
     });
 
     await conn.query(
       `UPDATE meetings
+
        SET status='accepted',
+
            zoom_meeting_id=?,
+
            zoom_join_url=?,
+
            zoom_start_url=?
+
        WHERE id=? AND recipient_user_id=?`,
-      [String(zoom.id), zoom.join_url, zoom.start_url, meetingId, userId]
+
+      [String(zoom.id), zoom.join_url, zoom.start_url, meetingId, userId],
     );
 
     await conn.query(
       `UPDATE notifications
+
        SET is_read=1
+
        WHERE user_id=? AND ref_id=? AND type='meeting_request'`,
-      [userId, meetingId]
+
+      [userId, meetingId],
     );
 
     if (m.creator_user_id) {
       await conn.query(
         `INSERT INTO notifications (user_id, type, ref_id, is_read)
+
          VALUES (?, 'meeting_update', ?, 0)`,
-        [m.creator_user_id, meetingId]
+
+        [m.creator_user_id, meetingId],
       );
     }
 
     await conn.commit();
     return res.json({
       message: "Accepted",
-      zoom_join_url: zoom.join_url, // ✅ frontend shows Join button
+
+      zoom_join_url: zoom.join_url,
+
       zoom_meeting_id: String(zoom.id),
     });
   } catch (err) {
     await conn.rollback();
     console.error("PATCH accept ERROR:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
   }
 });
 
-/* =========================
-   DECLINE
-========================= */
 router.patch("/:id/decline", authMiddleware, async (req, res) => {
   const userId = req.user?.id;
+
   const meetingId = Number(req.params.id);
 
-  if (!userId) return res.status(401).json({ message: "Invalid token (no user id)" });
+  if (!userId)
+    return res.status(401).json({ message: "Invalid token (no user id)" });
 
   const conn = await pool.getConnection();
+
   try {
     await conn.beginTransaction();
+
     await cleanupEndedMeetings(conn);
 
     const [result] = await conn.query(
       `UPDATE meetings
+
        SET status='declined'
+
        WHERE id=? AND recipient_user_id=?`,
-      [meetingId, userId]
+
+      [meetingId, userId],
     );
 
     if (result.affectedRows === 0) {
       await conn.rollback();
+
       return res.status(404).json({ message: "Meeting not found" });
     }
 
     await conn.query(
       `UPDATE notifications
+
        SET is_read=1
+
        WHERE user_id=? AND ref_id=? AND type='meeting_request'`,
-      [userId, meetingId]
+
+      [userId, meetingId],
     );
 
-    const [[row]] = await conn.query(`SELECT creator_user_id FROM meetings WHERE id=?`, [meetingId]);
+    const [[row]] = await conn.query(
+      `SELECT creator_user_id FROM meetings WHERE id=?`,
+      [meetingId],
+    );
+
     if (row?.creator_user_id) {
       await conn.query(
         `INSERT INTO notifications (user_id, type, ref_id, is_read)
+
          VALUES (?, 'meeting_update', ?, 0)`,
-        [row.creator_user_id, meetingId]
+
+        [row.creator_user_id, meetingId],
       );
     }
 
     await conn.commit();
+
     res.json({ message: "Declined" });
   } catch (err) {
     await conn.rollback();
+
     console.error("PATCH decline ERROR:", err);
+
     res.status(500).json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
   }
 });
 
-/* =========================
-   EDIT (reschedule)
-========================= */
 router.patch("/:id/edit", authMiddleware, async (req, res) => {
   const userId = req.user?.id;
   const meetingId = Number(req.params.id);
   const { date, startTime, endTime } = req.body;
 
-  if (!userId) return res.status(401).json({ message: "Invalid token (no user id)" });
-  if (!date || !startTime) return res.status(400).json({ message: "date and startTime are required" });
+  if (!userId)
+    return res.status(401).json({ message: "Invalid token (no user id)" });
+
+  if (!date || !startTime)
+    return res.status(400).json({ message: "date and startTime are required" });
 
   const startDT = toDateTime(date, startTime);
   const endDT = endTime ? toDateTime(date, endTime) : null;
-
   const conn = await pool.getConnection();
+
   try {
     await conn.beginTransaction();
+
     await cleanupEndedMeetings(conn);
 
     const [result] = await conn.query(
       `UPDATE meetings
+
        SET start_time=?, end_time=?, status='pending',
+
            zoom_meeting_id=NULL, zoom_join_url=NULL, zoom_start_url=NULL
+
        WHERE id=? AND recipient_user_id=?`,
-      [startDT, endDT, meetingId, userId]
+
+      [startDT, endDT, meetingId, userId],
     );
 
     if (result.affectedRows === 0) {
       await conn.rollback();
+
       return res.status(404).json({ message: "Meeting not found" });
     }
 
-    const [[row]] = await conn.query(`SELECT creator_user_id FROM meetings WHERE id=?`, [meetingId]);
+    const [[row]] = await conn.query(
+      `SELECT creator_user_id FROM meetings WHERE id=?`,
+      [meetingId],
+    );
+
     if (row?.creator_user_id) {
       await conn.query(
         `INSERT INTO notifications (user_id, type, ref_id, is_read)
+
          VALUES (?, 'meeting_update', ?, 0)`,
-        [row.creator_user_id, meetingId]
+
+        [row.creator_user_id, meetingId],
       );
     }
 
     await conn.commit();
+
     res.json({ message: "Meeting rescheduled" });
   } catch (err) {
     await conn.rollback();
+
     console.error("PATCH edit ERROR:", err);
+
     res.status(500).json({ message: "Server error", error: err.message });
+  } finally {
+    conn.release();
+  }
+});
+
+router.get("/finished", authMiddleware, async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Invalid token (no user id)" });
+  }
+
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+    await cleanupEndedMeetings(conn);
+    await conn.commit();
+
+    await ensureFinishedMeetingTable(conn);
+
+    const [rows] = await conn.query(
+      `
+      SELECT
+        fm.*,
+        cu.email AS creator_email,
+        ru.email AS recipient_email,
+        TRIM(CONCAT(COALESCE(cu.first_name, ''), ' ', COALESCE(cu.last_name, ''))) AS creator_name,
+        TRIM(CONCAT(COALESCE(ru.first_name, ''), ' ', COALESCE(ru.last_name, ''))) AS recipient_name
+      FROM finished_meeting fm
+      LEFT JOIN users cu ON cu.id = fm.creator_user_id
+      LEFT JOIN users ru ON ru.id = fm.recipient_user_id
+      WHERE fm.creator_user_id = ? OR fm.recipient_user_id = ?
+      ORDER BY COALESCE(fm.end_time, fm.start_time) DESC
+      `,
+      [userId, userId],
+    );
+
+    return res.json(rows);
+  } catch (err) {
+    try {
+      await conn.rollback();
+    } catch {}
+
+    console.error("GET /api/meetings/finished ERROR:", err);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
   }
