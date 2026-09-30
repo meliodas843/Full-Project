@@ -8,22 +8,14 @@ import UserShell from "../components/UserShell";
 
 import EventCreateWizard from "../components/EventCreateWizard";
 
-import { API_BASE } from "@/lib/config";
+import { API_BASE, defaultEventCover, getImageSrc } from "@/lib/config";
 
 function resolveUrl(url) {
-  const value = String(url || "").trim();
-
-  if (!value) return "";
-
-  if (value.startsWith("http\://") || value.startsWith("https\://")) {
-    return value;
-  }
-
-  return `${API_BASE}${value.startsWith("/") ? value : `/${value}`}`;
+  return getImageSrc(url, "");
 }
 
-function fallbackImgSrc() {
-  return `${API_BASE}/uploads/fallbacks/event-placeholder.png`;
+function fallbackImgSrc(seed = 0) {
+  return defaultEventCover(seed);
 }
 
 function getEventImage(event) {
@@ -34,7 +26,7 @@ function getEventImage(event) {
     resolveUrl(event?.cover) ||
     resolveUrl(event?.thumbnail) ||
     resolveUrl(event?.banner) ||
-    fallbackImgSrc()
+    fallbackImgSrc(event?.id || event?.event_id || 0)
   );
 }
 
@@ -968,7 +960,7 @@ export default function History() {
 
     setMaxParticipants("");
 
-    setVisibility("Нийтийн");
+    setVisibility("public");
 
     setFormError("");
 
@@ -1006,7 +998,7 @@ export default function History() {
 
     setDescription(event.description || "");
 
-    setBadge(event.badge || "");
+    setBadge(String(event.category || event.badge || "").trim());
 
     const parsedSpeakers = parseSpeakers(event.speaker);
 
@@ -1041,6 +1033,250 @@ export default function History() {
     setShowForm(true);
 
     scrollTop();
+  }
+
+  async function handleSave(event, saveStatus = "published") {
+    event.preventDefault();
+
+    if (creating) {
+      return;
+    }
+
+    setFormError("");
+
+    setSuccessMsg("");
+
+    const cleanTitle = String(title || "").trim();
+
+    const cleanDescription = String(description || "").trim();
+
+    const cleanCategory = String(badge || "").trim();
+
+    const cleanVisibility = String(visibility || "public").trim();
+
+    console.log("========== EVENT FORM ==========");
+
+    console.log("title:", cleanTitle);
+
+    console.log("badge state:", badge);
+
+    console.log("category to send:", cleanCategory);
+
+    console.log("start_time:", start_time);
+
+    console.log("visibility:", cleanVisibility);
+
+    console.log("================================");
+
+    if (!cleanTitle) {
+      setFormError("Эвентийн нэрийг оруулна уу.");
+
+      return;
+    }
+
+    if (!cleanCategory) {
+      setFormError("Эвентийн төрлийг сонгоно уу.");
+
+      return;
+    }
+
+    if (!start_time) {
+      setFormError("Эхлэх огноо, цагийг сонгоно уу.");
+
+      return;
+    }
+
+    if (!editingEventId && new Date(start_time) < new Date()) {
+      setFormError("Өнгөрсөн огноо сонгох боломжгүй.");
+
+      return;
+    }
+
+    if (end_time && new Date(end_time) < new Date(start_time)) {
+      setFormError("Дуусах цаг эхлэх цагаас өмнө байж болохгүй.");
+
+      return;
+    }
+
+    if (imageFile && isSvgFile(imageFile)) {
+      setFormError("SVG зураг оруулах боломжгүй.");
+
+      return;
+    }
+
+    try {
+      setCreating(true);
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setFormError("Эхлээд нэвтэрнэ үү.");
+
+        return;
+      }
+
+      const cleanedAgendas = agendas
+
+        .map((item) => ({
+          text: String(item?.text || "").trim(),
+
+          time: String(item?.time || "").trim(),
+        }))
+
+        .filter((item) => item.text || item.time);
+
+      const cleanedSpeakers = speakers
+
+        .map((speaker) => ({
+          name: String(speaker?.name || "").trim(),
+
+          organization: String(speaker?.organization || "").trim(),
+
+          topic: String(speaker?.topic || "").trim(),
+        }))
+
+        .filter(
+          (speaker) => speaker.name || speaker.organization || speaker.topic,
+        );
+
+      const formData = new FormData();
+
+      formData.append("title", cleanTitle);
+
+      formData.append("description", cleanDescription);
+
+      /*
+
+       * IMPORTANT
+
+       *
+
+       * React state name = badge
+
+       * API field name    = category
+
+       * MySQL column      = category
+
+       */
+
+      formData.append("category", cleanCategory);
+
+      formData.append("speaker", JSON.stringify(cleanedSpeakers));
+
+      formData.append("agenda", JSON.stringify(cleanedAgendas));
+
+      formData.append("start_time", String(start_time).replace("T", " "));
+
+      formData.append(
+        "end_time",
+
+        end_time ? String(end_time).replace("T", " ") : "",
+      );
+
+      formData.append("image_url", String(image_url || "").trim());
+
+      formData.append(
+        "max_participants",
+
+        max_participants ? String(max_participants) : "0",
+      );
+
+      formData.append("visibility", cleanVisibility || "public");
+
+      formData.append("status", saveStatus === "draft" ? "draft" : "published");
+
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      speakers.forEach((speaker) => {
+        if (typeof File !== "undefined" && speaker?.avatar instanceof File) {
+          formData.append("speaker_avatars", speaker.avatar);
+        }
+      });
+
+      console.log("======= FORMDATA =======");
+
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(key, value.name);
+        } else {
+          console.log(key, value);
+        }
+      }
+
+      console.log("========================");
+
+      const url = editingEventId
+        ? `${API_BASE}/api/events/${editingEventId}`
+        : `${API_BASE}/api/events`;
+
+      const method = editingEventId ? "PUT" : "POST";
+
+      console.log("EVENT REQUEST:", method, url);
+
+      console.log("CATEGORY REQUEST:", cleanCategory);
+
+      const response = await fetch(url, {
+        method,
+
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+
+        body: formData,
+      });
+
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      console.log("EVENT RESPONSE STATUS:", response.status);
+
+      console.log("EVENT RESPONSE:", data);
+
+      if (!response.ok) {
+        setFormError(
+          data?.message ||
+            data?.error ||
+            (editingEventId
+              ? "Эвентийг шинэчилж чадсангүй."
+              : "Эвент үүсгэж чадсангүй."),
+        );
+
+        return;
+      }
+
+      console.log("EVENT SAVED:", data);
+
+      console.log("SENT CATEGORY:", cleanCategory);
+
+      await load();
+
+      setSuccessMsg(
+        editingEventId
+          ? "Эвент амжилттай шинэчлэгдлээ."
+          : "Эвент амжилттай үүслээ.",
+      );
+
+      setShowForm(false);
+
+      setEditingEventId(null);
+
+      resetForm();
+
+      scrollTop();
+    } catch (err) {
+      console.error("EVENT SAVE ERROR:", err);
+
+      setFormError("Сүлжээний алдаа гарлаа.");
+    } finally {
+      setCreating(false);
+    }
   }
 
   function openView(event) {
@@ -1173,219 +1409,6 @@ export default function History() {
     });
   }
 
-  async function handleSave(event) {
-    event.preventDefault();
-
-    if (creating) return;
-
-    setFormError("");
-
-    setSuccessMsg("");
-
-    if (!title.trim() || !badge.trim() || !start_time) {
-      setFormError(
-        "Гарчиг, төрөл болон эхлэх огноо, цагийг заавал оруулна уу.",
-      );
-
-      return;
-    }
-
-    if (!editingEventId && new Date(start_time) < new Date()) {
-      setFormError("Өнгөрсөн огноо сонгох боломжгүй.");
-
-      return;
-    }
-
-    if (end_time && new Date(end_time) < new Date(start_time)) {
-      setFormError("Дуусах цаг эхлэх цагаас өмнө байж болохгүй.");
-
-      return;
-    }
-
-    if (imageFile && isSvgFile(imageFile)) {
-      setFormError("SVG зураг оруулах боломжгүй.");
-
-      return;
-    }
-
-    try {
-      setCreating(true);
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setFormError("Эхлээд нэвтэрнэ үү.");
-
-        return;
-      }
-
-      const cleanedAgendas = agendas
-
-        .map((item) => ({
-          text: String(item.text || "").trim(),
-
-          time: String(item.time || "").trim(),
-        }))
-
-        .filter((item) => item.text || item.time);
-
-      const cleanedSpeakers = speakers
-
-        .map((speaker) => ({
-          name: String(speaker.name || "").trim(),
-
-          organization: String(speaker.organization || "").trim(),
-
-          topic: String(speaker.topic || "").trim(),
-        }))
-
-        .filter(
-          (speaker) => speaker.name || speaker.organization || speaker.topic,
-        );
-
-      const formData = new FormData();
-
-      formData.append(
-        "title",
-
-        title.trim(),
-      );
-
-      formData.append(
-        "description",
-
-        description.trim(),
-      );
-
-      formData.append(
-        "badge",
-
-        badge.trim(),
-      );
-
-      formData.append(
-        "speaker",
-
-        JSON.stringify(cleanedSpeakers),
-      );
-
-      formData.append(
-        "agenda",
-
-        JSON.stringify(cleanedAgendas),
-      );
-
-      formData.append(
-        "start_time",
-
-        start_time.replace(
-          "T",
-
-          " ",
-        ),
-      );
-
-      formData.append(
-        "end_time",
-
-        end_time
-          ? end_time.replace(
-              "T",
-
-              " ",
-            )
-          : "",
-      );
-
-      formData.append(
-        "image_url",
-
-        image_url.trim(),
-      );
-
-      formData.append(
-        "max_participants",
-
-        max_participants ? String(max_participants) : "0",
-      );
-
-      formData.append(
-        "visibility",
-
-        visibility,
-      );
-
-      if (imageFile) {
-        formData.append(
-          "image",
-
-          imageFile,
-        );
-      }
-
-      speakers.forEach((speaker) => {
-        if (speaker.avatar instanceof File) {
-          formData.append(
-            "speaker_avatars",
-
-            speaker.avatar,
-          );
-        }
-      });
-
-      const url = editingEventId
-        ? `${API_BASE}/api/events/${editingEventId}`
-        : `${API_BASE}/api/events`;
-
-      const response = await fetch(
-        url,
-
-        {
-          method: editingEventId ? "PUT" : "POST",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: formData,
-        },
-      );
-
-      const data = await response
-
-        .json()
-
-        .catch(() => ({}));
-
-      if (!response.ok) {
-        setFormError(
-          data?.message ||
-            (editingEventId
-              ? "Эвентийг шинэчилж чадсангүй."
-              : "Эвент үүсгэж чадсангүй."),
-        );
-
-        return;
-      }
-
-      await load();
-
-      setShowForm(false);
-
-      setEditingEventId(null);
-
-      resetForm();
-
-      scrollTop();
-    } catch (err) {
-      console.error(err);
-
-      setFormError("Сүлжээний алдаа гарлаа.");
-    } finally {
-      setCreating(false);
-    }
-  }
-
   async function deleteEvent(event) {
     const confirmed = window.confirm(
       `"${event.title || "Эвент"}" эвентыг устгах уу?`,
@@ -1438,79 +1461,19 @@ export default function History() {
     <UserShell title="Миний эвентүүд">
       <style>{`
 
-
-
-
-
-
-
         .myEventStatisticsBtn {
-
-
-
-
-
-
 
           border: 0;
 
-
-
-
-
-
-
           border-radius: 10px;
-
-
-
-
-
-
 
           padding: 10px 14px;
 
-
-
-
-
-
-
           cursor: pointer;
-
-
-
-
-
-
 
           font-weight: 700;
 
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       `}</style>
 
@@ -1705,7 +1668,7 @@ export default function History() {
               </div>
 
               <button className="myEventsCreateBtn" onClick={openCreate}>
-                \\\\+ Эвент үүсгэх
+                + Эвент үүсгэх
               </button>
             </div>
 

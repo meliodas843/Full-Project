@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import UserShell from "../components/UserShell";
 
-import { API_BASE } from "@/lib/config";
+import { API_BASE, defaultEventCover, getImageSrc } from "@/lib/config";
 
 import { useSearchParams } from "react-router-dom";
 
@@ -11,75 +11,21 @@ import EventCreateWizard from "../components/EventCreateWizard";
 function formatDateTime(dt) {
   if (!dt) return "";
 
-  const raw = String(dt);
+  const raw = String(dt).trim().replace("T", " ").replace(/Z$/, "");
 
-  if (raw.endsWith("Z")) {
-    const d = new Date(raw);
-
-    return d.toLocaleString("mn-MN", {
-      timeZone: "Asia/Ulaanbaatar",
-
-      year: "numeric",
-
-      month: "2-digit",
-
-      day: "2-digit",
-
-      hour: "2-digit",
-
-      minute: "2-digit",
-
-      hour12: false,
-    });
-  }
-
-  const s = raw.replace("T", " ");
-
-  const [datePart, timePart] = s.split(" ");
-
+  const [datePart, timePart = ""] = raw.split(" ");
   if (!datePart) return "";
 
   const [year, month, day] = datePart.split("-");
+  const time = timePart.slice(0, 5);
 
-  const time = (timePart || "").slice(0, 5);
-
-  return `${year}/${month}/${day} ${time}`;
+  return `${year}/${month}/${day}${time ? ` ${time}` : ""}`;
 }
 
 function toDateTimeLocal(dt) {
   if (!dt) return "";
 
-  const raw = String(dt);
-
-  if (raw.endsWith("Z")) {
-    const d = new Date(raw);
-
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Ulaanbaatar",
-
-      year: "numeric",
-
-      month: "2-digit",
-
-      day: "2-digit",
-
-      hour: "2-digit",
-
-      minute: "2-digit",
-
-      hour12: false,
-    }).formatToParts(d);
-
-    const get = (type) => parts.find((p) => p.type === type)?.value;
-
-    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
-  }
-
-  const s = raw.replace("T", " ");
-
-  const [datePart, timePart] = s.split(" ");
-
-  return `${datePart}T${(timePart || "").slice(0, 5)}`;
+  return String(dt).trim().replace(" ", "T").replace(/Z$/, "").slice(0, 16);
 }
 
 function isSvgFile(file) {
@@ -87,6 +33,7 @@ function isSvgFile(file) {
     file?.type === "image/svg+xml" ||
     String(file?.name || "")
       .toLowerCase()
+
       .endsWith(".svg")
   );
 }
@@ -110,19 +57,11 @@ function getInitials(nameOrEmail) {
 }
 
 function resolveUrl(url) {
-  const u = String(url || "").trim();
-
-  if (!u) return "";
-
-  if (u.startsWith("http\://") || u.startsWith("https\://")) {
-    return u;
-  }
-
-  return `${API_BASE}${u.startsWith("/") ? u : `/${u}`}`;
+  return getImageSrc(url, "");
 }
 
-function fallbackImgSrc() {
-  return `${API_BASE}/uploads/fallbacks/event-placeholder.png`;
+function fallbackImgSrc(seed = 0) {
+  return defaultEventCover(seed);
 }
 
 function isImageName(name) {
@@ -361,8 +300,11 @@ export default function Event() {
   const [now, setNow] = useState(Date.now());
 
   const [eventSearch, setEventSearch] = useState("");
+
   const [eventTab, setEventTab] = useState("all");
+
   const [eventSort, setEventSort] = useState("newest");
+
   const [reportEvent, setReportEvent] = useState(null);
 
   const [creating, setCreating] = useState(false);
@@ -908,7 +850,7 @@ export default function Event() {
 
     setDescription(ev.description || "");
 
-    setBadge(ev.badge || "");
+    setBadge(ev.category || "");
 
     setSpeakers(parsedSpeakers.length ? parsedSpeakers : [makeSpeaker()]);
 
@@ -1040,7 +982,7 @@ export default function Event() {
       );
 
       fd.append(
-        "badge",
+        "category",
 
         badge.trim(),
       );
@@ -1512,24 +1454,32 @@ export default function Event() {
 
     list = list.filter((ev) => {
       const finished = isEventFinished(ev);
+
       const status = String(ev.status || "").toLowerCase();
+
       const isDraft =
         status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
 
       if (eventTab === "draft" && !isDraft) return false;
+
       if (eventTab === "published" && (isDraft || finished)) return false;
+
       if (eventTab === "finished" && !finished) return false;
 
       if (!query) return true;
 
-      return [ev.title, ev.description, ev.badge]
+      return [ev.title, ev.description, ev.category]
+
         .join(" ")
+
         .toLowerCase()
+
         .includes(query);
     });
 
     return [...list].sort((a, b) => {
       const aTime = parseEventDateTime(a.start_time);
+
       const bTime = parseEventDateTime(b.start_time);
 
       return eventSort === "oldest" ? aTime - bTime : bTime - aTime;
@@ -1541,16 +1491,22 @@ export default function Event() {
 
     return {
       all: own.length,
+
       draft: own.filter((ev) => {
         const status = String(ev.status || "").toLowerCase();
+
         return status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
       }).length,
+
       published: own.filter((ev) => {
         const status = String(ev.status || "").toLowerCase();
+
         const draft =
           status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
+
         return !draft && !isEventFinished(ev);
       }).length,
+
       finished: own.filter((ev) => isEventFinished(ev)).length,
     };
   }, [events, now]);
@@ -1585,7 +1541,7 @@ export default function Event() {
 
               <div className="eventDetailHero">
                 <img
-                  src={resolveUrl(selectedEvent.image_url) || fallbackImgSrc()}
+                  src={resolveUrl(selectedEvent.image_url) || fallbackImgSrc(selectedEvent?.id || selectedEvent?.event_id || 0)}
                   alt={selectedEvent.title || "Эвент"}
                   className="eventDetailHeroImage"
                   onError={(e) => {
@@ -1837,6 +1793,7 @@ export default function Event() {
                     <span className="reportBreadcrumb">
                       Миний эвэнтүүд / {reportEvent.title}
                     </span>
+
                     <h2>Статистик & тайлан</h2>
                   </div>
                 </div>
@@ -1853,8 +1810,10 @@ export default function Event() {
 
                   <div className="reportEventInfo">
                     <strong>{reportEvent.title || "Нэргүй эвэнт"}</strong>
+
                     <span>
                       {formatDateTime(reportEvent.start_time)}
+
                       {reportEvent.end_time
                         ? ` – ${formatDateTime(reportEvent.end_time)}`
                         : ""}
@@ -1863,7 +1822,9 @@ export default function Event() {
 
                   <div className="reportBarActions">
                     <button type="button">CSV</button>
-                    <button type="button">Excel</button>  
+
+                    <button type="button">Excel</button>
+
                     <button type="button" className="primary">
                       Тайлан татах
                     </button>
@@ -1873,30 +1834,38 @@ export default function Event() {
                 <section className="reportMetrics">
                   <article>
                     <span>БҮРТГҮҮЛСЭН</span>
+
                     <strong>{participantsCount || 0}</strong>
+
                     <small>Оролцогч</small>
                   </article>
 
                   <article>
                     <span>ИРСЭН</span>
+
                     <strong>
                       {participants.filter(
                         (p) =>
                           p.attended || p.checked_in || p.status === "attended",
                       ).length || 0}
                     </strong>
+
                     <small>Ирц бүртгэгдсэн</small>
                   </article>
 
                   <article>
                     <span>1:1 ZOOM УУЛЗАЛТ</span>
+
                     <strong>0</strong>
+
                     <small>Уулзалтын тоо</small>
                   </article>
 
                   <article>
                     <span>СЭТГЭЛ ХАНАМЖ</span>
+
                     <strong>—</strong>
+
                     <small>Үнэлгээ</small>
                   </article>
                 </section>
@@ -1906,6 +1875,7 @@ export default function Event() {
                     <div className="reportPanelHead">
                       <div>
                         <h3>Өдөр тутмын бүртгэл</h3>
+
                         <p>Эвэнтийн бүртгэлийн ерөнхий үзүүлэлт</p>
                       </div>
                     </div>
@@ -1926,6 +1896,7 @@ export default function Event() {
                     <div className="reportPanelHead">
                       <div>
                         <h3>Бүртгэлээс уулзалт хүртэл</h3>
+
                         <p>Нийт бүртгүүлэгчдийн харьцуулалт</p>
                       </div>
                     </div>
@@ -1934,8 +1905,10 @@ export default function Event() {
                       <div>
                         <div>
                           <span>Бүртгүүлсэн</span>
+
                           <b>{participantsCount || 0}</b>
                         </div>
+
                         <i>
                           <em style={{ width: "100%" }} />
                         </i>
@@ -1944,6 +1917,7 @@ export default function Event() {
                       <div>
                         <div>
                           <span>Ирсэн</span>
+
                           <b>
                             {participants.filter(
                               (p) =>
@@ -1953,6 +1927,7 @@ export default function Event() {
                             ).length || 0}
                           </b>
                         </div>
+
                         <i>
                           <em style={{ width: "82%" }} />
                         </i>
@@ -1961,8 +1936,10 @@ export default function Event() {
                       <div>
                         <div>
                           <span>1:1 Zoom уулзалт хийсэн</span>
+
                           <b>0</b>
                         </div>
+
                         <i>
                           <em className="cyan" style={{ width: "35%" }} />
                         </i>
@@ -1976,6 +1953,7 @@ export default function Event() {
                     <div className="reportPanelHead">
                       <div>
                         <h3>Оролцогчдын байгууллага</h3>
+
                         <p>Бүртгүүлсэн оролцогчдын мэдээлэл</p>
                       </div>
                     </div>
@@ -1988,9 +1966,11 @@ export default function Event() {
                               person.company ||
                               "Байгууллага"}
                           </span>
+
                           <i>
                             <em style={{ width: `${90 - index * 12}%` }} />
                           </i>
+
                           <b>1</b>
                         </div>
                       ))}
@@ -2005,6 +1985,7 @@ export default function Event() {
                     <div className="reportPanelHead">
                       <div>
                         <h3>Бүртгэлийн суваг</h3>
+
                         <p>Хаанаас орж ирж бүртгүүлсэн</p>
                       </div>
                     </div>
@@ -2012,15 +1993,20 @@ export default function Event() {
                     <div className="reportRows">
                       {[
                         ["Шууд холбоос", 92, participantsCount || 0],
+
                         ["Registra нүүр", 68, 0],
+
                         ["Facebook", 51, 0],
+
                         ["И-мэйл урилга", 34, 0],
                       ].map(([label, width, count]) => (
                         <div key={label}>
                           <span>{label}</span>
+
                           <i>
                             <em style={{ width: `${width}%` }} />
                           </i>
+
                           <b>{count}</b>
                         </div>
                       ))}
@@ -2032,6 +2018,7 @@ export default function Event() {
                   <div className="reportPanelHead tableHead">
                     <div>
                       <h3>Оролцогчдын жагсаалт</h3>
+
                       <p>
                         Нийт {participantsCount || participants.length || 0}{" "}
                         оролцогч
@@ -2046,9 +2033,13 @@ export default function Event() {
                       <thead>
                         <tr>
                           <th>ОРОЛЦОГЧ</th>
+
                           <th>БАЙГУУЛЛАГА</th>
+
                           <th>БҮРТГҮҮЛСЭН</th>
+
                           <th>ИРЦ</th>
+
                           <th>1:1 УУЛЗАЛТ</th>
                         </tr>
                       </thead>
@@ -2064,19 +2055,23 @@ export default function Event() {
                                     person.email,
                                 )}
                               </span>
+
                               {person.name ||
                                 person.full_name ||
                                 person.email ||
                                 "Оролцогч"}
                             </td>
+
                             <td>
                               {person.organization || person.company || "—"}
                             </td>
+
                             <td>
                               {person.created_at
                                 ? formatDateTime(person.created_at)
                                 : "—"}
                             </td>
+
                             <td>
                               <span
                                 className={
@@ -2094,6 +2089,7 @@ export default function Event() {
                                   : "Ирээгүй"}
                               </span>
                             </td>
+
                             <td>—</td>
                           </tr>
                         ))}
@@ -2116,8 +2112,11 @@ export default function Event() {
                   <div className="myEventTabs">
                     {[
                       ["all", "Бүгд", managedCounts.all],
+
                       ["draft", "Ноорог", managedCounts.draft],
+
                       ["published", "Нийтлэгдсэн", managedCounts.published],
+
                       ["finished", "Дууссан", managedCounts.finished],
                     ].map(([key, label, count]) => (
                       <button
@@ -2134,6 +2133,7 @@ export default function Event() {
                   <div className="myEventTools">
                     <label className="myEventSearch">
                       <span>⌕</span>
+
                       <input
                         value={eventSearch}
                         onChange={(e) => setEventSearch(e.target.value)}
@@ -2146,6 +2146,7 @@ export default function Event() {
                       onChange={(e) => setEventSort(e.target.value)}
                     >
                       <option value="newest">Шинэ нь эхэнд</option>
+
                       <option value="oldest">Хуучин нь эхэнд</option>
                     </select>
 
@@ -2166,20 +2167,23 @@ export default function Event() {
                 ) : managedEvents.length === 0 ? (
                   <div className="myEventsEmpty">
                     <strong>Эвэнт олдсонгүй</strong>
+
                     <span>Хайлт эсвэл сонгосон төлвөө өөрчилж үзнэ үү.</span>
                   </div>
                 ) : (
                   <div className="myEventCardGrid">
                     {managedEvents.map((ev) => {
                       const finished = isEventFinished(ev);
+
                       const status = String(ev.status || "").toLowerCase();
+
                       const draft =
                         status === "draft" ||
                         ev.is_draft === 1 ||
                         ev.is_draft === true;
 
                       const cover =
-                        resolveUrl(ev.image_url) || fallbackImgSrc();
+                        resolveUrl(ev.image_url) || fallbackImgSrc(ev?.id || ev?.event_id || 0);
 
                       const registered =
                         Number(
@@ -2233,6 +2237,7 @@ export default function Event() {
 
                             <div className="myEventCardMeta">
                               <span>▣ {formatDateTime(ev.start_time)}</span>
+
                               <span>
                                 ♙ {registered}
                                 {max > 0 ? ` / ${max}` : ""} оролцогч
@@ -2243,71 +2248,15 @@ export default function Event() {
                               <div className="myEventCapacity">
                                 <div>
                                   <span>Бөглөсөн</span>
+
                                   <b>{percent}%</b>
                                 </div>
+
                                 <i>
                                   <em style={{ width: `${percent}%` }} />
                                 </i>
                               </div>
                             ) : null}
-
-                            <div className="myEventCardActions">
-                              {finished ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    className="primary"
-                                    onClick={async () => {
-                                      setReportEvent(ev);
-                                      await fetchParticipants(ev.id);
-                                    }}
-                                  >
-                                    ◱ Статистик
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => openDetail(ev.id)}
-                                  >
-                                    Хуулбарлах
-                                  </button>
-                                </>
-                              ) : draft ? (
-                                <button
-                                  type="button"
-                                  className="primary wide"
-                                  onClick={() => openEdit(ev)}
-                                >
-                                  Үргэлжлүүлэх
-                                </button>
-                              ) : (
-                                <>
-                                  <button
-                                    type="button"
-                                    className="primary"
-                                    onClick={() => openDetail(ev.id)}
-                                  >
-                                    Удирдах
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => openEdit(ev)}
-                                  >
-                                    Засах
-                                  </button>
-                                </>
-                              )}
-
-                              <button
-                                type="button"
-                                className="more"
-                                onClick={() => openDetail(ev.id)}
-                                aria-label="Дэлгэрэнгүй"
-                              >
-                                •••
-                              </button>
-                            </div>
                           </div>
                         </article>
                       );

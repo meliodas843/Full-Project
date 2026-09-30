@@ -1,29 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Link,
   useNavigate,
 } from "react-router-dom";
+
 import {
   FiArrowLeft,
   FiEye,
   FiEyeOff,
 } from "react-icons/fi";
+
 import logo from "../../assets/registra-logo-def.png";
 import { API_BASE } from "../../lib/config";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] =
+    useState({
+      email: "",
+      password: "",
+    });
 
-  const [rememberMe, setRememberMe] =
-    useState(false);
+  const [
+    rememberMe,
+    setRememberMe,
+  ] = useState(false);
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
 
   const [loading, setLoading] =
     useState(false);
@@ -31,9 +38,41 @@ export default function Login() {
   const [message, setMessage] =
     useState("");
 
-  const handleChange = (event) => {
-    const { name, value } =
-      event.target;
+  /*
+   * ==========================================
+   * LOAD REMEMBERED EMAIL
+   * ==========================================
+   */
+
+  useEffect(() => {
+    const rememberedEmail =
+      localStorage.getItem(
+        "rememberEmail"
+      );
+
+    if (rememberedEmail) {
+      setForm((current) => ({
+        ...current,
+        email: rememberedEmail,
+      }));
+
+      setRememberMe(true);
+    }
+  }, []);
+
+  /*
+   * ==========================================
+   * INPUT
+   * ==========================================
+   */
+
+  const handleChange = (
+    event
+  ) => {
+    const {
+      name,
+      value,
+    } = event.target;
 
     setForm((current) => ({
       ...current,
@@ -43,13 +82,64 @@ export default function Login() {
     setMessage("");
   };
 
+  /*
+   * ==========================================
+   * ACCOUNT TYPE
+   * ==========================================
+   */
+
+  function getAccountType(data) {
+    return String(
+      data?.user
+        ?.accountType ||
+        data?.user
+          ?.account_type ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+  }
+
+  /*
+   * ==========================================
+   * SAVE AUTH
+   * ==========================================
+   */
+
   const saveAuth = (data) => {
+    /*
+     * Clear data that may belong to the
+     * previously logged-in account.
+     */
+
+    localStorage.removeItem(
+      "profileComplete"
+    );
+
+    localStorage.removeItem(
+      "accountType"
+    );
+
+    localStorage.removeItem(
+      "account_type"
+    );
+
+    /*
+     * Save user
+     */
+
     if (data?.user) {
       localStorage.setItem(
         "user",
-        JSON.stringify(data.user)
+        JSON.stringify(
+          data.user
+        )
       );
     }
+
+    /*
+     * Save token
+     */
 
     if (data?.token) {
       localStorage.setItem(
@@ -58,52 +148,110 @@ export default function Login() {
       );
     }
 
-    if (data?.user?.role) {
+    /*
+     * Save role
+     */
+
+    if (
+      data?.user?.role
+    ) {
       localStorage.setItem(
         "role",
         data.user.role
       );
     }
 
+    /*
+     * Save account type
+     */
+
+    const accountType =
+      getAccountType(data);
+
+    if (accountType) {
+      localStorage.setItem(
+        "accountType",
+        accountType
+      );
+
+      localStorage.setItem(
+        "account_type",
+        accountType
+      );
+    }
+
+    /*
+     * Remember email
+     */
+
     if (rememberMe) {
       localStorage.setItem(
         "rememberEmail",
         form.email
+          .trim()
+          .toLowerCase()
       );
     } else {
       localStorage.removeItem(
         "rememberEmail"
       );
     }
+
+    return accountType;
   };
 
-  const handleSubmit = async (event) => {
+  /*
+   * ==========================================
+   * LOGIN
+   * ==========================================
+   */
+
+  const handleSubmit = async (
+    event
+  ) => {
     event.preventDefault();
+
+    if (loading) {
+      return;
+    }
 
     setMessage("");
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE}/api/auth/login`,
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          `${API_BASE}/api/auth/login`,
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          body: JSON.stringify({
-            email: form.email.trim(),
-            password: form.password,
-          }),
-        }
-      );
+            body: JSON.stringify({
+              email:
+                form.email
+                  .trim()
+                  .toLowerCase(),
 
-      const data = await response
-        .json()
-        .catch(() => ({}));
+              password:
+                form.password,
+            }),
+          }
+        );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      /*
+       * ========================================
+       * LOGIN ERROR
+       * ========================================
+       */
 
       if (!response.ok) {
         setMessage(
@@ -114,12 +262,71 @@ export default function Login() {
         return;
       }
 
-      saveAuth(data);
+      /*
+       * ========================================
+       * SAVE LOGIN
+       * ========================================
+       */
 
-      navigate("/user/home", {
-        replace: true,
-      });
-    } catch {
+      const accountType =
+        saveAuth(data);
+
+      console.log(
+        "[LOGIN] response:",
+        data
+      );
+
+      console.log(
+        "[LOGIN] accountType:",
+        accountType
+      );
+
+      /*
+       * ========================================
+       * ORGANIZATION
+       * ========================================
+       */
+
+      if (
+        accountType ===
+        "organization"
+      ) {
+        console.log(
+          "[LOGIN] navigating to organization profile"
+        );
+
+        navigate(
+          "/user/organization",
+          {
+            replace: true,
+          }
+        );
+
+        return;
+      }
+
+      /*
+       * ========================================
+       * INDIVIDUAL USER
+       * ========================================
+       */
+
+      console.log(
+        "[LOGIN] navigating to user home"
+      );
+
+      navigate(
+        "/user/home",
+        {
+          replace: true,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "[LOGIN] error:",
+        error
+      );
+
       setMessage(
         "Сервертэй холбогдож чадсангүй."
       );
@@ -128,10 +335,23 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href =
-      `${API_BASE}/api/auth/google`;
-  };
+  /*
+   * ==========================================
+   * GOOGLE LOGIN
+   * ==========================================
+   */
+
+  const handleGoogleLogin =
+    () => {
+      window.location.href =
+        `${API_BASE}/api/auth/google`;
+    };
+
+  /*
+   * ==========================================
+   * UI
+   * ==========================================
+   */
 
   return (
     <main className="rgLoginPage">
@@ -182,6 +402,7 @@ export default function Login() {
         </div>
 
         <div className="rgLoginCircle rgLoginCircleOne" />
+
         <div className="rgLoginCircle rgLoginCircleTwo" />
 
         <div className="rgLoginCopyright">
@@ -193,7 +414,9 @@ export default function Login() {
         <button
           type="button"
           className="rgLoginBack"
-          onClick={() => navigate("/")}
+          onClick={() =>
+            navigate("/")
+          }
         >
           <FiArrowLeft />
 
@@ -217,7 +440,9 @@ export default function Login() {
           <button
             type="button"
             className="rgGoogleLogin"
-            onClick={handleGoogleLogin}
+            onClick={
+              handleGoogleLogin
+            }
           >
             <span className="rgGoogleIcon">
               <svg
@@ -230,14 +455,17 @@ export default function Login() {
                   fill="#4285F4"
                   d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.716v2.258h2.909c1.702-1.567 2.684-3.874 2.684-6.615Z"
                 />
+
                 <path
                   fill="#34A853"
                   d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.91-2.258c-.805.54-1.834.859-3.046.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A9 9 0 0 0 9 18Z"
                 />
+
                 <path
                   fill="#FBBC05"
                   d="M3.963 10.707A5.41 5.41 0 0 1 3.682 9c0-.592.102-1.167.281-1.707V4.961H.956A9 9 0 0 0 0 9c0 1.452.347 2.827.956 4.039l3.007-2.332Z"
                 />
+
                 <path
                   fill="#EA4335"
                   d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.58C13.463.892 11.426 0 9 0A9 9 0 0 0 .956 4.961l3.007 2.332C4.672 5.165 6.656 3.58 9 3.58Z"
@@ -262,7 +490,9 @@ export default function Login() {
 
           <form
             className="rgLoginForm"
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
           >
             <div className="rgLoginField">
               <label htmlFor="email">
@@ -273,8 +503,12 @@ export default function Login() {
                 id="email"
                 type="email"
                 name="email"
-                value={form.email}
-                onChange={handleChange}
+                value={
+                  form.email
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="you@example.com"
                 autoComplete="email"
                 required
@@ -288,7 +522,8 @@ export default function Login() {
                 </label>
 
                 <Link to="/forgot-password">
-                  Нууц үгээ мартсан уу?
+                  Нууц үгээ мартсан
+                  уу?
                 </Link>
               </div>
 
@@ -301,8 +536,12 @@ export default function Login() {
                       : "password"
                   }
                   name="password"
-                  value={form.password}
-                  onChange={handleChange}
+                  value={
+                    form.password
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Нууц үгээ оруулна уу"
                   autoComplete="current-password"
                   required
@@ -312,7 +551,9 @@ export default function Login() {
                   type="button"
                   onClick={() =>
                     setShowPassword(
-                      (current) =>
+                      (
+                        current
+                      ) =>
                         !current
                     )
                   }
@@ -334,10 +575,15 @@ export default function Login() {
             <label className="rgLoginRemember">
               <input
                 type="checkbox"
-                checked={rememberMe}
-                onChange={(event) =>
+                checked={
+                  rememberMe
+                }
+                onChange={(
+                  event
+                ) =>
                   setRememberMe(
-                    event.target.checked
+                    event.target
+                      .checked
                   )
                 }
               />
@@ -356,7 +602,9 @@ export default function Login() {
             <button
               type="submit"
               className="rgLoginSubmit"
-              disabled={loading}
+              disabled={
+                loading
+              }
             >
               {loading
                 ? "Нэвтэрч байна..."

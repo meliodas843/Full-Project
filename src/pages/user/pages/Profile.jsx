@@ -179,7 +179,7 @@ function ProfileTabs() {
       </NavLink>
 
       <NavLink
-        to="/user/company"
+        to="/user/organization"
         className={({ isActive }) =>
           isActive ? "active" : ""
         }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
+import { CompanyCover, CompanyLogo } from "../components/IdentityImage";
 import { Link, useParams } from "react-router-dom";
 
 import {
@@ -435,24 +435,23 @@ export default function OrganizationDetail() {
 
           <section className="orgDetailHero">
             <div className="orgDetailCover">
-              {organization.cover && (
-                <img src={resolveUrl(organization.cover)} alt="" />
-              )}
+              <CompanyCover
+                name={organization.name}
+                src={organization.cover}
+                apiBase={API_BASE}
+              />
 
               <div className="orgDetailCoverOverlay" />
             </div>
 
             <div className="orgDetailIdentity">
-              <div className="orgDetailLogo">
-                {organization.logo ? (
-                  <img
-                    src={resolveUrl(organization.logo)}
-                    alt={organization.name}
-                  />
-                ) : (
-                  <span>{getInitials(organization.name)}</span>
-                )}
-              </div>
+                <CompanyLogo
+                name={organization.name}
+                src={organization.logo}
+                apiBase={API_BASE}
+                size={104}
+                className="orgDetailLogo"
+                />
 
               <div className="orgDetailIdentityText">
                 <div className="orgDetailNameRow">

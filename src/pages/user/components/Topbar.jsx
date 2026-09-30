@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { UserAvatar } from "./IdentityImage";
 import {
   FiBell,
   FiChevronDown,
@@ -136,6 +136,29 @@ function getNotificationKey(
   );
 }
 
+function getNotificationStorageKey() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const identity = user?.id || user?.user_id || user?.email || "guest";
+
+    return `registra_seen_notifications_${identity}`;
+  } catch {
+    return "registra_seen_notifications_guest";
+  }
+}
+
+function loadSeenNotificationKeys() {
+  try {
+    const stored = JSON.parse(
+      localStorage.getItem(getNotificationStorageKey()) || "[]",
+    );
+
+    return Array.isArray(stored) ? stored.map((value) => String(value)) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function Topbar({
   className = "",
 
@@ -151,7 +174,9 @@ export default function Topbar({
 
   const [pending, setPending] = useState([]);
 
-  const [bellViewed, setBellViewed] = useState(false);
+  const [seenNotificationKeys, setSeenNotificationKeys] = useState(
+    loadSeenNotificationKeys,
+  );
 
   const [loading, setLoading] = useState(false);
 
@@ -295,11 +320,40 @@ export default function Topbar({
     }
   }, [navigate]);
 
-  useEffect(() => {
-    if (pending.length > 0) {
-      setBellViewed(false);
+  const unreadPending = useMemo(() => {
+    const seen = new Set(seenNotificationKeys.map((value) => String(value)));
+
+    return pending.filter((item, index) => {
+      const key = String(getNotificationKey(item, index));
+      return !seen.has(key);
+    });
+  }, [pending, seenNotificationKeys]);
+
+  const markCurrentNotificationsViewed = useCallback(() => {
+    if (pending.length === 0) {
+      return;
     }
-  }, [pending.length]);
+
+    const currentKeys = pending.map((item, index) =>
+      String(getNotificationKey(item, index)),
+    );
+
+    setSeenNotificationKeys((current) => {
+      const next = Array.from(
+        new Set([...current.map((value) => String(value)), ...currentKeys]),
+      );
+
+      localStorage.setItem(getNotificationStorageKey(), JSON.stringify(next));
+
+      return next;
+    });
+  }, [pending]);
+
+  useEffect(() => {
+    if (openBell && pending.length > 0) {
+      markCurrentNotificationsViewed();
+    }
+  }, [openBell, pending, markCurrentNotificationsViewed]);
 
   async function deleteNotification(
     item,
@@ -564,7 +618,7 @@ export default function Topbar({
     setOpenProfile(false);
 
     if (next) {
-      setBellViewed(true);
+      markCurrentNotificationsViewed();
 
       setBellPosition(
         menuPosition(
@@ -685,9 +739,9 @@ export default function Topbar({
         >
           <FiBell />
 
-          {pending.length > 0 && !bellViewed && (
+          {unreadPending.length > 0 && (
             <span className="rgBellDot">
-              {pending.length > 99 ? "99+" : pending.length}
+              {unreadPending.length > 99 ? "99+" : unreadPending.length}
             </span>
           )}
         </button>
@@ -699,7 +753,13 @@ export default function Topbar({
           onClick={toggleProfile}
           aria-expanded={openProfile}
         >
-          <span className="rgTopAvatar">{initials(fullName)}</span>
+          <UserAvatar
+            name={fullName}
+            email={user?.email}
+            src={user?.avatar_url}
+            apiBase={API_BASE}
+            size={42}
+          />
 
           <span className="rgTopUserText">
             <strong>{user?.email || fullName}</strong>

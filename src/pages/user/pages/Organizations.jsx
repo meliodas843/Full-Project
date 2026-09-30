@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CompanyLogo } from "../components/IdentityImage";
 import {
   FiCheck,
   FiSearch,
@@ -468,24 +469,13 @@ export default function Organizations() {
                     }
                   >
                     <div className="organizationCardTop">
-                      <div className="organizationLogo">
-                        {organization.logo ? (
-                          <img
-                            src={resolveUrl(
-                              organization.logo
-                            )}
-                            alt={
-                              organization.name
-                            }
-                          />
-                        ) : (
-                          <span>
-                            {getInitials(
-                              organization.name
-                            )}
-                          </span>
-                        )}
-                      </div>
+<CompanyLogo
+  name={organization.name}
+  src={organization.logo}
+  apiBase={API_BASE}
+  size={64}
+  className="organizationLogo"
+/>
 
                       <div className="organizationIdentity">
                         <div className="organizationName">

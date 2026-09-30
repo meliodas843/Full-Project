@@ -19,7 +19,6 @@ import PublicEvents from "./pages/public/Event";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
-import EventStatistics from "./pages/user/pages/EventStatistics";
 import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
@@ -31,10 +30,11 @@ import Meeting from "./pages/user/pages/Meeting";
 import UserEvents from "./pages/user/pages/Event";
 import History from "./pages/user/pages/History";
 import Password from "./pages/user/pages/Password";
-import Company from "./pages/user/pages/Company";
 import Bill from "./pages/user/pages/Bill";
 import Organizations from "./pages/user/pages/Organizations";
 import OrganizationDetail from "./pages/user/pages/OrganizationDetail";
+import OrganizationProfile from "./pages/user/pages/OrganizationProfile";
+import EventStatistics from "./pages/user/pages/EventStatistics";
 
 import SuperAdminHome from "./pages/super_admin/pages/Home";
 import NewsCreate from "./pages/super_admin/pages/NewsCreate";
@@ -43,12 +43,9 @@ function AppRoutes() {
   const location = useLocation();
 
   const isUserArea = location.pathname.startsWith("/user");
-
   const isSuperAdminArea = location.pathname.startsWith("/super-admin");
-
   const isProfilePage =
     location.pathname === "/profile" || location.pathname === "/user/profile";
-
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
@@ -61,32 +58,20 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
-
       {showPublicNavbar && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
-
         <Route path="/login" element={<Login />} />
-
         <Route path="/signup" element={<Signup />} />
-
         <Route path="/news" element={<News />} />
-
         <Route path="/news/:id" element={<NewsDetail />} />
-
         <Route path="/events" element={<PublicEvents />} />
-
         <Route path="/events/:id" element={<EventDetail />} />
-
         <Route path="/organization" element={<Organization />} />
-
         <Route path="/forgot-password" element={<ForgotPassword />} />
-
         <Route path="/reset-password" element={<ResetPassword />} />
-
         <Route path="/event/invite/:token" element={<EventInvite />} />
-
         <Route path="/share/event/:id" element={<EventShare />} />
 
         <Route
@@ -94,15 +79,6 @@ function AppRoutes() {
           element={
             <ProtectedRoute roles={["user", "super_admin"]}>
               <Profile />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/user/history/:id/statistics"
-          element={
-            <ProtectedRoute>
-              <EventStatistics />
             </ProtectedRoute>
           }
         />
@@ -132,6 +108,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute roles={["user"]}>
               <History />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/history/:id/statistics"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <EventStatistics />
             </ProtectedRoute>
           }
         />
@@ -191,19 +176,24 @@ function AppRoutes() {
         />
 
         <Route
-          path="/user/password"
+          path="/user/organization"
           element={
             <ProtectedRoute roles={["user"]}>
-              <Password />
+              <OrganizationProfile />
             </ProtectedRoute>
           }
         />
 
         <Route
           path="/user/company"
+          element={<Navigate to="/user/organization" replace />}
+        />
+
+        <Route
+          path="/user/password"
           element={
             <ProtectedRoute roles={["user"]}>
-              <Company />
+              <Password />
             </ProtectedRoute>
           }
         />

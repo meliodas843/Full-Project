@@ -1,58 +1,77 @@
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-
-import {
-  FiMenu,
-  FiX,
-} from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FiMenu, FiX } from "react-icons/fi";
 
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
-import logo from "../../../assets/registra-logo-def.png";
-
 import { API_BASE } from "@/lib/config";
 
 function getToken() {
-  return localStorage.getItem(
-    "token"
-  );
+  return localStorage.getItem("token");
 }
 
-function getInterests(user) {
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem("user");
+
+    if (!raw) {
+      return null;
+    }
+
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error("Stored user parse error:", error);
+
+    return null;
+  }
+}
+
+function getAccountType(user) {
+  const type =
+    user?.accountType ||
+    user?.account_type ||
+    localStorage.getItem("accountType") ||
+    localStorage.getItem("account_type") ||
+    "";
+
+  return String(type)
+    .trim()
+    .toLowerCase();
+}
+
+function isOrganizationAccount(user) {
+  return getAccountType(user) === "organization";
+}
+
+function getInterests(profile) {
   const value =
-    user?.interests ||
-    user?.professional_interests ||
-    user?.professionalInterests ||
+    profile?.interests ||
+    profile?.professional_interests ||
+    profile?.professionalInterests ||
     [];
 
   if (Array.isArray(value)) {
-    return value;
+    return value.filter(Boolean);
   }
 
   if (typeof value === "string") {
-    try {
-      const parsed =
-        JSON.parse(value);
+    const trimmed = value.trim();
 
-      if (
-        Array.isArray(parsed)
-      ) {
-        return parsed;
+    if (!trimmed) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed);
+
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
       }
     } catch {
-      return value
+      return trimmed
         .split(",")
-        .map((item) =>
-          item.trim()
-        )
+        .map((item) => item.trim())
         .filter(Boolean);
     }
   }
@@ -60,161 +79,176 @@ function getInterests(user) {
   return [];
 }
 
-function isProfileComplete(user) {
-  if (!user) {
+function isProfileComplete(profile) {
+  if (!profile) {
     return false;
   }
 
-  const firstName =
-    String(
-      user.firstName ||
-        user.first_name ||
-        ""
-    ).trim();
+  const firstName = String(
+    profile?.firstName ||
+      profile?.first_name ||
+      ""
+  ).trim();
 
-  const lastName =
-    String(
-      user.lastName ||
-        user.last_name ||
-        ""
-    ).trim();
+  const lastName = String(
+    profile?.lastName ||
+      profile?.last_name ||
+      ""
+  ).trim();
 
-  const company =
-    String(
-      user.company_name ||
-        user.company ||
-        user.organization ||
-        ""
-    ).trim();
+  const phone = String(
+    profile?.phone || ""
+  )
+    .replace(/\D/g, "")
+    .trim();
 
-  const phone =
-    String(
-      user.phone || ""
-    )
-      .replace(/\D/g, "")
-      .trim();
+  const company = String(
+    profile?.company_name ||
+      profile?.companyName ||
+      profile?.company ||
+      profile?.organization ||
+      ""
+  ).trim();
 
-  const jobTitle =
-    String(
-      user.job_title ||
-        user.jobTitle ||
-        ""
-    ).trim();
+  const jobTitle = String(
+    profile?.job_title ||
+      profile?.jobTitle ||
+      profile?.position ||
+      ""
+  ).trim();
 
-  const interests =
-    getInterests(user);
+  const interests = getInterests(profile);
 
-  return Boolean(
-    firstName &&
-      lastName &&
-      company &&
-      /^\d{8}$/.test(phone) &&
-      jobTitle &&
-      interests.length > 0
+  const personal =
+    Boolean(firstName) &&
+    Boolean(lastName);
+
+  const contact =
+    /^\d{8}$/.test(phone);
+
+  const organization =
+    Boolean(company) &&
+    Boolean(jobTitle);
+
+  const professional =
+    interests.length > 0;
+
+  return (
+    personal &&
+    contact &&
+    organization &&
+    professional
   );
 }
 
 export default function UserShell({
-  title = "Registra",
   children,
+  title = "",
 }) {
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const location =
-    useLocation();
+  const [checkingProfile, setCheckingProfile] =
+    useState(true);
 
-  const [open, setOpen] =
+  const [mobileOpen, setMobileOpen] =
     useState(false);
-
-  const [
-    checkingProfile,
-    setCheckingProfile,
-  ] = useState(true);
-
-  const [theme, setTheme] =
-    useState(() => {
-      return (
-        localStorage.getItem(
-          "registra-theme"
-        ) || "light"
-      );
-    });
-
-  useEffect(() => {
-    document.documentElement.dataset.userTheme =
-      theme;
-
-    localStorage.setItem(
-      "registra-theme",
-      theme
-    );
-  }, [theme]);
-
-  useEffect(() => {
-    document.body.style.overflow =
-      open
-        ? "hidden"
-        : "";
-
-    return () => {
-      document.body.style.overflow =
-        "";
-    };
-  }, [open]);
-
-  useEffect(() => {
-    function handleKey(event) {
-      if (
-        event.key ===
-        "Escape"
-      ) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener(
-      "keydown",
-      handleKey
-    );
-
-    return () => {
-      document.removeEventListener(
-        "keydown",
-        handleKey
-      );
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     async function checkProfile() {
-      const token =
-        getToken();
+      const token = getToken();
 
       if (!token) {
         if (!cancelled) {
-          setCheckingProfile(
-            false
-          );
+          setCheckingProfile(false);
 
-          navigate(
-            "/login",
-            {
-              replace: true,
-            }
-          );
+          navigate("/login", {
+            replace: true,
+          });
         }
 
         return;
       }
 
+      /*
+       * ==========================================
+       * 1. CHECK STORED ACCOUNT
+       * ==========================================
+       */
+
+      const storedUser = getStoredUser();
+
+      const storedAccountType =
+        getAccountType(storedUser);
+
+      console.log(
+        "[UserShell] pathname:",
+        location.pathname
+      );
+
+      console.log(
+        "[UserShell] accountType:",
+        storedAccountType
+      );
+
+      /*
+       * ==========================================
+       * 2. ORGANIZATION ACCOUNT
+       * ==========================================
+       *
+       * IMPORTANT:
+       *
+       * Organization accounts DO NOT use the
+       * personal profile completion system.
+       *
+       * Do NOT navigate here.
+       *
+       * Login/Signup decides whether the user
+       * should initially enter:
+       *
+       * /user/organization
+       *
+       * UserShell only allows the page to render.
+       * ==========================================
+       */
+
+      if (
+        storedAccountType === "organization"
+      ) {
+        localStorage.setItem(
+          "accountType",
+          "organization"
+        );
+
+        localStorage.removeItem(
+          "profileComplete"
+        );
+
+        if (!cancelled) {
+          setCheckingProfile(false);
+        }
+
+        return;
+      }
+
+      /*
+       * ==========================================
+       * 3. PERSONAL USER
+       * ==========================================
+       */
+
       const isProfilePage =
+        location.pathname === "/profile" ||
         location.pathname ===
-          "/user/profile" ||
-        location.pathname ===
-          "/profile";
+          "/user/profile";
+
+      /*
+       * If we already know that this user's
+       * profile is complete, do not request
+       * /api/profile/me on every navigation.
+       */
 
       const savedComplete =
         localStorage.getItem(
@@ -226,41 +260,49 @@ export default function UserShell({
         !isProfilePage
       ) {
         if (!cancelled) {
-          setCheckingProfile(
-            false
-          );
+          setCheckingProfile(false);
         }
 
         return;
       }
 
+      /*
+       * ==========================================
+       * 4. GET PERSONAL PROFILE
+       * ==========================================
+       */
+
       try {
-        setCheckingProfile(
-          true
+        if (!cancelled) {
+          setCheckingProfile(true);
+        }
+
+        const response = await fetch(
+          `${API_BASE}/api/profile/me`,
+          {
+            method: "GET",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
         );
 
-        const response =
-          await fetch(
-            `${API_BASE}/api/profile/me`,
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
+        const data = await response
+          .json()
+          .catch(() => ({}));
 
-        const data =
-          await response
-            .json()
-            .catch(() => ({}));
+        /*
+         * ========================================
+         * INVALID LOGIN
+         * ========================================
+         */
 
         if (!response.ok) {
           if (
-            response.status ===
-              401 ||
-            response.status ===
-              403
+            response.status === 401 ||
+            response.status === 403
           ) {
             localStorage.removeItem(
               "token"
@@ -271,37 +313,130 @@ export default function UserShell({
             );
 
             localStorage.removeItem(
+              "role"
+            );
+
+            localStorage.removeItem(
               "profileComplete"
             );
 
+            localStorage.removeItem(
+              "accountType"
+            );
+
+            localStorage.removeItem(
+              "account_type"
+            );
+
             if (!cancelled) {
-              navigate(
-                "/login",
-                {
-                  replace: true,
-                }
-              );
+              setCheckingProfile(false);
+
+              navigate("/login", {
+                replace: true,
+              });
             }
+
+            return;
+          }
+
+          console.error(
+            "Profile request failed:",
+            data
+          );
+
+          if (!cancelled) {
+            setCheckingProfile(false);
           }
 
           return;
         }
 
+        /*
+         * ========================================
+         * PROFILE DATA
+         * ========================================
+         */
+
         const profile =
           data?.user ||
+          data?.profile ||
           data;
+
+        if (!profile) {
+          if (!cancelled) {
+            setCheckingProfile(false);
+          }
+
+          return;
+        }
+
+        /*
+         * ========================================
+         * SAVE FRESH USER DATA
+         * ========================================
+         */
 
         localStorage.setItem(
           "user",
-          JSON.stringify(
-            profile
-          )
+          JSON.stringify(profile)
         );
 
-        const complete =
-          isProfileComplete(
-            profile
+        const freshAccountType =
+          getAccountType(profile);
+
+        if (freshAccountType) {
+          localStorage.setItem(
+            "accountType",
+            freshAccountType
           );
+        }
+
+        console.log(
+          "[UserShell] fresh accountType:",
+          freshAccountType
+        );
+
+        /*
+         * ========================================
+         * IMPORTANT SAFETY CHECK
+         * ========================================
+         *
+         * Maybe localStorage contained an old user,
+         * but /api/profile/me returned an
+         * organization account.
+         *
+         * Still DO NOT redirect here.
+         * Just skip personal profile validation.
+         */
+
+        if (
+          freshAccountType ===
+          "organization"
+        ) {
+          localStorage.setItem(
+            "accountType",
+            "organization"
+          );
+
+          localStorage.removeItem(
+            "profileComplete"
+          );
+
+          if (!cancelled) {
+            setCheckingProfile(false);
+          }
+
+          return;
+        }
+
+        /*
+         * ========================================
+         * PERSONAL PROFILE COMPLETION
+         * ========================================
+         */
+
+        const complete =
+          isProfileComplete(profile);
 
         localStorage.setItem(
           "profileComplete",
@@ -310,38 +445,54 @@ export default function UserShell({
             : "false"
         );
 
+        /*
+         * ========================================
+         * INCOMPLETE PERSONAL PROFILE
+         * ========================================
+         */
+
         if (
           !complete &&
-          !isProfilePage &&
-          !cancelled
+          !isProfilePage
         ) {
-          navigate(
-            "/user/profile",
-            {
-              replace: true,
+          if (!cancelled) {
+            setCheckingProfile(false);
 
-              state: {
-                profileRequired:
-                  true,
+            navigate(
+              "/user/profile",
+              {
+                replace: true,
 
-                from:
-                  location.pathname,
-              },
-            }
-          );
+                state: {
+                  profileRequired: true,
+
+                  from:
+                    location.pathname,
+                },
+              }
+            );
+          }
 
           return;
+        }
+
+        /*
+         * ========================================
+         * EVERYTHING OK
+         * ========================================
+         */
+
+        if (!cancelled) {
+          setCheckingProfile(false);
         }
       } catch (error) {
         console.error(
           "Profile check error:",
           error
         );
-      } finally {
+
         if (!cancelled) {
-          setCheckingProfile(
-            false
-          );
+          setCheckingProfile(false);
         }
       }
     }
@@ -356,6 +507,44 @@ export default function UserShell({
     navigate,
   ]);
 
+  /*
+   * ==========================================
+   * MOBILE DRAWER
+   * ==========================================
+   */
+
+  useEffect(() => {
+    function handleEscape(event) {
+      if (
+        event.key === "Escape"
+      ) {
+        setMobileOpen(false);
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleEscape
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  /*
+   * ==========================================
+   * PROFILE CHECK LOADING
+   * ==========================================
+   */
+
   if (checkingProfile) {
     return (
       <div
@@ -364,10 +553,8 @@ export default function UserShell({
           minHeight: "100vh",
           width: "100%",
           display: "flex",
-          alignItems:
-            "center",
-          justifyContent:
-            "center",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <span>
@@ -377,84 +564,67 @@ export default function UserShell({
     );
   }
 
+  /*
+   * ==========================================
+   * PAGE
+   * ==========================================
+   */
+
   return (
-    <div className="rgUserLayout">
-      <Sidebar
-        theme={theme}
-        onThemeChange={
-          setTheme
-        }
-      />
+    <div className="rgUserShell">
+      <Sidebar />
 
-      <div className="rgUserMain">
-        <Topbar />
-
-        <header className="rgMobileHeader">
-          <img
-            src={logo}
-            alt="Registra"
-          />
-
-          <span>
-            {title}
-          </span>
-
-          <button
-            type="button"
-            aria-label="Цэс нээх"
-            onClick={() =>
-              setOpen(true)
-            }
-          >
-            <FiMenu />
-          </button>
-        </header>
-
-        <div className="rgUserContent">
-          {children}
-        </div>
-      </div>
-
-      <div
-        className={`rgMobileOverlay ${
-          open
-            ? "show"
-            : ""
-        }`}
-        onClick={() =>
-          setOpen(false)
-        }
-      />
-
-      <aside
-        className={`rgMobileDrawer ${
-          open
-            ? "open"
-            : ""
-        }`}
-      >
-        <button
-          type="button"
-          className="rgMobileClose"
-          aria-label="Цэс хаах"
-          onClick={() =>
-            setOpen(false)
-          }
-        >
-          <FiX />
-        </button>
-
-        <Sidebar
-          mobile
-          theme={theme}
-          onThemeChange={
-            setTheme
-          }
-          onNavigate={() =>
-            setOpen(false)
+      <div className="rgUserShellMain">
+        <Topbar
+          title={title}
+          onMenuClick={() =>
+            setMobileOpen(true)
           }
         />
-      </aside>
+
+        <main className="rgUserShellContent">
+          {children}
+        </main>
+      </div>
+
+      {mobileOpen && (
+        <>
+          <button
+            type="button"
+            className="rgUserMobileBackdrop"
+            aria-label="Close menu"
+            onClick={() =>
+              setMobileOpen(false)
+            }
+          />
+
+          <div className="rgUserMobileSidebar">
+            <button
+              type="button"
+              className="rgUserMobileClose"
+              aria-label="Close menu"
+              onClick={() =>
+                setMobileOpen(false)
+              }
+            >
+              <FiX />
+            </button>
+
+            <Sidebar />
+          </div>
+        </>
+      )}
+
+      <button
+        type="button"
+        className="rgUserMobileMenu"
+        aria-label="Open menu"
+        onClick={() =>
+          setMobileOpen(true)
+        }
+      >
+        <FiMenu />
+      </button>
     </div>
   );
 }
