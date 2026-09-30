@@ -126,8 +126,8 @@ function resolveImage(value) {
   }
 
   if (
-    image.startsWith("http\://") ||
-    image.startsWith("https\://") ||
+    image.startsWith("http\\\\://") ||
+    image.startsWith("https\\\\://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -280,29 +280,38 @@ export default function OrganizationProfile() {
 
   const [activeSection, setActiveSection] = useState("information");
 
-  const organizationKey = useMemo(() => {
-    return (
-      organization?.id ||
-      organization?.name ||
-      form.name ||
-      "registra-organization"
-    );
-  }, [organization?.id, organization?.name, form.name]);
+  const storedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const organizationIdentityKey =
+    storedUser?.id ||
+    storedUser?.user_id ||
+    storedUser?.email ||
+    organization?.id ||
+    organization?.name ||
+    form.name ||
+    "registra-organization";
+
+  const organizationKey =
+    organization?.id ||
+    organization?.name ||
+    form.name ||
+    organizationIdentityKey;
 
   const defaultLogo = useMemo(() => {
     return stableDefault(
       DEFAULT_LOGOS,
-
-      `${organizationKey}-logo`,
+      `${organizationIdentityKey}-organization-logo`,
     );
-  }, [organizationKey]);
+  }, [organizationIdentityKey]);
 
   const defaultCover = useMemo(() => {
-    return stableDefault(
-      DEFAULT_COVERS,
-
-      `${organizationKey}-cover`,
-    );
+    return stableDefault(DEFAULT_COVERS, `${organizationKey}-cover`);
   }, [organizationKey]);
 
   const logoSrc =
@@ -832,13 +841,16 @@ export default function OrganizationProfile() {
 
           <div className="orgHeroBottom">
             <div className="orgLogoWrap">
-              <div className="orgLogo">
-                <img
-                  src={logoSrc}
-                  alt={form.name || "Organization"}
-                  onError={handleLogoError}
-                />
-              </div>
+              <img
+                className="orgLogo"
+                src={logoSrc}
+                alt={form.name ? `${form.name} logo` : "Organization logo"}
+                onError={handleLogoError}
+                style={{
+                  display: "block",
+                  objectFit: "cover",
+                }}
+              />
 
               <label className="orgLogoEdit">
                 <FiCamera />
@@ -1104,7 +1116,7 @@ export default function OrganizationProfile() {
                             name="email"
                             value={form.email}
                             onChange={handleChange}
-                            placeholder="info@itinsight.mn"
+                            placeholder="info\@itinsight.mn"
                           />
                         </div>
                       </div>

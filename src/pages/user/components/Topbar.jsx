@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useLocation, useNavigate } from "react-router-dom";
+
 import { UserAvatar } from "./IdentityImage";
+
 import {
   FiBell,
   FiChevronDown,
@@ -13,6 +15,59 @@ import {
 } from "react-icons/fi";
 
 import { API_BASE } from "../../../lib/config";
+
+const ORGANIZATION_LOGOS = [
+  "/registra-default-images/logos/logo-color-1-example.svg",
+  "/registra-default-images/logos/logo-color-2-example.svg",
+  "/registra-default-images/logos/logo-color-3-example.svg",
+  "/registra-default-images/logos/logo-color-4-example.svg",
+  "/registra-default-images/logos/logo-color-5-example.svg",
+  "/registra-default-images/logos/logo-color-6-example.svg",
+];
+
+function cleanValue(value) {
+  return String(value ?? "").trim();
+}
+
+function hashIdentity(value) {
+  const text = cleanValue(value) || "registra";
+  let hash = 0;
+
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
+  }
+
+  return hash;
+}
+
+function stableOrganizationLogo(key) {
+  return ORGANIZATION_LOGOS[hashIdentity(key) % ORGANIZATION_LOGOS.length];
+}
+
+function resolveOrganizationImage(value) {
+  const image = cleanValue(value);
+
+  if (!image) return "";
+
+  if (
+    image.startsWith("http://") ||
+    image.startsWith("https://") ||
+    image.startsWith("data:") ||
+    image.startsWith("blob:")
+  ) {
+    return image;
+  }
+
+  if (image.startsWith("/registra-default-images/")) {
+    return image;
+  }
+
+  if (image.startsWith("/")) {
+    return `${API_BASE}${image}`;
+  }
+
+  return `${API_BASE}/${image}`;
+}
 
 function initials(value) {
   const text = String(value || "").trim();
@@ -139,6 +194,7 @@ function getNotificationKey(
 function getNotificationStorageKey() {
   try {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
+
     const identity = user?.id || user?.user_id || user?.email || "guest";
 
     return `registra_seen_notifications_${identity}`;
@@ -194,6 +250,8 @@ export default function Topbar({
 
   const [profilePosition, setProfilePosition] = useState(null);
 
+  const [organizationLogo, setOrganizationLogo] = useState("");
+
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "{}");
@@ -211,6 +269,90 @@ export default function Topbar({
     "User";
 
   const role = user?.role === "super_admin" ? "Administrator" : "Хэрэглэгч";
+
+  const accountType = cleanValue(
+    user?.accountType ||
+      user?.account_type ||
+      user?.type ||
+      localStorage.getItem("accountType") ||
+      localStorage.getItem("account_type"),
+  ).toLowerCase();
+
+  const isOrganizationAccount = accountType === "organization";
+
+  const organizationIdentityKey =
+    user?.id ||
+    user?.user_id ||
+    user?.email ||
+    fullName ||
+    "registra-organization";
+
+  const organizationFallbackLogo = useMemo(
+    () =>
+      stableOrganizationLogo(`${organizationIdentityKey}-organization-logo`),
+    [organizationIdentityKey],
+  );
+
+  const topbarOrganizationLogo =
+    resolveOrganizationImage(organizationLogo) || organizationFallbackLogo;
+
+  const loadOrganizationIdentity = useCallback(async () => {
+    if (!isOrganizationAccount) {
+      setOrganizationLogo("");
+      return;
+    }
+
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("adminToken");
+
+    if (!token) {
+      setOrganizationLogo("");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/organizations/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setOrganizationLogo("");
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      const organization =
+        data?.organization || data?.company || data?.data || data || {};
+
+      setOrganizationLogo(
+        organization?.logo_url ||
+          organization?.logoUrl ||
+          organization?.logo ||
+          "",
+      );
+    } catch {
+      setOrganizationLogo("");
+    }
+  }, [isOrganizationAccount]);
+
+  useEffect(() => {
+    loadOrganizationIdentity();
+
+    const handleOrganizationUpdated = () => {
+      loadOrganizationIdentity();
+    };
+
+    window.addEventListener("organization-updated", handleOrganizationUpdated);
+
+    return () => {
+      window.removeEventListener(
+        "organization-updated",
+        handleOrganizationUpdated,
+      );
+    };
+  }, [loadOrganizationIdentity]);
 
   function menuPosition(
     reference,
@@ -325,6 +467,7 @@ export default function Topbar({
 
     return pending.filter((item, index) => {
       const key = String(getNotificationKey(item, index));
+
       return !seen.has(key);
     });
   }, [pending, seenNotificationKeys]);
@@ -753,13 +896,35 @@ export default function Topbar({
           onClick={toggleProfile}
           aria-expanded={openProfile}
         >
-          <UserAvatar
-            name={fullName}
-            email={user?.email}
-            src={user?.avatar_url}
-            apiBase={API_BASE}
-            size={42}
-          />
+          {isOrganizationAccount ? (
+            <img
+              className="rgTopOrganizationLogo"
+              src={topbarOrganizationLogo}
+              alt={fullName}
+              width={42}
+              height={42}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = organizationFallbackLogo;
+              }}
+              style={{
+                width: 42,
+                height: 42,
+                flex: "0 0 42px",
+                display: "block",
+                objectFit: "cover",
+                borderRadius: 10,
+              }}
+            />
+          ) : (
+            <UserAvatar
+              name={fullName}
+              email={user?.email}
+              src={user?.avatar_url}
+              apiBase={API_BASE}
+              size={42}
+            />
+          )}
 
           <span className="rgTopUserText">
             <strong>{user?.email || fullName}</strong>
