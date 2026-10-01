@@ -28,7 +28,7 @@ export default function Sidebar({
   mobile = false,
   theme = "light",
   onThemeChange = () => {},
-} = {}) {
+}) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -39,6 +39,8 @@ export default function Sidebar({
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("profileComplete");
+    localStorage.removeItem("accountType");
+    localStorage.removeItem("account_type");
 
     onNavigate();
 
@@ -95,6 +97,13 @@ export default function Sidebar({
     });
 
     onNavigate();
+  };
+
+  const handleThemeToggle = () => {
+    const nextTheme =
+      theme === "dark" ? "light" : "dark";
+
+    onThemeChange(nextTheme);
   };
 
   const mainLinks = [
@@ -195,9 +204,9 @@ export default function Sidebar({
       <div className="rgSidebarBottom">
         <div className="rgThemeRow">
           <span>
-            {theme === "light"
-              ? "Light mode"
-              : "Dark mode"}
+            {theme === "dark"
+              ? "Dark mode"
+              : "Light mode"}
           </span>
 
           <button
@@ -207,13 +216,13 @@ export default function Sidebar({
                 ? "active"
                 : ""
             }`}
-            onClick={() =>
-              onThemeChange(
-                theme === "light"
-                  ? "dark"
-                  : "light"
-              )
+            onClick={handleThemeToggle}
+            aria-label={
+              theme === "dark"
+                ? "Switch to light mode"
+                : "Switch to dark mode"
             }
+            aria-pressed={theme === "dark"}
           >
             <span>
               {theme === "dark" ? (

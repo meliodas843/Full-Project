@@ -15036,7 +15036,7 @@ html[data-public-theme="light"] .riNavbar {
   background: rgba(255, 255, 255, 0.94);
 }
 
-html[data-user-theme="dark"] html[data-user-theme="dark"] .uep-right {
+html[data-user-theme="dark"] .uep-right {
   background: #171b35;
   border-color: #292e49;
 }
@@ -15171,6 +15171,69 @@ html[data-user-theme="dark"] .eventWizardPanel {
   background: #171b35;
   border-color: #292e49;
   color: #f6f7fb;
+}
+html[data-user-theme="dark"] input,
+html[data-user-theme="dark"] textarea,
+html[data-user-theme="dark"] select {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] input::placeholder,
+html[data-user-theme="dark"] textarea::placeholder {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .myEventsToolbar input,
+html[data-user-theme="dark"] .myEventsSearch input,
+html[data-user-theme="dark"] .eventSearch input,
+html[data-user-theme="dark"] .eventsSearch input,
+html[data-user-theme="dark"] .rgSearch input {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #182033;
+}
+
+html[data-user-theme="dark"] .myEventsToolbar input::placeholder,
+html[data-user-theme="dark"] .myEventsSearch input::placeholder,
+html[data-user-theme="dark"] .eventSearch input::placeholder,
+html[data-user-theme="dark"] .eventsSearch input::placeholder,
+html[data-user-theme="dark"] .rgSearch input::placeholder {
+  color: #8b93a7;
+}
+
+html[data-user-theme="dark"] .myEventsSearch,
+html[data-user-theme="dark"] .eventSearch,
+html[data-user-theme="dark"] .eventsSearch,
+html[data-user-theme="dark"] .rgSearch {
+  background: #ffffff;
+  border: 1px solid #dfe3ec;
+  color: #182033;
+}
+
+html[data-user-theme="dark"] .myEventsSearch svg,
+html[data-user-theme="dark"] .eventSearch svg,
+html[data-user-theme="dark"] .eventsSearch svg,
+html[data-user-theme="dark"] .rgSearch svg {
+  color: #8b93a7;
+}
+
+html[data-user-theme="dark"] .myEventsSearch {
+  background: #ffffff;
+  border: 1px solid #dfe3ec;
+}
+
+html[data-user-theme="dark"] .myEventsSearch input {
+  background: transparent;
+  border: 0;
+  color: #182033;
+  box-shadow: none;
+}
+
+html[data-user-theme="dark"] .myEventsSearch input::placeholder {
+  color: #8b93a7;
 }
 
 .riNavbarInner {
@@ -38118,5 +38181,309 @@ html[data-user-theme="dark"] .rgProfileDropdown button:hover {
 @media (max-width: 560px) {
   .rgUserShellContent:has(.rgProfilePage) {
     padding: 12px;
+  }
+}
+html[data-user-theme="dark"] {
+  --bg: #0f1426;
+  --surface: #171b35;
+  --surface-2: #111529;
+  --surface-3: #1d243f;
+  --text: #f6f7fb;
+  --text-2: #c4cada;
+  --muted: #9ba3bd;
+  --muted-2: #7f889f;
+  --border: #292e49;
+  --border-2: #343c59;
+  --rg-bg: #0f1426;
+  --rg-panel: #171b35;
+  --rg-panel-soft: #111529;
+  --rg-text: #f6f7fb;
+  --rg-muted: #9ba3bd;
+  --rg-border: #292e49;
+  color-scheme: dark;
+}
+
+html[data-user-theme="dark"],
+html[data-user-theme="dark"] body,
+html[data-user-theme="dark"] #root,
+html[data-user-theme="dark"] .rgUserLayout,
+html[data-user-theme="dark"] .rgUserMain,
+html[data-user-theme="dark"] .rgUserContent,
+html[data-user-theme="dark"] .rgUserShell,
+html[data-user-theme="dark"] .rgUserShellMain,
+html[data-user-theme="dark"] .rgUserShellContent {
+  background: #0f1426;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .myEventsPage,
+html[data-user-theme="dark"] .calPage,
+html[data-user-theme="dark"] .organizationsPage,
+html[data-user-theme="dark"] .uep-wrap,
+html[data-user-theme="dark"] .user-page-content,
+html[data-user-theme="dark"] .user-main {
+  background: #0f1426;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .myEventsPage {
+  min-height: calc(100vh - var(--rg-topbar-height));
+}
+
+html[data-user-theme="dark"] .myEventsToolbar,
+html[data-user-theme="dark"] .myEventsFilters,
+html[data-user-theme="dark"] .myEventsSort,
+html[data-user-theme="dark"] .myEventCard,
+html[data-user-theme="dark"] .myEventBody,
+html[data-user-theme="dark"] .myEventsLoading,
+html[data-user-theme="dark"] .myEventsEmpty {
+  background: #171b35;
+  border-color: #292e49;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .myEventsToolbar input,
+html[data-user-theme="dark"] .myEventsSort select {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .myEventsToolbar input::placeholder {
+  color: #747d99;
+}
+
+html[data-user-theme="dark"] .calTop h1,
+html[data-user-theme="dark"] .calMonthNav h2,
+html[data-user-theme="dark"] .calSideCard h2,
+html[data-user-theme="dark"] .calSideCard h3,
+html[data-user-theme="dark"] .calGrid button,
+html[data-user-theme="dark"] .calGrid strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .calTop p,
+html[data-user-theme="dark"] .calLegend,
+html[data-user-theme="dark"] .calWeekdays span,
+html[data-user-theme="dark"] .calSideCard p,
+html[data-user-theme="dark"] .calSideCard span {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .calMain,
+html[data-user-theme="dark"] .calSideCard,
+html[data-user-theme="dark"] .calToolbar,
+html[data-user-theme="dark"] .calGrid,
+html[data-user-theme="dark"] .calGrid > div,
+html[data-user-theme="dark"] .calGrid > button {
+  background: #171b35;
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .calWeekdays {
+  background: #111529;
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .calTopActions button:not(.calCreate),
+html[data-user-theme="dark"] .calMonthNav button {
+  background: #111529;
+  border-color: #303650;
+  color: #dce0ee;
+}
+
+html[data-user-theme="dark"] .calGrid > button:hover,
+html[data-user-theme="dark"] .calGrid > div:hover {
+  background: #1d2340;
+}
+
+html[data-user-theme="dark"] .calGrid .outside,
+html[data-user-theme="dark"] .calGrid .otherMonth {
+  color: #59627a;
+}
+
+html[data-user-theme="dark"] .organizationsHero h1,
+html[data-user-theme="dark"] .organizationName h3,
+html[data-user-theme="dark"] .organizationsEmpty strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .organizationsHero p,
+html[data-user-theme="dark"] .organizationDescription,
+html[data-user-theme="dark"] .organizationMeta,
+html[data-user-theme="dark"] .organizationsCount {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .organizationsSearch,
+html[data-user-theme="dark"] .organizationsFilter,
+html[data-user-theme="dark"] .organizationCard,
+html[data-user-theme="dark"] .organizationsEmpty {
+  background: #171b35;
+  border-color: #292e49;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .organizationsSearch input {
+  background: transparent;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .organizationsSearch input::placeholder {
+  color: #747d99;
+}
+
+html[data-user-theme="dark"] .organizationsFilter:hover:not(.active) {
+  background: #222742;
+  border-color: #4a416f;
+  color: #c9c0ff;
+}
+
+html[data-user-theme="dark"] .organizationFollowerCount {
+  background: #252b48;
+  color: #c4cada;
+}
+
+html[data-user-theme="dark"] .organizationFollowButton {
+  background: #111529;
+  border-color: #303650;
+  color: #dce0ee;
+}
+
+html[data-user-theme="dark"] .organizationFollowButton:hover {
+  border-color: #6f5bea;
+  color: #b9adff;
+}
+
+html[data-user-theme="dark"] .organizationFollowButton.following {
+  background: #292448;
+  border-color: #39335b;
+  color: #b9adff;
+}
+
+html[data-user-theme="dark"] .uep-wrap,
+html[data-user-theme="dark"] .uep-left,
+html[data-user-theme="dark"] .uep-right {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .uep-right,
+html[data-user-theme="dark"] .uep-sections,
+html[data-user-theme="dark"] .uep-detailCard,
+html[data-user-theme="dark"] .uep-detailBody {
+  background: #171b35;
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .uep-listItem,
+html[data-user-theme="dark"] .uep-emptyMini,
+html[data-user-theme="dark"] .uep-detailField,
+html[data-user-theme="dark"] .uep-filesBox {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .uep-listItem:hover {
+  background: #1d2340;
+  border-color: #514a87;
+}
+
+html[data-user-theme="dark"] .uep-listName,
+html[data-user-theme="dark"] .uep-rightTitle,
+html[data-user-theme="dark"] .uep-detailField strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .uep-listMeta,
+html[data-user-theme="dark"] .uep-sectionTitle,
+html[data-user-theme="dark"] .uep-emptyMini {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .rgSidebar,
+html[data-user-theme="dark"] .rgSidebarLogo,
+html[data-user-theme="dark"] .rgSidebarBottom,
+html[data-user-theme="dark"] .rgTopbar {
+  background: #171b35;
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .rgThemeRow {
+  color: #aab1c5;
+}
+
+html[data-user-theme="dark"] .rgThemeSwitch {
+  background: #684df0;
+}
+
+html[data-user-theme="dark"] .rgThemeSwitch > span {
+  color: #684df0;
+}
+
+html[data-user-theme="light"] .rgThemeSwitch {
+  background: #d3d7df;
+}
+
+html[data-user-theme="light"] .rgThemeSwitch > span {
+  transform: translateX(0);
+}
+
+html[data-user-theme="dark"] .rgThemeSwitch.active > span {
+  transform: translateX(18px);
+}
+
+html[data-user-theme="dark"] input,
+html[data-user-theme="dark"] textarea,
+html[data-user-theme="dark"] select {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] input::placeholder,
+html[data-user-theme="dark"] textarea::placeholder {
+  color: #747d99;
+}
+
+html[data-user-theme="dark"] .rgDashboardCard,
+html[data-user-theme="dark"] .rgRequestPanel,
+html[data-user-theme="dark"] .rgMiniCalendarCard,
+html[data-user-theme="dark"] .rgUpcomingCard {
+  background: #171b35;
+  border-color: #292e49;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgDashboardCardHeader,
+html[data-user-theme="dark"] .rgCalendarHeader,
+html[data-user-theme="dark"] .rgMiniWeek {
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .rgMiniDays button,
+html[data-user-theme="dark"] .rgSelectedDay,
+html[data-user-theme="dark"] .rgRequestList button {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .rgMiniDays button:hover,
+html[data-user-theme="dark"] .rgSelectedDay button:hover,
+html[data-user-theme="dark"] .rgRequestList button:hover {
+  background: #222742;
+}
+
+.riBrowserMockup img,
+.riLaptopMockup img,
+.riPhoneMockup img {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  html[data-user-theme="dark"] .rgMobileDrawer,
+  html[data-user-theme="dark"] .rgUserMobileSidebar {
+    background: #171b35;
+    color: #f6f7fb;
   }
 }
