@@ -494,7 +494,7 @@ export default function EventImages() {
               <div className="egSummaryBadges">
                 <span className="egSummaryStatus">Эвент дууссан</span>
 
-                <span className="egSummaryType">Ноорог</span>
+                <span className="egSummaryType">Draft</span>
               </div>
 
               <h2>{event?.title || "Эвент"}</h2>

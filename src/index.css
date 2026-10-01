@@ -6,7 +6,7 @@
   --primary-hover: #5b3fe0;
 
   --bg: #f7f8fc;
-  --surface: #ffffff; 
+  --surface: #ffffff;
   --surface-2: #fafbfe;
   --surface-3: #f4f6fa;
 
@@ -15260,7 +15260,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   color: #9ba3bd;
 }
 
-
 .riNavbarInner {
   width: min(1320px, calc(100% - 64px));
   height: 100%;
@@ -15697,7 +15696,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   border-bottom: 1px solid #e8ebf3;
 }
 
-
 .riFeaturesSection,
 .riHowSection,
 .riPricingSection {
@@ -15828,14 +15826,13 @@ html[data-user-theme="dark"] textarea::placeholder {
   z-index: 2;
 }
 
-/* Decorative hover circle: clipped inside the card */
 .riFeatureCard::before {
   z-index: 1;
   width: 150px;
   height: 150px;
   right: -70px;
   top: -70px;
-  background: rgba(88, 71, 238, 0.10);
+  background: rgba(88, 71, 238, 0.1);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -15974,7 +15971,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   min-width: 0;
 }
 
-/* Desktop image stays on top */
 .riBrowserMockup {
   position: absolute;
   width: 76%;
@@ -16028,7 +16024,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   display: block;
 }
 
-/* Laptop and phone sit underneath, next to each other */
 .riLaptopMockup {
   position: absolute;
   width: 41%;
@@ -20049,7 +20044,10 @@ body,
   font-size: 9px;
   font-weight: 500;
   line-height: 1.55;
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .egParticipantMessage textarea:hover {
@@ -20083,7 +20081,6 @@ body,
   font-size: 7px;
   font-weight: 600;
 }
-
 
 .egPage {
   min-height: 100vh;
@@ -20859,7 +20856,6 @@ body,
     grid-template-columns: 1fr;
   }
 }
-
 
 .eventStatisticsPage {
   width: 100%;
@@ -38872,7 +38868,6 @@ html[data-user-theme="light"] select {
   display: block;
 }
 
-
 html[data-user-theme="dark"] .myEventSearch {
   background: #111529;
   border-color: #303650;
@@ -38931,11 +38926,7 @@ html:not([data-user-theme="dark"]) .myEventTools select {
   color: #33394a;
   color-scheme: light;
 }
-/* =========================================================
-   FEATURES SECTION - FINAL LIGHT / DARK THEME OVERRIDE
-   ========================================================= */
 
-/* ---------- LIGHT MODE ---------- */
 html[data-public-theme="light"] .riFeaturesSection {
   position: relative;
   overflow: hidden;
@@ -39029,11 +39020,12 @@ html[data-public-theme="light"] .riFeaturesSection .riFeatureCard::before {
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-html[data-public-theme="light"] .riFeaturesSection .riFeatureCard:hover::before {
+html[data-public-theme="light"]
+  .riFeaturesSection
+  .riFeatureCard:hover::before {
   transform: scale(1.45);
 }
 
-/* ---------- DARK MODE ---------- */
 html[data-public-theme="dark"] .riFeaturesSection {
   position: relative;
   overflow: hidden;
@@ -39125,7 +39117,7 @@ html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard::before {
   right: -75px;
   top: -75px;
   border-radius: 50%;
-  background: rgba(88, 71, 238, 0.10);
+  background: rgba(88, 71, 238, 0.1);
   pointer-events: none;
   transform: scale(1);
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -39135,7 +39127,6 @@ html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard:hover::before {
   transform: scale(1.45);
 }
 
-/* ---------- RESPONSIVE ---------- */
 @media (max-width: 1000px) {
   html[data-public-theme="light"] .riFeaturesSection .riFeatureGrid,
   html[data-public-theme="dark"] .riFeaturesSection .riFeatureGrid {
@@ -39197,10 +39188,6 @@ html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard:hover::before {
   opacity: 1;
   transform: scale(1);
 }
-/* =========================================================
-   PUBLIC WEBSITE - COMPLETE LIGHT / DARK MODE FINAL OVERRIDE
-   Keep this block at the VERY END of index.css
-   ========================================================= */
 
 html[data-public-theme="light"] {
   color-scheme: light;
@@ -39211,8 +39198,8 @@ html[data-public-theme="light"] {
   --ri-border: #dfe3f3;
   --ri-text: #14162a;
   --ri-muted: #68708a;
-  --ri-shadow: 0 24px 65px rgba(41, 47, 85, 0.10);
-  --ri-navbar: rgba(255,255,255,.94);
+  --ri-shadow: 0 24px 65px rgba(41, 47, 85, 0.1);
+  --ri-navbar: rgba(255, 255, 255, 0.94);
   --ri-section-light: #ffffff;
   --ri-section-alt: #f7f8ff;
   --ri-icon-bg: #123d59;
@@ -39230,12 +39217,12 @@ html[data-public-theme="dark"] {
   --ri-border: #2b334d;
   --ri-text: #f7f8ff;
   --ri-muted: #a8b0c6;
-  --ri-shadow: 0 24px 65px rgba(0, 0, 0, 0.30);
-  --ri-navbar: rgba(13,16,34,.96);
+  --ri-shadow: 0 24px 65px rgba(0, 0, 0, 0.3);
+  --ri-navbar: rgba(13, 16, 34, 0.96);
   --ri-section-light: #0d1324;
   --ri-section-alt: #101629;
   --ri-icon-bg: transparent;
-  --ri-icon-border: rgba(255,255,255,.82);
+  --ri-icon-border: rgba(255, 255, 255, 0.82);
   --ri-heading: #f8f9ff;
   --ri-soft-line: #1f2940;
 }
@@ -39270,75 +39257,120 @@ html[data-public-theme="dark"] .riPublicPage {
 .riThemeButton,
 .riMenuButton {
   transition:
-    background-color .3s ease,
-    color .3s ease,
-    border-color .3s ease,
-    box-shadow .3s ease,
-    transform .3s ease;
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
-/* NAVBAR */
 html[data-public-theme="light"] .riNavbar {
-  background: rgba(255,255,255,.94);
+  background: rgba(255, 255, 255, 0.94);
   border-bottom-color: #e4e7f0;
 }
 html[data-public-theme="dark"] .riNavbar {
-  background: rgba(13,16,34,.96);
+  background: rgba(13, 16, 34, 0.96);
   border-bottom-color: #242b43;
 }
 html[data-public-theme="light"] .riNavLink,
-html[data-public-theme="light"] .riBrandText strong { color: #14162a; }
+html[data-public-theme="light"] .riBrandText strong {
+  color: #14162a;
+}
 html[data-public-theme="dark"] .riNavLink,
-html[data-public-theme="dark"] .riBrandText strong { color: #f7f8ff; }
+html[data-public-theme="dark"] .riBrandText strong {
+  color: #f7f8ff;
+}
 html[data-public-theme="light"] .riThemeButton,
 html[data-public-theme="light"] .riMenuButton {
-  background: #fff; color: #14162a; border-color: #dfe3f3;
+  background: #fff;
+  color: #14162a;
+  border-color: #dfe3f3;
 }
 html[data-public-theme="dark"] .riThemeButton,
 html[data-public-theme="dark"] .riMenuButton {
-  background: #151b31; color: #fff; border-color: #303852;
+  background: #151b31;
+  color: #fff;
+  border-color: #303852;
 }
 
-/* HERO */
 html[data-public-theme="light"] .riHero {
   background:
-    radial-gradient(circle at 12% 20%, rgba(88,71,238,.08), transparent 30%),
-    radial-gradient(circle at 92% 18%, rgba(38,201,232,.10), transparent 28%),
+    radial-gradient(
+      circle at 12% 20%,
+      rgba(88, 71, 238, 0.08),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(38, 201, 232, 0.1),
+      transparent 28%
+    ),
     #f7f8ff;
   border-bottom-color: #e2e6f0;
 }
 html[data-public-theme="dark"] .riHero {
   background:
-    radial-gradient(circle at 12% 20%, rgba(88,71,238,.11), transparent 30%),
-    radial-gradient(circle at 92% 18%, rgba(38,201,232,.07), transparent 28%),
+    radial-gradient(
+      circle at 12% 20%,
+      rgba(88, 71, 238, 0.11),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(38, 201, 232, 0.07),
+      transparent 28%
+    ),
     #0d1324;
   border-bottom-color: #1f2940;
 }
-html[data-public-theme="light"] .riHeroContent h1 { color: #14162a; }
-html[data-public-theme="dark"] .riHeroContent h1 { color: #f7f8ff; }
+html[data-public-theme="light"] .riHeroContent h1 {
+  color: #14162a;
+}
+html[data-public-theme="dark"] .riHeroContent h1 {
+  color: #f7f8ff;
+}
 html[data-public-theme="light"] .riHeroContent > p,
-html[data-public-theme="light"] .riHeroStats span { color: #68708a; }
+html[data-public-theme="light"] .riHeroStats span {
+  color: #68708a;
+}
 html[data-public-theme="dark"] .riHeroContent > p,
-html[data-public-theme="dark"] .riHeroStats span { color: #a8b0c6; }
-html[data-public-theme="light"] .riHeroStats strong { color: #14162a; }
-html[data-public-theme="dark"] .riHeroStats strong { color: #fff; }
+html[data-public-theme="dark"] .riHeroStats span {
+  color: #a8b0c6;
+}
+html[data-public-theme="light"] .riHeroStats strong {
+  color: #14162a;
+}
+html[data-public-theme="dark"] .riHeroStats strong {
+  color: #fff;
+}
 
 html[data-public-theme="light"] .riFeaturedEvent {
-  background: #fff; border-color: #dfe3f3; color: #14162a;
-  box-shadow: 0 24px 65px rgba(41,47,85,.10);
+  background: #fff;
+  border-color: #dfe3f3;
+  color: #14162a;
+  box-shadow: 0 24px 65px rgba(41, 47, 85, 0.1);
 }
 html[data-public-theme="dark"] .riFeaturedEvent {
-  background: #12182b; border-color: #303852; color: #f7f8ff;
-  box-shadow: 0 24px 65px rgba(0,0,0,.28);
+  background: #12182b;
+  border-color: #303852;
+  color: #f7f8ff;
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.28);
 }
-html[data-public-theme="light"] .riFeaturedBody h3 { color: #14162a; }
-html[data-public-theme="dark"] .riFeaturedBody h3 { color: #fff; }
+html[data-public-theme="light"] .riFeaturedBody h3 {
+  color: #14162a;
+}
+html[data-public-theme="dark"] .riFeaturedBody h3 {
+  color: #fff;
+}
 html[data-public-theme="light"] .riFeaturedBody p,
-html[data-public-theme="light"] .riCapacityText { color: #68708a; }
+html[data-public-theme="light"] .riCapacityText {
+  color: #68708a;
+}
 html[data-public-theme="dark"] .riFeaturedBody p,
-html[data-public-theme="dark"] .riCapacityText { color: #a8b0c6; }
+html[data-public-theme="dark"] .riCapacityText {
+  color: #a8b0c6;
+}
 
-/* GENERIC SECTIONS */
 html[data-public-theme="light"] .riFeaturesSection,
 html[data-public-theme="light"] .riHowSection,
 html[data-public-theme="light"] .riPricingSection {
@@ -39363,22 +39395,36 @@ html[data-public-theme="dark"] .riTestimonialsSection {
 }
 html[data-public-theme="light"] .riSectionHead h2,
 html[data-public-theme="light"] .riDevicesContent h2,
-html[data-public-theme="light"] .riStep h3 { color: #14162a; }
+html[data-public-theme="light"] .riStep h3 {
+  color: #14162a;
+}
 html[data-public-theme="dark"] .riSectionHead h2,
 html[data-public-theme="dark"] .riDevicesContent h2,
-html[data-public-theme="dark"] .riStep h3 { color: #f8f9ff; }
+html[data-public-theme="dark"] .riStep h3 {
+  color: #f8f9ff;
+}
 html[data-public-theme="light"] .riSectionHead p,
 html[data-public-theme="light"] .riDevicesContent > p,
 html[data-public-theme="light"] .riStep p,
-html[data-public-theme="light"] .riDeviceList small { color: #68708a; }
+html[data-public-theme="light"] .riDeviceList small {
+  color: #68708a;
+}
 html[data-public-theme="dark"] .riSectionHead p,
 html[data-public-theme="dark"] .riDevicesContent > p,
 html[data-public-theme="dark"] .riStep p,
-html[data-public-theme="dark"] .riDeviceList small { color: #a8b0c6; }
+html[data-public-theme="dark"] .riDeviceList small {
+  color: #a8b0c6;
+}
 
-/* FEATURES */
-.riFeaturesSection { position: relative; overflow: hidden; }
-.riFeaturesSection .riContainer { position: relative; z-index: 2; background: transparent; }
+.riFeaturesSection {
+  position: relative;
+  overflow: hidden;
+}
+.riFeaturesSection .riContainer {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+}
 
 html[data-public-theme="light"] .riFeatureCard {
   position: relative;
@@ -39396,22 +39442,30 @@ html[data-public-theme="dark"] .riFeatureCard {
   background: #12182b;
   color: #f7f8ff;
   border: 1px solid #2b334d;
-  box-shadow: 0 14px 35px rgba(0,0,0,.12);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
 }
 html[data-public-theme="light"] .riFeatureCard:hover {
   background: #fff;
   border-color: #6558f5;
-  box-shadow: 0 18px 40px rgba(15,23,42,.08);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
 html[data-public-theme="dark"] .riFeatureCard:hover {
   background: #151c32;
   border-color: #6558f5;
-  box-shadow: 0 20px 45px rgba(0,0,0,.22);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
 }
-html[data-public-theme="light"] .riFeatureCard h3 { color: #111827; }
-html[data-public-theme="dark"] .riFeatureCard h3 { color: #f8f9ff; }
-html[data-public-theme="light"] .riFeatureCard p { color: #697386; }
-html[data-public-theme="dark"] .riFeatureCard p { color: #b0b7ca; }
+html[data-public-theme="light"] .riFeatureCard h3 {
+  color: #111827;
+}
+html[data-public-theme="dark"] .riFeatureCard h3 {
+  color: #f8f9ff;
+}
+html[data-public-theme="light"] .riFeatureCard p {
+  color: #697386;
+}
+html[data-public-theme="dark"] .riFeatureCard p {
+  color: #b0b7ca;
+}
 
 html[data-public-theme="light"] .riFeatureIcon {
   background: #123d59;
@@ -39420,11 +39474,10 @@ html[data-public-theme="light"] .riFeatureIcon {
 }
 html[data-public-theme="dark"] .riFeatureIcon {
   background: transparent;
-  border: 1px solid rgba(255,255,255,.82);
+  border: 1px solid rgba(255, 255, 255, 0.82);
   color: #22c9e8;
 }
 
-/* circle is invisible until the card is hovered */
 .riFeatureCard::before,
 html[data-public-theme="light"] .riFeatureCard::before,
 html[data-public-theme="dark"] .riFeatureCard::before {
@@ -39438,11 +39491,17 @@ html[data-public-theme="dark"] .riFeatureCard::before {
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  transform: scale(.72);
-  transition: opacity .28s ease, transform .45s cubic-bezier(.22,1,.36,1);
+  transform: scale(0.72);
+  transition:
+    opacity 0.28s ease,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-html[data-public-theme="light"] .riFeatureCard::before { background: rgba(101,88,245,.09); }
-html[data-public-theme="dark"] .riFeatureCard::before { background: rgba(88,71,238,.16); }
+html[data-public-theme="light"] .riFeatureCard::before {
+  background: rgba(101, 88, 245, 0.09);
+}
+html[data-public-theme="dark"] .riFeatureCard::before {
+  background: rgba(88, 71, 238, 0.16);
+}
 .riFeatureCard:hover::before,
 html[data-public-theme="light"] .riFeatureCard:hover::before,
 html[data-public-theme="dark"] .riFeatureCard:hover::before {
@@ -39450,77 +39509,109 @@ html[data-public-theme="dark"] .riFeatureCard:hover::before {
   transform: scale(1);
 }
 
-/* DEVICES */
-html[data-public-theme="light"] .riDeviceList strong { color: #14162a; }
-html[data-public-theme="dark"] .riDeviceList strong { color: #fff; }
+html[data-public-theme="light"] .riDeviceList strong {
+  color: #14162a;
+}
+html[data-public-theme="dark"] .riDeviceList strong {
+  color: #fff;
+}
 html[data-public-theme="light"] .riDeviceList > div > span {
-  background: #eaf8fc; color: #0faecf;
+  background: #eaf8fc;
+  color: #0faecf;
 }
 html[data-public-theme="dark"] .riDeviceList > div > span {
-  background: #12314a; color: #26c9e8;
+  background: #12314a;
+  color: #26c9e8;
 }
 html[data-public-theme="light"] .riBrowserMockup,
 html[data-public-theme="light"] .riLaptopMockup,
 html[data-public-theme="light"] .riPhoneMockup {
-  background: #fff; border-color: #cfd6e5;
-  box-shadow: 0 24px 55px rgba(31,38,70,.13);
+  background: #fff;
+  border-color: #cfd6e5;
+  box-shadow: 0 24px 55px rgba(31, 38, 70, 0.13);
 }
 html[data-public-theme="dark"] .riBrowserMockup,
 html[data-public-theme="dark"] .riLaptopMockup,
 html[data-public-theme="dark"] .riPhoneMockup {
-  background: #12182b; border-color: #39405f;
-  box-shadow: 0 24px 55px rgba(0,0,0,.28);
+  background: #12182b;
+  border-color: #39405f;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.28);
 }
 
-/* HOW IT WORKS */
 html[data-public-theme="light"] .riStepIcon {
-  background: #fff; border-color: #cbd6e8;
+  background: #fff;
+  border-color: #cbd6e8;
 }
 html[data-public-theme="dark"] .riStepIcon {
-  background: #12182b; border-color: #28415a;
+  background: #12182b;
+  border-color: #28415a;
 }
 
-/* TESTIMONIALS */
 html[data-public-theme="light"] .riTestimonialCard,
 html[data-public-theme="light"] .riBigStats {
-  background: #fff; border-color: #dfe3f3; color: #14162a;
+  background: #fff;
+  border-color: #dfe3f3;
+  color: #14162a;
 }
 html[data-public-theme="dark"] .riTestimonialCard,
 html[data-public-theme="dark"] .riBigStats {
-  background: #12182b; border-color: #2b334d; color: #f7f8ff;
+  background: #12182b;
+  border-color: #2b334d;
+  color: #f7f8ff;
 }
 html[data-public-theme="light"] .riTestimonialCard > p,
 html[data-public-theme="light"] .riTestimonialUser small,
-html[data-public-theme="light"] .riBigStats span { color: #68708a; }
+html[data-public-theme="light"] .riBigStats span {
+  color: #68708a;
+}
 html[data-public-theme="dark"] .riTestimonialCard > p,
 html[data-public-theme="dark"] .riTestimonialUser small,
-html[data-public-theme="dark"] .riBigStats span { color: #a8b0c6; }
-html[data-public-theme="light"] .riTestimonialUser strong { color: #14162a; }
-html[data-public-theme="dark"] .riTestimonialUser strong { color: #fff; }
+html[data-public-theme="dark"] .riBigStats span {
+  color: #a8b0c6;
+}
+html[data-public-theme="light"] .riTestimonialUser strong {
+  color: #14162a;
+}
+html[data-public-theme="dark"] .riTestimonialUser strong {
+  color: #fff;
+}
 
-/* PRICING */
 html[data-public-theme="light"] .riPriceCard:not(.pro) {
-  background: #fff; border-color: #dfe3f3; color: #14162a;
+  background: #fff;
+  border-color: #dfe3f3;
+  color: #14162a;
 }
 html[data-public-theme="dark"] .riPriceCard:not(.pro) {
-  background: #12182b; border-color: #2b334d; color: #f7f8ff;
+  background: #12182b;
+  border-color: #2b334d;
+  color: #f7f8ff;
 }
-html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice strong { color: #14162a; }
-html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice strong { color: #fff; }
+html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice strong {
+  color: #14162a;
+}
+html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice strong {
+  color: #fff;
+}
 html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice span,
-html[data-public-theme="light"] .riPriceCard:not(.pro) .riPlanFeatures div { color: #68708a; }
+html[data-public-theme="light"] .riPriceCard:not(.pro) .riPlanFeatures div {
+  color: #68708a;
+}
 html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice span,
-html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPlanFeatures div { color: #a8b0c6; }
+html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPlanFeatures div {
+  color: #a8b0c6;
+}
 
-/* SECONDARY BUTTONS */
 html[data-public-theme="light"] .riSecondaryButton {
-  background: #fff; border-color: #dfe3f3; color: #14162a;
+  background: #fff;
+  border-color: #dfe3f3;
+  color: #14162a;
 }
 html[data-public-theme="dark"] .riSecondaryButton {
-  background: #12182b; border-color: #303852; color: #f7f8ff;
+  background: #12182b;
+  border-color: #303852;
+  color: #f7f8ff;
 }
 
-/* FOOTER */
 html[data-public-theme="light"] .riFooter {
   background: #f5f6fb;
   color: #14162a;
@@ -39533,37 +39624,54 @@ html[data-public-theme="dark"] .riFooter {
 }
 html[data-public-theme="light"] .riFooterBrand > p,
 html[data-public-theme="light"] .riFooterColumn a,
-html[data-public-theme="light"] .riFooterColumn span { color: #68708a; }
+html[data-public-theme="light"] .riFooterColumn span {
+  color: #68708a;
+}
 html[data-public-theme="dark"] .riFooterBrand > p,
 html[data-public-theme="dark"] .riFooterColumn a,
-html[data-public-theme="dark"] .riFooterColumn span { color: #9ba4bf; }
-html[data-public-theme="light"] .riFooterColumn h4 { color: #4f5870; }
-html[data-public-theme="dark"] .riFooterColumn h4 { color: #737e9f; }
+html[data-public-theme="dark"] .riFooterColumn span {
+  color: #9ba4bf;
+}
+html[data-public-theme="light"] .riFooterColumn h4 {
+  color: #4f5870;
+}
+html[data-public-theme="dark"] .riFooterColumn h4 {
+  color: #737e9f;
+}
 html[data-public-theme="light"] .riFooterSocials a {
-  color: #68708a; border-color: #d8deea; background: #fff;
+  color: #68708a;
+  border-color: #d8deea;
+  background: #fff;
 }
 html[data-public-theme="dark"] .riFooterSocials a {
-  color: #9aa2bc; border-color: #303650; background: transparent;
+  color: #9aa2bc;
+  border-color: #303650;
+  background: transparent;
 }
 html[data-public-theme="light"] .riFooterBottom {
-  color: #7a8296; border-top-color: #dfe3f3;
+  color: #7a8296;
+  border-top-color: #dfe3f3;
 }
 html[data-public-theme="dark"] .riFooterBottom {
-  color: #697493; border-top-color: #242944;
+  color: #697493;
+  border-top-color: #242944;
 }
 
-/* Mobile menu */
 html[data-public-theme="light"] .riMobileMenu {
-  background: #fff; color: #14162a; border-color: #dfe3f3;
+  background: #fff;
+  color: #14162a;
+  border-color: #dfe3f3;
 }
 html[data-public-theme="dark"] .riMobileMenu {
-  background: #12182b; color: #f7f8ff; border-color: #303852;
+  background: #12182b;
+  color: #f7f8ff;
+  border-color: #303852;
 }
 
 @media (max-width: 1000px) {
   html[data-public-theme="light"] .riFeatureGrid,
   html[data-public-theme="dark"] .riFeatureGrid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -39571,5 +39679,995 @@ html[data-public-theme="dark"] .riMobileMenu {
   html[data-public-theme="light"] .riFeatureGrid,
   html[data-public-theme="dark"] .riFeatureGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+.orgInfoCard {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 17px;
+  box-sizing: border-box;
+  border: 1px solid #e1e4ec;
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.orgInfoCard > h3 {
+  margin: 0 0 14px;
+  color: #6d7486;
+  font-size: 9px;
+  line-height: 1.4;
+  font-weight: 800;
+}
+
+.orgInfoCardStats,
+.orgStatsGrid {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.orgInfoCard:has(> .orgStat) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.orgInfoCard:has(> .orgStat) > h3 {
+  grid-column: 1 / -1;
+  margin-bottom: 6px;
+}
+
+.orgStat {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px 10px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #f3f4f9;
+  overflow: hidden;
+}
+
+.orgStat strong {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 7px;
+  color: #202536;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orgStat span {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  color: #8a91a2;
+  font-size: 8px;
+  line-height: 1.35;
+  font-weight: 600;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.orgInfoDivider {
+  height: 1px;
+  margin: 16px 0;
+  background: #eef0f5;
+}
+
+.orgInfoList {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.orgInfoItem {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #666e80;
+  font-size: 10px;
+  line-height: 1.45;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.orgInfoItem svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #6947f5;
+}
+
+@media (max-width: 1200px) {
+  .orgInfoCard {
+    padding: 15px;
+  }
+
+  .orgInfoCardStats,
+  .orgStatsGrid {
+    gap: 7px;
+  }
+
+  .orgStat {
+    min-height: 68px;
+    padding: 11px 8px;
+  }
+
+  .orgStat strong {
+    font-size: 15px;
+  }
+
+  .orgStat span {
+    font-size: 7.5px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .orgInfoCard {
+    width: 100%;
+    max-width: none;
+  }
+
+  .orgInfoCardStats,
+  .orgStatsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .orgStat {
+    min-height: 72px;
+  }
+
+  .orgStat span {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  .orgInfoCard {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .orgInfoCardStats,
+  .orgStatsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .orgStat {
+    min-height: 66px;
+    padding: 10px 7px;
+  }
+
+  .orgStat strong {
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+
+  .orgStat span {
+    font-size: 7px;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width: 480px) {
+  .orgInfoCard {
+    padding: 13px;
+  }
+
+  .orgInfoCard > h3 {
+    margin-bottom: 12px;
+    font-size: 9px;
+  }
+
+  .orgInfoCardStats,
+  .orgStatsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .orgStat {
+    min-height: 68px;
+    padding: 11px 10px;
+  }
+
+  .orgStat strong {
+    font-size: 15px;
+  }
+
+  .orgStat span {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 340px) {
+  .orgInfoCardStats,
+  .orgStatsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+html[data-user-theme="dark"] .orgInfoCard {
+  background: #171b35;
+  border-color: #292e49;
+}
+
+html[data-user-theme="dark"] .orgInfoCard > h3 {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .orgStat {
+  background: #111529;
+}
+
+html[data-user-theme="dark"] .orgStat strong {
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .orgStat span {
+  color: #9ba3bd;
+}
+
+html[data-user-theme="dark"] .orgInfoDivider {
+  background: #292e49;
+}
+
+html[data-user-theme="dark"] .orgInfoItem {
+  color: #aab1c5;
+}
+
+html[data-user-theme="dark"] .orgInfoItem svg {
+  color: #8c78ff;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  overflow-x: clip;
+}
+
+.rgUserLayout,
+.rgUserShell,
+.rgUserShellMain,
+.rgUserMain,
+.rgUserContent,
+.rgUserShellContent,
+.rgHomePage,
+.rgHomeMain,
+.rgDashboardCard,
+.rgDashboardCardHeader {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.rgUserLayout {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--rg-sidebar-width) minmax(0, 1fr);
+  background: var(--rg-bg);
+  color: var(--rg-text);
+}
+
+.rgUserMain {
+  grid-column: 2;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.rgUserContent {
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - var(--rg-topbar-height));
+  padding: 24px;
+  overflow-x: clip;
+  background: var(--rg-bg);
+}
+
+.rgHomePage {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 20px;
+}
+
+.rgHomeMain {
+  width: 100%;
+  min-width: 0;
+}
+
+.rgDashboardCard {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rgDashboardCardHeader {
+  width: 100%;
+  min-width: 0;
+}
+
+.rgDashboardCardHeader > * {
+  min-width: 0;
+}
+
+.rgUpcomingCard,
+.rgUpcomingEvent,
+.rgUpcomingBody,
+.rgUpcomingTop,
+.rgRequestPanel,
+.rgNoRequests {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rgUpcomingImage {
+  width: 100%;
+  max-width: 100%;
+}
+
+.rgUpcomingImage img {
+  width: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 1180px) {
+  .rgHomePage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rgHomeMain {
+    width: 100%;
+  }
+
+  .rgRequestPanel {
+    width: 100%;
+    min-height: 300px;
+  }
+
+  .rgNoRequests {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 900px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .rgUserLayout,
+  .rgUserShell {
+    width: 100%;
+    min-width: 0;
+    display: block;
+  }
+
+  .rgUserLayout > .rgSidebar,
+  .rgUserShell > .rgSidebar {
+    display: none;
+  }
+
+  .rgUserMain,
+  .rgUserShellMain {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    grid-column: auto;
+  }
+
+  .rgTopbar {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: var(--rg-topbar-height);
+    min-height: var(--rg-topbar-height);
+    padding: 0 14px;
+  }
+
+  .rgTopbarSpacer {
+    display: none;
+  }
+
+  .rgTopbarActions {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  .rgTopProfile {
+    width: auto;
+    min-width: 0;
+    max-width: 210px;
+  }
+
+  .rgUserContent,
+  .rgUserShellContent {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 16px;
+    margin: 0;
+    overflow-x: clip;
+  }
+
+  .rgHomePage {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .rgHomeMain {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rgDashboardCard {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rgDashboardCardHeader {
+    width: 100%;
+    min-width: 0;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .rgUpcomingTop {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rgCalendarPage,
+  .rgProfilePage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rgCalendarSidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rgUserMobileMenu {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: auto;
+  }
+
+  .rgUserMobileBackdrop {
+    position: fixed;
+    z-index: 1190;
+    inset: 0;
+    display: block;
+  }
+
+  .rgUserMobileSidebar {
+    position: fixed;
+    z-index: 1200;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(290px, 86vw);
+    max-width: 86vw;
+    display: block;
+  }
+
+  .rgUserMobileSidebar .rgSidebar {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 100%;
+    display: flex;
+  }
+
+  .rgUserShellContent:has(.rgHomePage),
+  .rgUserShellContent:has(.myEventsPage),
+  .rgUserShellContent:has(.calPage),
+  .rgUserShellContent:has(.profileSettingsPage),
+  .rgUserShellContent:has(.rgProfilePage) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rgTopbar {
+    display: none;
+  }
+
+  .rgMobileHeader {
+    position: sticky;
+    z-index: 1100;
+    top: 0;
+    width: 100%;
+    min-width: 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--rg-border);
+    background: var(--rg-panel);
+  }
+
+  .rgMobileHeader img {
+    width: auto;
+    max-width: 130px;
+    height: 30px;
+    object-fit: contain;
+  }
+
+  .rgMobileHeader > span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--rg-text);
+    font-size: 11px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rgMobileHeader > button {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--rg-border);
+    border-radius: 10px;
+    background: var(--rg-panel);
+    color: var(--rg-text);
+  }
+
+  .rgUserContent,
+  .rgUserShellContent {
+    min-height: calc(100vh - 64px);
+    padding: 14px;
+  }
+
+  .rgHomePage {
+    min-height: auto;
+    gap: 14px;
+  }
+
+  .rgDashboardCardHeader {
+    min-height: 50px;
+    gap: 10px;
+    padding: 0 14px;
+  }
+
+  .rgDashboardCardHeader h2 {
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .rgSliderCount {
+    flex: 0 0 auto;
+  }
+
+  .rgUpcomingImage {
+    height: 200px;
+  }
+
+  .rgUpcomingBody {
+    padding: 16px;
+  }
+
+  .rgUpcomingTop {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rgCalendarSidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .rgUserContent,
+  .rgUserShellContent {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .rgUserShellContent:has(.rgHomePage),
+  .rgUserShellContent:has(.myEventsPage),
+  .rgUserShellContent:has(.calPage),
+  .rgUserShellContent:has(.profileSettingsPage),
+  .rgUserShellContent:has(.rgProfilePage) {
+    padding: 12px;
+  }
+
+  .rgHomePage {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .rgDashboardCard {
+    border-radius: 13px;
+  }
+
+  .rgDashboardCardHeader {
+    min-height: 48px;
+    padding: 0 12px;
+  }
+
+  .rgDashboardCardHeader h2 {
+    font-size: 12px;
+  }
+
+  .rgSliderCount {
+    gap: 5px;
+  }
+
+  .rgSliderCount button {
+    width: 28px;
+    height: 28px;
+  }
+
+  .rgUpcomingImage {
+    height: 180px;
+  }
+
+  .rgUpcomingBody {
+    padding: 14px;
+  }
+
+  .rgUpcomingTop h3 {
+    font-size: 14px;
+  }
+
+  .rgMobileHeader {
+    padding: 0 10px;
+  }
+
+  .rgMobileHeader img {
+    max-width: 115px;
+    height: 28px;
+  }
+
+  .rgMobileHeader > button {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .rgTopbarActions {
+    gap: 8px;
+  }
+
+  .rgBellButton {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .rgTopProfile {
+    height: 42px;
+    max-width: 170px;
+    grid-template-columns: 32px minmax(0, 1fr) 14px;
+    gap: 7px;
+    padding: 4px 7px;
+  }
+
+  .rgTopAvatar {
+    width: 32px;
+    height: 32px;
+    font-size: 10px;
+  }
+
+  .rgTopUserText {
+    min-width: 0;
+    max-width: 105px;
+  }
+
+  .rgTopUserText strong,
+  .rgTopUserText small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .rgUserContent,
+  .rgUserShellContent {
+    padding: 10px;
+  }
+
+  .rgUserShellContent:has(.rgHomePage),
+  .rgUserShellContent:has(.myEventsPage),
+  .rgUserShellContent:has(.calPage),
+  .rgUserShellContent:has(.profileSettingsPage),
+  .rgUserShellContent:has(.rgProfilePage) {
+    padding: 10px;
+  }
+
+  .rgMobileHeader {
+    height: 60px;
+    padding: 0 10px;
+  }
+
+  .rgMobileHeader img {
+    max-width: 105px;
+    height: 26px;
+  }
+
+  .rgMobileHeader > span {
+    display: none;
+  }
+
+  .rgDashboardCardHeader {
+    padding: 0 10px;
+  }
+
+  .rgUpcomingImage {
+    height: 160px;
+  }
+
+  .rgUpcomingBody {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .rgUserLayout {
+    display: block;
+    width: 100%;
+    min-height: 100dvh;
+  }
+
+  .rgUserLayout > .rgSidebar {
+    display: none;
+  }
+
+  .rgUserMain {
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    grid-column: auto;
+  }
+
+  .rgTopbar {
+    display: none;
+  }
+
+  .rgMobileHeader {
+    position: sticky;
+    z-index: 1150;
+    top: 0;
+    width: 100%;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--rg-border);
+    background: var(--rg-panel);
+  }
+
+  .rgMobileHeader img {
+    width: auto;
+    max-width: 132px;
+    height: 30px;
+    object-fit: contain;
+  }
+
+  .rgMobileHeader > span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--rg-text);
+    font-size: 12px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rgMobileHeader > button {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--rg-border);
+    border-radius: 10px;
+    background: var(--rg-panel);
+    color: var(--rg-text);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .rgMobileOverlay {
+    position: fixed;
+    z-index: 1190;
+    inset: 0;
+    display: block;
+    visibility: hidden;
+    border: 0;
+    background: rgba(10, 14, 28, 0.52);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .rgMobileOverlay.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .rgMobileDrawer {
+    position: fixed;
+    z-index: 1200;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(300px, 86vw);
+    max-width: 86vw;
+    display: block;
+    overflow: hidden;
+    background: var(--rg-panel);
+    box-shadow: 18px 0 45px rgba(15, 23, 42, 0.18);
+    transform: translate3d(-105%, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .rgMobileDrawer.open {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .rgMobileDrawer .rgSidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    display: flex;
+    border-right: 0;
+  }
+
+  .rgMobileDrawer .rgSidebarLogo {
+    padding-right: 58px;
+  }
+
+  .rgMobileClose {
+    position: absolute;
+    z-index: 5;
+    top: 21px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(98, 71, 239, 0.09);
+    color: var(--rg-purple);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .rgUserContent {
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100dvh - 64px);
+    padding: 16px;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 560px) {
+  .rgMobileHeader {
+    padding: 0 12px;
+  }
+
+  .rgMobileHeader img {
+    max-width: 118px;
+    height: 28px;
+  }
+
+  .rgMobileDrawer {
+    width: min(290px, 88vw);
+    max-width: 88vw;
+  }
+
+  .rgUserContent {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .rgMobileHeader {
+    height: 60px;
+    padding: 0 10px;
+  }
+
+  .rgMobileHeader img {
+    max-width: 110px;
+    height: 26px;
+  }
+
+  .rgMobileHeader > span {
+    display: none;
+  }
+
+  .rgMobileHeader > button {
+    margin-left: auto;
+  }
+
+  .rgUserContent {
+    min-height: calc(100dvh - 60px);
+    padding: 10px;
+  }
+
+  .rgMobileDrawer {
+    width: min(280px, 90vw);
+    max-width: 90vw;
   }
 }

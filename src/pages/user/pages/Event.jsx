@@ -2113,7 +2113,7 @@ export default function Event() {
                     {[
                       ["all", "Бүгд", managedCounts.all],
 
-                      ["draft", "Ноорог", managedCounts.draft],
+                      ["draft", "Draft", managedCounts.draft],
 
                       ["published", "Нийтлэгдсэн", managedCounts.published],
 
@@ -2227,7 +2227,7 @@ export default function Event() {
                               {finished
                                 ? "Дууссан"
                                 : draft
-                                  ? "Ноорог"
+                                  ? "Draft"
                                   : "Нийтлэгдсэн"}
                             </span>
                           </button>

@@ -1888,7 +1888,7 @@ export default function History() {
                 {[
                   ["all", "Бүгд"],
 
-                  ["draft", "Ноорог"],
+                  ["draft", "Draft"],
 
                   ["published", "Нийтлэгдсэн"],
 

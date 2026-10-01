@@ -2344,7 +2344,7 @@ export default function EventCreateWizard({
 
               >
 
-                {creating ? "Хадгалж байна..." : "Ноорог"}
+                {creating ? "Хадгалж байна..." : "Draft"}
 
               </button>
 
