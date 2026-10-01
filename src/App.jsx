@@ -35,6 +35,7 @@ import Organizations from "./pages/user/pages/Organizations";
 import OrganizationDetail from "./pages/user/pages/OrganizationDetail";
 import OrganizationProfile from "./pages/user/pages/OrganizationProfile";
 import EventStatistics from "./pages/user/pages/EventStatistics";
+import EventImages from "./pages/user/pages/EventImages";
 
 import SuperAdminHome from "./pages/super_admin/pages/Home";
 import NewsCreate from "./pages/super_admin/pages/NewsCreate";
@@ -45,7 +46,8 @@ function AppRoutes() {
   const isUserArea = location.pathname.startsWith("/user");
   const isSuperAdminArea = location.pathname.startsWith("/super-admin");
   const isProfilePage =
-    location.pathname === "/profile" || location.pathname === "/user/profile";
+    location.pathname === "/profile" ||
+    location.pathname === "/user/profile";
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
@@ -53,7 +55,10 @@ function AppRoutes() {
     location.pathname === "/reset-password";
 
   const showPublicNavbar =
-    !isUserArea && !isSuperAdminArea && !isProfilePage && !isAuthPage;
+    !isUserArea &&
+    !isSuperAdminArea &&
+    !isProfilePage &&
+    !isAuthPage;
 
   return (
     <>
@@ -108,6 +113,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute roles={["user"]}>
               <History />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/history/:id/images"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <EventImages />
             </ProtectedRoute>
           }
         />

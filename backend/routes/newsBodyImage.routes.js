@@ -30,7 +30,6 @@ const upload = multer({
   },
 });
 
-// ✅ Upload image for BODY editor
 router.post(
   "/body-image",
   authMiddleware,

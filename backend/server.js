@@ -9,6 +9,7 @@ import newsRoutes from "./routes/news.routes.js";
 import newsBodyImageRoutes from "./routes/newsBodyImage.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import eventsRoutes from "./routes/event.routes.js";
+import eventGalleryRoutes from "./routes/eventGallery.routes.js";
 import meetingsRouter from "./routes/meetings.js";
 import companiesRouter from "./routes/companies.js";
 import eventFilesRouter from "./routes/eventFiles.js";
@@ -30,7 +31,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(
   "/registra-default-images",
-  express.static(path.join(__dirname, "../public/registra-default-images")),
+  express.static(path.join(__dirname, "../public/registra-default-images"))
 );
 
 app.use("/api/auth", authRoutes);
@@ -42,6 +43,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/events", eventFilesRouter);
 app.use("/api/events", eventsRoutes);
+app.use("/api/event-gallery", eventGalleryRoutes);
 app.use("/api/meetings", meetingsRouter);
 app.use("/api/companies", companiesRouter);
 app.use("/api/organizations", organizationRoutes);

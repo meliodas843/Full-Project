@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
-import { FiTrash2, FiUserPlus, FiUsers, FiX } from "react-icons/fi";
+import {
+  FiTrash2,
+  FiUserPlus,
+  FiUsers,
+  FiX,
+  FiMoreVertical,
+  FiImage,
+} from "react-icons/fi";
 
 import { useNavigate } from "react-router-dom";
 
@@ -467,6 +475,31 @@ export default function History() {
   const [error, setError] = useState("");
 
   const [deletingId, setDeletingId] = useState(null);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  const [menuPosition, setMenuPosition] = useState(null);
+
+  useEffect(() => {
+    if (openMenuId === null) return undefined;
+
+    const closeMenu = () => {
+      setOpenMenuId(null);
+      setMenuPosition(null);
+    };
+
+    document.addEventListener("pointerdown", closeMenu);
+    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeMenu);
+      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("resize", closeMenu);
+    };
+  }, [openMenuId]);
+
+  const [uploadingImageId, setUploadingImageId] = useState(null);
 
   const [showForm, setShowForm] = useState(false);
 
@@ -1147,15 +1180,99 @@ export default function History() {
 
       /*
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
        * IMPORTANT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
        *
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
        * React state name = badge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
        * API field name    = category
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
        * MySQL column      = category
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
        */
 
@@ -1409,6 +1526,118 @@ export default function History() {
     });
   }
 
+  async function addEndedEventImage(event, file) {
+    if (!event?.id || !file) return;
+
+    if (isSvgFile(file)) {
+      setError("SVG зураг оруулах боломжгүй.");
+
+      return;
+    }
+
+    if (!String(file.type || "").startsWith("image/")) {
+      setError("Зөвхөн зураг оруулна уу.");
+
+      return;
+    }
+
+    try {
+      setUploadingImageId(event.id);
+
+      setOpenMenuId(null);
+
+      setMenuPosition(null);
+
+      setError("");
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setError("Эхлээд нэвтэрнэ үү.");
+
+        return;
+      }
+
+      const formData = new FormData();
+
+      formData.append("title", event.title || "");
+
+      formData.append("description", event.description || "");
+
+      formData.append(
+        "category",
+
+        String(event.category || event.badge || "").trim(),
+      );
+
+      formData.append(
+        "speaker",
+
+        typeof event.speaker === "string"
+          ? event.speaker
+          : JSON.stringify(event.speaker || []),
+      );
+
+      formData.append(
+        "agenda",
+
+        typeof event.agenda === "string"
+          ? event.agenda
+          : JSON.stringify(event.agenda || []),
+      );
+
+      formData.append(
+        "start_time",
+
+        String(event.start_time || "").replace("T", " "),
+      );
+
+      formData.append(
+        "end_time",
+
+        String(event.end_time || "").replace("T", " "),
+      );
+
+      formData.append("image_url", event.image_url || "");
+
+      formData.append(
+        "max_participants",
+
+        event.max_participants ? String(event.max_participants) : "0",
+      );
+
+      formData.append("visibility", event.visibility || "public");
+
+      formData.append("status", event.status || "published");
+
+      formData.append("image", file);
+
+      const response = await fetch(`${API_BASE}/api/events/${event.id}`, {
+        method: "PUT",
+
+        headers: { Authorization: `Bearer ${token}` },
+
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(data?.message || data?.error || "Зураг нэмж чадсангүй.");
+
+        return;
+      }
+
+      await load();
+    } catch (err) {
+      console.error("ENDED EVENT IMAGE UPLOAD ERROR:", err);
+
+      setError("Зураг нэмэх үед сүлжээний алдаа гарлаа.");
+    } finally {
+      setUploadingImageId(null);
+    }
+  }
+
   async function deleteEvent(event) {
     const confirmed = window.confirm(
       `"${event.title || "Эвент"}" эвентыг устгах уу?`,
@@ -1459,24 +1688,6 @@ export default function History() {
 
   return (
     <UserShell title="Миний эвентүүд">
-      <style>{`
-
-        .myEventStatisticsBtn {
-
-          border: 0;
-
-          border-radius: 10px;
-
-          padding: 10px 14px;
-
-          cursor: pointer;
-
-          font-weight: 700;
-
-        }
-
-      `}</style>
-
       <div className="myEventsPage">
         {showForm ? (
           <EventCreateWizard
@@ -1748,24 +1959,149 @@ export default function History() {
 
                       <div className="myEventActions">
                         {getEventStatus(event) === "ended" ? (
-                          <button
-                            type="button"
-                            className="myEventStatisticsBtn"
-                            onClick={() =>
-                              navigate(`/user/history/${event.id}/statistics`)
-                            }
-                          >
-                            Статистик
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className="myEventStatisticsBtn"
+                              onClick={() =>
+                                navigate(`/user/history/${event.id}/statistics`)
+                              }
+                            >
+                              Статистик
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openView(event)}
+                            >
+                              View
+                            </button>
+
+                            <div className="endedEventMenuWrap">
+                              <button
+                                type="button"
+                                className="endedEventMoreBtn"
+                                aria-label="More"
+                                aria-expanded={openMenuId === event.id}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+
+                                  if (openMenuId === event.id) {
+                                    setOpenMenuId(null);
+                                    setMenuPosition(null);
+                                    return;
+                                  }
+
+                                  const rect =
+                                    e.currentTarget.getBoundingClientRect();
+
+                                  const menuWidth = 155;
+                                  const gap = 10;
+                                  const spaceOnRight =
+                                    window.innerWidth - rect.right;
+
+                                  const left =
+                                    spaceOnRight >= menuWidth + gap
+                                      ? rect.right + gap
+                                      : Math.max(
+                                          8,
+                                          rect.left - menuWidth - gap,
+                                        );
+
+                                  const top = Math.min(
+                                    rect.top,
+                                    window.innerHeight - 105,
+                                  );
+
+                                  setMenuPosition({
+                                    top: Math.max(8, top),
+                                    left,
+                                  });
+
+                                  setOpenMenuId(event.id);
+                                }}
+                              >
+                                <FiMoreVertical size={20} />
+                              </button>
+
+                              {openMenuId === event.id &&
+                              menuPosition &&
+                              typeof document !== "undefined"
+                                ? createPortal(
+                                    <div
+                                      className="endedEventMenu"
+                                      style={{
+                                        top: `${menuPosition.top}px`,
+                                        left: `${menuPosition.left}px`,
+                                      }}
+                                      onPointerDown={(e) => e.stopPropagation()}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <button
+                                        type="button"
+                                        className="endedEventMenuItem endedEventImageItem"
+                                        onClick={() => {
+                                          setOpenMenuId(null);
+                                          setMenuPosition(null);
+                                          navigate(
+                                            `/user/history/${event.id}/images`,
+                                          );
+                                        }}
+                                      >
+                                        <FiImage size={17} />
+                                        <span>Add img</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="endedEventMenuItem endedEventDeleteItem"
+                                        disabled={deletingId === event.id}
+                                        onClick={() => {
+                                          setOpenMenuId(null);
+                                          setMenuPosition(null);
+                                          deleteEvent(event);
+                                        }}
+                                      >
+                                        <FiTrash2 size={17} />
+
+                                        <span>
+                                          {deletingId === event.id
+                                            ? "Deleting..."
+                                            : "Delete"}
+                                        </span>
+                                      </button>
+                                    </div>,
+                                    document.body,
+                                  )
+                                : null}
+                            </div>
+                          </>
                         ) : (
-                          <button onClick={() => openEdit(event)}>Edit</button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openEdit(event)}
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openView(event)}
+                            >
+                              View
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => deleteEvent(event)}
+                              disabled={deletingId === event.id}
+                            >
+                              {deletingId === event.id ? "..." : <FiTrash2 />}
+                            </button>
+                          </>
                         )}
-
-                        <button onClick={() => openView(event)}>View</button>
-
-                        <button onClick={() => deleteEvent(event)}>
-                          {deletingId === event.id ? "..." : <FiTrash2 />}
-                        </button>
                       </div>
                     </div>
                   </article>
