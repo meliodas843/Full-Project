@@ -6,14 +6,29 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 import UserShell from "../components/UserShell";
-import { API_BASE, defaultEventCover, getImageSrc } from "@/lib/config";
+import { API_BASE } from "@/lib/config";
 
 function resolveUrl(url) {
-  return getImageSrc(url, "");
+  const value = String(url || "").trim();
+
+  if (!value) {
+    return "";
+  }
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  return `${API_BASE}${
+    value.startsWith("/") ? value : `/${value}`
+  }`;
 }
 
-function fallbackImg(seed = 0) {
-  return defaultEventCover(seed);
+function fallbackImg() {
+  return `${API_BASE}/uploads/fallbacks/event-placeholder.png`;
 }
 
 function parseDate(value) {

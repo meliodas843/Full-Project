@@ -10652,11 +10652,31 @@ html.modal-open {
   top: 0;
   z-index: 900;
   width: 100%;
-  height: 82px;
-  min-height: 82px;
-  flex: 0 0 82px;
+  height: 42px;
+  min-height: 42px;
+  flex: 0 0 42px;
   margin: 0;
   overflow: hidden;
+}
+
+.riDeviceDesktop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 500px;
+  height: 300px;
+  border: 2px solid #303754;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #11172b;
+}
+
+.riDeviceDesktop img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 }
 
 .home-top,
@@ -15045,6 +15065,61 @@ html[data-user-theme="dark"] .uep-leftCard {
   background: transparent;
 }
 
+html[data-user-theme="dark"] .myEventsSearch,
+html[data-user-theme="dark"] .eventSearch,
+html[data-user-theme="dark"] .eventsSearch,
+html[data-user-theme="dark"] .rgSearch {
+  background: #171c35;
+  border: 1px solid #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .myEventsSearch input,
+html[data-user-theme="dark"] .eventSearch input,
+html[data-user-theme="dark"] .eventsSearch input,
+html[data-user-theme="dark"] .rgSearch input {
+  background: transparent;
+  border: 0;
+  color: #f6f7fb;
+  box-shadow: none;
+  outline: none;
+}
+
+html[data-user-theme="dark"] .myEventsSearch input::placeholder,
+html[data-user-theme="dark"] .eventSearch input::placeholder,
+html[data-user-theme="dark"] .eventsSearch input::placeholder,
+html[data-user-theme="dark"] .rgSearch input::placeholder {
+  color: #8f98b3;
+  opacity: 1;
+}
+
+html[data-user-theme="dark"] .myEventsSearch svg,
+html[data-user-theme="dark"] .eventSearch svg,
+html[data-user-theme="dark"] .eventsSearch svg,
+html[data-user-theme="dark"] .rgSearch svg {
+  color: #9ba4bd;
+}
+
+html[data-user-theme="dark"] .myEventsSearch input:focus,
+html[data-user-theme="dark"] .eventSearch input:focus,
+html[data-user-theme="dark"] .eventsSearch input:focus,
+html[data-user-theme="dark"] .rgSearch input:focus {
+  background: transparent;
+  color: #ffffff;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+html[data-user-theme="dark"] .myEventsSearch:focus-within,
+html[data-user-theme="dark"] .eventSearch:focus-within,
+html[data-user-theme="dark"] .eventsSearch:focus-within,
+html[data-user-theme="dark"] .rgSearch:focus-within {
+  background: #171c35;
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.12);
+}
+
 html[data-user-theme="dark"] .uep-sections {
   background: #171b35;
   border-color: #292e49;
@@ -15185,56 +15260,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   color: #9ba3bd;
 }
 
-html[data-user-theme="dark"] .myEventsToolbar input,
-html[data-user-theme="dark"] .myEventsSearch input,
-html[data-user-theme="dark"] .eventSearch input,
-html[data-user-theme="dark"] .eventsSearch input,
-html[data-user-theme="dark"] .rgSearch input {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  color: #182033;
-}
-
-html[data-user-theme="dark"] .myEventsToolbar input::placeholder,
-html[data-user-theme="dark"] .myEventsSearch input::placeholder,
-html[data-user-theme="dark"] .eventSearch input::placeholder,
-html[data-user-theme="dark"] .eventsSearch input::placeholder,
-html[data-user-theme="dark"] .rgSearch input::placeholder {
-  color: #8b93a7;
-}
-
-html[data-user-theme="dark"] .myEventsSearch,
-html[data-user-theme="dark"] .eventSearch,
-html[data-user-theme="dark"] .eventsSearch,
-html[data-user-theme="dark"] .rgSearch {
-  background: #ffffff;
-  border: 1px solid #dfe3ec;
-  color: #182033;
-}
-
-html[data-user-theme="dark"] .myEventsSearch svg,
-html[data-user-theme="dark"] .eventSearch svg,
-html[data-user-theme="dark"] .eventsSearch svg,
-html[data-user-theme="dark"] .rgSearch svg {
-  color: #8b93a7;
-}
-
-html[data-user-theme="dark"] .myEventsSearch {
-  background: #ffffff;
-  border: 1px solid #dfe3ec;
-}
-
-html[data-user-theme="dark"] .myEventsSearch input {
-  background: transparent;
-  border: 0;
-  color: #182033;
-  box-shadow: none;
-}
-
-html[data-user-theme="dark"] .myEventsSearch input::placeholder {
-  color: #8b93a7;
-}
 
 .riNavbarInner {
   width: min(1320px, calc(100% - 64px));
@@ -15663,6 +15688,16 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
   border-bottom: 1px solid rgba(41, 46, 80, 0.25);
 }
 
+.riFeaturesSection {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  color: #111827;
+  border-top: 1px solid #e8ebf3;
+  border-bottom: 1px solid #e8ebf3;
+}
+
+
 .riFeaturesSection,
 .riHowSection,
 .riPricingSection {
@@ -15675,21 +15710,40 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
 }
 
 .riSectionHead {
+  max-width: 760px;
+  margin: 0 auto 64px;
   text-align: center;
-  max-width: 820px;
-  margin: 0 auto 48px;
 }
 
 .riSectionHead .riPill {
-  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 16px;
+  margin-bottom: 22px;
+  border-radius: 999px;
+  background: rgba(99, 91, 255, 0.12);
+  color: #6d67ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
 }
 
 .riSectionHead h2 {
-  margin: 24px 0 16px;
-  font-size: clamp(31px, 3.1vw, 44px);
-  line-height: 1.15;
-  letter-spacing: -2px;
+  max-width: 760px;
+  margin: 0 auto 18px;
+  color: #f8f9ff;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.08;
   font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.riSectionHead p {
+  margin: 0;
+  color: #9ba4bd;
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 .riSectionHead > p {
@@ -15700,51 +15754,157 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
 
 .riFeatureGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
 }
 
 .riFeatureCard {
   position: relative;
   overflow: hidden;
-  min-height: 245px;
-  border: 1px solid var(--ri-border);
-  background: var(--ri-card);
-  border-radius: 17px;
-  padding: 29px 28px;
-  transition: 0.25s ease;
+  isolation: isolate;
+  min-height: 250px;
+  padding: 28px 26px;
+
+  border: 1px solid #2b334d;
+  border-radius: 18px;
+
+  background: #12182b;
+
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .riFeatureCard:hover {
   transform: translateY(-5px);
-  border-color: rgba(82, 70, 237, 0.65);
+  border-color: #545eff;
+  background: #151c32;
+
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(84, 94, 255, 0.08);
 }
 
 .riFeatureIcon {
-  transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease;
-  width: 50px;
-  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  background: #15344e;
-  color: var(--ri-cyan);
-  font-size: 21px;
+
+  width: 52px;
+  height: 52px;
+  margin-bottom: 26px;
+
+  border: 1px solid #3a4565;
+  border-radius: 14px;
+
+  background: #10172a;
+  color: #22c9e8;
+
+  font-size: 23px;
 }
 
 .riFeatureCard h3 {
-  font-size: 16px;
-  margin: 26px 0 13px;
-  font-weight: 800;
+  margin: 0 0 14px;
+  color: #f7f8ff;
+  font-size: 17px;
+  font-weight: 750;
 }
 
 .riFeatureCard p {
-  color: var(--ri-muted);
-  font-size: 14px;
-  line-height: 1.8;
+  margin: 0;
+  color: #b0b7ca;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.riFeatureCard > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Decorative hover circle: clipped inside the card */
+.riFeatureCard::before {
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  right: -70px;
+  top: -70px;
+  background: rgba(88, 71, 238, 0.10);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.riFeatureCard:hover::before {
+  transform: scale(1.45);
+}
+
+.riFeaturesSection .riContainer {
+  position: relative;
+  z-index: 2;
+}
+
+.riFeaturesSection .riSectionHead h2 {
+  color: #111827;
+}
+
+.riFeaturesSection .riSectionHead p {
+  color: #697386;
+}
+
+[data-theme="light"] .riFeaturesSection .riContainer {
+  background: #ffffff;
+  border-color: #dde2ec;
+  box-shadow: 0 20px 60px rgba(23, 31, 58, 0.07);
+}
+
+[data-theme="light"] .riFeatureIcon {
+  border-color: #d5dae6;
+  color: #5f5cff;
+}
+
+[data-theme="light"] .riFeatureCard h3 {
+  color: #171b2d;
+}
+
+[data-theme="light"] .riFeatureCard p {
+  color: #687187;
+}
+
+@media (max-width: 1000px) {
+  .riFeaturesSection .riContainer {
+    padding: 55px 35px;
+  }
+
+  .riFeatureGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 45px 35px;
+  }
+}
+
+@media (max-width: 600px) {
+  .riFeaturesSection {
+    padding: 45px 16px;
+  }
+
+  .riFeaturesSection .riContainer {
+    padding: 40px 24px;
+    border-radius: 18px;
+  }
+
+  .riSectionHead {
+    margin-bottom: 45px;
+  }
+
+  .riFeatureGrid {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
 }
 
 .riDevicesGrid {
@@ -15809,15 +15969,16 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
 
 .riDeviceVisual {
   position: relative;
-  height: 460px;
+  width: 100%;
+  height: 390px;
+  min-width: 0;
 }
 
+/* Desktop image stays on top */
 .riBrowserMockup {
-  transition:
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s ease;
   position: absolute;
   width: 76%;
+  height: 218px;
   right: 0;
   top: 0;
   border: 1px solid #39405f;
@@ -15825,6 +15986,10 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
   background: var(--ri-card);
   overflow: hidden;
   box-shadow: var(--ri-shadow);
+  z-index: 2;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s ease;
 }
 
 .riBrowserTop {
@@ -15833,11 +15998,13 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
   align-items: center;
   gap: 6px;
   padding: 0 12px;
+  box-sizing: border-box;
 }
 
 .riBrowserTop span {
   width: 10px;
   height: 10px;
+  flex: 0 0 10px;
   border-radius: 50%;
 }
 
@@ -15855,50 +16022,61 @@ html[data-user-theme="dark"] .myEventsSearch input::placeholder {
 
 .riBrowserMockup img {
   width: 100%;
-  height: 245px;
+  height: 190px;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
+/* Laptop and phone sit underneath, next to each other */
 .riLaptopMockup {
-  transition:
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s ease;
   position: absolute;
-  width: 42%;
-  left: 28%;
-  bottom: 25px;
+  width: 41%;
+  height: 130px;
+  left: 15%;
+  top: 244px;
   border: 4px solid #343a5b;
   border-radius: 13px;
   overflow: hidden;
+  background: var(--ri-card);
   z-index: 3;
   box-shadow: var(--ri-shadow);
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s ease;
 }
 
 .riLaptopMockup img {
   width: 100%;
-  height: 145px;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .riPhoneMockup {
+  position: absolute;
+  width: 27%;
+  height: 130px;
+  right: 13%;
+  top: 244px;
+  border: 4px solid #343a5b;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--ri-card);
+  z-index: 4;
+  box-shadow: var(--ri-shadow);
   transition:
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.4s ease;
-  position: absolute;
-  width: 31%;
-  right: -3px;
-  bottom: 5px;
-  border: 4px solid #343a5b;
-  border-radius: 18px;
-  overflow: hidden;
-  z-index: 4;
-  box-shadow: var(--ri-shadow);
 }
 
 .riPhoneMockup img {
   width: 100%;
-  height: 240px;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .riSteps {
@@ -38486,4 +38664,536 @@ html[data-user-theme="dark"] .rgRequestList button:hover {
     background: #171b35;
     color: #f6f7fb;
   }
+}
+html[data-user-theme="light"] {
+  color-scheme: light;
+  --rg-page-bg: #f6f7fb;
+  --rg-surface: #ffffff;
+  --rg-surface-soft: #f8f9fc;
+  --rg-text-main: #171b2f;
+  --rg-text-muted: #7b849c;
+  --rg-line: #e2e5ee;
+  --rg-field: #ffffff;
+}
+
+html[data-user-theme="dark"] {
+  color-scheme: dark;
+  --rg-page-bg: #0f1426;
+  --rg-surface: #171b35;
+  --rg-surface-soft: #111529;
+  --rg-text-main: #f6f7fb;
+  --rg-text-muted: #9ba3bd;
+  --rg-line: #292e49;
+  --rg-field: #111529;
+}
+
+html[data-user-theme="light"] body,
+html[data-user-theme="light"] #root,
+html[data-user-theme="light"] .rgUserLayout,
+html[data-user-theme="light"] .rgUserMain,
+html[data-user-theme="light"] .rgUserContent {
+  background: var(--rg-page-bg);
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] body,
+html[data-user-theme="dark"] #root,
+html[data-user-theme="dark"] .rgUserLayout,
+html[data-user-theme="dark"] .rgUserMain,
+html[data-user-theme="dark"] .rgUserContent {
+  background: var(--rg-page-bg);
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] .eventGalleryPage,
+html[data-user-theme="dark"] .eventGalleryMain,
+html[data-user-theme="dark"] .eventGalleryContent,
+html[data-user-theme="dark"] .eventGalleryGrid,
+html[data-user-theme="dark"] .eventGalleryEmpty,
+html[data-user-theme="dark"] .eventGalleryState,
+html[data-user-theme="dark"] .eventGalleryManage,
+html[data-user-theme="dark"] .eventGallerySideCard,
+html[data-user-theme="dark"] .eventGalleryHero,
+html[data-user-theme="dark"] .eventGalleryHeroMain,
+html[data-user-theme="dark"] .eventGalleryHeroSide,
+html[data-user-theme="dark"] .eventGalleryVisibility,
+html[data-user-theme="dark"] .eventGallerySettings,
+html[data-user-theme="dark"] .eventGalleryMessage,
+html[data-user-theme="dark"] .eventGalleryMessageBox {
+  background: var(--rg-surface);
+  border-color: var(--rg-line);
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] .eventGalleryPage h1,
+html[data-user-theme="dark"] .eventGalleryPage h2,
+html[data-user-theme="dark"] .eventGalleryPage h3,
+html[data-user-theme="dark"] .eventGalleryPage strong,
+html[data-user-theme="dark"] .eventGalleryPage label {
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] .eventGalleryPage p,
+html[data-user-theme="dark"] .eventGalleryPage small,
+html[data-user-theme="dark"] .eventGalleryBreadcrumb,
+html[data-user-theme="dark"] .eventGalleryPage .muted {
+  color: var(--rg-text-muted);
+}
+
+html[data-user-theme="dark"] .eventGalleryItem,
+html[data-user-theme="dark"] .eventGalleryTools,
+html[data-user-theme="dark"] .eventGalleryBack,
+html[data-user-theme="dark"] .eventGalleryVisibilityOption,
+html[data-user-theme="dark"] .eventGallerySettingRow,
+html[data-user-theme="dark"] .eventGalleryMessageInput {
+  background: var(--rg-surface-soft);
+  border-color: var(--rg-line);
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] .myEventsSearch,
+html[data-user-theme="dark"] .eventSearch,
+html[data-user-theme="dark"] .eventsSearch,
+html[data-user-theme="dark"] .organizationsSearch,
+html[data-user-theme="dark"] .rgSearch,
+html[data-user-theme="dark"] .myEventsSort,
+html[data-user-theme="dark"] .eventSort {
+  background: var(--rg-field);
+  border-color: #303650;
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] .myEventsSearch input,
+html[data-user-theme="dark"] .eventSearch input,
+html[data-user-theme="dark"] .eventsSearch input,
+html[data-user-theme="dark"] .organizationsSearch input,
+html[data-user-theme="dark"] .rgSearch input,
+html[data-user-theme="dark"] .myEventsSort select,
+html[data-user-theme="dark"] .eventSort select {
+  background: transparent;
+  border-color: transparent;
+  color: var(--rg-text-main);
+  box-shadow: none;
+}
+
+html[data-user-theme="dark"] .myEventsSearch input::placeholder,
+html[data-user-theme="dark"] .eventSearch input::placeholder,
+html[data-user-theme="dark"] .eventsSearch input::placeholder,
+html[data-user-theme="dark"] .organizationsSearch input::placeholder,
+html[data-user-theme="dark"] .rgSearch input::placeholder {
+  color: #8f98b3;
+  opacity: 1;
+}
+
+html[data-user-theme="dark"] .myEventsSearch svg,
+html[data-user-theme="dark"] .eventSearch svg,
+html[data-user-theme="dark"] .eventsSearch svg,
+html[data-user-theme="dark"] .organizationsSearch svg,
+html[data-user-theme="dark"] .rgSearch svg {
+  color: #9ba4bd;
+}
+
+html[data-user-theme="dark"] .myEventsSearch:focus-within,
+html[data-user-theme="dark"] .eventSearch:focus-within,
+html[data-user-theme="dark"] .eventsSearch:focus-within,
+html[data-user-theme="dark"] .organizationsSearch:focus-within,
+html[data-user-theme="dark"] .rgSearch:focus-within {
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.12);
+}
+
+html[data-user-theme="dark"] .profilePage,
+html[data-user-theme="dark"] .profileCard,
+html[data-user-theme="dark"] .passwordProfileCard,
+html[data-user-theme="dark"] .companyPage,
+html[data-user-theme="dark"] .companyCard,
+html[data-user-theme="dark"] .billPage,
+html[data-user-theme="dark"] .billCard,
+html[data-user-theme="dark"] .notificationPage,
+html[data-user-theme="dark"] .notificationCard,
+html[data-user-theme="dark"] .meetingPage,
+html[data-user-theme="dark"] .meetingCard,
+html[data-user-theme="dark"] .organizationDetailPage,
+html[data-user-theme="dark"] .organizationProfilePage {
+  background-color: var(--rg-page-bg);
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] .profileCard,
+html[data-user-theme="dark"] .passwordProfileCard,
+html[data-user-theme="dark"] .companyCard,
+html[data-user-theme="dark"] .billCard,
+html[data-user-theme="dark"] .notificationCard,
+html[data-user-theme="dark"] .meetingCard {
+  background: var(--rg-surface);
+  border-color: var(--rg-line);
+}
+
+html[data-user-theme="dark"] .eventWizardPanel,
+html[data-user-theme="dark"] .eventWizardCard,
+html[data-user-theme="dark"] .eventWizardModal,
+html[data-user-theme="dark"] .myEventModal,
+html[data-user-theme="dark"] .modalContent,
+html[data-user-theme="dark"] [role="dialog"] {
+  background: var(--rg-surface);
+  border-color: var(--rg-line);
+  color: var(--rg-text-main);
+}
+
+html[data-user-theme="dark"] input,
+html[data-user-theme="dark"] textarea,
+html[data-user-theme="dark"] select {
+  background-color: var(--rg-field);
+  border-color: #303650;
+  color: var(--rg-text-main);
+  caret-color: #ffffff;
+}
+
+html[data-user-theme="dark"] input:-webkit-autofill,
+html[data-user-theme="dark"] input:-webkit-autofill:hover,
+html[data-user-theme="dark"] input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f6f7fb;
+  -webkit-box-shadow: 0 0 0 1000px #111529 inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+html[data-user-theme="light"] input,
+html[data-user-theme="light"] textarea,
+html[data-user-theme="light"] select {
+  color-scheme: light;
+}
+
+.riBrowserMockup img,
+.riLaptopMockup img,
+.riPhoneMockup img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+html[data-user-theme="dark"] .myEventSearch {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="dark"] .myEventSearch span {
+  color: #9ba4bd;
+}
+
+html[data-user-theme="dark"] .myEventSearch input {
+  background: transparent;
+  border: 0;
+  color: #f6f7fb;
+  box-shadow: none;
+}
+
+html[data-user-theme="dark"] .myEventSearch input::placeholder {
+  color: #8f98b3;
+  opacity: 1;
+}
+
+html[data-user-theme="dark"] .myEventSearch:focus-within {
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.12);
+}
+
+html[data-user-theme="dark"] .myEventTools select {
+  background: #111529;
+  border-color: #303650;
+  color: #f6f7fb;
+  color-scheme: dark;
+}
+
+html[data-user-theme="dark"] .myEventTools select option {
+  background: #111529;
+  color: #f6f7fb;
+}
+
+html[data-user-theme="light"] .myEventSearch,
+html:not([data-user-theme="dark"]) .myEventSearch {
+  background: #ffffff;
+  border-color: #e0e3eb;
+}
+
+html[data-user-theme="light"] .myEventSearch input,
+html:not([data-user-theme="dark"]) .myEventSearch input {
+  background: transparent;
+  color: #2a3040;
+}
+
+html[data-user-theme="light"] .myEventTools select,
+html:not([data-user-theme="dark"]) .myEventTools select {
+  background: #ffffff;
+  border-color: #e0e3eb;
+  color: #33394a;
+  color-scheme: light;
+}
+/* =========================================================
+   FEATURES SECTION - FINAL LIGHT / DARK THEME OVERRIDE
+   ========================================================= */
+
+/* ---------- LIGHT MODE ---------- */
+html[data-public-theme="light"] .riFeaturesSection {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  color: #111827;
+  border-top: 1px solid #e8ebf3;
+  border-bottom: 1px solid #e8ebf3;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riContainer {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riSectionHead .riPill {
+  background: #eef0ff;
+  color: #6558f5;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riSectionHead h2 {
+  color: #111827;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riSectionHead p,
+html[data-public-theme="light"] .riFeaturesSection .riSectionHead > p {
+  color: #697386;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 250px;
+  padding: 28px 26px;
+  background: #ffffff;
+  border: 1px solid #dfe4ef;
+  border-radius: 18px;
+  color: #111827;
+  box-shadow: none;
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard:hover {
+  transform: translateY(-5px);
+  background: #ffffff;
+  border-color: #6558f5;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 26px;
+  border: 1px solid #123d59;
+  border-radius: 14px;
+  background: #123d59;
+  color: #22c9e8;
+  font-size: 23px;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard h3 {
+  color: #111827;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard p {
+  color: #697386;
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  right: -75px;
+  top: -75px;
+  border-radius: 50%;
+  background: rgba(101, 88, 245, 0.08);
+  pointer-events: none;
+  transform: scale(1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard:hover::before {
+  transform: scale(1.45);
+}
+
+/* ---------- DARK MODE ---------- */
+html[data-public-theme="dark"] .riFeaturesSection {
+  position: relative;
+  overflow: hidden;
+  background: #0d1324;
+  color: #ffffff;
+  border-top: 1px solid #1b2438;
+  border-bottom: 1px solid #1b2438;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riContainer {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riSectionHead .riPill {
+  background: rgba(26, 190, 225, 0.12);
+  color: #25c9e8;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riSectionHead h2 {
+  color: #f8f9ff;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riSectionHead p,
+html[data-public-theme="dark"] .riFeaturesSection .riSectionHead > p {
+  color: #9ba4bd;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 250px;
+  padding: 28px 26px;
+  background: #12182b;
+  border: 1px solid #2b334d;
+  border-radius: 18px;
+  color: #ffffff;
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard:hover {
+  transform: translateY(-5px);
+  border-color: #545eff;
+  background: #151c32;
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(84, 94, 255, 0.08);
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  background: transparent;
+  color: #22c9e8;
+  font-size: 23px;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard h3 {
+  color: #f7f8ff;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard p {
+  color: #b0b7ca;
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  right: -75px;
+  top: -75px;
+  border-radius: 50%;
+  background: rgba(88, 71, 238, 0.10);
+  pointer-events: none;
+  transform: scale(1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard:hover::before {
+  transform: scale(1.45);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1000px) {
+  html[data-public-theme="light"] .riFeaturesSection .riFeatureGrid,
+  html[data-public-theme="dark"] .riFeaturesSection .riFeatureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  html[data-public-theme="light"] .riFeaturesSection,
+  html[data-public-theme="dark"] .riFeaturesSection {
+    padding: 50px 0;
+  }
+
+  html[data-public-theme="light"] .riFeaturesSection .riContainer,
+  html[data-public-theme="dark"] .riFeaturesSection .riContainer {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  html[data-public-theme="light"] .riFeaturesSection .riFeatureGrid,
+  html[data-public-theme="dark"] .riFeaturesSection .riFeatureGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.riFeatureCard::before,
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard::before,
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  right: -75px;
+  top: -75px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.75);
+  transition:
+    opacity 0.3s ease,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.riFeatureCard::before,
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard::before {
+  background: rgba(88, 71, 238, 0.1);
+}
+
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard::before {
+  background: rgba(101, 88, 245, 0.08);
+}
+
+.riFeatureCard:hover::before,
+html[data-public-theme="light"] .riFeaturesSection .riFeatureCard:hover::before,
+html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard:hover::before {
+  opacity: 1;
+  transform: scale(1);
 }

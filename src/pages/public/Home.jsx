@@ -763,21 +763,21 @@ export default function Home() {
               </div>
 
               <img
-                src="https\\://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=85"
+                src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=85"
                 alt="Desktop"
               />
             </div>
 
             <div className="riLaptopMockup">
               <img
-                src="https\\://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85"
+                src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85"
                 alt="Laptop"
               />
             </div>
 
             <div className="riPhoneMockup">
               <img
-                src="https\\://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=85"
+                src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=85"
                 alt="Mobile"
               />
             </div>

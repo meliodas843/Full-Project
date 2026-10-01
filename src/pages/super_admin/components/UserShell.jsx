@@ -9,7 +9,6 @@ export default function UserShell({ title = "Khural Plus+", children }) {
     setOpen(false);
   }
 
-  // close drawer on ESC
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") setOpen(false);
@@ -20,19 +19,13 @@ export default function UserShell({ title = "Khural Plus+", children }) {
 
   return (
     <div className="user-layout">
-      {/* ✅ Desktop sidebar */}
       <Sidebar />
-
       <div className="user-content">
-        {/* ✅ Desktop topbar */}
         <Topbar className="topbar-desktop" />
-
-        {/* ✅ Mobile header: title + (bell/profile) + hamburger */}
         <div className="mobile-header">
           <div className="mobile-header__title">{title}</div>
 
           <div className="mobile-header__actions">
-            {/* ✅ show bell + profile OUTSIDE drawer */}
             <Topbar className="topbar-mobile-icons" onNavigate={closeDrawer} />
             <button
               className="mobile-header__hamburger"
@@ -44,8 +37,6 @@ export default function UserShell({ title = "Khural Plus+", children }) {
             </button>
           </div>
         </div>
-
-        {/* ✅ Mobile drawer overlay */}
         <div
           className={`mobile-drawer-overlay ${open ? "is-show" : ""}`}
           onClick={closeDrawer}
