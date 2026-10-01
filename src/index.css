@@ -39197,3 +39197,379 @@ html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard:hover::before {
   opacity: 1;
   transform: scale(1);
 }
+/* =========================================================
+   PUBLIC WEBSITE - COMPLETE LIGHT / DARK MODE FINAL OVERRIDE
+   Keep this block at the VERY END of index.css
+   ========================================================= */
+
+html[data-public-theme="light"] {
+  color-scheme: light;
+  --ri-bg: #f7f8ff;
+  --ri-bg-2: #ffffff;
+  --ri-card: #ffffff;
+  --ri-card-2: #f5f6ff;
+  --ri-border: #dfe3f3;
+  --ri-text: #14162a;
+  --ri-muted: #68708a;
+  --ri-shadow: 0 24px 65px rgba(41, 47, 85, 0.10);
+  --ri-navbar: rgba(255,255,255,.94);
+  --ri-section-light: #ffffff;
+  --ri-section-alt: #f7f8ff;
+  --ri-icon-bg: #123d59;
+  --ri-icon-border: #123d59;
+  --ri-heading: #111827;
+  --ri-soft-line: #e8ebf3;
+}
+
+html[data-public-theme="dark"] {
+  color-scheme: dark;
+  --ri-bg: #0d1324;
+  --ri-bg-2: #101629;
+  --ri-card: #12182b;
+  --ri-card-2: #151c32;
+  --ri-border: #2b334d;
+  --ri-text: #f7f8ff;
+  --ri-muted: #a8b0c6;
+  --ri-shadow: 0 24px 65px rgba(0, 0, 0, 0.30);
+  --ri-navbar: rgba(13,16,34,.96);
+  --ri-section-light: #0d1324;
+  --ri-section-alt: #101629;
+  --ri-icon-bg: transparent;
+  --ri-icon-border: rgba(255,255,255,.82);
+  --ri-heading: #f8f9ff;
+  --ri-soft-line: #1f2940;
+}
+
+html[data-public-theme="light"] body,
+html[data-public-theme="light"] #root,
+html[data-public-theme="light"] .riPublicPage {
+  background: #f7f8ff;
+  color: #14162a;
+}
+
+html[data-public-theme="dark"] body,
+html[data-public-theme="dark"] #root,
+html[data-public-theme="dark"] .riPublicPage {
+  background: #0d1324;
+  color: #f7f8ff;
+}
+
+.riPublicPage,
+.riNavbar,
+.riFooter,
+.riSection,
+.riFeatureCard,
+.riFeaturedEvent,
+.riTestimonialCard,
+.riBigStats,
+.riPriceCard,
+.riBrowserMockup,
+.riLaptopMockup,
+.riPhoneMockup,
+.riStepIcon,
+.riThemeButton,
+.riMenuButton {
+  transition:
+    background-color .3s ease,
+    color .3s ease,
+    border-color .3s ease,
+    box-shadow .3s ease,
+    transform .3s ease;
+}
+
+/* NAVBAR */
+html[data-public-theme="light"] .riNavbar {
+  background: rgba(255,255,255,.94);
+  border-bottom-color: #e4e7f0;
+}
+html[data-public-theme="dark"] .riNavbar {
+  background: rgba(13,16,34,.96);
+  border-bottom-color: #242b43;
+}
+html[data-public-theme="light"] .riNavLink,
+html[data-public-theme="light"] .riBrandText strong { color: #14162a; }
+html[data-public-theme="dark"] .riNavLink,
+html[data-public-theme="dark"] .riBrandText strong { color: #f7f8ff; }
+html[data-public-theme="light"] .riThemeButton,
+html[data-public-theme="light"] .riMenuButton {
+  background: #fff; color: #14162a; border-color: #dfe3f3;
+}
+html[data-public-theme="dark"] .riThemeButton,
+html[data-public-theme="dark"] .riMenuButton {
+  background: #151b31; color: #fff; border-color: #303852;
+}
+
+/* HERO */
+html[data-public-theme="light"] .riHero {
+  background:
+    radial-gradient(circle at 12% 20%, rgba(88,71,238,.08), transparent 30%),
+    radial-gradient(circle at 92% 18%, rgba(38,201,232,.10), transparent 28%),
+    #f7f8ff;
+  border-bottom-color: #e2e6f0;
+}
+html[data-public-theme="dark"] .riHero {
+  background:
+    radial-gradient(circle at 12% 20%, rgba(88,71,238,.11), transparent 30%),
+    radial-gradient(circle at 92% 18%, rgba(38,201,232,.07), transparent 28%),
+    #0d1324;
+  border-bottom-color: #1f2940;
+}
+html[data-public-theme="light"] .riHeroContent h1 { color: #14162a; }
+html[data-public-theme="dark"] .riHeroContent h1 { color: #f7f8ff; }
+html[data-public-theme="light"] .riHeroContent > p,
+html[data-public-theme="light"] .riHeroStats span { color: #68708a; }
+html[data-public-theme="dark"] .riHeroContent > p,
+html[data-public-theme="dark"] .riHeroStats span { color: #a8b0c6; }
+html[data-public-theme="light"] .riHeroStats strong { color: #14162a; }
+html[data-public-theme="dark"] .riHeroStats strong { color: #fff; }
+
+html[data-public-theme="light"] .riFeaturedEvent {
+  background: #fff; border-color: #dfe3f3; color: #14162a;
+  box-shadow: 0 24px 65px rgba(41,47,85,.10);
+}
+html[data-public-theme="dark"] .riFeaturedEvent {
+  background: #12182b; border-color: #303852; color: #f7f8ff;
+  box-shadow: 0 24px 65px rgba(0,0,0,.28);
+}
+html[data-public-theme="light"] .riFeaturedBody h3 { color: #14162a; }
+html[data-public-theme="dark"] .riFeaturedBody h3 { color: #fff; }
+html[data-public-theme="light"] .riFeaturedBody p,
+html[data-public-theme="light"] .riCapacityText { color: #68708a; }
+html[data-public-theme="dark"] .riFeaturedBody p,
+html[data-public-theme="dark"] .riCapacityText { color: #a8b0c6; }
+
+/* GENERIC SECTIONS */
+html[data-public-theme="light"] .riFeaturesSection,
+html[data-public-theme="light"] .riHowSection,
+html[data-public-theme="light"] .riPricingSection {
+  background: #ffffff;
+  border-color: #e8ebf3;
+}
+html[data-public-theme="light"] .riDevicesSection,
+html[data-public-theme="light"] .riTestimonialsSection {
+  background: #f7f8ff;
+  border-color: #e8ebf3;
+}
+html[data-public-theme="dark"] .riFeaturesSection,
+html[data-public-theme="dark"] .riHowSection,
+html[data-public-theme="dark"] .riPricingSection {
+  background: #0d1324;
+  border-color: #1f2940;
+}
+html[data-public-theme="dark"] .riDevicesSection,
+html[data-public-theme="dark"] .riTestimonialsSection {
+  background: #101629;
+  border-color: #1f2940;
+}
+html[data-public-theme="light"] .riSectionHead h2,
+html[data-public-theme="light"] .riDevicesContent h2,
+html[data-public-theme="light"] .riStep h3 { color: #14162a; }
+html[data-public-theme="dark"] .riSectionHead h2,
+html[data-public-theme="dark"] .riDevicesContent h2,
+html[data-public-theme="dark"] .riStep h3 { color: #f8f9ff; }
+html[data-public-theme="light"] .riSectionHead p,
+html[data-public-theme="light"] .riDevicesContent > p,
+html[data-public-theme="light"] .riStep p,
+html[data-public-theme="light"] .riDeviceList small { color: #68708a; }
+html[data-public-theme="dark"] .riSectionHead p,
+html[data-public-theme="dark"] .riDevicesContent > p,
+html[data-public-theme="dark"] .riStep p,
+html[data-public-theme="dark"] .riDeviceList small { color: #a8b0c6; }
+
+/* FEATURES */
+.riFeaturesSection { position: relative; overflow: hidden; }
+.riFeaturesSection .riContainer { position: relative; z-index: 2; background: transparent; }
+
+html[data-public-theme="light"] .riFeatureCard {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #fff;
+  color: #14162a;
+  border: 1px solid #dfe4ef;
+  box-shadow: none;
+}
+html[data-public-theme="dark"] .riFeatureCard {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #12182b;
+  color: #f7f8ff;
+  border: 1px solid #2b334d;
+  box-shadow: 0 14px 35px rgba(0,0,0,.12);
+}
+html[data-public-theme="light"] .riFeatureCard:hover {
+  background: #fff;
+  border-color: #6558f5;
+  box-shadow: 0 18px 40px rgba(15,23,42,.08);
+}
+html[data-public-theme="dark"] .riFeatureCard:hover {
+  background: #151c32;
+  border-color: #6558f5;
+  box-shadow: 0 20px 45px rgba(0,0,0,.22);
+}
+html[data-public-theme="light"] .riFeatureCard h3 { color: #111827; }
+html[data-public-theme="dark"] .riFeatureCard h3 { color: #f8f9ff; }
+html[data-public-theme="light"] .riFeatureCard p { color: #697386; }
+html[data-public-theme="dark"] .riFeatureCard p { color: #b0b7ca; }
+
+html[data-public-theme="light"] .riFeatureIcon {
+  background: #123d59;
+  border: 1px solid #123d59;
+  color: #22c9e8;
+}
+html[data-public-theme="dark"] .riFeatureIcon {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.82);
+  color: #22c9e8;
+}
+
+/* circle is invisible until the card is hovered */
+.riFeatureCard::before,
+html[data-public-theme="light"] .riFeatureCard::before,
+html[data-public-theme="dark"] .riFeatureCard::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 150px;
+  height: 150px;
+  right: -75px;
+  top: -75px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.72);
+  transition: opacity .28s ease, transform .45s cubic-bezier(.22,1,.36,1);
+}
+html[data-public-theme="light"] .riFeatureCard::before { background: rgba(101,88,245,.09); }
+html[data-public-theme="dark"] .riFeatureCard::before { background: rgba(88,71,238,.16); }
+.riFeatureCard:hover::before,
+html[data-public-theme="light"] .riFeatureCard:hover::before,
+html[data-public-theme="dark"] .riFeatureCard:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* DEVICES */
+html[data-public-theme="light"] .riDeviceList strong { color: #14162a; }
+html[data-public-theme="dark"] .riDeviceList strong { color: #fff; }
+html[data-public-theme="light"] .riDeviceList > div > span {
+  background: #eaf8fc; color: #0faecf;
+}
+html[data-public-theme="dark"] .riDeviceList > div > span {
+  background: #12314a; color: #26c9e8;
+}
+html[data-public-theme="light"] .riBrowserMockup,
+html[data-public-theme="light"] .riLaptopMockup,
+html[data-public-theme="light"] .riPhoneMockup {
+  background: #fff; border-color: #cfd6e5;
+  box-shadow: 0 24px 55px rgba(31,38,70,.13);
+}
+html[data-public-theme="dark"] .riBrowserMockup,
+html[data-public-theme="dark"] .riLaptopMockup,
+html[data-public-theme="dark"] .riPhoneMockup {
+  background: #12182b; border-color: #39405f;
+  box-shadow: 0 24px 55px rgba(0,0,0,.28);
+}
+
+/* HOW IT WORKS */
+html[data-public-theme="light"] .riStepIcon {
+  background: #fff; border-color: #cbd6e8;
+}
+html[data-public-theme="dark"] .riStepIcon {
+  background: #12182b; border-color: #28415a;
+}
+
+/* TESTIMONIALS */
+html[data-public-theme="light"] .riTestimonialCard,
+html[data-public-theme="light"] .riBigStats {
+  background: #fff; border-color: #dfe3f3; color: #14162a;
+}
+html[data-public-theme="dark"] .riTestimonialCard,
+html[data-public-theme="dark"] .riBigStats {
+  background: #12182b; border-color: #2b334d; color: #f7f8ff;
+}
+html[data-public-theme="light"] .riTestimonialCard > p,
+html[data-public-theme="light"] .riTestimonialUser small,
+html[data-public-theme="light"] .riBigStats span { color: #68708a; }
+html[data-public-theme="dark"] .riTestimonialCard > p,
+html[data-public-theme="dark"] .riTestimonialUser small,
+html[data-public-theme="dark"] .riBigStats span { color: #a8b0c6; }
+html[data-public-theme="light"] .riTestimonialUser strong { color: #14162a; }
+html[data-public-theme="dark"] .riTestimonialUser strong { color: #fff; }
+
+/* PRICING */
+html[data-public-theme="light"] .riPriceCard:not(.pro) {
+  background: #fff; border-color: #dfe3f3; color: #14162a;
+}
+html[data-public-theme="dark"] .riPriceCard:not(.pro) {
+  background: #12182b; border-color: #2b334d; color: #f7f8ff;
+}
+html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice strong { color: #14162a; }
+html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice strong { color: #fff; }
+html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice span,
+html[data-public-theme="light"] .riPriceCard:not(.pro) .riPlanFeatures div { color: #68708a; }
+html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice span,
+html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPlanFeatures div { color: #a8b0c6; }
+
+/* SECONDARY BUTTONS */
+html[data-public-theme="light"] .riSecondaryButton {
+  background: #fff; border-color: #dfe3f3; color: #14162a;
+}
+html[data-public-theme="dark"] .riSecondaryButton {
+  background: #12182b; border-color: #303852; color: #f7f8ff;
+}
+
+/* FOOTER */
+html[data-public-theme="light"] .riFooter {
+  background: #f5f6fb;
+  color: #14162a;
+  border-top-color: #dfe3f3;
+}
+html[data-public-theme="dark"] .riFooter {
+  background: #101326;
+  color: #f5f6fb;
+  border-top-color: #242944;
+}
+html[data-public-theme="light"] .riFooterBrand > p,
+html[data-public-theme="light"] .riFooterColumn a,
+html[data-public-theme="light"] .riFooterColumn span { color: #68708a; }
+html[data-public-theme="dark"] .riFooterBrand > p,
+html[data-public-theme="dark"] .riFooterColumn a,
+html[data-public-theme="dark"] .riFooterColumn span { color: #9ba4bf; }
+html[data-public-theme="light"] .riFooterColumn h4 { color: #4f5870; }
+html[data-public-theme="dark"] .riFooterColumn h4 { color: #737e9f; }
+html[data-public-theme="light"] .riFooterSocials a {
+  color: #68708a; border-color: #d8deea; background: #fff;
+}
+html[data-public-theme="dark"] .riFooterSocials a {
+  color: #9aa2bc; border-color: #303650; background: transparent;
+}
+html[data-public-theme="light"] .riFooterBottom {
+  color: #7a8296; border-top-color: #dfe3f3;
+}
+html[data-public-theme="dark"] .riFooterBottom {
+  color: #697493; border-top-color: #242944;
+}
+
+/* Mobile menu */
+html[data-public-theme="light"] .riMobileMenu {
+  background: #fff; color: #14162a; border-color: #dfe3f3;
+}
+html[data-public-theme="dark"] .riMobileMenu {
+  background: #12182b; color: #f7f8ff; border-color: #303852;
+}
+
+@media (max-width: 1000px) {
+  html[data-public-theme="light"] .riFeatureGrid,
+  html[data-public-theme="dark"] .riFeatureGrid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  html[data-public-theme="light"] .riFeatureGrid,
+  html[data-public-theme="dark"] .riFeatureGrid {
+    grid-template-columns: 1fr;
+  }
+}
