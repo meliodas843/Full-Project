@@ -86,6 +86,23 @@ function isProfileComplete(user) {
   );
 }
 
+function isOrganizationComplete(data) {
+  const organization = data?.organization || data?.company || data?.data || data;
+
+  if (!organization || typeof organization !== "object") return false;
+
+  return Boolean(
+    String(organization.name || "").trim() &&
+      String(organization.registration_number || "").trim() &&
+      String(organization.industry || "").trim() &&
+      String(organization.employee_count || "").trim() &&
+      String(organization.description || "").trim() &&
+      String(organization.email || "").trim() &&
+      String(organization.phone || "").trim() &&
+      String(organization.address || "").trim(),
+  );
+}
+
 function getInitialTheme() {
   const saved = localStorage.getItem("registra-theme");
   return saved === "dark" ? "dark" : "light";
@@ -144,8 +161,75 @@ export default function UserShell({ title = "Registra", children }) {
 
       if (storedAccountType === "organization") {
         localStorage.setItem("accountType", "organization");
-        localStorage.removeItem("profileComplete");
-        if (!cancelled) setCheckingProfile(false);
+        localStorage.setItem("account_type", "organization");
+
+        const isOrganizationProfilePage =
+          location.pathname === "/user/organization" ||
+          location.pathname.startsWith("/user/organization/");
+
+        try {
+          if (!cancelled) setCheckingProfile(true);
+
+          const response = await fetch(`${API_BASE}/api/organizations/me`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("role");
+            localStorage.removeItem("profileComplete");
+            localStorage.removeItem("organizationProfileComplete");
+            localStorage.removeItem("accountType");
+            localStorage.removeItem("account_type");
+
+            if (!cancelled) {
+              setCheckingProfile(false);
+              navigate("/login", { replace: true });
+            }
+            return;
+          }
+
+          if (!response.ok) {
+            if (!cancelled) setCheckingProfile(false);
+            return;
+          }
+
+          const complete = isOrganizationComplete(data);
+
+          localStorage.setItem(
+            "organizationProfileComplete",
+            complete ? "true" : "false",
+          );
+          localStorage.setItem(
+            "profileComplete",
+            complete ? "true" : "false",
+          );
+
+          if (!complete && !isOrganizationProfilePage) {
+            if (!cancelled) {
+              setCheckingProfile(false);
+              navigate("/user/organization", {
+                replace: true,
+                state: {
+                  profileRequired: true,
+                  from: location.pathname,
+                },
+              });
+            }
+            return;
+          }
+
+          if (!cancelled) setCheckingProfile(false);
+        } catch {
+          if (!cancelled) setCheckingProfile(false);
+        }
+
         return;
       }
 
@@ -181,6 +265,7 @@ export default function UserShell({ title = "Registra", children }) {
             localStorage.removeItem("user");
             localStorage.removeItem("role");
             localStorage.removeItem("profileComplete");
+            localStorage.removeItem("organizationProfileComplete");
             localStorage.removeItem("accountType");
             localStorage.removeItem("account_type");
 
@@ -201,22 +286,31 @@ export default function UserShell({ title = "Registra", children }) {
           return;
         }
 
-        localStorage.setItem("user", JSON.stringify(profile));
+        const oldUser = getStoredUser() || {};
+        const mergedProfile = {
+          ...oldUser,
+          ...profile,
+        };
 
-        const freshAccountType = getAccountType(profile);
+        const freshAccountType =
+          getAccountType(mergedProfile) || storedAccountType;
 
         if (freshAccountType) {
+          mergedProfile.accountType = freshAccountType;
+          mergedProfile.account_type = freshAccountType;
           localStorage.setItem("accountType", freshAccountType);
+          localStorage.setItem("account_type", freshAccountType);
         }
 
+        localStorage.setItem("user", JSON.stringify(mergedProfile));
+
         if (freshAccountType === "organization") {
-          localStorage.setItem("accountType", "organization");
-          localStorage.removeItem("profileComplete");
           if (!cancelled) setCheckingProfile(false);
+          navigate("/user/organization", { replace: true });
           return;
         }
 
-        const complete = isProfileComplete(profile);
+        const complete = isProfileComplete(mergedProfile);
         localStorage.setItem("profileComplete", complete ? "true" : "false");
 
         if (!complete && !isProfilePage) {

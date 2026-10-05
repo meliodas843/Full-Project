@@ -1,9 +1,4 @@
-import {
-  NavLink,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FiCalendar,
   FiGrid,
@@ -16,10 +11,38 @@ import {
   FiUser,
   FiUsers,
 } from "react-icons/fi";
-
 import logo from "../../../assets/reigistra-logo-def.png";
 
-function getProfileComplete() {
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    return null;
+  }
+}
+
+function getAccountType() {
+  const user = getStoredUser();
+
+  return String(
+    user?.accountType ||
+      user?.account_type ||
+      localStorage.getItem("accountType") ||
+      localStorage.getItem("account_type") ||
+      "",
+  )
+    .trim()
+    .toLowerCase();
+}
+
+function getProfileComplete(accountType) {
+  if (accountType === "organization") {
+    return (
+      localStorage.getItem("organizationProfileComplete") === "true" ||
+      localStorage.getItem("profileComplete") === "true"
+    );
+  }
+
   return localStorage.getItem("profileComplete") === "true";
 }
 
@@ -32,13 +55,19 @@ export default function Sidebar({
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const profileComplete = getProfileComplete();
+  const accountType = getAccountType();
+  const isOrganization = accountType === "organization";
+  const profileComplete = getProfileComplete(accountType);
+  const profilePath = isOrganization
+    ? "/user/organization"
+    : "/user/profile";
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("profileComplete");
+    localStorage.removeItem("organizationProfileComplete");
     localStorage.removeItem("accountType");
     localStorage.removeItem("account_type");
 
@@ -50,10 +79,7 @@ export default function Sidebar({
   };
 
   const isPathActive = (path) => {
-    return (
-      pathname === path ||
-      pathname.startsWith(`${path}/`)
-    );
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const isProfileSection =
@@ -61,6 +87,8 @@ export default function Sidebar({
     pathname.startsWith("/user/profile/") ||
     pathname === "/profile" ||
     pathname.startsWith("/profile/") ||
+    pathname === "/user/organization" ||
+    pathname.startsWith("/user/organization/") ||
     pathname === "/user/password" ||
     pathname.startsWith("/user/password/") ||
     pathname === "/user/company" ||
@@ -91,18 +119,12 @@ export default function Sidebar({
     }
 
     event.preventDefault();
-
-    navigate("/user/profile", {
-      replace: false,
-    });
-
+    navigate(profilePath);
     onNavigate();
   };
 
   const handleThemeToggle = () => {
-    const nextTheme =
-      theme === "dark" ? "light" : "dark";
-
+    const nextTheme = theme === "dark" ? "light" : "dark";
     onThemeChange(nextTheme);
   };
 
@@ -143,10 +165,7 @@ export default function Sidebar({
       }
     >
       <div className="rgSidebarLogo">
-        <img
-          src={logo}
-          alt="Registra"
-        />
+        <img src={logo} alt="Registra" />
       </div>
 
       <div className="rgSidebarBody">
@@ -163,10 +182,7 @@ export default function Sidebar({
                 aria-disabled={!profileComplete}
               >
                 {item.icon}
-
-                <span>
-                  {item.label}
-                </span>
+                <span>{item.label}</span>
 
                 {!profileComplete && (
                   <FiLock className="rgSideLock" />
@@ -181,15 +197,12 @@ export default function Sidebar({
 
           <nav className="rgSidebarMenu">
             <NavLink
-              to="/user/profile"
+              to={profilePath}
               className={getProfileLinkClass()}
               onClick={onNavigate}
             >
               <FiUser />
-
-              <span>
-                Профайл
-              </span>
+              <span>Профайл</span>
 
               {!profileComplete && (
                 <span className="rgProfileRequired">
@@ -204,17 +217,13 @@ export default function Sidebar({
       <div className="rgSidebarBottom">
         <div className="rgThemeRow">
           <span>
-            {theme === "dark"
-              ? "Dark mode"
-              : "Light mode"}
+            {theme === "dark" ? "Dark mode" : "Light mode"}
           </span>
 
           <button
             type="button"
             className={`rgThemeSwitch ${
-              theme === "dark"
-                ? "active"
-                : ""
+              theme === "dark" ? "active" : ""
             }`}
             onClick={handleThemeToggle}
             aria-label={
@@ -225,11 +234,7 @@ export default function Sidebar({
             aria-pressed={theme === "dark"}
           >
             <span>
-              {theme === "dark" ? (
-                <FiMoon />
-              ) : (
-                <FiSun />
-              )}
+              {theme === "dark" ? <FiMoon /> : <FiSun />}
             </span>
           </button>
         </div>
@@ -240,10 +245,7 @@ export default function Sidebar({
           onClick={handleLogout}
         >
           <FiLogOut />
-
-          <span>
-            Гарах
-          </span>
+          <span>Гарах</span>
         </button>
       </div>
     </aside>

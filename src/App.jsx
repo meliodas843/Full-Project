@@ -78,7 +78,6 @@ function AppRoutes() {
         <Route path="/events/:id" element={<EventDetail />} />
 
         <Route path="/organization" element={<Organization />} />
-
         <Route
           path="/organization/:id"
           element={<OrganizationDetail />}

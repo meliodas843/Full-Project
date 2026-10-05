@@ -1,7 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-
 import { useEffect, useState } from "react";
-
 import { API_BASE } from "@/lib/config";
 
 function safeParseUser() {
@@ -16,9 +14,7 @@ function parseTokenUser(token) {
   try {
     const [, payload] = token.split(".");
 
-    if (!payload) {
-      return null;
-    }
+    if (!payload) return null;
 
     let base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
 
@@ -44,90 +40,45 @@ function getAccountType(user) {
     .toLowerCase();
 }
 
-function isOrganizationAccount(user) {
-  return getAccountType(user) === "organization";
-}
-
 export default function ProtectedRoute({ children, roles = [] }) {
   const location = useLocation();
-
   const path = location.pathname;
-
   const [status, setStatus] = useState("checking");
-
   const [user, setUser] = useState(() => safeParseUser());
 
   useEffect(() => {
     let cancelled = false;
-
     const token = localStorage.getItem("token");
-
-    /*
-     * ==============================
-     * NO TOKEN
-     * ==============================
-     */
 
     if (!token) {
       setStatus("login");
       return undefined;
     }
 
-    /*
-     * ==============================
-     * TOKEN + STORED USER
-     * ==============================
-     */
-
     const tokenUser = parseTokenUser(token);
-
     const storedUser = safeParseUser();
 
     const mergedUser = {
       ...(tokenUser || {}),
       ...(storedUser || {}),
-
       role: storedUser?.role || tokenUser?.role || "user",
     };
-
-    /*
-     * Keep account type from the
-     * login response/localStorage.
-     */
 
     const mergedAccountType = getAccountType(mergedUser);
 
     if (mergedAccountType) {
       mergedUser.accountType = mergedAccountType;
-
       mergedUser.account_type = mergedAccountType;
-
       localStorage.setItem("accountType", mergedAccountType);
-
       localStorage.setItem("account_type", mergedAccountType);
     }
 
-    /*
-     * ==============================
-     * USER ALREADY AVAILABLE
-     * ==============================
-     */
-
     if (mergedUser?.id || mergedUser?.email) {
       localStorage.setItem("user", JSON.stringify(mergedUser));
-
       setUser(mergedUser);
-
       setStatus("ok");
-
       return undefined;
     }
-
-    /*
-     * ==============================
-     * FALLBACK: LOAD USER
-     * ==============================
-     */
 
     async function loadMe() {
       try {
@@ -138,38 +89,29 @@ export default function ProtectedRoute({ children, roles = [] }) {
         });
 
         if (!res.ok) {
-          if (!cancelled) {
-            setStatus("login");
-          }
-
+          if (!cancelled) setStatus("login");
           return;
         }
 
         const data = await res.json().catch(() => null);
-
         const me = data?.user || data;
 
         const finalUser = {
           ...(tokenUser || {}),
-
           ...(me || {}),
-
           role: me?.role || tokenUser?.role || "user",
         };
 
-        /*
-         * Preserve account type.
-         */
-
-        const accountType = getAccountType(finalUser);
+        const accountType =
+          getAccountType(finalUser) ||
+          localStorage.getItem("accountType") ||
+          localStorage.getItem("account_type") ||
+          "";
 
         if (accountType) {
           finalUser.accountType = accountType;
-
           finalUser.account_type = accountType;
-
           localStorage.setItem("accountType", accountType);
-
           localStorage.setItem("account_type", accountType);
         }
 
@@ -177,15 +119,10 @@ export default function ProtectedRoute({ children, roles = [] }) {
 
         if (!cancelled) {
           setUser(finalUser);
-
           setStatus("ok");
         }
-      } catch (err) {
-        console.error("ProtectedRoute error:", err);
-
-        if (!cancelled) {
-          setStatus("login");
-        }
+      } catch {
+        if (!cancelled) setStatus("login");
       }
     }
 
@@ -196,77 +133,62 @@ export default function ProtectedRoute({ children, roles = [] }) {
     };
   }, [path]);
 
-  /*
-   * ==============================
-   * CHECKING
-   * ==============================
-   */
-
   if (status === "checking") {
     return null;
   }
-
-  /*
-   * ==============================
-   * LOGIN REQUIRED
-   * ==============================
-   */
 
   if (status === "login") {
     return (
       <Navigate
         to="/login"
         replace
-        state={{
-          from: path,
-        }}
+        state={{ from: path }}
       />
     );
   }
 
-  /*
-   * ==============================
-   * ROLE CHECK
-   * ==============================
-   */
-
   const userRole = user?.role || "user";
 
-  if (Array.isArray(roles) && roles.length > 0 && !roles.includes(userRole)) {
+  if (
+    Array.isArray(roles) &&
+    roles.length > 0 &&
+    !roles.includes(userRole)
+  ) {
     return <Navigate to="/login" replace />;
   }
 
-  /*
-   * ==============================
-   * ACCOUNT TYPE
-   * ==============================
-   */
-
   const accountType = getAccountType(user);
-
-  const organizationAccount = isOrganizationAccount(user);
-
-  console.log("[ProtectedRoute] path:", path);
-
-  console.log("[ProtectedRoute] role:", userRole);
-
-  console.log("[ProtectedRoute] accountType:", accountType);
+  const organizationAccount = accountType === "organization";
 
   if (organizationAccount) {
+    const isIndividualProfilePage =
+      path === "/profile" ||
+      path === "/user/profile" ||
+      path.startsWith("/user/profile/");
+
+    if (isIndividualProfilePage) {
+      return <Navigate to="/user/organization" replace />;
+    }
+
     return children;
   }
 
-  const isProfilePage = path === "/profile" || path === "/user/profile";
+  if (
+    path === "/user/organization" ||
+    path.startsWith("/user/organization/")
+  ) {
+    return <Navigate to="/user/profile" replace />;
+  }
+
+  const isProfilePage =
+    path === "/profile" ||
+    path === "/user/profile" ||
+    path.startsWith("/user/profile/");
 
   const needsProfile =
     userRole === "user" &&
     (!String(user?.company_name || user?.companyName || "").trim() ||
       !String(user?.phone || "").trim());
-
-  /*
-   * Only INDIVIDUAL users are sent
-   * to /user/profile.
-   */
 
   if (needsProfile && !isProfilePage) {
     return (
@@ -275,7 +197,6 @@ export default function ProtectedRoute({ children, roles = [] }) {
         replace
         state={{
           profileRequired: true,
-
           from: path,
         }}
       />

@@ -126,8 +126,8 @@ function resolveImage(value) {
   }
 
   if (
-    image.startsWith("http\\\\\\\\://") ||
-    image.startsWith("https\\\\\\\\://") ||
+    image.startsWith("http://") ||
+    image.startsWith("https://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -269,6 +269,7 @@ export default function OrganizationProfile() {
   const [error, setError] = useState("");
 
   const [success, setSuccess] = useState("");
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   const [logoPreview, setLogoPreview] = useState("");
 
@@ -387,6 +388,7 @@ export default function OrganizationProfile() {
     try {
       const response = await fetch(`${API_BASE}/api/organizations/me`, {
         method: "GET",
+
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -394,9 +396,13 @@ export default function OrganizationProfile() {
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
+
         localStorage.removeItem("adminToken");
+
         localStorage.removeItem("user");
+
         navigate("/login", { replace: true });
+
         return;
       }
 
@@ -503,50 +509,74 @@ export default function OrganizationProfile() {
 
     if (!token) {
       navigate("/login", { replace: true });
+
       return;
     }
 
     if (!clean(form.name)) {
       setError("Байгууллагын нэрээ оруулна уу.");
+
       return;
     }
 
     setSaving(true);
+
     setError("");
+
     setSuccess("");
 
     try {
       const payload = {
         name: clean(form.name),
+
         registration_number: clean(form.registration_number),
+
         industry: clean(form.industry),
+
         employee_count: clean(form.employee_count),
+
         description: clean(form.description),
+
         website: clean(form.website),
+
         email: clean(form.email),
+
         phone: clean(form.phone),
+
         address: clean(form.address),
+
         facebook: clean(form.facebook),
+
         linkedin: clean(form.linkedin),
+
         contact_person: clean(form.contact_person),
+
         logo_url: organization?.logo_url || defaultLogo,
+
         cover_url: organization?.cover_url || defaultCover,
       };
 
       const response = await fetch(`${API_BASE}/api/organizations/me`, {
         method: "PUT",
+
         headers: {
           Authorization: `Bearer ${token}`,
+
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify(payload),
       });
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
+
         localStorage.removeItem("adminToken");
+
         localStorage.removeItem("user");
+
         navigate("/login", { replace: true });
+
         return;
       }
 
@@ -559,8 +589,11 @@ export default function OrganizationProfile() {
       const normalized = normalizeOrganization(data);
 
       setOrganization(normalized);
+
       setForm(createForm(normalized));
+
       setLogoFile(null);
+
       setCoverFile(null);
 
       if (logoPreview && logoPreview.startsWith("blob:")) {
@@ -572,17 +605,26 @@ export default function OrganizationProfile() {
       }
 
       setLogoPreview("");
+
       setCoverPreview("");
+
       setSuccess("Байгууллагын мэдээлэл амжилттай хадгалагдлаа.");
+
       window.dispatchEvent(new Event("organization-updated"));
     } catch (err) {
       console.error("Save organization error:", err);
+
       setError(
         err?.message || "Байгууллагын мэдээлэл хадгалахад алдаа гарлаа.",
       );
     } finally {
       setSaving(false);
     }
+  }
+
+  function goToDashboard() {
+    setShowCompleteModal(false);
+    window.location.replace("/user/home");
   }
 
   function handleLogoError(event) {
@@ -921,7 +963,7 @@ export default function OrganizationProfile() {
                             name="email"
                             value={form.email}
                             onChange={handleChange}
-                            placeholder="info\@itinsight.mn"
+                            placeholder="info@itinsight.mn"
                           />
                         </div>
                       </div>

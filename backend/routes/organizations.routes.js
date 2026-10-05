@@ -137,115 +137,33 @@ router.get(
       const userId = Number(req.user?.id) || 0;
 
       const [rows] = await pool.query(
-        `
-
-
-
-          SELECT
-
-
-
-            o.*,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM organization_followers ofl
-
-
-
-              WHERE ofl.organization_id = o.id
-
-
-
-            ) AS followers_count,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM events e
-
-
-
-              WHERE e.organization_id = o.id
-
-
-
-              AND (
-
-
-
-                e.end_time IS NULL
-
-
-
-                OR e.end_time >= NOW()
-
-
-
-              )
-
-
-
-            ) AS active_events_count,
-
-
-
-            EXISTS(
-
-
-
-              SELECT 1
-
-
-
-              FROM organization_followers ofl2
-
-
-
-              WHERE ofl2.organization_id = o.id
-
-
-
-              AND ofl2.user_id = ?
-
-
-
-            ) AS is_following
-
-
-
-          FROM organizations o
-
-
-
-          ORDER BY
-
-
-
-            o.is_verified DESC,
-
-
-
-            o.created_at DESC
-
-
-
-          `,
+        `          SELECT
+            o.*,
+            (
+              SELECT COUNT(*)
+              FROM organization_followers ofl
+              WHERE ofl.organization_id = o.id
+            ) AS followers_count,
+            (
+              SELECT COUNT(*)
+              FROM events e
+              WHERE e.organization_id = o.id
+              AND (
+                e.end_time IS NULL
+                OR e.end_time >= NOW()
+              )
+            ) AS active_events_count,
+            EXISTS(
+              SELECT 1
+              FROM organization_followers ofl2
+              WHERE ofl2.organization_id = o.id
+              AND ofl2.user_id = ?
+            ) AS is_following
+          FROM organizations o
+          ORDER BY
+            o.is_verified DESC,
+            o.created_at DESC
+          `,
 
         [userId],
       );
@@ -273,115 +191,33 @@ router.get(
       const userId = Number(req.user?.id) || 0;
 
       const [rows] = await pool.query(
-        `
-
-
-
-          SELECT
-
-
-
-            o.*,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM organization_followers ofl
-
-
-
-              WHERE ofl.organization_id = o.id
-
-
-
-            ) AS followers_count,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM events e
-
-
-
-              WHERE e.organization_id = o.id
-
-
-
-              AND (
-
-
-
-                e.end_time IS NULL
-
-
-
-                OR e.end_time >= NOW()
-
-
-
-              )
-
-
-
-            ) AS active_events_count,
-
-
-
-            EXISTS(
-
-
-
-              SELECT 1
-
-
-
-              FROM organization_followers ofl2
-
-
-
-              WHERE ofl2.organization_id = o.id
-
-
-
-              AND ofl2.user_id = ?
-
-
-
-            ) AS is_following
-
-
-
-          FROM organizations o
-
-
-
-          ORDER BY
-
-
-
-            o.is_verified DESC,
-
-
-
-            o.created_at DESC
-
-
-
-          `,
+        `          SELECT
+            o.*,
+            (
+              SELECT COUNT(*)
+              FROM organization_followers ofl
+              WHERE ofl.organization_id = o.id
+            ) AS followers_count,
+            (
+              SELECT COUNT(*)
+              FROM events e
+              WHERE e.organization_id = o.id
+              AND (
+                e.end_time IS NULL
+                OR e.end_time >= NOW()
+              )
+            ) AS active_events_count,
+            EXISTS(
+              SELECT 1
+              FROM organization_followers ofl2
+              WHERE ofl2.organization_id = o.id
+              AND ofl2.user_id = ?
+            ) AS is_following
+          FROM organizations o
+          ORDER BY
+            o.is_verified DESC,
+            o.created_at DESC
+          `,
 
         [userId],
       );
@@ -415,107 +251,31 @@ router.get(
       }
 
       const [rows] = await pool.query(
-        `
-
-
-
-          SELECT
-
-
-
-            o.*,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM organization_followers ofl
-
-
-
-              WHERE ofl.organization_id = o.id
-
-
-
-            ) AS followers_count,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM events e
-
-
-
-              WHERE e.organization_id = o.id
-
-
-
-            ) AS total_events_count,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM events e
-
-
-
-              WHERE e.organization_id = o.id
-
-
-
-              AND (
-
-
-
-                e.end_time IS NULL
-
-
-
-                OR e.end_time >= NOW()
-
-
-
-              )
-
-
-
-            ) AS active_events_count
-
-
-
-          FROM organizations o
-
-
-
-          WHERE o.user_id = ?
-
-
-
-          LIMIT 1
-
-
-
-          `,
+        `          SELECT
+            o.*,
+            (
+              SELECT COUNT(*)
+              FROM organization_followers ofl
+              WHERE ofl.organization_id = o.id
+            ) AS followers_count,
+            (
+              SELECT COUNT(*)
+              FROM events e
+              WHERE e.organization_id = o.id
+            ) AS total_events_count,
+            (
+              SELECT COUNT(*)
+              FROM events e
+              WHERE e.organization_id = o.id
+              AND (
+                e.end_time IS NULL
+                OR e.end_time >= NOW()
+              )
+            ) AS active_events_count
+          FROM organizations o
+          WHERE o.user_id = ?
+          LIMIT 1
+          `,
 
         [userId],
       );
@@ -629,84 +389,156 @@ router.put("/me", authMiddleware, async (req, res) => {
 
       await pool.query(
         `UPDATE organizations SET
+
     name=?,
+
     registration_number=?,
+
     established_year=?,
+
     categories=?,
+
     description=?,
+
     website=?,
+
     email=?,
+
     phone=?,
+
     address=?,
+
     facebook=?,
+
     linkedin=?,
+
     contact_person=?,
+
     industry=?,
+
     employee_count=?,
+
     logo_url=?,
+
     cover_url=?
+
    WHERE id=? AND user_id=?`,
+
         [
           name,
+
           registrationNumber || null,
+
           establishedYear,
+
           JSON.stringify(categories),
+
           description || null,
+
           website || null,
+
           email || null,
+
           phone || null,
+
           address || null,
+
           facebook || null,
+
           linkedin || null,
+
           contactPerson || null,
+
           industry || null,
+
           employeeCount || null,
+
           logoUrl || null,
+
           coverUrl || null,
+
           organizationId,
+
           userId,
         ],
       );
     } else {
       const [result] = await pool.query(
         `INSERT INTO organizations
+
    (
+
      user_id,
+
      name,
+
      registration_number,
+
      established_year,
+
      categories,
+
      description,
+
      website,
+
      email,
+
      phone,
+
      address,
+
      facebook,
+
      linkedin,
+
      contact_person,
+
      industry,
+
      employee_count,
+
      logo_url,
+
      cover_url
+
    )
+
    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+
         [
           userId,
+
           name,
+
           registrationNumber || null,
+
           establishedYear,
+
           JSON.stringify(categories),
+
           description || null,
+
           website || null,
+
           email || null,
+
           phone || null,
+
           address || null,
+
           facebook || null,
+
           linkedin || null,
+
           contactPerson || null,
+
           industry || null,
+
           employeeCount || null,
+
           logoUrl || null,
+
           coverUrl || null,
         ],
       );
@@ -716,13 +548,9 @@ router.put("/me", authMiddleware, async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT o.*,
-
        (SELECT COUNT(*) FROM organization_followers f WHERE f.organization_id=o.id) followers_count,
-
        (SELECT COUNT(*) FROM events e WHERE e.organization_id=o.id) total_events_count,
-
        (SELECT COUNT(*) FROM events e WHERE e.organization_id=o.id AND (e.end_time IS NULL OR e.end_time>=NOW())) active_events_count
-
        FROM organizations o WHERE o.id=? AND o.user_id=? LIMIT 1`,
 
       [organizationId, userId],
@@ -764,131 +592,37 @@ router.get(
       }
 
       const [rows] = await pool.query(
-        `
-
-
-
-          SELECT
-
-
-
-            o.*,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM organization_followers ofl
-
-
-
-              WHERE ofl.organization_id = o.id
-
-
-
-            ) AS followers_count,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM events e
-
-
-
-              WHERE e.organization_id = o.id
-
-
-
-            ) AS total_events_count,
-
-
-
-            (
-
-
-
-              SELECT COUNT(*)
-
-
-
-              FROM events e
-
-
-
-              WHERE e.organization_id = o.id
-
-
-
-              AND (
-
-
-
-                e.end_time IS NULL
-
-
-
-                OR e.end_time >= NOW()
-
-
-
-              )
-
-
-
-            ) AS active_events_count,
-
-
-
-            EXISTS(
-
-
-
-              SELECT 1
-
-
-
-              FROM organization_followers ofl2
-
-
-
-              WHERE ofl2.organization_id = o.id
-
-
-
-              AND ofl2.user_id = ?
-
-
-
-            ) AS is_following
-
-
-
-          FROM organizations o
-
-
-
-          WHERE o.id = ?
-
-
-
-          LIMIT 1
-
-
-
-          `,
+        `          SELECT
+            o.*,
+            (
+              SELECT COUNT(*)
+              FROM organization_followers ofl
+              WHERE ofl.organization_id = o.id
+            ) AS followers_count,
+            (
+              SELECT COUNT(*)
+              FROM events e
+              WHERE e.organization_id = o.id
+            ) AS total_events_count,
+            (
+              SELECT COUNT(*)
+              FROM events e
+              WHERE e.organization_id = o.id
+              AND (
+                e.end_time IS NULL
+                OR e.end_time >= NOW()
+              )
+            ) AS active_events_count,
+            EXISTS(
+              SELECT 1
+              FROM organization_followers ofl2
+              WHERE ofl2.organization_id = o.id
+              AND ofl2.user_id = ?
+            ) AS is_following
+          FROM organizations o
+          WHERE o.id = ?
+          LIMIT 1
+          `,
 
         [userId, organizationId],
       );
@@ -930,27 +664,11 @@ router.get(
       }
 
       const [organizationRows] = await pool.query(
-        `
-
-
-
-          SELECT id
-
-
-
-          FROM organizations
-
-
-
-          WHERE id = ?
-
-
-
-          LIMIT 1
-
-
-
-          `,
+        `          SELECT id
+          FROM organizations
+          WHERE id = ?
+          LIMIT 1
+          `,
 
         [organizationId],
       );
@@ -962,27 +680,11 @@ router.get(
       }
 
       const [events] = await pool.query(
-        `
-
-
-
-          SELECT *
-
-
-
-          FROM events
-
-
-
-          WHERE organization_id = ?
-
-
-
-          ORDER BY start_time DESC
-
-
-
-          `,
+        `          SELECT *
+          FROM events
+          WHERE organization_id = ?
+          ORDER BY start_time DESC
+          `,
 
         [organizationId],
       );
@@ -1024,27 +726,11 @@ router.post(
       }
 
       const [organizations] = await pool.query(
-        `
-
-
-
-          SELECT id
-
-
-
-          FROM organizations
-
-
-
-          WHERE id = ?
-
-
-
-          LIMIT 1
-
-
-
-          `,
+        `          SELECT id
+          FROM organizations
+          WHERE id = ?
+          LIMIT 1
+          `,
 
         [organizationId],
       );
@@ -1056,61 +742,23 @@ router.post(
       }
 
       await pool.query(
-        `
-
-
-
-        INSERT IGNORE INTO organization_followers
-
-
-
-        (
-
-
-
-          organization_id,
-
-
-
-          user_id
-
-
-
-        )
-
-
-
-        VALUES (?, ?)
-
-
-
-        `,
+        `        INSERT IGNORE INTO organization_followers
+        (
+          organization_id,
+          user_id
+        )
+        VALUES (?, ?)
+        `,
 
         [organizationId, userId],
       );
 
       const [countRows] = await pool.query(
-        `
-
-
-
-          SELECT
-
-
-
-            COUNT(*) AS total
-
-
-
-          FROM organization_followers
-
-
-
-          WHERE organization_id = ?
-
-
-
-          `,
+        `          SELECT
+            COUNT(*) AS total
+          FROM organization_followers
+          WHERE organization_id = ?
+          `,
 
         [organizationId],
       );
@@ -1156,53 +804,21 @@ router.delete(
       }
 
       await pool.query(
-        `
-
-
-
-        DELETE
-
-
-
-        FROM organization_followers
-
-
-
-        WHERE organization_id = ?
-
-
-
-        AND user_id = ?
-
-
-
-        `,
+        `        DELETE
+        FROM organization_followers
+        WHERE organization_id = ?
+        AND user_id = ?
+        `,
 
         [organizationId, userId],
       );
 
       const [countRows] = await pool.query(
-        `
-
-
-
-          SELECT
-
-
-
-            COUNT(*) AS total
-
-
-
-          FROM organization_followers
-
-
-
-          WHERE organization_id = ?
-
-
-
-          `,
+        `          SELECT
+            COUNT(*) AS total
+          FROM organization_followers
+          WHERE organization_id = ?
+          `,
 
         [organizationId],
       );
