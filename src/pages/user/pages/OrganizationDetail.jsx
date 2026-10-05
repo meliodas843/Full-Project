@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+
 import { CompanyCover, CompanyLogo } from "../components/IdentityImage";
-import { Link, useParams } from "react-router-dom";
 
 import {
   FiArrowLeft,
@@ -14,6 +20,7 @@ import {
 } from "react-icons/fi";
 
 import UserShell from "../components/UserShell";
+import Footer from "../../../components/Footer";
 import { API_BASE } from "../../../lib/config";
 
 function getToken() {
@@ -21,6 +28,7 @@ function getToken() {
     localStorage.getItem("token") ||
     localStorage.getItem("accessToken") ||
     localStorage.getItem("authToken") ||
+    localStorage.getItem("adminToken") ||
     ""
   );
 }
@@ -37,23 +45,6 @@ function resolveUrl(value) {
   }
 
   return `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`;
-}
-
-function getInitials(name) {
-  const parts = String(name || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (!parts.length) {
-    return "O";
-  }
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
 function formatDate(value) {
@@ -94,18 +85,45 @@ function formatTime(value) {
   });
 }
 
-function normalizeOrganization(item) {
-  const categories = Array.isArray(item?.categories)
-    ? item.categories
-    : String(item?.categories || item?.category || "")
+function normalizeCategories(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
+      }
+    } catch {
+      return value
         .split(",")
-        .map((value) => value.trim())
+        .map((item) => item.trim())
         .filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
+function normalizeOrganization(item) {
+  const categories = normalizeCategories(
+    item?.categories || item?.category || item?.industry,
+  );
 
   return {
     ...item,
 
-    id: item?.id ?? item?.organization_id ?? item?.org_id,
+    id:
+      item?.id ??
+      item?.organization_id ??
+      item?.org_id,
 
     name:
       item?.name ||
@@ -114,7 +132,10 @@ function normalizeOrganization(item) {
       "Байгууллага",
 
     category:
-      item?.category || item?.industry || categories[0] || "Байгууллага",
+      item?.category ||
+      item?.industry ||
+      categories[0] ||
+      "Байгууллага",
 
     categories,
 
@@ -124,7 +145,12 @@ function normalizeOrganization(item) {
       item?.bio ||
       "Байгууллагын танилцуулга оруулаагүй байна.",
 
-    logo: item?.logo_url || item?.logo || item?.image_url || item?.image || "",
+    logo:
+      item?.logo_url ||
+      item?.logo ||
+      item?.image_url ||
+      item?.image ||
+      "",
 
     cover:
       item?.cover_url ||
@@ -135,22 +161,39 @@ function normalizeOrganization(item) {
 
     verified: Boolean(
       item?.verified ??
-      item?.is_verified ??
-      item?.verification_status === "verified",
+        item?.is_verified ??
+        item?.verification_status === "verified",
     ),
 
-    following: Boolean(item?.following ?? item?.is_following ?? item?.followed),
+    following: Boolean(
+      item?.following ??
+        item?.is_following ??
+        item?.followed,
+    ),
 
     followers:
       Number(
-        item?.followers_count ?? item?.follower_count ?? item?.followers ?? 0,
+        item?.followers_count ??
+          item?.follower_count ??
+          item?.followers ??
+          0,
       ) || 0,
 
-    website: item?.website || item?.website_url || "",
+    website:
+      item?.website ||
+      item?.website_url ||
+      "",
 
-    phone: item?.phone || item?.organization_phone || "",
+    phone:
+      item?.phone ||
+      item?.organization_phone ||
+      "",
 
-    address: item?.address || item?.location || item?.city || "",
+    address:
+      item?.address ||
+      item?.location ||
+      item?.city ||
+      "",
   };
 }
 
@@ -158,20 +201,44 @@ function normalizeEvent(item) {
   return {
     ...item,
 
-    id: item?.id ?? item?.event_id,
+    id:
+      item?.id ??
+      item?.event_id,
 
-    title: item?.title || item?.name || "Эвэнт",
+    title:
+      item?.title ||
+      item?.name ||
+      "Эвэнт",
 
-    badge: item?.badge || item?.category || item?.event_type || "Эвэнт",
+    badge:
+      item?.badge ||
+      item?.category ||
+      item?.event_type ||
+      "Эвэнт",
 
     image:
-      item?.image_url || item?.image || item?.cover_image || item?.cover || "",
+      item?.image_url ||
+      item?.image ||
+      item?.cover_image ||
+      item?.cover ||
+      "",
 
-    start: item?.start_time || item?.start_at || item?.date || "",
+    start:
+      item?.start_time ||
+      item?.start_at ||
+      item?.date ||
+      "",
 
-    end: item?.end_time || item?.end_at || "",
+    end:
+      item?.end_time ||
+      item?.end_at ||
+      "",
 
-    location: item?.location || item?.venue || item?.address || "",
+    location:
+      item?.location ||
+      item?.venue ||
+      item?.address ||
+      "",
 
     participants:
       Number(
@@ -190,6 +257,8 @@ async function fetchJson(url, options = {}) {
     ...options,
 
     headers: {
+      Accept: "application/json",
+
       ...(token
         ? {
             Authorization: `Bearer ${token}`,
@@ -211,7 +280,11 @@ async function fetchJson(url, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(data?.message || data?.error || `HTTP ${response.status}`);
+    throw new Error(
+      data?.message ||
+        data?.error ||
+        `HTTP ${response.status}`,
+    );
   }
 
   return data;
@@ -220,20 +293,36 @@ async function fetchJson(url, options = {}) {
 export default function OrganizationDetail() {
   const { id } = useParams();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [organization, setOrganization] = useState(null);
-
   const [events, setEvents] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [followBusy, setFollowBusy] = useState(false);
-
   const [error, setError] = useState("");
+
+  const isUserView =
+    location.pathname.startsWith("/user/");
+
+  const isLoggedIn = Boolean(getToken());
+
+  const backPath = isUserView
+    ? "/user/organizations"
+    : "/organization";
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      if (!id) {
+        setOrganization(null);
+        setEvents([]);
+        setError("Байгууллагын ID олдсонгүй.");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError("");
 
@@ -247,8 +336,16 @@ export default function OrganizationDetail() {
           organizationData?.data ||
           organizationData;
 
+        if (!rawOrganization) {
+          throw new Error(
+            "Байгууллагын мэдээлэл олдсонгүй.",
+          );
+        }
+
         if (!cancelled) {
-          setOrganization(normalizeOrganization(rawOrganization));
+          setOrganization(
+            normalizeOrganization(rawOrganization),
+          );
         }
 
         let eventRows = [];
@@ -264,7 +361,10 @@ export default function OrganizationDetail() {
 
             eventRows = Array.isArray(eventData)
               ? eventData
-              : eventData?.events || eventData?.data || eventData?.items || [];
+              : eventData?.events ||
+                eventData?.data ||
+                eventData?.items ||
+                [];
 
             break;
           } catch {
@@ -273,11 +373,18 @@ export default function OrganizationDetail() {
         }
 
         if (!cancelled) {
-          setEvents(eventRows.map(normalizeEvent));
+          setEvents(
+            eventRows.map(normalizeEvent),
+          );
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err.message || "Байгууллагын мэдээлэл ачаалж чадсангүй.");
+          setOrganization(null);
+
+          setError(
+            err?.message ||
+              "Байгууллагын мэдээлэл ачаалж чадсангүй.",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -297,7 +404,9 @@ export default function OrganizationDetail() {
     const now = Date.now();
 
     return events.filter((event) => {
-      const value = event.end || event.start;
+      const value =
+        event.end ||
+        event.start;
 
       if (!value) {
         return true;
@@ -317,7 +426,9 @@ export default function OrganizationDetail() {
     const now = Date.now();
 
     return events.filter((event) => {
-      const value = event.end || event.start;
+      const value =
+        event.end ||
+        event.start;
 
       if (!value) {
         return false;
@@ -334,34 +445,64 @@ export default function OrganizationDetail() {
   }, [events]);
 
   async function toggleFollow() {
-    if (!organization) {
+    const token = getToken();
+
+    if (!token) {
+      navigate("/login", {
+        state: {
+          from: location.pathname,
+        },
+      });
+
+      return;
+    }
+
+    if (!organization || followBusy) {
       return;
     }
 
     setFollowBusy(true);
     setError("");
 
-    const nextFollowing = !organization.following;
+    const nextFollowing =
+      !organization.following;
 
     try {
       const result = await fetchJson(
         `${API_BASE}/api/organizations/${organization.id}/follow`,
         {
-          method: nextFollowing ? "POST" : "DELETE",
+          method: nextFollowing
+            ? "POST"
+            : "DELETE",
         },
       );
 
-      setOrganization((current) => ({
-        ...current,
+      setOrganization((current) => {
+        if (!current) {
+          return current;
+        }
 
-        following: nextFollowing,
+        return {
+          ...current,
 
-        followers: Number.isFinite(Number(result?.followers))
-          ? Number(result.followers)
-          : Math.max(0, current.followers + (nextFollowing ? 1 : -1)),
-      }));
+          following: nextFollowing,
+
+          followers: Number.isFinite(
+            Number(result?.followers),
+          )
+            ? Number(result.followers)
+            : Math.max(
+                0,
+                current.followers +
+                  (nextFollowing ? 1 : -1),
+              ),
+        };
+      });
     } catch (err) {
-      setError(err.message || "Үйлдэл амжилтгүй боллоо.");
+      setError(
+        err?.message ||
+          "Үйлдэл амжилтгүй боллоо.",
+      );
     } finally {
       setFollowBusy(false);
     }
@@ -369,7 +510,9 @@ export default function OrganizationDetail() {
 
   async function handleShare() {
     const shareData = {
-      title: organization?.name || "Registra",
+      title:
+        organization?.name ||
+        "Registra",
 
       url: window.location.href,
     };
@@ -377,292 +520,485 @@ export default function OrganizationDetail() {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
-
         return;
       }
 
-      await navigator.clipboard?.writeText(window.location.href);
+      await navigator.clipboard?.writeText(
+        window.location.href,
+      );
     } catch {
       return;
     }
   }
 
-  if (loading) {
+  function renderPage(content) {
+    if (isUserView && isLoggedIn) {
+      return (
+        <UserShell>
+          {content}
+        </UserShell>
+      );
+    }
+
     return (
-      <UserShell>
-        <div className="orgDetailPage">
-          <div className="orgDetailState">
-            <div className="orgDetailLoader" />
+      <>
+        {content}
+        <Footer />
+      </>
+    );
+  }
 
-            <strong>Байгууллагын мэдээллийг ачаалж байна</strong>
+  if (loading) {
+    return renderPage(
+      <main className="orgDetailPage">
+        <div className="orgDetailState">
+          <div className="orgDetailLoader" />
 
-            <span>Түр хүлээнэ үү...</span>
-          </div>
+          <strong>
+            Байгууллагын мэдээллийг ачаалж байна
+          </strong>
+
+          <span>
+            Түр хүлээнэ үү...
+          </span>
         </div>
-      </UserShell>
+      </main>,
     );
   }
 
   if (!organization) {
-    return (
-      <UserShell>
-        <div className="orgDetailPage">
-          <div className="orgDetailState">
-            <strong>Байгууллага олдсонгүй</strong>
+    return renderPage(
+      <main className="orgDetailPage">
+        <div className="orgDetailState">
+          <strong>
+            Байгууллага олдсонгүй
+          </strong>
 
-            <span>{error || "Байгууллагын мэдээлэл байхгүй байна."}</span>
+          <span>
+            {error ||
+              "Байгууллагын мэдээлэл байхгүй байна."}
+          </span>
 
-            <Link to="/user/organizations" className="orgDetailStateButton">
-              <FiArrowLeft />
-              Байгууллагууд руу буцах
-            </Link>
-          </div>
+          <Link
+            to={backPath}
+            className="orgDetailStateButton"
+          >
+            <FiArrowLeft />
+
+            Байгууллагууд руу буцах
+          </Link>
         </div>
-      </UserShell>
+      </main>,
     );
   }
 
-  return (
-    <UserShell>
-      <main className="orgDetailPage">
-        <div className="orgDetailContent">
-          <div className="orgDetailTopRow">
-            <Link className="orgDetailBack" to="/user/organizations">
-              <FiArrowLeft />
-              <span>Байгууллагууд руу буцах</span>
-            </Link>
+  const page = (
+    <main className="orgDetailPage">
+      <div className="orgDetailContent">
+        <div className="orgDetailTopRow">
+          <Link
+            className="orgDetailBack"
+            to={backPath}
+          >
+            <FiArrowLeft />
+
+            <span>
+              Байгууллагууд руу буцах
+            </span>
+          </Link>
+        </div>
+
+        <section className="orgDetailHero">
+          <div className="orgDetailCover">
+            <CompanyCover
+              name={organization.name}
+              src={organization.cover}
+              apiBase={API_BASE}
+            />
+
+            <div className="orgDetailCoverOverlay" />
           </div>
 
-          <section className="orgDetailHero">
-            <div className="orgDetailCover">
-              <CompanyCover
-                name={organization.name}
-                src={organization.cover}
-                apiBase={API_BASE}
-              />
+          <div className="orgDetailIdentity">
+            <CompanyLogo
+              name={organization.name}
+              src={organization.logo}
+              apiBase={API_BASE}
+              size={104}
+              className="orgDetailLogo"
+            />
 
-              <div className="orgDetailCoverOverlay" />
-            </div>
+            <div className="orgDetailIdentityText">
+              <div className="orgDetailNameRow">
+                <h1>
+                  {organization.name}
+                </h1>
 
-            <div className="orgDetailIdentity">
-                <CompanyLogo
-                name={organization.name}
-                src={organization.logo}
-                apiBase={API_BASE}
-                size={104}
-                className="orgDetailLogo"
-                />
+                {organization.verified && (
+                  <span className="orgVerified">
+                    <FiCheck />
 
-              <div className="orgDetailIdentityText">
-                <div className="orgDetailNameRow">
-                  <h1>{organization.name}</h1>
+                    Баталгаажсан
+                  </span>
+                )}
+              </div>
 
-                  {organization.verified && (
-                    <span className="orgVerified">
-                      <FiCheck />
-                      Баталгаажсан
+              <div className="orgDetailCategory">
+                <span>
+                  {organization.category}
+                </span>
+
+                {organization.address && (
+                  <>
+                    <i />
+
+                    <span>
+                      {organization.address}
                     </span>
-                  )}
-                </div>
-
-                <div className="orgDetailCategory">
-                  <span>{organization.category}</span>
-
-                  {organization.address && (
-                    <>
-                      <i />
-                      <span>{organization.address}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="orgDetailActions">
-                <button
-                  type="button"
-                  className={`orgFollowButton ${
-                    organization.following ? "following" : ""
-                  }`}
-                  disabled={followBusy}
-                  onClick={toggleFollow}
-                >
-                  {followBusy
-                    ? "..."
-                    : organization.following
-                      ? "✓ Дагаж байна"
-                      : "+ Дагах"}
-                </button>
-
-                <button
-                  type="button"
-                  className="orgShareButton"
-                  onClick={handleShare}
-                >
-                  <FiShare2 />
-                  Хуваалцах
-                </button>
+                  </>
+                )}
               </div>
             </div>
-          </section>
 
-          {error && <div className="orgDetailError">{error}</div>}
+            <div className="orgDetailActions">
+              <button
+                type="button"
+                className={`orgFollowButton ${
+                  organization.following
+                    ? "following"
+                    : ""
+                }`}
+                disabled={followBusy}
+                onClick={toggleFollow}
+              >
+                {followBusy
+                  ? "..."
+                  : organization.following
+                    ? "✓ Дагаж байна"
+                    : "+ Дагах"}
+              </button>
 
-          <div className="orgDetailLayout">
-            <div className="orgDetailMain">
-              <section className="orgDetailSection">
-                <h2>Танилцуулга</h2>
+              <button
+                type="button"
+                className="orgShareButton"
+                onClick={handleShare}
+              >
+                <FiShare2 />
 
-                <p className="orgDetailDescription">
-                  {organization.description}
-                </p>
-              </section>
+                Хуваалцах
+              </button>
+            </div>
+          </div>
+        </section>
 
+        {error && (
+          <div className="orgDetailError">
+            {error}
+          </div>
+        )}
+
+        <div className="orgDetailLayout">
+          <div className="orgDetailMain">
+            <section className="orgDetailSection">
+              <h2>
+                Танилцуулга
+              </h2>
+
+              <p className="orgDetailDescription">
+                {organization.description}
+              </p>
+            </section>
+
+            <section className="orgDetailSection">
+              <div className="orgEventsHeading">
+                <h2>
+                  Зарласан эвэнтүүд
+                </h2>
+
+                <div className="orgEventCounters">
+                  <span>
+                    Удахгүй · {activeEvents.length}
+                  </span>
+
+                  <span>
+                    Өнгөрсөн · {finishedEvents.length}
+                  </span>
+                </div>
+              </div>
+
+              <div className="orgEventsGrid">
+                {activeEvents.length > 0 ? (
+                  activeEvents.map((event) => (
+                    <article
+                      className="orgEventCard"
+                      key={
+                        event.id ||
+                        event.title
+                      }
+                    >
+                      <div className="orgEventImage">
+                        {event.image && (
+                          <img
+                            src={resolveUrl(
+                              event.image,
+                            )}
+                            alt={event.title}
+                          />
+                        )}
+
+                        <span className="orgEventBadge">
+                          {event.badge}
+                        </span>
+                      </div>
+
+                      <div className="orgEventContent">
+                        <h3>
+                          {event.title}
+                        </h3>
+
+                        <div className="orgEventMeta">
+                          <FiCalendar />
+
+                          <span>
+                            {formatDate(
+                              event.start,
+                            )}
+
+                            {event.start
+                              ? ` · ${formatTime(
+                                  event.start,
+                                )}`
+                              : ""}
+                          </span>
+                        </div>
+
+                        {event.location && (
+                          <div className="orgEventMeta">
+                            <FiMapPin />
+
+                            <span>
+                              {event.location}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="orgEventMeta">
+                          <FiUsers />
+
+                          <span>
+                            {event.participants} оролцогч
+                          </span>
+                        </div>
+
+                        <Link
+                          to={`/events/${event.id}`}
+                          className="orgEventDetailButton"
+                        >
+                          Дэлгэрэнгүй
+                        </Link>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="orgEmptyEvents">
+                    <div className="orgEmptyEventIcon">
+                      <FiCalendar />
+                    </div>
+
+                    <strong>
+                      Шинэ эвэнт алга байна
+                    </strong>
+
+                    <span>
+                      Дагавал шинэ эвэнт зарлахад мэдэгдэл аваарай.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {finishedEvents.length > 0 && (
               <section className="orgDetailSection">
                 <div className="orgEventsHeading">
-                  <h2>Зарласан эвэнтүүд</h2>
+                  <h2>
+                    Өнгөрсөн эвэнтүүд
+                  </h2>
 
                   <div className="orgEventCounters">
-                    <span>Удахгүй · {activeEvents.length}</span>
-
-                    <span>Өнгөрсөн · {finishedEvents.length}</span>
+                    <span>
+                      Нийт · {finishedEvents.length}
+                    </span>
                   </div>
                 </div>
 
                 <div className="orgEventsGrid">
-                  {activeEvents.length > 0 ? (
-                    activeEvents.map((event) => (
-                      <article
-                        className="orgEventCard"
-                        key={event.id || event.title}
-                      >
-                        <div className="orgEventImage">
-                          {event.image && (
-                            <img
-                              src={resolveUrl(event.image)}
-                              alt={event.title}
-                            />
-                          )}
+                  {finishedEvents.map((event) => (
+                    <article
+                      className="orgEventCard"
+                      key={
+                        event.id ||
+                        event.title
+                      }
+                    >
+                      <div className="orgEventImage">
+                        {event.image && (
+                          <img
+                            src={resolveUrl(
+                              event.image,
+                            )}
+                            alt={event.title}
+                          />
+                        )}
 
-                          <span className="orgEventBadge">{event.badge}</span>
-                        </div>
-
-                        <div className="orgEventContent">
-                          <h3>{event.title}</h3>
-
-                          <div className="orgEventMeta">
-                            <FiCalendar />
-
-                            <span>
-                              {formatDate(event.start)}
-
-                              {event.start
-                                ? ` · ${formatTime(event.start)}`
-                                : ""}
-                            </span>
-                          </div>
-
-                          {event.location && (
-                            <div className="orgEventMeta">
-                              <FiMapPin />
-                              <span>{event.location}</span>
-                            </div>
-                          )}
-
-                          <div className="orgEventMeta">
-                            <FiUsers />
-
-                            <span>{event.participants} оролцогч</span>
-                          </div>
-
-                          <Link
-                            to={`/events/${event.id}`}
-                            className="orgEventDetailButton"
-                          >
-                            Дэлгэрэнгүй
-                          </Link>
-                        </div>
-                      </article>
-                    ))
-                  ) : (
-                    <div className="orgEmptyEvents">
-                      <div className="orgEmptyEventIcon">
-                        <FiCalendar />
+                        <span className="orgEventBadge">
+                          {event.badge}
+                        </span>
                       </div>
 
-                      <strong>Шинэ эвэнт алга байна</strong>
+                      <div className="orgEventContent">
+                        <h3>
+                          {event.title}
+                        </h3>
 
-                      <span>Дагавал шинэ эвэнт зарлахад мэдэгдэл аваарай.</span>
-                    </div>
-                  )}
+                        <div className="orgEventMeta">
+                          <FiCalendar />
+
+                          <span>
+                            {formatDate(
+                              event.start,
+                            )}
+
+                            {event.start
+                              ? ` · ${formatTime(
+                                  event.start,
+                                )}`
+                              : ""}
+                          </span>
+                        </div>
+
+                        {event.location && (
+                          <div className="orgEventMeta">
+                            <FiMapPin />
+
+                            <span>
+                              {event.location}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="orgEventMeta">
+                          <FiUsers />
+
+                          <span>
+                            {event.participants} оролцогч
+                          </span>
+                        </div>
+
+                        <Link
+                          to={`/events/${event.id}`}
+                          className="orgEventDetailButton"
+                        >
+                          Дэлгэрэнгүй
+                        </Link>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               </section>
-            </div>
+            )}
+          </div>
 
-            <aside className="orgDetailSidebar">
-              <div className="orgInfoCard">
-                <h3>ТОВЧ МЭДЭЭЛЭЛ</h3>
+          <aside className="orgDetailSidebar">
+            <div className="orgInfoCard">
+              <h3>
+                ТОВЧ МЭДЭЭЛЭЛ
+              </h3>
 
-                <div className="orgStats">
-                  <div className="orgStat">
-                    <strong>{events.length}</strong>
-                    <span>Нийт эвэнт</span>
-                  </div>
+              <div className="orgStats">
+                <div className="orgStat">
+                  <strong>
+                    {events.length}
+                  </strong>
 
-                  <div className="orgStat">
-                    <strong>{organization.followers}</strong>
-                    <span>Дагагч</span>
-                  </div>
-
-                  <div className="orgStat">
-                    <strong>{activeEvents.length}</strong>
-                    <span>Идэвхтэй</span>
-                  </div>
+                  <span>
+                    Нийт эвэнт
+                  </span>
                 </div>
 
-                <div className="orgInfoDivider" />
+                <div className="orgStat">
+                  <strong>
+                    {organization.followers}
+                  </strong>
 
-                <div className="orgInfoList">
-                  {organization.website && (
-                    <a
-                      className="orgInfoItem"
-                      href={
-                        /^https?:\/\//i.test(organization.website)
-                          ? organization.website
-                          : `https://${organization.website}`
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <FiGlobe />
+                  <span>
+                    Дагагч
+                  </span>
+                </div>
 
-                      <span>{organization.website}</span>
-                    </a>
-                  )}
+                <div className="orgStat">
+                  <strong>
+                    {activeEvents.length}
+                  </strong>
 
-                  {organization.phone && (
-                    <a
-                      className="orgInfoItem"
-                      href={`tel:${organization.phone}`}
-                    >
-                      <FiPhone />
-
-                      <span>{organization.phone}</span>
-                    </a>
-                  )}
-
-                  {organization.address && (
-                    <div className="orgInfoItem">
-                      <FiMapPin />
-
-                      <span>{organization.address}</span>
-                    </div>
-                  )}
+                  <span>
+                    Идэвхтэй
+                  </span>
                 </div>
               </div>
-            </aside>
-          </div>
+
+              <div className="orgInfoDivider" />
+
+              <div className="orgInfoList">
+                {organization.website && (
+                  <a
+                    className="orgInfoItem"
+                    href={
+                      /^https?:\/\//i.test(
+                        organization.website,
+                      )
+                        ? organization.website
+                        : `https://${organization.website}`
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <FiGlobe />
+
+                    <span>
+                      {organization.website}
+                    </span>
+                  </a>
+                )}
+
+                {organization.phone && (
+                  <a
+                    className="orgInfoItem"
+                    href={`tel:${organization.phone}`}
+                  >
+                    <FiPhone />
+
+                    <span>
+                      {organization.phone}
+                    </span>
+                  </a>
+                )}
+
+                {organization.address && (
+                  <div className="orgInfoItem">
+                    <FiMapPin />
+
+                    <span>
+                      {organization.address}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </aside>
         </div>
-      </main>
-    </UserShell>
+      </div>
+    </main>
   );
+
+  return renderPage(page);
 }

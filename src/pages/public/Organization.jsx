@@ -7,6 +7,7 @@ import {
   FaMagnifyingGlass,
   FaPlus,
 } from "react-icons/fa6";
+
 import { API_BASE } from "@/lib/config";
 import Footer from "../../components/Footer";
 
@@ -65,10 +66,7 @@ function normalizeCategories(value) {
 }
 
 function getInitials(name = "") {
-  const parts = String(name)
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
 
   if (!parts.length) {
     return "OR";
@@ -83,9 +81,7 @@ function getInitials(name = "") {
 
 function getToken() {
   return (
-    localStorage.getItem("token") ||
-    localStorage.getItem("adminToken") ||
-    ""
+    localStorage.getItem("token") || localStorage.getItem("adminToken") || ""
   );
 }
 
@@ -95,6 +91,7 @@ export default function Organization() {
   const [organizations, setOrganizations] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [followLoading, setFollowLoading] = useState(null);
@@ -106,20 +103,18 @@ export default function Organization() {
 
       const token = getToken();
 
-      const response = await fetch(
-        `${API_BASE}/api/organizations/public`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            ...(token
-              ? {
-                  Authorization: `Bearer ${token}`,
-                }
-              : {}),
-          },
+      const response = await fetch(`${API_BASE}/api/organizations/public`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}),
         },
-      );
+      });
 
       const data = await response.json().catch(() => ({}));
 
@@ -142,8 +137,7 @@ export default function Organization() {
       setOrganizations([]);
 
       setError(
-        requestError?.message ||
-          "Байгууллагын мэдээлэл авахад алдаа гарлаа.",
+        requestError?.message || "Байгууллагын мэдээлэл авахад алдаа гарлаа.",
       );
     } finally {
       setLoading(false);
@@ -173,15 +167,13 @@ export default function Organization() {
         .join(" ")
         .toLowerCase();
 
-      const matchesSearch =
-        !keyword || searchableText.includes(keyword);
+      const matchesSearch = !keyword || searchableText.includes(keyword);
 
       const matchesCategory =
         selectedCategory === "all" ||
         organizationCategories.some(
           (category) =>
-            String(category).toLowerCase() ===
-            selectedCategory.toLowerCase(),
+            String(category).toLowerCase() === selectedCategory.toLowerCase(),
         );
 
       return matchesSearch && matchesCategory;
@@ -203,6 +195,7 @@ export default function Organization() {
         `${API_BASE}/api/organizations/${organization.id}/follow`,
         {
           method: organization.is_following ? "DELETE" : "POST",
+
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
@@ -214,9 +207,7 @@ export default function Organization() {
 
       if (!response.ok) {
         throw new Error(
-          data?.message ||
-            data?.error ||
-            "Үйлдлийг гүйцэтгэхэд алдаа гарлаа.",
+          data?.message || data?.error || "Үйлдлийг гүйцэтгэхэд алдаа гарлаа.",
         );
       }
 
@@ -227,22 +218,21 @@ export default function Organization() {
           }
 
           const nextFollowing = !Boolean(item.is_following);
+
           const followers = Number(item.followers_count || 0);
 
           return {
             ...item,
+
             is_following: nextFollowing,
-            followers_count: Math.max(
-              0,
-              followers + (nextFollowing ? 1 : -1),
-            ),
+
+            followers_count: Math.max(0, followers + (nextFollowing ? 1 : -1)),
           };
         }),
       );
     } catch (requestError) {
       window.alert(
-        requestError?.message ||
-          "Үйлдлийг гүйцэтгэхэд алдаа гарлаа.",
+        requestError?.message || "Үйлдлийг гүйцэтгэхэд алдаа гарлаа.",
       );
     } finally {
       setFollowLoading(null);
@@ -253,18 +243,19 @@ export default function Organization() {
     <div className="publicOrganizationPage">
       <main className="publicOrganizationMain">
         <div className="publicOrganizationContainer">
+          {/* HEADER */}
+
           <section className="publicOrganizationHeader">
-            <span className="publicOrganizationEyebrow">
-              БАЙГУУЛЛАГУУД
-            </span>
+            <span className="publicOrganizationEyebrow">БАЙГУУЛЛАГУУД</span>
 
             <h1>Эвэнт зохион байгуулагчид</h1>
 
             <p>
-              Registra дээр эвэнт зарладаг байгууллагуудтай танилцаж,
-              дагаарай.
+              Registra дээр эвэнт зарладаг байгууллагуудтай танилцаж, дагаарай.
             </p>
           </section>
+
+          {/* SEARCH + FILTER */}
 
           <section className="publicOrganizationControls">
             <div className="publicOrganizationToolbar">
@@ -294,15 +285,15 @@ export default function Organization() {
                       ? "publicOrganizationFilter active"
                       : "publicOrganizationFilter"
                   }
-                  onClick={() =>
-                    setSelectedCategory(category.value)
-                  }
+                  onClick={() => setSelectedCategory(category.value)}
                 >
                   {category.label}
                 </button>
               ))}
             </div>
           </section>
+
+          {/* LOADING */}
 
           {loading ? (
             <div className="publicOrganizationState">
@@ -313,6 +304,8 @@ export default function Organization() {
               <p>Байгууллагуудыг ачаалж байна...</p>
             </div>
           ) : error ? (
+            /* ERROR */
+
             <div className="publicOrganizationState error">
               <div className="publicOrganizationStateIcon">
                 <FaBuilding />
@@ -331,6 +324,8 @@ export default function Organization() {
               </button>
             </div>
           ) : filteredOrganizations.length === 0 ? (
+            /* EMPTY */
+
             <div className="publicOrganizationState">
               <div className="publicOrganizationStateIcon">
                 <FaBuilding />
@@ -349,16 +344,21 @@ export default function Organization() {
               </p>
             </div>
           ) : (
+            /* ORGANIZATION GRID */
+
             <div className="publicOrganizationGrid">
               {filteredOrganizations.map((organization) => {
-                const organizationCategories =
-                  normalizeCategories(organization.categories);
+                const organizationCategories = normalizeCategories(
+                  organization.categories,
+                );
 
                 return (
                   <article
                     className="publicOrganizationCard"
                     key={organization.id}
                   >
+                    {/* CARD TOP */}
+
                     <div className="publicOrganizationCardTop">
                       {organization.logo_url ? (
                         <img
@@ -388,15 +388,12 @@ export default function Organization() {
 
                         <div className="publicOrganizationMeta">
                           <span>
-                            {organizationCategories[0] ||
-                              "Байгууллага"}
+                            {organizationCategories[0] || "Байгууллага"}
                           </span>
 
                           {organization.address && (
                             <>
-                              <span className="publicOrganizationDot">
-                                •
-                              </span>
+                              <span className="publicOrganizationDot">•</span>
 
                               <span>{organization.address}</span>
                             </>
@@ -405,27 +402,27 @@ export default function Organization() {
                       </div>
                     </div>
 
+                    {/* DESCRIPTION */}
+
                     <p className="publicOrganizationDescription">
                       {organization.description ||
                         "Байгууллагын танилцуулга оруулаагүй байна."}
                     </p>
 
+                    {/* STATS */}
+
                     <div className="publicOrganizationStats">
                       <span>
-                        {Number(
-                          organization.followers_count || 0,
-                        )}{" "}
-                        дагагчтай
+                        {Number(organization.followers_count || 0)} дагагчтай
                       </span>
 
                       <span>
-                        Нийт{" "}
-                        {Number(
-                          organization.active_events_count || 0,
-                        )}{" "}
+                        Нийт {Number(organization.active_events_count || 0)}{" "}
                         эвэнт
                       </span>
                     </div>
+
+                    {/* ACTIONS */}
 
                     <div className="publicOrganizationActions">
                       <Link
@@ -442,12 +439,8 @@ export default function Organization() {
                             ? "publicOrganizationFollowButton following"
                             : "publicOrganizationFollowButton"
                         }
-                        disabled={
-                          followLoading === organization.id
-                        }
-                        onClick={() =>
-                          handleFollow(organization)
-                        }
+                        disabled={followLoading === organization.id}
+                        onClick={() => handleFollow(organization)}
                       >
                         {organization.is_following ? (
                           <>
@@ -468,6 +461,8 @@ export default function Organization() {
             </div>
           )}
 
+          {/* CTA */}
+
           <section className="publicOrganizationCta">
             <div className="publicOrganizationCtaText">
               <h2>Та эвэнт зохион байгуулагч уу?</h2>
@@ -478,10 +473,7 @@ export default function Organization() {
               </p>
             </div>
 
-            <Link
-              to="/signup"
-              className="publicOrganizationCtaButton"
-            >
+            <Link to="/signup" className="publicOrganizationCtaButton">
               Байгууллагаар бүртгүүлэх
               <FaArrowRight />
             </Link>

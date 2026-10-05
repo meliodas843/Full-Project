@@ -233,6 +233,18 @@ export default function Calendar() {
 
   const [savingEdit, setSavingEdit] = useState(false);
 
+  const [notification, setNotification] = useState(null);
+
+  function showNotification(message, type = "success") {
+    setNotification({ message, type });
+
+    window.clearTimeout(window.__registraCalendarToastTimer);
+
+    window.__registraCalendarToastTimer = window.setTimeout(() => {
+      setNotification(null);
+    }, 3200);
+  }
+
   const [viewDate, setViewDate] = useState(() => {
     const today = new Date();
 
@@ -378,25 +390,31 @@ export default function Calendar() {
 
     [sent],
   );
-
   const myMeetings = useMemo(
     () =>
-      uniqueMeetings([
-        ...accepted,
-
-        ...sent.filter(
+      uniqueMeetings(
+        [...accepted, ...sent, ...inbox].filter(
           (meeting) =>
-            String(meeting?.status || "").toLowerCase() !== "pending",
+            String(meeting?.status || "").toLowerCase() === "accepted",
         ),
-      ]),
-
-    [accepted, sent],
+      ),
+    [accepted, sent, inbox],
   );
 
   const allMeetings = useMemo(
-    () => uniqueMeetings([...sent, ...accepted, ...inbox]),
-
-    [sent, accepted, inbox],
+    () =>
+      uniqueMeetings([
+        ...myMeetings,
+        ...inbox.filter(
+          (meeting) =>
+            String(meeting?.status || "").toLowerCase() === "pending",
+        ),
+        ...sent.filter(
+          (meeting) =>
+            String(meeting?.status || "").toLowerCase() === "pending",
+        ),
+      ]),
+    [myMeetings, inbox, sent],
   );
 
   const byDay = useMemo(() => {
@@ -452,13 +470,15 @@ export default function Calendar() {
 
     try {
       setRespondingId(meeting.id);
-      setMessage("");
 
       const action = status === "accepted" ? "accept" : "decline";
+
       const response = await authFetch(
         `${API_BASE}/api/meetings/${meeting.id}/${action}`,
+
         {
           method: "PATCH",
+
           headers: {
             "Content-Type": "application/json",
           },
@@ -470,27 +490,72 @@ export default function Calendar() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setMessage(
+        showNotification(
           data?.message ||
             (status === "accepted"
               ? "Уулзалтын хүсэлтийг зөвшөөрөхөд алдаа гарлаа."
               : "Уулзалтын хүсэлтээс татгалзахад алдаа гарлаа."),
+
+          "error",
         );
+
         return;
       }
-
-      setMessage(
-        status === "accepted"
-          ? "Уулзалтын хүсэлтийг зөвшөөрлөө."
-          : "Уулзалтын хүсэлтээс татгалзлаа.",
-      );
+      if (status === "accepted") {
+        const updatedMeeting = {
+          ...meeting,
+          ...data,
+          status: "accepted",
+          zoom_join_url: data?.zoom_join_url || meeting?.zoom_join_url || null,
+        };
+        setInbox((current) =>
+          current.map((item) =>
+            Number(item.id) === Number(meeting.id) ? updatedMeeting : item,
+          ),
+        );
+        setAccepted((current) =>
+          uniqueMeetings([
+            ...current.filter((item) => Number(item.id) !== Number(meeting.id)),
+            updatedMeeting,
+          ]),
+        );
+        showNotification("Уулзалтын хүсэлтийг зөвшөөрлөө.", "success");
+      } else {
+        setInbox((current) =>
+          current.filter((item) => Number(item.id) !== Number(meeting.id)),
+        );
+        setAccepted((current) =>
+          current.filter((item) => Number(item.id) !== Number(meeting.id)),
+        );
+        showNotification("Уулзалтын хүсэлтээс татгалзлаа.", "success");
+      }
 
       await load();
     } catch {
-      setMessage("Сервертэй холбогдож чадсангүй.");
+      showNotification("Сервертэй холбогдож чадсангүй.", "error");
     } finally {
       setRespondingId(null);
     }
+  }
+
+  function openZoomMeeting(meeting) {
+    const status = String(meeting?.status || "").toLowerCase();
+
+    const zoomUrl = String(meeting?.zoom_join_url || "").trim();
+
+    if (status !== "accepted") {
+      showNotification("Уулзалтыг эхлээд зөвшөөрөх шаардлагатай.", "error");
+
+      return;
+    }
+
+    if (!zoomUrl) {
+      showNotification("Zoom холбоос үүсээгүй байна.", "error");
+
+      return;
+    }
+
+    window.open(zoomUrl, "_blank", "noopener,noreferrer");
   }
 
   function openEditMeeting(meeting) {
@@ -532,9 +597,9 @@ export default function Calendar() {
 
     try {
       setSavingEdit(true);
-      setMessage("");
 
       const currentEnd = parseDate(editingMeeting?.end_time);
+
       let endTime = null;
 
       if (currentEnd) {
@@ -545,14 +610,19 @@ export default function Calendar() {
 
       const response = await authFetch(
         `${API_BASE}/api/meetings/${editingMeeting.id}/edit`,
+
         {
           method: "PATCH",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify({
             date: editDate,
+
             startTime: editTime,
+
             endTime,
           }),
         },
@@ -563,17 +633,30 @@ export default function Calendar() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setMessage(
+        showNotification(
           data?.message || "Уулзалтын огноо, цагийг өөрчлөхөд алдаа гарлаа.",
+
+          "error",
         );
+
         return;
       }
 
-      setMessage("Уулзалтын огноо, цагийг амжилттай өөрчиллөө.");
-      closeEditMeeting();
+      showNotification(
+        "Уулзалтын огноо, цагийг амжилттай өөрчиллөө.",
+
+        "success",
+      );
+
+      setEditingMeeting(null);
+
+      setEditDate("");
+
+      setEditTime("");
+
       await load();
     } catch {
-      setMessage("Сервертэй холбогдож чадсангүй.");
+      showNotification("Сервертэй холбогдож чадсангүй.", "error");
     } finally {
       setSavingEdit(false);
     }
@@ -887,9 +970,23 @@ export default function Calendar() {
                           <span>{meeting.title || "1:1 уулзалт"}</span>
                         </div>
 
-                        <span className="calVideoIcon">
+                        <button
+                          type="button"
+                          className="calVideoIcon"
+                          onClick={() => openZoomMeeting(meeting)}
+                          disabled={
+                            String(meeting?.status || "").toLowerCase() !==
+                              "accepted" || !meeting?.zoom_join_url
+                          }
+                          title={
+                            String(meeting?.status || "").toLowerCase() ===
+                              "accepted" && meeting?.zoom_join_url
+                              ? "Zoom уулзалтад орох"
+                              : "Zoom холбоос хараахан бэлэн болоогүй"
+                          }
+                        >
                           <FiVideo />
-                        </span>
+                        </button>
                       </article>
                     ))}
                   </>
@@ -982,6 +1079,30 @@ export default function Calendar() {
             {message && <div className="calMessage">{message}</div>}
           </aside>
         </section>
+        {notification && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: "fixed",
+              top: "24px",
+              right: "24px",
+              zIndex: 9999,
+              minWidth: "280px",
+              maxWidth: "420px",
+              padding: "14px 18px",
+              borderRadius: "12px",
+              background: notification.type === "error" ? "#ef4444" : "#16a34a",
+              color: "#ffffff",
+              fontSize: "14px",
+              fontWeight: 700,
+              lineHeight: 1.45,
+              boxShadow: "0 14px 34px rgba(15, 23, 42, 0.22)",
+            }}
+          >
+            {notification.message}
+          </div>
+        )}
 
         {editingMeeting && (
           <div className="rgMeetingEditOverlay" onMouseDown={closeEditMeeting}>

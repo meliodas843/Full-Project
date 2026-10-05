@@ -45,9 +45,11 @@ function AppRoutes() {
 
   const isUserArea = location.pathname.startsWith("/user");
   const isSuperAdminArea = location.pathname.startsWith("/super-admin");
+
   const isProfilePage =
     location.pathname === "/profile" ||
     location.pathname === "/user/profile";
+
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
@@ -63,6 +65,7 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
+
       {showPublicNavbar && <Navbar />}
 
       <Routes>
@@ -73,7 +76,14 @@ function AppRoutes() {
         <Route path="/news/:id" element={<NewsDetail />} />
         <Route path="/events" element={<PublicEvents />} />
         <Route path="/events/:id" element={<EventDetail />} />
+
         <Route path="/organization" element={<Organization />} />
+
+        <Route
+          path="/organization/:id"
+          element={<OrganizationDetail />}
+        />
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/event/invite/:token" element={<EventInvite />} />

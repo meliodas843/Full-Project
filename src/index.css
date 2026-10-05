@@ -1,37 +1,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
 :root {
   --primary: #6c4df6;
   --primary-2: #8b5cf6;
   --primary-soft: #f0ebff;
   --primary-hover: #5b3fe0;
-
   --bg: #f7f8fc;
   --surface: #ffffff;
   --surface-2: #fafbfe;
   --surface-3: #f4f6fa;
-
   --text: #1d2433;
   --text-2: #4b5565;
   --muted: #838996;
   --muted-2: #9aa2b1;
-
   --border: #e5e7ee;
   --border-2: #dce1ea;
-
   --success: #22a06b;
   --danger: #ff4d4f;
   --warning: #f59e0b;
   --info: #24c7e6;
-
   --shadow-sm: 0 2px 5px rgba(18, 24, 40, 0.07);
   --shadow-md: 0 8px 24px rgba(18, 24, 40, 0.08);
   --shadow-lg: 0 18px 50px rgba(15, 23, 42, 0.14);
-
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
-
   --ri-purple: #5847ee;
   --ri-violet: #8656ee;
   --ri-cyan: #26c9e8;
@@ -14466,6 +14460,7 @@ textarea {
   .eventsSearchWrap {
     width: 100%;
   }
+
   .sidebar {
     padding: 10px 8px;
   }
@@ -15051,6 +15046,7 @@ body.dark-mode .riFeatureCard:hover .riFeatureIcon {
     0 0 0 1px rgba(255, 255, 255, 0.15),
     0 12px 25px rgba(38, 201, 232, 0.14);
 }
+
 html[data-public-theme="light"] .riNavbar {
   background: rgba(255, 255, 255, 0.94);
 }
@@ -15246,6 +15242,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   border-color: #292e49;
   color: #f6f7fb;
 }
+
 html[data-user-theme="dark"] input,
 html[data-user-theme="dark"] textarea,
 html[data-user-theme="dark"] select {
@@ -15761,16 +15758,12 @@ html[data-user-theme="dark"] textarea::placeholder {
   isolation: isolate;
   min-height: 250px;
   padding: 28px 26px;
-
   border: 1px solid #2b334d;
   border-radius: 18px;
-
   background: #12182b;
-
   box-shadow:
     0 14px 35px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.025);
-
   transition:
     transform 0.25s ease,
     border-color 0.25s ease,
@@ -15782,7 +15775,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   transform: translateY(-5px);
   border-color: #545eff;
   background: #151c32;
-
   box-shadow:
     0 20px 45px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(84, 94, 255, 0.08);
@@ -15792,17 +15784,13 @@ html[data-user-theme="dark"] textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 52px;
   height: 52px;
   margin-bottom: 26px;
-
   border: 1px solid #3a4565;
   border-radius: 14px;
-
   background: #10172a;
   color: #22c9e8;
-
   font-size: 23px;
 }
 
@@ -17301,8 +17289,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   width: 100%;
   padding: 26px 24px 60px;
   box-sizing: border-box;
-  margin-top: -20px;
-  margin-left: -20px;
 }
 
 .orgDetailTopRow {
@@ -19510,6 +19496,7 @@ body,
   place-items: center;
   background: #61d4e4;
   color: #fff;
+  cursor: pointer;
 }
 
 .calAddMeeting {
@@ -23641,7 +23628,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
   .orgContent {
     grid-template-columns: 180px minmax(0, 1fr);
-
     gap: 15px;
   }
 }
@@ -23653,17 +23639,13 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
   .orgIdentity {
     flex: 1 1 calc(100% - 120px);
-
     max-width: none;
   }
 
   .orgStats {
     width: 100%;
-
     flex: 1 1 100%;
-
     margin-left: 0;
-
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
@@ -23693,7 +23675,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
   .orgLogoWrap {
     left: 15px;
     top: -30px;
-
     width: 76px;
     height: 76px;
   }
@@ -23709,17 +23690,13 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
   .orgSettingsMenu {
     display: grid;
-
     grid-template-columns: repeat(4, minmax(0, 1fr));
-
     gap: 5px;
   }
 
   .orgSettingsMenu > button {
     margin: 0;
-
     justify-content: center;
-
     text-align: center;
   }
 
@@ -23739,7 +23716,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
   .orgProfileTopbar {
     flex-direction: column;
-
     gap: 11px;
   }
 
@@ -23759,11 +23735,8 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
   .orgCoverButton {
     top: 9px;
     right: 9px;
-
     height: 33px;
-
     padding: 0 10px;
-
     font-size: 9px;
   }
 
@@ -23774,7 +23747,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
   .orgLogoWrap {
     left: 13px;
     top: -31px;
-
     width: 72px;
     height: 72px;
   }
@@ -23786,7 +23758,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
   .orgIdentity {
     flex: 1 1 100%;
-
     min-width: 0;
     max-width: 100%;
   }
@@ -23797,7 +23768,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
   .orgStats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     gap: 7px;
   }
 
@@ -26519,6 +26489,7 @@ html[data-public-theme="light"] .riNewsTabs button.active {
   background: rgba(88, 71, 238, 0.07);
   color: #6553f5;
 }
+
 .rgAuthPage {
   position: relative;
   width: 100%;
@@ -27431,6 +27402,128 @@ html[data-user-theme="dark"] select {
 .rgBigCalendarGrid > button,
 .rgBigCalendarGrid > div {
   min-height: 100px;
+}
+
+.calendarNotification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 99999;
+  min-width: 300px;
+  max-width: 430px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.calendarNotification > svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
+.calendarNotification span {
+  flex: 1;
+}
+
+.calendarNotification button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+}
+
+.calendarNotification button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.calendarNotificationSuccess {
+  color: #15803d;
+}
+
+.calendarNotificationError {
+  color: #dc2626;
+}
+
+.calVideoButton {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  flex: 0 0 36px;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #39b9c8;
+  border-radius: 9px;
+  background: #e9fbfd;
+  color: #24a9ba;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.calVideoButton svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.calVideoButton:hover:not(:disabled) {
+  background: #d8f7fa;
+  border-color: #24a9ba;
+  transform: translateY(-1px);
+}
+
+.calVideoButton:focus,
+.calVideoButton:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.calVideoButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .calendarNotification {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    min-width: 0;
+    max-width: none;
+  }
 }
 
 .rgBigCalendarGrid > button {
@@ -32682,11 +32775,6 @@ html[data-user-theme="dark"] .uep-wrap {
   border-color: #292e49;
 }
 
-html[data-user-theme="dark"] .uep-right {
-  background: #171b35;
-  border-color: #292e49;
-}
-
 html[data-user-theme="dark"] .uep-rightHeader {
   background: #171b35;
   border-color: #292e49;
@@ -37499,6 +37587,7 @@ html[data-theme="dark"] .rgMeetingEditCancel {
     width: 100%;
   }
 }
+
 .rgUserShell {
   width: 100%;
   min-width: 0;
@@ -38368,6 +38457,7 @@ html[data-user-theme="dark"] .rgProfileDropdown button:hover {
     padding: 12px;
   }
 }
+
 html[data-user-theme="dark"] {
   --bg: #0f1426;
   --surface: #171b35;
@@ -38586,14 +38676,6 @@ html[data-user-theme="dark"] .uep-emptyMini {
   color: #9ba3bd;
 }
 
-html[data-user-theme="dark"] .rgSidebar,
-html[data-user-theme="dark"] .rgSidebarLogo,
-html[data-user-theme="dark"] .rgSidebarBottom,
-html[data-user-theme="dark"] .rgTopbar {
-  background: #171b35;
-  border-color: #292e49;
-}
-
 html[data-user-theme="dark"] .rgThemeRow {
   color: #aab1c5;
 }
@@ -38616,14 +38698,6 @@ html[data-user-theme="light"] .rgThemeSwitch > span {
 
 html[data-user-theme="dark"] .rgThemeSwitch.active > span {
   transform: translateX(18px);
-}
-
-html[data-user-theme="dark"] input,
-html[data-user-theme="dark"] textarea,
-html[data-user-theme="dark"] select {
-  background: #111529;
-  border-color: #303650;
-  color: #f6f7fb;
 }
 
 html[data-user-theme="dark"] input::placeholder,
@@ -38672,6 +38746,7 @@ html[data-user-theme="dark"] .rgRequestList button:hover {
     color: #f6f7fb;
   }
 }
+
 html[data-user-theme="light"] {
   color-scheme: light;
   --rg-page-bg: #f6f7fb;
@@ -39280,24 +39355,29 @@ html[data-public-theme="light"] .riNavbar {
   background: rgba(255, 255, 255, 0.94);
   border-bottom-color: #e4e7f0;
 }
+
 html[data-public-theme="dark"] .riNavbar {
   background: rgba(13, 16, 34, 0.96);
   border-bottom-color: #242b43;
 }
+
 html[data-public-theme="light"] .riNavLink,
 html[data-public-theme="light"] .riBrandText strong {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riNavLink,
 html[data-public-theme="dark"] .riBrandText strong {
   color: #f7f8ff;
 }
+
 html[data-public-theme="light"] .riThemeButton,
 html[data-public-theme="light"] .riMenuButton {
   background: #fff;
   color: #14162a;
   border-color: #dfe3f3;
 }
+
 html[data-public-theme="dark"] .riThemeButton,
 html[data-public-theme="dark"] .riMenuButton {
   background: #151b31;
@@ -39320,6 +39400,7 @@ html[data-public-theme="light"] .riHero {
     #f7f8ff;
   border-bottom-color: #e2e6f0;
 }
+
 html[data-public-theme="dark"] .riHero {
   background:
     radial-gradient(
@@ -39335,23 +39416,29 @@ html[data-public-theme="dark"] .riHero {
     #0d1324;
   border-bottom-color: #1f2940;
 }
+
 html[data-public-theme="light"] .riHeroContent h1 {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riHeroContent h1 {
   color: #f7f8ff;
 }
+
 html[data-public-theme="light"] .riHeroContent > p,
 html[data-public-theme="light"] .riHeroStats span {
   color: #68708a;
 }
+
 html[data-public-theme="dark"] .riHeroContent > p,
 html[data-public-theme="dark"] .riHeroStats span {
   color: #a8b0c6;
 }
+
 html[data-public-theme="light"] .riHeroStats strong {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riHeroStats strong {
   color: #fff;
 }
@@ -39362,22 +39449,27 @@ html[data-public-theme="light"] .riFeaturedEvent {
   color: #14162a;
   box-shadow: 0 24px 65px rgba(41, 47, 85, 0.1);
 }
+
 html[data-public-theme="dark"] .riFeaturedEvent {
   background: #12182b;
   border-color: #303852;
   color: #f7f8ff;
   box-shadow: 0 24px 65px rgba(0, 0, 0, 0.28);
 }
+
 html[data-public-theme="light"] .riFeaturedBody h3 {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riFeaturedBody h3 {
   color: #fff;
 }
+
 html[data-public-theme="light"] .riFeaturedBody p,
 html[data-public-theme="light"] .riCapacityText {
   color: #68708a;
 }
+
 html[data-public-theme="dark"] .riFeaturedBody p,
 html[data-public-theme="dark"] .riCapacityText {
   color: #a8b0c6;
@@ -39389,38 +39481,45 @@ html[data-public-theme="light"] .riPricingSection {
   background: #ffffff;
   border-color: #e8ebf3;
 }
+
 html[data-public-theme="light"] .riDevicesSection,
 html[data-public-theme="light"] .riTestimonialsSection {
   background: #f7f8ff;
   border-color: #e8ebf3;
 }
+
 html[data-public-theme="dark"] .riFeaturesSection,
 html[data-public-theme="dark"] .riHowSection,
 html[data-public-theme="dark"] .riPricingSection {
   background: #0d1324;
   border-color: #1f2940;
 }
+
 html[data-public-theme="dark"] .riDevicesSection,
 html[data-public-theme="dark"] .riTestimonialsSection {
   background: #101629;
   border-color: #1f2940;
 }
+
 html[data-public-theme="light"] .riSectionHead h2,
 html[data-public-theme="light"] .riDevicesContent h2,
 html[data-public-theme="light"] .riStep h3 {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riSectionHead h2,
 html[data-public-theme="dark"] .riDevicesContent h2,
 html[data-public-theme="dark"] .riStep h3 {
   color: #f8f9ff;
 }
+
 html[data-public-theme="light"] .riSectionHead p,
 html[data-public-theme="light"] .riDevicesContent > p,
 html[data-public-theme="light"] .riStep p,
 html[data-public-theme="light"] .riDeviceList small {
   color: #68708a;
 }
+
 html[data-public-theme="dark"] .riSectionHead p,
 html[data-public-theme="dark"] .riDevicesContent > p,
 html[data-public-theme="dark"] .riStep p,
@@ -39432,6 +39531,7 @@ html[data-public-theme="dark"] .riDeviceList small {
   position: relative;
   overflow: hidden;
 }
+
 .riFeaturesSection .riContainer {
   position: relative;
   z-index: 2;
@@ -39447,6 +39547,7 @@ html[data-public-theme="light"] .riFeatureCard {
   border: 1px solid #dfe4ef;
   box-shadow: none;
 }
+
 html[data-public-theme="dark"] .riFeatureCard {
   position: relative;
   overflow: hidden;
@@ -39456,25 +39557,31 @@ html[data-public-theme="dark"] .riFeatureCard {
   border: 1px solid #2b334d;
   box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
 }
+
 html[data-public-theme="light"] .riFeatureCard:hover {
   background: #fff;
   border-color: #6558f5;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
+
 html[data-public-theme="dark"] .riFeatureCard:hover {
   background: #151c32;
   border-color: #6558f5;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
 }
+
 html[data-public-theme="light"] .riFeatureCard h3 {
   color: #111827;
 }
+
 html[data-public-theme="dark"] .riFeatureCard h3 {
   color: #f8f9ff;
 }
+
 html[data-public-theme="light"] .riFeatureCard p {
   color: #697386;
 }
+
 html[data-public-theme="dark"] .riFeatureCard p {
   color: #b0b7ca;
 }
@@ -39484,6 +39591,7 @@ html[data-public-theme="light"] .riFeatureIcon {
   border: 1px solid #123d59;
   color: #22c9e8;
 }
+
 html[data-public-theme="dark"] .riFeatureIcon {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.82);
@@ -39508,12 +39616,15 @@ html[data-public-theme="dark"] .riFeatureCard::before {
     opacity 0.28s ease,
     transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 html[data-public-theme="light"] .riFeatureCard::before {
   background: rgba(101, 88, 245, 0.09);
 }
+
 html[data-public-theme="dark"] .riFeatureCard::before {
   background: rgba(88, 71, 238, 0.16);
 }
+
 .riFeatureCard:hover::before,
 html[data-public-theme="light"] .riFeatureCard:hover::before,
 html[data-public-theme="dark"] .riFeatureCard:hover::before {
@@ -39524,17 +39635,21 @@ html[data-public-theme="dark"] .riFeatureCard:hover::before {
 html[data-public-theme="light"] .riDeviceList strong {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riDeviceList strong {
   color: #fff;
 }
+
 html[data-public-theme="light"] .riDeviceList > div > span {
   background: #eaf8fc;
   color: #0faecf;
 }
+
 html[data-public-theme="dark"] .riDeviceList > div > span {
   background: #12314a;
   color: #26c9e8;
 }
+
 html[data-public-theme="light"] .riBrowserMockup,
 html[data-public-theme="light"] .riLaptopMockup,
 html[data-public-theme="light"] .riPhoneMockup {
@@ -39542,6 +39657,7 @@ html[data-public-theme="light"] .riPhoneMockup {
   border-color: #cfd6e5;
   box-shadow: 0 24px 55px rgba(31, 38, 70, 0.13);
 }
+
 html[data-public-theme="dark"] .riBrowserMockup,
 html[data-public-theme="dark"] .riLaptopMockup,
 html[data-public-theme="dark"] .riPhoneMockup {
@@ -39554,6 +39670,7 @@ html[data-public-theme="light"] .riStepIcon {
   background: #fff;
   border-color: #cbd6e8;
 }
+
 html[data-public-theme="dark"] .riStepIcon {
   background: #12182b;
   border-color: #28415a;
@@ -39565,25 +39682,30 @@ html[data-public-theme="light"] .riBigStats {
   border-color: #dfe3f3;
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riTestimonialCard,
 html[data-public-theme="dark"] .riBigStats {
   background: #12182b;
   border-color: #2b334d;
   color: #f7f8ff;
 }
+
 html[data-public-theme="light"] .riTestimonialCard > p,
 html[data-public-theme="light"] .riTestimonialUser small,
 html[data-public-theme="light"] .riBigStats span {
   color: #68708a;
 }
+
 html[data-public-theme="dark"] .riTestimonialCard > p,
 html[data-public-theme="dark"] .riTestimonialUser small,
 html[data-public-theme="dark"] .riBigStats span {
   color: #a8b0c6;
 }
+
 html[data-public-theme="light"] .riTestimonialUser strong {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riTestimonialUser strong {
   color: #fff;
 }
@@ -39593,21 +39715,26 @@ html[data-public-theme="light"] .riPriceCard:not(.pro) {
   border-color: #dfe3f3;
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riPriceCard:not(.pro) {
   background: #12182b;
   border-color: #2b334d;
   color: #f7f8ff;
 }
+
 html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice strong {
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice strong {
   color: #fff;
 }
+
 html[data-public-theme="light"] .riPriceCard:not(.pro) .riPrice span,
 html[data-public-theme="light"] .riPriceCard:not(.pro) .riPlanFeatures div {
   color: #68708a;
 }
+
 html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPrice span,
 html[data-public-theme="dark"] .riPriceCard:not(.pro) .riPlanFeatures div {
   color: #a8b0c6;
@@ -39618,6 +39745,7 @@ html[data-public-theme="light"] .riSecondaryButton {
   border-color: #dfe3f3;
   color: #14162a;
 }
+
 html[data-public-theme="dark"] .riSecondaryButton {
   background: #12182b;
   border-color: #303852;
@@ -39629,41 +39757,50 @@ html[data-public-theme="light"] .riFooter {
   color: #14162a;
   border-top-color: #dfe3f3;
 }
+
 html[data-public-theme="dark"] .riFooter {
   background: #101326;
   color: #f5f6fb;
   border-top-color: #242944;
 }
+
 html[data-public-theme="light"] .riFooterBrand > p,
 html[data-public-theme="light"] .riFooterColumn a,
 html[data-public-theme="light"] .riFooterColumn span {
   color: #68708a;
 }
+
 html[data-public-theme="dark"] .riFooterBrand > p,
 html[data-public-theme="dark"] .riFooterColumn a,
 html[data-public-theme="dark"] .riFooterColumn span {
   color: #9ba4bf;
 }
+
 html[data-public-theme="light"] .riFooterColumn h4 {
   color: #4f5870;
 }
+
 html[data-public-theme="dark"] .riFooterColumn h4 {
   color: #737e9f;
 }
+
 html[data-public-theme="light"] .riFooterSocials a {
   color: #68708a;
   border-color: #d8deea;
   background: #fff;
 }
+
 html[data-public-theme="dark"] .riFooterSocials a {
   color: #9aa2bc;
   border-color: #303650;
   background: transparent;
 }
+
 html[data-public-theme="light"] .riFooterBottom {
   color: #7a8296;
   border-top-color: #dfe3f3;
 }
+
 html[data-public-theme="dark"] .riFooterBottom {
   color: #697493;
   border-top-color: #242944;
@@ -39674,6 +39811,7 @@ html[data-public-theme="light"] .riMobileMenu {
   color: #14162a;
   border-color: #dfe3f3;
 }
+
 html[data-public-theme="dark"] .riMobileMenu {
   background: #12182b;
   color: #f7f8ff;
@@ -39779,12 +39917,6 @@ html[data-public-theme="dark"] .riMobileMenu {
   word-break: normal;
 }
 
-.orgInfoDivider {
-  height: 1px;
-  margin: 16px 0;
-  background: #eef0f5;
-}
-
 .orgInfoList {
   min-width: 0;
   display: grid;
@@ -39803,14 +39935,6 @@ html[data-public-theme="dark"] .riMobileMenu {
   text-decoration: none;
   overflow-wrap: anywhere;
   word-break: break-word;
-}
-
-.orgInfoItem svg {
-  width: 13px;
-  height: 13px;
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: #6947f5;
 }
 
 @media (max-width: 1200px) {
@@ -40685,6 +40809,7 @@ body {
     max-width: 90vw;
   }
 }
+
 html,
 body,
 #root {
@@ -40693,67 +40818,70 @@ body,
   min-width: 0;
   margin: 0;
 }
+
 body {
   overflow-x: hidden;
 }
-#root {
-  overflow-x: clip;
-}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   min-width: 0;
 }
+
 img,
 video,
 canvas,
 svg {
   max-width: 100%;
 }
-button,
-input,
-select,
-textarea {
-  max-width: 100%;
-}
+
 .rgUserLayout {
   grid-template-columns: var(--rg-sidebar-width) minmax(0, 1fr);
 }
+
 .rgUserMain,
 .rgUserContent {
   min-width: 0;
   max-width: 100%;
 }
+
 .rgUserContent {
   overflow-x: clip;
 }
+
 .orgDetailLayout {
   grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
   gap: 22px;
 }
+
 .orgDetailSidebar {
   width: 100%;
   max-width: 300px;
   justify-self: end;
 }
+
 .orgInfoCard {
   width: 100%;
   max-width: 100%;
   overflow: hidden;
 }
+
 .orgStats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
 }
+
 .orgStat {
   width: 100%;
   min-width: 0;
   padding: 12px 8px;
   overflow: hidden;
 }
+
 .orgStat strong,
 .orgStat span {
   display: block;
@@ -40762,43 +40890,49 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .orgStat span {
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.riMobileOverlay,
-.riMobileMenu {
-  display: none;
-}
+
 @media (max-width: 1200px) {
   .orgDetailLayout {
     grid-template-columns: minmax(0, 1fr) 260px;
     gap: 18px;
   }
+
   .orgDetailSidebar {
     max-width: 260px;
   }
+
   .orgStats {
     gap: 6px;
   }
+
   .orgStat {
     padding: 10px 6px;
   }
+
   .orgStat span {
     font-size: 7px;
   }
+
   .statisticsKpiGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .statisticsTwoColumn,
   .reportMainGrid,
   .reportSecondaryGrid,
   .egContentLayout {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .eventDetailLayout {
     grid-template-columns: minmax(0, 1fr) 300px;
   }
+
   .publicOrganizationGrid,
   .organizationsGrid,
   .riNewsGrid,
@@ -40806,15 +40940,18 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
 @media (max-width: 900px) {
   .rgUserLayout {
     display: block;
     width: 100%;
     min-height: 100dvh;
   }
+
   .rgUserLayout > .rgSidebar {
     display: none;
   }
+
   .rgUserMain {
     display: block;
     width: 100%;
@@ -40822,9 +40959,11 @@ textarea {
     margin: 0;
     grid-column: auto;
   }
+
   .rgTopbar {
     display: none;
   }
+
   .rgMobileHeader {
     position: sticky;
     z-index: 1150;
@@ -40838,18 +40977,21 @@ textarea {
     border-bottom: 1px solid var(--rg-border);
     background: var(--rg-panel);
   }
+
   .rgMobileHeader img {
     width: auto;
     max-width: 125px;
     height: 29px;
     object-fit: contain;
   }
+
   .rgMobileHeader > span {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
   .rgMobileHeader > button {
     width: 40px;
     height: 40px;
@@ -40865,6 +41007,7 @@ textarea {
     color: var(--rg-text);
     font-size: 20px;
   }
+
   .rgMobileOverlay {
     position: fixed;
     z-index: 1190;
@@ -40879,11 +41022,13 @@ textarea {
       opacity 0.25s ease,
       visibility 0.25s ease;
   }
+
   .rgMobileOverlay.show {
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
   }
+
   .rgMobileDrawer {
     position: fixed;
     z-index: 1200;
@@ -40900,9 +41045,11 @@ textarea {
     transform: translate3d(105%, 0, 0);
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .rgMobileDrawer.open {
     transform: translate3d(0, 0, 0);
   }
+
   .rgMobileDrawer .rgSidebar {
     position: relative;
     inset: auto;
@@ -40912,10 +41059,12 @@ textarea {
     display: flex;
     border-right: 0;
   }
+
   .rgMobileDrawer .rgSidebarLogo {
     padding-left: 58px;
     padding-right: 20px;
   }
+
   .rgMobileClose {
     position: absolute;
     z-index: 5;
@@ -40934,35 +41083,43 @@ textarea {
     color: var(--rg-purple);
     font-size: 20px;
   }
+
   .rgUserContent {
     width: 100%;
     padding: 16px;
     min-height: calc(100dvh - 64px);
   }
+
   .orgDetailContent {
     width: 100%;
     margin: 0;
     padding: 18px 0 40px;
   }
+
   .orgDetailLayout {
     grid-template-columns: minmax(0, 1fr);
     gap: 18px;
   }
+
   .orgDetailSidebar {
     order: -1;
     max-width: 100%;
     justify-self: stretch;
   }
+
   .orgStats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
+
   .orgStat {
     padding: 10px 8px;
   }
+
   .orgStat span {
     font-size: 8px;
   }
+
   .rgHomePage,
   .calWorkspace,
   .rgProfilePage,
@@ -40982,12 +41139,14 @@ textarea {
   .historyInviteGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .calRight,
   .eventDetailSidebar,
   .egSideColumn {
     width: 100%;
     max-width: 100%;
   }
+
   .myEventsHeader,
   .myEventsToolbar,
   .myEventsToolbarRight,
@@ -41001,21 +41160,26 @@ textarea {
   .orgCardHeader {
     flex-wrap: wrap;
   }
+
   .myEventsSearch,
   .statisticsSearch {
     flex: 1 1 220px;
   }
+
   .riNavbarInner {
     padding-left: 16px;
     padding-right: 16px;
   }
+
   .riDesktopNav,
   .riNavbarActions > .riLoginButton {
     display: none;
   }
+
   .riMenuButton {
     display: inline-flex;
   }
+
   .riMobileOverlay {
     position: fixed;
     z-index: 1990;
@@ -41029,11 +41193,13 @@ textarea {
       opacity 0.25s ease,
       visibility 0.25s ease;
   }
+
   .riMobileOverlay.show {
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
   }
+
   .riMobileMenu {
     position: fixed;
     z-index: 2000;
@@ -41055,9 +41221,11 @@ textarea {
     transform: translate3d(105%, 0, 0);
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .riMobileMenu.open {
     transform: translate3d(0, 0, 0);
   }
+
   .riMobileMenuHead {
     display: flex;
     align-items: center;
@@ -41065,6 +41233,7 @@ textarea {
     gap: 12px;
     margin-bottom: 12px;
   }
+
   .riMenuClose {
     width: 40px;
     height: 40px;
@@ -41077,14 +41246,17 @@ textarea {
     color: var(--ri-text);
     font-size: 20px;
   }
+
   .riMobileMenu .riNavLink {
     width: 100%;
     padding: 13px 14px;
   }
+
   .riMobileMenu .riLoginButton {
     width: 100%;
     margin-top: auto;
   }
+
   .riMobileThemeButton {
     width: 100%;
     display: flex;
@@ -41096,6 +41268,7 @@ textarea {
     background: var(--ri-card);
     color: var(--ri-text);
   }
+
   .riHeroGrid,
   .riDevicesGrid,
   .riPricingGrid,
@@ -41107,111 +41280,137 @@ textarea {
   .riEventDetailLayout {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .riHero {
     min-height: auto;
   }
+
   .riHeroGrid {
     gap: 36px;
     padding: 44px 0;
   }
+
   .riHeroContent {
     max-width: 100%;
   }
+
   .riHeroVisual {
     max-width: 680px;
     margin: 0 auto;
   }
+
   .riFooterGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .publicOrganizationControls,
   .publicOrganizationToolbar {
     flex-wrap: wrap;
   }
+
   .publicOrganizationSearch {
     flex: 1 1 240px;
   }
+
   .rgLoginPage,
   .rgSplitAuth,
   .forgotPasswordPage {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .rgLoginLeft,
   .rgSplitLeft,
   .forgotPasswordLeft {
     display: none;
   }
+
   .rgLoginRight,
   .rgSplitRight,
   .forgotPasswordRight {
     width: 100%;
     min-height: 100dvh;
   }
+
   .eventWizardSteps {
     overflow-x: auto;
     scrollbar-width: thin;
   }
+
   .eventWizardSpeaker,
   .eventWizardAgendaRow {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .statisticsTableWrapper,
   .reportTableWrap {
     overflow-x: auto;
   }
+
   .statisticsTable,
   .reportTable {
     min-width: 700px;
   }
 }
+
 @media (max-width: 700px) {
   .rgUserContent {
     padding: 12px;
   }
+
   .orgDetailHero {
     border-radius: 12px;
   }
+
   .orgDetailCover {
     height: 130px;
   }
+
   .orgDetailIdentity {
     flex-wrap: wrap;
     align-items: flex-start;
     padding: 0 12px 14px;
   }
+
   .orgDetailLogo {
     width: 66px;
     height: 66px;
     flex: 0 0 66px;
     margin-top: -24px;
   }
+
   .orgDetailIdentityText {
     flex: 1 1 calc(100% - 80px);
     padding-top: 10px;
   }
+
   .orgDetailActions {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
+
   .orgFollowButton,
   .orgShareButton {
     width: 100%;
     margin: 0;
   }
+
   .orgEventsGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .orgEventsHeading {
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
   }
+
   .orgEventCounters {
     width: 100%;
     flex-wrap: wrap;
   }
+
   .calTop,
   .calToolbar,
   .calTopActions,
@@ -41219,54 +41418,67 @@ textarea {
     align-items: stretch;
     flex-direction: column;
   }
+
   .calTopActions > * {
     width: 100%;
   }
+
   .calWorkspace {
     gap: 12px;
   }
+
   .calMain {
     overflow: hidden;
   }
+
   .calGrid,
   .calWeekdays {
     min-width: 630px;
   }
+
   .calMain {
     overflow-x: auto;
   }
+
   .calCell {
     min-height: 88px;
   }
+
   .myEventsHeader,
   .myEventsToolbar,
   .myEventsToolbarRight {
     align-items: stretch;
     flex-direction: column;
   }
+
   .myEventsCreateBtn,
   .createEventButton,
   .myEventsSearch,
   .myEventsSort {
     width: 100%;
   }
+
   .myEventTabs {
     overflow-x: auto;
     white-space: nowrap;
   }
+
   .myEventCardGrid,
   .myEventsGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .rgProfileTabs {
     width: 100%;
     overflow-x: auto;
   }
+
   .rgProfileCard,
   .rgOnboardingSection,
   .orgCard {
     border-radius: 12px;
   }
+
   .rgOnboardingTwoColumns,
   .rgProfileInfoGrid,
   .orgGrid2,
@@ -41274,11 +41486,13 @@ textarea {
   .rgMeetingPeopleGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .rgMeetingActions,
   .passwordProfileActions,
   .historyInviteActions {
     flex-direction: column;
   }
+
   .rgMeetingActions > *,
   .passwordProfileActions > *,
   .historyInviteActions > * {
@@ -41286,27 +41500,33 @@ textarea {
     height: 44px;
     min-height: 44px;
   }
+
   .statisticsKpiGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .statisticsEventCard,
   .statisticsEventMain,
   .statisticsEventActions,
   .statisticsParticipantsActions {
     flex-wrap: wrap;
   }
+
   .statisticsEventActions > * {
     flex: 1 1 40px;
   }
+
   .egSummaryCard,
   .egSummaryMain,
   .egFilterRow,
   .egSelectionBar {
     flex-wrap: wrap;
   }
+
   .egGalleryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .riContainer,
   .publicOrganizationContainer,
   .riEventDetailContainer,
@@ -41315,50 +41535,62 @@ textarea {
     padding-left: 16px;
     padding-right: 16px;
   }
+
   .riHeroContent h1 {
     font-size: clamp(38px, 12vw, 54px);
     letter-spacing: -2px;
   }
+
   .riHeroButtons {
     align-items: stretch;
     flex-direction: column;
   }
+
   .riHeroButtons > * {
     width: 100%;
   }
+
   .riHeroStats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .riBigStats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .riFooterGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .riListingHero,
   .riNewsHero {
     padding-top: 34px;
   }
+
   .riCategoryTabs,
   .riNewsTabs {
     overflow-x: auto;
     flex-wrap: nowrap;
     scrollbar-width: thin;
   }
+
   .publicOrganizationHeader,
   .publicOrganizationControls,
   .publicOrganizationToolbar {
     align-items: stretch;
     flex-direction: column;
   }
+
   .publicOrganizationSearch,
   .publicOrganizationFilters {
     width: 100%;
   }
+
   .publicOrganizationGrid,
   .organizationsGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .rgLoginContent,
   .rgSplitRightInner,
   .forgotPasswordFormContainer {
@@ -41367,16 +41599,14 @@ textarea {
     padding-left: 20px;
     padding-right: 20px;
   }
+
   .rgFormGrid,
   .rgPasswordRequirementGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-/* PUBLIC MOBILE RESPONSIVE FIXES */
-
 @media (max-width: 900px) {
-  /* Navbar mobile menu */
   .riMobileMenu {
     overflow-y: auto;
     overflow-x: hidden;
@@ -41396,7 +41626,6 @@ textarea {
     white-space: nowrap;
   }
 
-  /* News category buttons */
   .riNewsTabs {
     width: 100%;
     display: flex;
@@ -41430,7 +41659,6 @@ textarea {
     white-space: nowrap;
   }
 
-  /* Events filter/category buttons */
   .riEventsFilters,
   .riEventFilters,
   .riEventsTabs,
@@ -41473,7 +41701,6 @@ textarea {
     white-space: nowrap;
   }
 
-  /* Empty event state */
   .riEventsEmpty,
   .riEmptyEvents,
   .eventsEmpty {
@@ -41524,10 +41751,6 @@ textarea {
   }
 }
 
-/* ================================
-   EVENTS PAGE - RESPONSIVE
-================================ */
-
 @media (max-width: 900px) {
   .riEventsPage,
   .riEventsPage .riContainer {
@@ -41536,7 +41759,6 @@ textarea {
     min-width: 0;
   }
 
-  /* Search */
   .riEventsPage input[type="search"],
   .riEventsPage .riEventsSearch {
     width: 100%;
@@ -41544,7 +41766,6 @@ textarea {
     min-width: 0;
   }
 
-  /* Category/filter row */
   .riEventsPage .riEventsTabs,
   .riEventsPage .riEventTabs,
   .riEventsPage .riEventsFilters,
@@ -41552,18 +41773,13 @@ textarea {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-
     gap: 8px;
-
     overflow-x: auto;
     overflow-y: hidden;
-
     padding: 4px 0 8px;
-
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -41575,44 +41791,34 @@ textarea {
     display: none;
   }
 
-  /* Individual filter buttons */
   .riEventsPage .riEventsTabs button,
   .riEventsPage .riEventTabs button,
   .riEventsPage .riEventsFilters button,
   .riEventsPage .riEventFilters button {
     flex: 0 0 auto;
-
     width: auto;
     min-width: max-content;
-
     height: 36px;
     min-height: 36px;
-
     margin: 0;
     padding: 0 14px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     text-align: center;
     line-height: 1;
     white-space: nowrap;
   }
 
-  /* Events grid */
   .riEventsPage .riEventsGrid,
   .riEventsPage .eventsGrid {
     width: 100%;
     min-width: 0;
-
     display: grid;
     grid-template-columns: 1fr;
-
     gap: 14px;
   }
 
-  /* Empty state */
   .riEventsPage .riEventsEmpty,
   .riEventsPage .riEmptyEvents,
   .riEventsPage .eventsEmpty {
@@ -41620,16 +41826,12 @@ textarea {
     max-width: 100%;
     min-width: 0;
     min-height: 170px;
-
     padding: 24px 18px;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
     gap: 8px;
-
     text-align: center;
   }
 
@@ -41638,7 +41840,6 @@ textarea {
   .riEventsPage .eventsEmpty h3 {
     width: 100%;
     margin: 0;
-
     text-align: center;
     line-height: 1.3;
   }
@@ -41648,9 +41849,7 @@ textarea {
   .riEventsPage .eventsEmpty p {
     width: 100%;
     max-width: 300px;
-
     margin: 0 auto;
-
     text-align: center;
     line-height: 1.5;
   }
@@ -41661,22 +41860,15 @@ textarea {
     width: auto;
     min-width: 120px;
     min-height: 40px;
-
     margin: 8px auto 0;
     padding: 0 16px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     text-align: center;
     line-height: 1.2;
   }
 }
-
-/* ================================
-   MOBILE
-================================ */
 
 @media (max-width: 600px) {
   .riEventsPage {
@@ -41704,9 +41896,7 @@ textarea {
   .riEventsPage .riEventFilters button {
     height: 34px;
     min-height: 34px;
-
     padding: 0 12px;
-
     font-size: 10px;
     line-height: 1;
   }
@@ -41715,16 +41905,10 @@ textarea {
   .riEventsPage .riEmptyEvents,
   .riEventsPage .eventsEmpty {
     min-height: 180px;
-
     padding: 24px 16px;
-
     border-radius: 14px;
   }
 }
-
-/* ================================
-   VERY SMALL MOBILE
-================================ */
 
 @media (max-width: 420px) {
   .riEventsPage .riContainer {
@@ -41738,9 +41922,7 @@ textarea {
   .riEventsPage .riEventFilters button {
     height: 32px;
     min-height: 32px;
-
     padding: 0 11px;
-
     font-size: 9px;
   }
 
@@ -41757,128 +41939,154 @@ textarea {
     height: 60px;
     padding: 0 10px;
   }
+
   .rgMobileHeader img {
     max-width: 108px;
     height: 26px;
   }
+
   .rgMobileHeader > span {
     display: none;
   }
+
   .rgMobileDrawer {
     width: min(300px, 92vw);
     max-width: 92vw;
   }
+
   .rgUserContent {
     min-height: calc(100dvh - 60px);
     padding: 10px;
   }
+
   .orgInfoCard {
     padding: 12px;
   }
+
   .orgStats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
   }
+
   .orgStat {
     min-height: 64px;
     padding: 8px 5px;
   }
+
   .orgStat strong {
     font-size: 14px;
   }
+
   .orgStat span {
     font-size: 6.5px;
     line-height: 1.2;
   }
+
   .orgDetailNameRow h1 {
     font-size: 18px;
   }
+
   .orgDetailActions {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .calGrid,
   .calWeekdays {
     min-width: 560px;
   }
+
   .calCell {
     min-height: 78px;
   }
+
   .myEventActions,
   .reportBarActions,
   .statisticsEventActions,
   .egPublishStep {
     flex-direction: column;
   }
+
   .myEventActions > *,
   .reportBarActions > *,
   .statisticsEventActions > *,
   .egPublishStep > * {
     width: 100%;
   }
+
   .egGalleryGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .riNavbarInner {
     padding-left: 12px;
     padding-right: 12px;
   }
+
   .riBrandLogo {
     max-width: 118px;
   }
+
   .riThemeButton,
   .riMenuButton {
     width: 40px;
     height: 40px;
   }
+
   .riHeroGrid {
     padding: 34px 10px;
   }
+
   .riHeroContent h1 {
     font-size: 38px;
     line-height: 1.02;
   }
+
   .riHeroContent > p {
     font-size: 15px;
   }
+
   .riHeroStats,
   .riBigStats {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .riMobileMenu {
     width: min(310px, 92vw);
     max-width: 92vw;
   }
+
   .publicOrganizationCard,
   .organizationCard,
   .riNewsCard,
   .riFeaturedNews {
     border-radius: 14px;
   }
+
   .rgLoginContent,
   .rgSplitRightInner,
   .forgotPasswordFormContainer {
     padding-left: 14px;
     padding-right: 14px;
   }
+
   .rgAccountTypes,
   .rgGenderRow {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .rgSignupBox {
     padding: 16px;
   }
+
   .eventWizard {
     padding-left: 0;
     padding-right: 0;
   }
+
   .eventWizardPanel {
     padding: 16px;
   }
 }
-
-/* =========================================
-   IPAD / TABLET
-========================================= */
 
 @media (max-width: 900px) {
   .riEventsPage .riContainer {
@@ -41888,12 +42096,9 @@ textarea {
 
   .riEventsPage .riCategoryTabs {
     flex-wrap: nowrap;
-
     overflow-x: auto;
     overflow-y: hidden;
-
     padding: 3px 0 8px;
-
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -41904,11 +42109,9 @@ textarea {
 
   .riEventsPage .riCategoryTabs button {
     flex: 0 0 auto;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     text-align: center;
     white-space: nowrap;
   }
@@ -41923,30 +42126,21 @@ textarea {
   }
 }
 
-/* =========================================
-   MOBILE
-========================================= */
-
 @media (max-width: 650px) {
   .riEventsPage .riContainer {
     width: 100%;
     max-width: 100%;
-
     padding-left: 16px;
     padding-right: 16px;
-
     margin-left: auto;
     margin-right: auto;
-
     box-sizing: border-box;
   }
 
   .riEventsPage .riListingHero h1 {
     width: 100%;
-
     font-size: clamp(28px, 8vw, 38px);
     line-height: 1.05;
-
     overflow-wrap: normal;
     word-break: normal;
   }
@@ -41958,8 +42152,6 @@ textarea {
     line-height: 1.55;
   }
 
-  /* SEARCH */
-
   .riEventsPage .riSearchBox {
     width: 100%;
     max-width: none;
@@ -41969,29 +42161,19 @@ textarea {
   .riEventsPage .riSearchBox input {
     width: 100%;
     min-width: 0;
-
     font-size: 12px;
   }
 
-  /* CATEGORY SCROLLER */
-
   .riEventsPage .riCategoryTabs {
     width: 100%;
-
     display: flex;
     align-items: center;
-
     flex-wrap: nowrap;
-
     gap: 7px;
-
     overflow-x: auto;
     overflow-y: hidden;
-
     padding: 4px 0 9px;
-
     scroll-behavior: smooth;
-
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -42002,97 +42184,67 @@ textarea {
 
   .riEventsPage .riCategoryTabs button {
     flex: 0 0 auto;
-
     width: auto;
     min-width: max-content;
-
     height: 34px;
     min-height: 34px;
-
     padding: 0 13px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     font-size: 10px;
     font-weight: 600;
     line-height: 1;
-
     text-align: center;
     white-space: nowrap;
   }
 
-  /* SINGLE COLUMN */
-
   .riEventsPage .riEventsGrid {
     grid-template-columns: minmax(0, 1fr);
-
     gap: 14px;
   }
 
-  /* EMPTY STATE */
-
   .riEventsPage .riStatusBox {
     width: 100%;
-
     min-height: 170px;
-
     padding: 24px 16px;
-
     border-radius: 14px;
-
     display: flex;
     flex-direction: column;
-
     align-items: center;
     justify-content: center;
-
     gap: 9px;
-
     text-align: center;
   }
 
   .riEventsPage .riStatusBox h3 {
     width: 100%;
-
     margin: 0;
-
     font-size: 16px;
     line-height: 1.3;
-
     text-align: center;
   }
 
   .riEventsPage .riStatusBox p {
     width: 100%;
     max-width: 290px;
-
     margin: 0 auto;
-
     font-size: 12px;
     line-height: 1.5;
-
     text-align: center;
   }
 
   .riEventsPage .riStatusBox .riRetryButton {
     width: auto;
     max-width: 100%;
-
     min-width: 145px;
     min-height: 40px;
-
     margin: 6px auto 0;
-
     padding: 0 16px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     text-align: center;
-
     white-space: normal;
   }
 }
@@ -42102,25 +42254,19 @@ textarea {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-
     height: 100dvh;
     max-height: 100dvh;
-
     padding: 18px 14px 20px;
-
     overflow-x: hidden;
     overflow-y: auto;
-
     box-sizing: border-box;
   }
 
   .riMobileMenuHead {
     width: 100%;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     flex-shrink: 0;
     margin-bottom: 14px;
   }
@@ -42129,18 +42275,13 @@ textarea {
     width: 100%;
     height: 44px;
     min-height: 44px;
-
     padding: 0 12px;
     margin: 0 0 4px;
-
     display: flex;
     align-items: center;
     justify-content: flex-start;
-
     flex-shrink: 0;
-
     box-sizing: border-box;
-
     text-align: left;
     line-height: 1;
   }
@@ -42149,22 +42290,16 @@ textarea {
     width: 100%;
     height: 44px;
     min-height: 44px;
-
     margin: 12px 0 0;
     padding: 0 16px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     flex-shrink: 0;
-
     border-radius: 10px;
-
     text-align: center;
     line-height: 1;
     text-decoration: none;
-
     box-sizing: border-box;
   }
 }
@@ -42173,7 +42308,6 @@ textarea {
   .riMobileMenu {
     width: min(310px, 92vw);
     max-width: 92vw;
-
     padding: 14px 12px 18px;
   }
 
@@ -42183,10 +42317,6 @@ textarea {
     min-height: 42px;
   }
 }
-
-/* =========================================
-   SMALL MOBILE
-========================================= */
 
 @media (max-width: 420px) {
   .riEventsPage .riContainer {
@@ -42206,19 +42336,16 @@ textarea {
   .riEventsPage .riCategoryTabs button {
     height: 32px;
     min-height: 32px;
-
     padding: 0 11px;
-
     font-size: 9px;
   }
 
-  .riPill{
+  .riPill {
     margin-bottom: 10px;
   }
 
   .riEventsPage .riStatusBox {
     min-height: 160px;
-
     padding: 22px 14px;
   }
 
@@ -42228,7 +42355,6 @@ textarea {
 
   .riEventsPage .riStatusBox p {
     max-width: 260px;
-
     font-size: 11px;
   }
 }
@@ -42239,13 +42365,10 @@ textarea {
     align-items: center;
     flex-wrap: nowrap;
     gap: 6px;
-
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-
     padding-bottom: 6px;
-
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -42256,43 +42379,43 @@ textarea {
 
   .riCategoryTabs button {
     flex: 0 0 auto;
-
     width: auto;
     min-width: max-content;
-
     height: 34px;
     min-height: 34px;
-
     padding: 0 13px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     font-size: 10px;
     line-height: 1;
     text-align: center;
     white-space: nowrap;
   }
 }
+
 @media (max-width: 900px) {
   .user-layout {
     display: block;
     width: 100%;
     min-height: 100dvh;
   }
+
   .user-layout > .user-sidebar {
     display: none;
   }
+
   .user-content {
     width: 100%;
     min-width: 0;
     margin: 0;
     padding: 0;
   }
+
   .topbar-desktop {
     display: none;
   }
+
   .mobile-header {
     position: sticky;
     z-index: 1150;
@@ -42305,17 +42428,20 @@ textarea {
     gap: 12px;
     padding: 10px 14px;
   }
+
   .mobile-header__title {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
   .mobile-header__actions {
     display: flex;
     align-items: center;
     gap: 8px;
   }
+
   .mobile-header__hamburger {
     width: 40px;
     height: 40px;
@@ -42323,6 +42449,7 @@ textarea {
     align-items: center;
     justify-content: center;
   }
+
   .mobile-drawer-overlay {
     position: fixed;
     z-index: 1190;
@@ -42335,11 +42462,13 @@ textarea {
       opacity 0.25s ease,
       visibility 0.25s ease;
   }
+
   .mobile-drawer-overlay.is-show {
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
   }
+
   .mobile-drawer {
     position: fixed;
     z-index: 1200;
@@ -42354,9 +42483,11 @@ textarea {
     transform: translate3d(105%, 0, 0);
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .mobile-drawer.is-open {
     transform: translate3d(0, 0, 0);
   }
+
   .mobile-drawer__nav .user-sidebar {
     position: relative;
     width: 100%;
@@ -42364,56 +42495,68 @@ textarea {
     min-height: calc(100dvh - 64px);
     display: flex;
   }
+
   .super-admin-layout,
   .admin-layout {
     display: block;
     width: 100%;
   }
+
   .super-admin-content,
   .admin-content {
     width: 100%;
     margin: 0;
     padding: 16px;
   }
+
   .news-page-wrap {
     width: 100%;
     max-width: 100%;
   }
+
   .news-topbar,
   .news-list-header,
   .news-row-card,
   .news-row-actions {
     flex-wrap: wrap;
   }
+
   .news-create-form {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
 @media (max-width: 600px) {
   .super-admin-content,
   .admin-content {
     padding: 12px;
   }
+
   .news-row-card {
     align-items: flex-start;
     flex-direction: column;
   }
+
   .news-row-left,
   .news-row-actions {
     width: 100%;
   }
+
   .news-row-actions > * {
     flex: 1 1 auto;
   }
+
   .mobile-header {
     min-height: 60px;
     padding: 8px 10px;
   }
+
   .mobile-drawer {
     width: min(300px, 92vw);
     max-width: 92vw;
   }
 }
+
 .organizationsContainer {
   max-width: 1180px;
 }
@@ -42422,12 +42565,15 @@ textarea {
   .rgUserContent {
     padding: 24px;
   }
+
   .calWorkspace {
     grid-template-columns: minmax(0, 1fr) 280px;
   }
+
   .organizationsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .myEventsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -42437,33 +42583,42 @@ textarea {
   .rgUserContent {
     padding: 22px;
   }
+
   .calWorkspace {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .calRight {
     width: 100%;
   }
+
   .organizationsPage {
     padding: 28px 22px 48px;
   }
+
   .organizationsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .myEventsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .myEventsToolbar {
     align-items: stretch;
     flex-direction: column;
   }
+
   .myEventsFilters {
     width: 100%;
     overflow-x: auto;
   }
+
   .myEventsToolbarRight {
     width: 100%;
     margin-left: 0;
   }
+
   .myEventsSearch {
     flex: 1 1 auto;
     width: auto;
@@ -42480,13 +42635,16 @@ textarea {
     gap: 10px;
     margin-bottom: 12px;
   }
+
   .calTop h1 {
     font-size: 22px;
     line-height: 1.2;
   }
+
   .calTop p {
     font-size: 14px;
   }
+
   .calTopActions {
     width: 100%;
     gap: 8px;
@@ -42495,14 +42653,17 @@ textarea {
   .calTopActions button {
     min-height: 38px;
   }
+
   .calWorkspace {
     display: block;
   }
+
   .calMain {
     width: 100%;
     overflow: hidden;
     border-radius: 12px;
   }
+
   .calToolbar {
     min-height: 0;
     padding: 12px;
@@ -42510,50 +42671,60 @@ textarea {
     flex-direction: column;
     gap: 10px;
   }
+
   .calMonthNav {
     width: 100%;
     display: grid;
     grid-template-columns: 34px 34px minmax(0, 1fr);
     align-items: center;
   }
+
   .calMonthNav h2 {
     margin: 0 0 0 4px;
     font-size: 16px;
     white-space: nowrap;
   }
+
   .calLegend {
     width: 100%;
     gap: 10px;
     flex-wrap: wrap;
     font-size: 9px;
   }
+
   .calWeekdays,
   .calGrid {
     width: 100%;
     min-width: 0;
     grid-template-columns: repeat(7, minmax(0, 1fr));
   }
+
   .calWeekdays span {
     min-width: 0;
     padding: 8px 1px;
     font-size: 7px;
     overflow: hidden;
   }
+
   .calGrid {
     grid-auto-rows: minmax(70px, auto);
   }
+
   .calCell {
     min-width: 0;
     min-height: 70px;
     padding: 6px 4px;
     overflow: hidden;
   }
+
   .calDayNumber {
     font-size: 12px;
   }
+
   .calCellItems {
     gap: 2px;
   }
+
   .calCellItems > * {
     max-width: 100%;
     overflow: hidden;
@@ -42561,39 +42732,45 @@ textarea {
     white-space: nowrap;
     font-size: 7px;
   }
+
   .calRight {
     width: 100%;
     margin-top: 12px;
   }
 
-  /* History */
   .myEventsPage {
     width: 100%;
     overflow: visible;
     margin-left: 0;
   }
+
   .myEventsHeader {
     gap: 12px;
     margin-bottom: 14px;
     align-items: stretch;
     flex-direction: column;
   }
+
   .myEventsHeader h1 {
     font-size: 21px;
   }
+
   .myEventsHeader p {
     font-size: 14px;
   }
+
   .myEventsCreateBtn {
     width: 100%;
     min-width: 0;
     height: 42px;
   }
+
   .myEventsToolbar {
     width: 100%;
     display: block;
     margin-bottom: 14px;
   }
+
   .myEventsFilters {
     width: 100%;
     min-height: 44px;
@@ -42603,15 +42780,18 @@ textarea {
     padding: 4px;
     scrollbar-width: none;
   }
+
   .myEventsFilters::-webkit-scrollbar {
     display: none;
   }
+
   .myEventsFilter {
     flex: 0 0 auto;
     height: 34px;
     padding: 0 20px;
     font-size: 11px;
   }
+
   .myEventsToolbarRight {
     width: 100%;
     display: grid;
@@ -42619,32 +42799,37 @@ textarea {
     gap: 8px;
     margin: 10px 0 0;
   }
+
   .myEventsSearch {
     width: 100%;
     height: 40px;
   }
+
   .myEventsSort {
     width: 100%;
     min-width: 0;
     height: 40px;
   }
+
   .myEventsGrid {
     width: 100%;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
+
   .myEventCard {
     width: 100%;
     margin: 0;
   }
+
   .myEventImageButton {
     height: clamp(150px, 46vw, 190px);
   }
+
   .myEventBody {
     padding: 13px;
   }
 
-  /* Organizations */
   .organizationsPage {
     width: 100%;
     min-height: 0;
@@ -42652,32 +42837,39 @@ textarea {
     padding: 20px 0 36px;
     overflow: hidden;
   }
+
   .organizationsContainer {
     width: 100%;
     max-width: none;
     margin: 0;
     padding: 0;
   }
+
   .organizationsHero {
     width: 100%;
     margin: 0 0 18px;
   }
+
   .organizationsBadge {
     margin-bottom: 12px;
   }
+
   .organizationsHero h1 {
     font-size: 23px;
     line-height: 1.2;
     letter-spacing: -0.5px;
   }
+
   .organizationsHero p {
     max-width: 100%;
     font-size: 12px;
   }
+
   .organizationsControls {
     width: 100%;
     margin-bottom: 18px;
   }
+
   .organizationsSearchRow {
     width: 100%;
     display: flex;
@@ -42685,14 +42877,17 @@ textarea {
     align-items: stretch;
     gap: 9px;
   }
+
   .organizationsSearch {
     width: 100%;
     height: 42px;
   }
+
   .organizationsCount {
     white-space: normal;
     font-size: 12px;
   }
+
   .organizationsFilters {
     width: 100%;
     display: flex;
@@ -42704,20 +42899,24 @@ textarea {
     overflow-y: hidden;
     scrollbar-width: none;
   }
+
   .organizationsFilters::-webkit-scrollbar {
     display: none;
   }
+
   .organizationsFilter {
     flex: 0 0 auto;
     min-height: 34px;
     padding: 0 12px;
     white-space: nowrap;
   }
+
   .organizationsGrid {
     width: 100%;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
+
   .organizationCard {
     width: 100%;
     min-height: 0;
@@ -42753,23 +42952,29 @@ textarea {
   .rgUserContent {
     padding: 10px;
   }
+
   .calWeekdays span {
     font-size: 9px;
     padding-inline: 0;
   }
+
   .calGrid {
     grid-auto-rows: minmax(64px, auto);
   }
+
   .calCell {
     min-height: 64px;
     padding: 5px 3px;
   }
+
   .calCellItems > * {
     font-size: 6px;
   }
+
   .myEventsToolbarRight {
     grid-template-columns: minmax(0, 1fr);
   }
+
   .organizationsHero h1 {
     font-size: 21px;
   }

@@ -39,8 +39,6 @@ function getEndDate(m) {
 
   if (end) return end;
 
-  // default 30 mins
-
   return new Date(start.getTime() + 30 * 60 * 1000);
 }
 
@@ -51,8 +49,6 @@ function isEnded(m, now = new Date()) {
 
   return end.getTime() < now.getTime();
 }
-
-// duration in minutes for Zoom
 
 function durationMinutes(m) {
   const start = parseDBDate(m.start_time);
@@ -107,34 +103,63 @@ async function cleanupEndedMeetings(conn) {
 
   await conn.query(
     `
+
     INSERT IGNORE INTO finished_meeting (
+
       original_meeting_id,
+
       creator_user_id,
+
       recipient_user_id,
+
       title,
+
       description,
+
       start_time,
+
       end_time,
+
       status,
+
       zoom_join_url,
+
       zoom_start_url,
+
       original_created_at
+
     )
+
     SELECT
+
       id,
+
       creator_user_id,
+
       recipient_user_id,
+
       title,
+
       description,
+
       start_time,
+
       end_time,
+
       status,
+
       zoom_join_url,
+
       zoom_start_url,
+
       created_at
+
     FROM meetings
+
     WHERE id IN (${placeholders})
+
     `,
+
     finishedIds,
   );
 
@@ -247,8 +272,6 @@ router.post("/", authMiddleware, async (req, res) => {
 
     await cleanupEndedMeetings(conn);
 
-    // No invitees -> personal accepted (no zoom)
-
     if (inviteList.length === 0) {
       const [result] = await conn.query(
         `INSERT INTO meetings
@@ -268,8 +291,6 @@ router.post("/", authMiddleware, async (req, res) => {
 
         .json({ message: "Saved", meetingId: result.insertId });
     }
-
-    // Find recipients by email
 
     const [rows] = await conn.query(
       `SELECT id, email FROM users WHERE LOWER(email) IN (${inviteList.map(() => "?").join(",")})`,
@@ -611,14 +632,6 @@ router.patch("/join-requests/:id/decline", authMiddleware, async (req, res) => {
   }
 });
 
-/* =========================
-
-   SENT
-
-   GET /api/meetings/sent
-
-\========================= */
-
 router.get("/sent", authMiddleware, async (req, res) => {
   try {
     const userEmail = String(req.user?.email || "")
@@ -735,148 +748,157 @@ router.get("/accepted", authMiddleware, async (req, res) => {
 
 router.patch("/:id/accept", authMiddleware, async (req, res) => {
   const userId = req.user?.id;
-
   const meetingId = Number(req.params.id);
 
-  if (!userId)
+  if (!userId) {
     return res.status(401).json({ message: "Invalid token (no user id)" });
+  }
 
-  if (!Number.isFinite(meetingId))
+  if (!Number.isFinite(meetingId)) {
     return res.status(400).json({ message: "Invalid meeting id" });
+  }
 
   const conn = await pool.getConnection();
 
   try {
     await conn.beginTransaction();
 
-    await cleanupEndedMeetings(conn);
-
-    const [[m]] = await conn.query(
-      `SELECT * FROM meetings WHERE id=? AND recipient_user_id=?`,
-
+    const [[meeting]] = await conn.query(
+      `
+      SELECT *
+      FROM meetings
+      WHERE id = ?
+        AND recipient_user_id = ?
+        AND status IN ('pending', 'accepted')
+      LIMIT 1
+      FOR UPDATE
+      `,
       [meetingId, userId],
     );
 
-    if (!m) {
+    if (!meeting) {
       await conn.rollback();
-
-      return res
-
-        .status(404)
-
-        .json({ message: "Meeting not found (maybe ended and removed)" });
+      return res.status(404).json({ message: "Meeting not found" });
     }
 
-    // Prevent accepting/joining ended
-
-    if (isEnded(m)) {
-      // delete it now
-
-      await conn.query(`DELETE FROM notifications WHERE ref_id=?`, [meetingId]);
-
-      await conn.query(`DELETE FROM meetings WHERE id=?`, [meetingId]);
-
+    if (isEnded(meeting)) {
+      await conn.query(`DELETE FROM notifications WHERE ref_id = ?`, [
+        meetingId,
+      ]);
+      await conn.query(`DELETE FROM meetings WHERE id = ?`, [meetingId]);
       await conn.commit();
 
       return res
-
         .status(410)
-
         .json({ message: "Meeting already ended and was removed" });
     }
 
-    // If already accepted with zoom
-
-    if (m.status === "accepted" && m.zoom_join_url) {
+    if (meeting.status === "accepted") {
       await conn.commit();
 
       return res.json({
         message: "Already accepted",
-
-        zoom_join_url: m.zoom_join_url,
-
-        zoom_meeting_id: m.zoom_meeting_id || null,
+        meeting: {
+          ...meeting,
+          status: "accepted",
+        },
+        zoom_join_url: meeting.zoom_join_url || null,
+        zoom_meeting_id: meeting.zoom_meeting_id || null,
       });
     }
 
-    const start = parseDBDate(m.start_time);
-
-    if (!start) {
-      await conn.rollback();
-
-      return res.status(400).json({ message: "Invalid start_time in DB" });
-    }
-
-    // Zoom wants ISO string; we also pass timezone in zoom.js
-
-    const startISO = start.toISOString();
-
-    const duration = durationMinutes(m);
-
-    const zoom = await createZoomMeeting({
-      topic: m.title || "Meeting",
-
-      start_time: startISO,
-
-      duration_min: duration,
-
-      timezone: TZ, // optional if you want to pass it through
-    });
-
     await conn.query(
-      `UPDATE meetings
-
-       SET status='accepted',
-
-           zoom_meeting_id=?,
-
-           zoom_join_url=?,
-
-           zoom_start_url=?
-
-       WHERE id=? AND recipient_user_id=?`,
-
-      [String(zoom.id), zoom.join_url, zoom.start_url, meetingId, userId],
+      `
+      UPDATE meetings
+      SET status = 'accepted'
+      WHERE id = ?
+        AND recipient_user_id = ?
+        AND status = 'pending'
+      `,
+      [meetingId, userId],
     );
 
     await conn.query(
-      `UPDATE notifications
-
-       SET is_read=1
-
-       WHERE user_id=? AND ref_id=? AND type='meeting_request'`,
-
+      `
+      UPDATE notifications
+      SET is_read = 1
+      WHERE user_id = ?
+        AND ref_id = ?
+        AND type = 'meeting_request'
+      `,
       [userId, meetingId],
     );
 
-    if (m.creator_user_id) {
+    if (meeting.creator_user_id) {
       await conn.query(
-        `INSERT INTO notifications (user_id, type, ref_id, is_read)
-
-         VALUES (?, 'meeting_update', ?, 0)`,
-
-        [m.creator_user_id, meetingId],
+        `
+        INSERT INTO notifications
+          (user_id, type, ref_id, is_read)
+        VALUES (?, 'meeting_update', ?, 0)
+        `,
+        [meeting.creator_user_id, meetingId],
       );
     }
 
     await conn.commit();
 
-    return res.json({
+    const acceptedMeeting = {
+      ...meeting,
+      status: "accepted",
+    };
+
+    res.json({
       message: "Accepted",
-
-      zoom_join_url: zoom.join_url,
-
-      zoom_meeting_id: String(zoom.id),
+      meeting: acceptedMeeting,
+      zoom_pending: true,
+      zoom_join_url: null,
+      zoom_meeting_id: null,
     });
+
+    void (async () => {
+      try {
+        const start = parseDBDate(meeting.start_time);
+
+        if (!start) {
+          console.error(
+            `ZOOM CREATE SKIPPED meeting ${meetingId}: invalid start_time`,
+          );
+          return;
+        }
+
+        const zoom = await createZoomMeeting({
+          topic: meeting.title || "Meeting",
+          start_time: start.toISOString(),
+          duration_min: durationMinutes(meeting),
+          timezone: TZ,
+        });
+
+        await pool.query(
+          `
+          UPDATE meetings
+          SET zoom_meeting_id = ?,
+              zoom_join_url = ?,
+              zoom_start_url = ?
+          WHERE id = ?
+            AND status = 'accepted'
+          `,
+          [String(zoom.id), zoom.join_url, zoom.start_url, meetingId],
+        );
+      } catch (error) {
+        console.error(`ZOOM CREATE ERROR meeting ${meetingId}:`, error);
+      }
+    })();
+
+    return;
   } catch (err) {
-    await conn.rollback();
+    try {
+      await conn.rollback();
+    } catch {}
 
     console.error("PATCH accept ERROR:", err);
 
     return res
-
       .status(500)
-
       .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
@@ -899,11 +921,19 @@ router.patch("/:id/decline", authMiddleware, async (req, res) => {
     await cleanupEndedMeetings(conn);
 
     const [result] = await conn.query(
-      `UPDATE meetings
+      `
 
-       SET status='declined'
+        UPDATE meetings
 
-       WHERE id=? AND recipient_user_id=?`,
+        SET status = 'declined'
+
+        WHERE id = ?
+
+          AND recipient_user_id = ?
+
+          AND status = 'pending'
+
+      `,
 
       [meetingId, userId],
     );
