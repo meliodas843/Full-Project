@@ -126,8 +126,8 @@ function resolveImage(value) {
   }
 
   if (
-    image.startsWith("http\\\\://") ||
-    image.startsWith("https\\\\://") ||
+    image.startsWith("http\\\\\\\\://") ||
+    image.startsWith("https\\\\\\\\://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -306,6 +306,7 @@ export default function OrganizationProfile() {
   const defaultLogo = useMemo(() => {
     return stableDefault(
       DEFAULT_LOGOS,
+
       `${organizationIdentityKey}-organization-logo`,
     );
   }, [organizationIdentityKey]);
@@ -384,58 +385,25 @@ export default function OrganizationProfile() {
     setError("");
 
     try {
-      const endpoints = [
-        `${API_BASE}/api/organizations/me`,
+      const response = await fetch(`${API_BASE}/api/organizations/me`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        `${API_BASE}/api/companies/me`,
-      ];
-
-      let response = null;
-
-      let data = null;
-
-      for (const endpoint of endpoints) {
-        const currentResponse = await fetch(
-          endpoint,
-
-          {
-            method: "GET",
-
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (currentResponse.ok) {
-          response = currentResponse;
-
-          data = await currentResponse
-
-            .json()
-
-            .catch(() => ({}));
-
-          break;
-        }
-
-        if (currentResponse.status === 401 || currentResponse.status === 403) {
-          localStorage.removeItem("token");
-
-          localStorage.removeItem("adminToken");
-
-          localStorage.removeItem("user");
-
-          navigate("/login", {
-            replace: true,
-          });
-
-          return;
-        }
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("user");
+        navigate("/login", { replace: true });
+        return;
       }
 
-      if (!response) {
-        throw new Error("Organization endpoint not found");
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Organization endpoint error");
       }
 
       const normalized = normalizeOrganization(data);
@@ -534,225 +502,65 @@ export default function OrganizationProfile() {
     const token = getToken();
 
     if (!token) {
-      navigate("/login", {
-        replace: true,
-      });
-
+      navigate("/login", { replace: true });
       return;
     }
 
     if (!clean(form.name)) {
       setError("Байгууллагын нэрээ оруулна уу.");
-
       return;
     }
 
     setSaving(true);
-
     setError("");
-
     setSuccess("");
 
     try {
-      const body = new FormData();
+      const payload = {
+        name: clean(form.name),
+        registration_number: clean(form.registration_number),
+        industry: clean(form.industry),
+        employee_count: clean(form.employee_count),
+        description: clean(form.description),
+        website: clean(form.website),
+        email: clean(form.email),
+        phone: clean(form.phone),
+        address: clean(form.address),
+        facebook: clean(form.facebook),
+        linkedin: clean(form.linkedin),
+        contact_person: clean(form.contact_person),
+        logo_url: organization?.logo_url || defaultLogo,
+        cover_url: organization?.cover_url || defaultCover,
+      };
 
-      body.append(
-        "name",
-
-        clean(form.name),
-      );
-
-      body.append(
-        "organization_name",
-
-        clean(form.name),
-      );
-
-      body.append(
-        "company_name",
-
-        clean(form.name),
-      );
-
-      body.append(
-        "registration_number",
-
-        clean(form.registration_number),
-      );
-
-      body.append(
-        "industry",
-
-        clean(form.industry),
-      );
-
-      body.append(
-        "employee_count",
-
-        clean(form.employee_count),
-      );
-
-      body.append(
-        "description",
-
-        clean(form.description),
-      );
-
-      body.append(
-        "website",
-
-        clean(form.website),
-      );
-
-      body.append(
-        "email",
-
-        clean(form.email),
-      );
-
-      body.append(
-        "phone",
-
-        clean(form.phone),
-      );
-
-      body.append(
-        "address",
-
-        clean(form.address),
-      );
-
-      body.append(
-        "facebook",
-
-        clean(form.facebook),
-      );
-
-      body.append(
-        "linkedin",
-
-        clean(form.linkedin),
-      );
-
-      body.append(
-        "contact_person",
-
-        clean(form.contact_person),
-      );
-
-      if (logoFile) {
-        body.append(
-          "logo",
-
-          logoFile,
-        );
-      } else if (!organization?.logo_url) {
-        body.append(
-          "logo_url",
-
-          defaultLogo,
-        );
-      }
-
-      if (coverFile) {
-        body.append(
-          "cover",
-
-          coverFile,
-        );
-      } else if (!organization?.cover_url) {
-        body.append(
-          "cover_url",
-
-          defaultCover,
-        );
-      }
-
-      const endpoints = [
-        `${API_BASE}/api/organizations/me`,
-
-        `${API_BASE}/api/companies/me`,
-      ];
-
-      let response = null;
-
-      let data = null;
-
-      for (const endpoint of endpoints) {
-        const currentResponse = await fetch(
-          endpoint,
-
-          {
-            method: "PUT",
-
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-
-            body,
-          },
-        );
-
-        if (currentResponse.ok) {
-          response = currentResponse;
-
-          data = await currentResponse
-
-            .json()
-
-            .catch(() => ({}));
-
-          break;
-        }
-
-        if (currentResponse.status === 401 || currentResponse.status === 403) {
-          localStorage.removeItem("token");
-
-          localStorage.removeItem("adminToken");
-
-          localStorage.removeItem("user");
-
-          navigate("/login", {
-            replace: true,
-          });
-
-          return;
-        }
-      }
-
-      if (!response) {
-        throw new Error("Organization save endpoint not found");
-      }
-
-      const responseSource =
-        data?.organization || data?.company || data?.data || data || {};
-
-      const normalized = normalizeOrganization({
-        ...organization,
-
-        ...form,
-
-        ...responseSource,
-
-        logo_url:
-          responseSource.logo_url ||
-          responseSource.logoUrl ||
-          organization?.logo_url ||
-          defaultLogo,
-
-        cover_url:
-          responseSource.cover_url ||
-          responseSource.coverUrl ||
-          organization?.cover_url ||
-          defaultCover,
+      const response = await fetch(`${API_BASE}/api/organizations/me`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("user");
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Organization save failed");
+      }
+
+      const normalized = normalizeOrganization(data);
+
       setOrganization(normalized);
-
       setForm(createForm(normalized));
-
       setLogoFile(null);
-
       setCoverFile(null);
 
       if (logoPreview && logoPreview.startsWith("blob:")) {
@@ -764,20 +572,14 @@ export default function OrganizationProfile() {
       }
 
       setLogoPreview("");
-
       setCoverPreview("");
-
       setSuccess("Байгууллагын мэдээлэл амжилттай хадгалагдлаа.");
-
       window.dispatchEvent(new Event("organization-updated"));
     } catch (err) {
-      console.error(
-        "Save organization error:",
-
-        err,
+      console.error("Save organization error:", err);
+      setError(
+        err?.message || "Байгууллагын мэдээлэл хадгалахад алдаа гарлаа.",
       );
-
-      setError("Байгууллагын мэдээлэл хадгалахад алдаа гарлаа.");
     } finally {
       setSaving(false);
     }
@@ -848,6 +650,7 @@ export default function OrganizationProfile() {
                 onError={handleLogoError}
                 style={{
                   display: "block",
+
                   objectFit: "cover",
                 }}
               />
@@ -1090,7 +893,9 @@ export default function OrganizationProfile() {
                   <div className="orgCardBody">
                     <div className="orgGrid3">
                       <div className="orgField">
-                        <label>ВЭБСАЙТ</label>
+                        <label>
+                          ВЭБСАЙТ <span>(Сонголттой)</span>
+                        </label>
 
                         <div className="orgInputIcon">
                           <FiGlobe />
@@ -1156,7 +961,9 @@ export default function OrganizationProfile() {
 
                     <div className="orgGrid3">
                       <div className="orgField">
-                        <label>FACEBOOK</label>
+                        <label>
+                          FACEBOOK <span>(Сонголттой)</span>
+                        </label>
 
                         <input
                           type="text"
@@ -1168,7 +975,9 @@ export default function OrganizationProfile() {
                       </div>
 
                       <div className="orgField">
-                        <label>LINKEDIN</label>
+                        <label>
+                          LINKEDIN <span>(Сонголттой)</span>
+                        </label>
 
                         <input
                           type="text"
@@ -1180,7 +989,9 @@ export default function OrganizationProfile() {
                       </div>
 
                       <div className="orgField">
-                        <label>ХОЛБОГДОХ АЖИЛТАН</label>
+                        <label>
+                          ХОЛБОГДОХ АЖИЛТАН <span>(Сонголттой)</span>
+                        </label>
 
                         <input
                           type="text"
