@@ -10,9 +10,7 @@ const router = express.Router();
 
 const TZ = "Asia/Ulaanbaatar";
 
-
 function toDateTime(date, time) {
-
   return `${date} ${time}:00`;
 }
 
@@ -72,7 +70,9 @@ function durationMinutes(m) {
 
 async function ensureFinishedMeetingTable(conn) {
   await conn.query(`
+
     CREATE TABLE IF NOT EXISTS finished_meeting LIKE meetings
+
   `);
 }
 
@@ -80,15 +80,20 @@ async function cleanupEndedMeetings(conn) {
   await ensureFinishedMeetingTable(conn);
 
   const [rows] = await conn.query(`
+
     SELECT *
+
     FROM meetings
+
   `);
 
   const now = new Date();
+
   const finishedIds = [];
 
   for (const meeting of rows) {
     const end = getEndDate(meeting);
+
     if (!end) continue;
 
     if (end.getTime() <= now.getTime()) {
@@ -102,8 +107,31 @@ async function cleanupEndedMeetings(conn) {
 
   await conn.query(
     `
-    INSERT IGNORE INTO finished_meeting
-    SELECT *
+    INSERT IGNORE INTO finished_meeting (
+      original_meeting_id,
+      creator_user_id,
+      recipient_user_id,
+      title,
+      description,
+      start_time,
+      end_time,
+      status,
+      zoom_join_url,
+      zoom_start_url,
+      original_created_at
+    )
+    SELECT
+      id,
+      creator_user_id,
+      recipient_user_id,
+      title,
+      description,
+      start_time,
+      end_time,
+      status,
+      zoom_join_url,
+      zoom_start_url,
+      created_at
     FROM meetings
     WHERE id IN (${placeholders})
     `,
@@ -112,18 +140,27 @@ async function cleanupEndedMeetings(conn) {
 
   await conn.query(
     `
+
     DELETE FROM notifications
+
     WHERE type IN ('meeting_request', 'meeting_update')
+
       AND ref_id IN (${placeholders})
+
     `,
+
     finishedIds,
   );
 
   await conn.query(
     `
+
     DELETE FROM meetings
+
     WHERE id IN (${placeholders})
+
     `,
+
     finishedIds,
   );
 }
@@ -131,19 +168,29 @@ async function cleanupEndedMeetings(conn) {
 router.post("/", authMiddleware, async (req, res) => {
   const {
     mode,
+
     company,
+
     eventId,
+
     title,
+
     date,
+
     startTime,
+
     endTime,
+
     reason,
+
     invitees,
   } = req.body;
 
   if (!date || !startTime || !reason?.trim()) {
     return res
+
       .status(400)
+
       .json({ message: "date, startTime, reason are required" });
   }
 
@@ -156,7 +203,9 @@ router.post("/", authMiddleware, async (req, res) => {
 
   if (m !== "event" && m !== "company") {
     return res
+
       .status(400)
+
       .json({ message: "mode must be 'event' or 'company'" });
   }
 
@@ -169,7 +218,9 @@ router.post("/", authMiddleware, async (req, res) => {
 
     if (!Number.isFinite(evId)) {
       return res
+
         .status(400)
+
         .json({ message: "eventId is required in event mode" });
     }
   }
@@ -212,7 +263,9 @@ router.post("/", authMiddleware, async (req, res) => {
       await conn.commit();
 
       return res
+
         .status(201)
+
         .json({ message: "Saved", meetingId: result.insertId });
     }
 
@@ -234,7 +287,9 @@ router.post("/", authMiddleware, async (req, res) => {
       await conn.rollback();
 
       return res
+
         .status(400)
+
         .json({ message: "Some invitee emails do not exist", missing });
     }
 
@@ -281,9 +336,12 @@ router.post("/", authMiddleware, async (req, res) => {
     await conn.commit();
 
     return res
+
       .status(201)
+
       .json({
         message: "Meeting request(s) sent",
+
         meetingIds: createdMeetingIds,
       });
   } catch (err) {
@@ -292,7 +350,9 @@ router.post("/", authMiddleware, async (req, res) => {
     console.error("POST /api/meetings ERROR:", err);
 
     return res
+
       .status(500)
+
       .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
@@ -310,19 +370,13 @@ router.get("/inbox", authMiddleware, async (req, res) => {
 
         m.*,
 
-
-
         cu.email AS sender_email,
 
         TRIM(CONCAT(COALESCE(cu.first_name,''), ' ', COALESCE(cu.last_name,''))) AS sender_name,
 
         cu.company_name AS sender_company,
 
-
-
         ru.email AS recipient_email,
-
-
 
         CASE
 
@@ -334,17 +388,11 @@ router.get("/inbox", authMiddleware, async (req, res) => {
 
         END AS request_from
 
-
-
       FROM meetings m
-
-
 
       JOIN users cu ON cu.id = m.creator_user_id
 
       JOIN users ru ON ru.id = m.recipient_user_id
-
-
 
       WHERE m.recipient_user_id = ?
 
@@ -569,12 +617,13 @@ router.patch("/join-requests/:id/decline", authMiddleware, async (req, res) => {
 
    GET /api/meetings/sent
 
-========================= */
+\========================= */
 
 router.get("/sent", authMiddleware, async (req, res) => {
   try {
     const userEmail = String(req.user?.email || "")
       .trim()
+
       .toLowerCase();
 
     const [[user]] = await pool.query(
@@ -712,7 +761,9 @@ router.patch("/:id/accept", authMiddleware, async (req, res) => {
       await conn.rollback();
 
       return res
+
         .status(404)
+
         .json({ message: "Meeting not found (maybe ended and removed)" });
     }
 
@@ -728,7 +779,9 @@ router.patch("/:id/accept", authMiddleware, async (req, res) => {
       await conn.commit();
 
       return res
+
         .status(410)
+
         .json({ message: "Meeting already ended and was removed" });
     }
 
@@ -807,6 +860,7 @@ router.patch("/:id/accept", authMiddleware, async (req, res) => {
     }
 
     await conn.commit();
+
     return res.json({
       message: "Accepted",
 
@@ -816,9 +870,13 @@ router.patch("/:id/accept", authMiddleware, async (req, res) => {
     });
   } catch (err) {
     await conn.rollback();
+
     console.error("PATCH accept ERROR:", err);
+
     return res
+
       .status(500)
+
       .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();
@@ -868,6 +926,7 @@ router.patch("/:id/decline", authMiddleware, async (req, res) => {
 
     const [[row]] = await conn.query(
       `SELECT creator_user_id FROM meetings WHERE id=?`,
+
       [meetingId],
     );
 
@@ -897,7 +956,9 @@ router.patch("/:id/decline", authMiddleware, async (req, res) => {
 
 router.patch("/:id/edit", authMiddleware, async (req, res) => {
   const userId = req.user?.id;
+
   const meetingId = Number(req.params.id);
+
   const { date, startTime, endTime } = req.body;
 
   if (!userId)
@@ -907,7 +968,9 @@ router.patch("/:id/edit", authMiddleware, async (req, res) => {
     return res.status(400).json({ message: "date and startTime are required" });
 
   const startDT = toDateTime(date, startTime);
+
   const endDT = endTime ? toDateTime(date, endTime) : null;
+
   const conn = await pool.getConnection();
 
   try {
@@ -935,6 +998,7 @@ router.patch("/:id/edit", authMiddleware, async (req, res) => {
 
     const [[row]] = await conn.query(
       `SELECT creator_user_id FROM meetings WHERE id=?`,
+
       [meetingId],
     );
 
@@ -973,25 +1037,40 @@ router.get("/finished", authMiddleware, async (req, res) => {
 
   try {
     await conn.beginTransaction();
+
     await cleanupEndedMeetings(conn);
+
     await conn.commit();
 
     await ensureFinishedMeetingTable(conn);
 
     const [rows] = await conn.query(
       `
+
       SELECT
+
         fm.*,
+
         cu.email AS creator_email,
+
         ru.email AS recipient_email,
+
         TRIM(CONCAT(COALESCE(cu.first_name, ''), ' ', COALESCE(cu.last_name, ''))) AS creator_name,
+
         TRIM(CONCAT(COALESCE(ru.first_name, ''), ' ', COALESCE(ru.last_name, ''))) AS recipient_name
+
       FROM finished_meeting fm
+
       LEFT JOIN users cu ON cu.id = fm.creator_user_id
+
       LEFT JOIN users ru ON ru.id = fm.recipient_user_id
+
       WHERE fm.creator_user_id = ? OR fm.recipient_user_id = ?
+
       ORDER BY COALESCE(fm.end_time, fm.start_time) DESC
+
       `,
+
       [userId, userId],
     );
 
@@ -1002,8 +1081,11 @@ router.get("/finished", authMiddleware, async (req, res) => {
     } catch {}
 
     console.error("GET /api/meetings/finished ERROR:", err);
+
     return res
+
       .status(500)
+
       .json({ message: "Server error", error: err.message });
   } finally {
     conn.release();

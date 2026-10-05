@@ -212,19 +212,17 @@ export default function Navbar() {
           Эвэнт
         </NavLink>
 
+        <NavLink
+          to="/organizations"
+          className={navClass}
+          onClick={() => setOpen(false)}
+        >
+          Байгууллага
+        </NavLink>
+
         <NavLink to="/news" className={navClass} onClick={() => setOpen(false)}>
           Мэдээ
         </NavLink>
-
-        <button
-          type="button"
-          className="riMobileThemeButton"
-          onClick={toggleTheme}
-        >
-          {theme === "dark" ? <FaSun /> : <FaMoon />}
-
-          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-        </button>
 
         <Link
           to="/login"

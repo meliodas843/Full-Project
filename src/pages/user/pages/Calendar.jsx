@@ -17,6 +17,7 @@ import {
 import UserShell from "../components/UserShell";
 
 import { API_BASE } from "@/lib/config";
+
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -451,48 +452,22 @@ export default function Calendar() {
 
     try {
       setRespondingId(meeting.id);
-
       setMessage("");
 
-      let response = await authFetch(
-        `${API_BASE}/api/meetings/${meeting.id}/respond`,
-
+      const action = status === "accepted" ? "accept" : "decline";
+      const response = await authFetch(
+        `${API_BASE}/api/meetings/${meeting.id}/${action}`,
         {
           method: "PATCH",
-
           headers: {
             "Content-Type": "application/json",
           },
-
-          body: JSON.stringify({ status }),
         },
       );
 
       if (!response) return;
 
-      if (response.status === 404 || response.status === 405) {
-        response = await authFetch(
-          `${API_BASE}/api/meetings/${meeting.id}/status`,
-
-          {
-            method: "PUT",
-
-            headers: {
-              "Content-Type": "application/json",
-            },
-
-            body: JSON.stringify({ status }),
-          },
-        );
-      }
-
-      if (!response) return;
-
-      const data = await response
-
-        .json()
-
-        .catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         setMessage(
@@ -501,7 +476,6 @@ export default function Calendar() {
               ? "Уулзалтын хүсэлтийг зөвшөөрөхөд алдаа гарлаа."
               : "Уулзалтын хүсэлтээс татгалзахад алдаа гарлаа."),
         );
-
         return;
       }
 
@@ -556,61 +530,47 @@ export default function Calendar() {
   async function saveMeetingSchedule() {
     if (!editingMeeting?.id || !editDate || !editTime || savingEdit) return;
 
-    const startTime = `${editDate}T${editTime}:00`;
-
     try {
       setSavingEdit(true);
-
       setMessage("");
 
-      const endpoints = [
-        {
-          url: `${API_BASE}/api/meetings/${editingMeeting.id}/reschedule`,
-          method: "PATCH",
-        },
+      const currentEnd = parseDate(editingMeeting?.end_time);
+      let endTime = null;
 
-        {
-          url: `${API_BASE}/api/meetings/${editingMeeting.id}`,
-          method: "PATCH",
-        },
-
-        { url: `${API_BASE}/api/meetings/${editingMeeting.id}`, method: "PUT" },
-      ];
-
-      let response = null;
-
-      let data = {};
-
-      for (const endpoint of endpoints) {
-        response = await authFetch(endpoint.url, {
-          method: endpoint.method,
-
-          headers: { "Content-Type": "application/json" },
-
-          body: JSON.stringify({ start_time: startTime }),
-        });
-
-        if (!response) return;
-
-        data = await response.json().catch(() => ({}));
-
-        if (response.ok) break;
-
-        if (response.status !== 404 && response.status !== 405) break;
+      if (currentEnd) {
+        endTime = `${String(currentEnd.getHours()).padStart(2, "0")}:${String(
+          currentEnd.getMinutes(),
+        ).padStart(2, "0")}`;
       }
 
-      if (!response?.ok) {
+      const response = await authFetch(
+        `${API_BASE}/api/meetings/${editingMeeting.id}/edit`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: editDate,
+            startTime: editTime,
+            endTime,
+          }),
+        },
+      );
+
+      if (!response) return;
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
         setMessage(
           data?.message || "Уулзалтын огноо, цагийг өөрчлөхөд алдаа гарлаа.",
         );
-
         return;
       }
 
       setMessage("Уулзалтын огноо, цагийг амжилттай өөрчиллөө.");
-
       closeEditMeeting();
-
       await load();
     } catch {
       setMessage("Сервертэй холбогдож чадсангүй.");
@@ -679,12 +639,17 @@ export default function Calendar() {
 
   const eventsByDay = useMemo(() => {
     const map = {};
+
     events.forEach((event) => {
       const key = isoKey(event.start_time || event.start_date);
+
       if (!key) return;
+
       if (!map[key]) map[key] = [];
+
       map[key].push(event);
     });
+
     return map;
   }, [events]);
 
@@ -692,13 +657,17 @@ export default function Calendar() {
 
   const selectedDateLabel = selectedDate.toLocaleDateString("mn-MN", {
     month: "long",
+
     day: "numeric",
+
     weekday: "long",
   });
 
   function goToday() {
     const today = new Date();
+
     setSelectedDate(today);
+
     setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
   }
 
@@ -708,6 +677,7 @@ export default function Calendar() {
         <header className="calTop">
           <div>
             <h1>Календар</h1>
+
             <p>Эвэнт болон эвэнтийн дараах 1:1 уулзалтууд</p>
           </div>
 
@@ -715,6 +685,7 @@ export default function Calendar() {
             <button type="button" className="calToday" onClick={goToday}>
               Өнөөдөр
             </button>
+
             <button
               type="button"
               className="calCreate"
@@ -733,9 +704,11 @@ export default function Calendar() {
                 <button type="button" onClick={goPreviousMonth}>
                   <FiChevronLeft />
                 </button>
+
                 <button type="button" onClick={goNextMonth}>
                   <FiChevronRight />
                 </button>
+
                 <h2>{title}</h2>
               </div>
 
@@ -743,9 +716,11 @@ export default function Calendar() {
                 <span>
                   <i className="eventDot" /> Эвэнт · {events.length}
                 </span>
+
                 <span>
                   <i className="meetingDot" /> Уулзалт · {myMeetings.length}
                 </span>
+
                 <span>
                   <i className="pendingDot" /> Хүлээгдэж буй ·{" "}
                   {pendingInbox.length}
@@ -756,11 +731,17 @@ export default function Calendar() {
             <div className="calWeekdays">
               {[
                 "ДАВАА",
+
                 "МЯГМАР",
+
                 "ЛХАГВА",
+
                 "ПҮРЭВ",
+
                 "БААСАН",
+
                 "БЯМБА",
+
                 "НЯМ",
               ].map((day) => (
                 <span key={day}>{day}</span>
@@ -779,9 +760,13 @@ export default function Calendar() {
                 }
 
                 const key = isoKey(date);
+
                 const meetings = byDay[key] || [];
+
                 const dayEvents = eventsByDay[key] || [];
+
                 const active = key === selectedKey;
+
                 const today = key === isoKey(new Date());
 
                 return (
@@ -808,7 +793,9 @@ export default function Calendar() {
                       ))}
 
                       {meetings
+
                         .slice(0, Math.max(0, 3 - dayEvents.length))
+
                         .map((meeting) => (
                           <span
                             className={`calItem ${
@@ -842,6 +829,7 @@ export default function Calendar() {
               <div className="calSideHeading">
                 <div>
                   <small>СОНГОСОН ӨДӨР</small>
+
                   <h3>{selectedDateLabel}</h3>
                 </div>
               </div>
@@ -860,12 +848,15 @@ export default function Calendar() {
                         <div className="calScheduleTime">
                           {formatTime(event.start_time || event.start_date)}
                         </div>
+
                         <div className="calScheduleBody">
                           <strong>{event.title || "Эвэнт"}</strong>
+
                           <span>
                             {event.location || event.address || "Эвэнт"}
                           </span>
                         </div>
+
                         <span className="calVideoIcon">
                           <FiCalendar />
                         </span>
@@ -885,13 +876,17 @@ export default function Calendar() {
                         <div className="calScheduleTime">
                           {formatTime(meeting.start_time)}
                         </div>
+
                         <div className="calAvatar">
                           {personInitials(meetingPersonName(meeting))}
                         </div>
+
                         <div className="calScheduleBody">
                           <strong>{meetingPersonName(meeting)}</strong>
+
                           <span>{meeting.title || "1:1 уулзалт"}</span>
                         </div>
+
                         <span className="calVideoIcon">
                           <FiVideo />
                         </span>
@@ -914,6 +909,7 @@ export default function Calendar() {
             <section className="calSideCard calRequests">
               <div className="calRequestHeader">
                 <h3>Хүсэлтүүд</h3>
+
                 <span>Ирсэн · {pendingInbox.length}</span>
               </div>
 
@@ -925,18 +921,22 @@ export default function Calendar() {
                 <div className="calRequestList">
                   {pendingInbox.slice(0, 5).map((meeting) => {
                     const busy = respondingId === meeting.id;
+
                     const name = meetingPersonName(meeting);
 
                     return (
                       <article className="calRequest" key={meeting.id}>
                         <div className="calAvatar">{personInitials(name)}</div>
+
                         <div className="calRequestInfo">
                           <strong>{name}</strong>
+
                           <span>
                             {formatTime(meeting.start_time)} ·{" "}
                             {meeting.title || "Уулзалт"}
                           </span>
                         </div>
+
                         <div className="calRequestActions">
                           <button
                             type="button"
@@ -947,6 +947,7 @@ export default function Calendar() {
                           >
                             <FiEdit3 />
                           </button>
+
                           <button
                             type="button"
                             className="decline"
@@ -958,6 +959,7 @@ export default function Calendar() {
                           >
                             <FiX />
                           </button>
+
                           <button
                             type="button"
                             className="accept"
@@ -994,10 +996,13 @@ export default function Calendar() {
                 <div className="rgMeetingEditIcon">
                   <FiEdit3 />
                 </div>
+
                 <div>
                   <h3 id="meeting-edit-title">Уулзалтын цаг өөрчлөх</h3>
+
                   <p>Танд тохирох шинэ огноо, цагийг сонгоно уу.</p>
                 </div>
+
                 <button
                   type="button"
                   className="rgMeetingEditClose"
@@ -1011,8 +1016,10 @@ export default function Calendar() {
                 <span className="rgInviteAvatar">
                   {personInitials(meetingPersonName(editingMeeting))}
                 </span>
+
                 <div>
                   <strong>{meetingPersonName(editingMeeting)}</strong>
+
                   <small>{meetingPersonEmail(editingMeeting)}</small>
                 </div>
               </div>
@@ -1022,16 +1029,19 @@ export default function Calendar() {
                   <span>
                     <FiCalendar /> Огноо
                   </span>
+
                   <input
                     type="date"
                     value={editDate}
                     onChange={(event) => setEditDate(event.target.value)}
                   />
                 </label>
+
                 <label>
                   <span>
                     <FiClock /> Цаг
                   </span>
+
                   <input
                     type="time"
                     value={editTime}
@@ -1049,6 +1059,7 @@ export default function Calendar() {
                 >
                   Цуцлах
                 </button>
+
                 <button
                   type="button"
                   className="rgMeetingEditSave"
@@ -1056,6 +1067,7 @@ export default function Calendar() {
                   disabled={!editDate || !editTime || savingEdit}
                 >
                   <FiCheck />
+
                   {savingEdit ? "Хадгалж байна..." : "Өөрчлөлт хадгалах"}
                 </button>
               </div>
