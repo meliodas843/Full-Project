@@ -2,245 +2,456 @@ import express from "express";
 import pool from "../db.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import nodemailer from "nodemailer";
 
 const router = express.Router();
 
-function sha256(input) {
-  return crypto.createHash("sha256").update(input).digest("hex");
+function sha256(value) {
+  return crypto
+    .createHash("sha256")
+    .update(String(value))
+    .digest("hex");
 }
 
-function addMinutes(date, minutes) {
-  return new Date(date.getTime() + minutes * 60 * 1000);
+function normalizeEmail(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
-function mustHaveEnv(name) {
-  return !!String(process.env[name] || "").trim();
+function isStrongPassword(password) {
+  return (
+    password.length >= 10 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
 }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.RESET_EMAIL_USER,
-    pass: process.env.RESET_EMAIL_PASS,
-  },
-});
+/*
+|--------------------------------------------------------------------------
+| VERIFY 6-DIGIT RESET CODE
+|--------------------------------------------------------------------------
+|
+| POST /api/password/verify-code
+|
+| body:
+| {
+|   "email": "user@example.com",
+|   "code": "482917"
+| }
+|
+*/
 
-router.post("/forgot", async (req, res) => {
-  const email = String(req.body?.email || "").trim().toLowerCase();
+router.post("/verify-code", async (req, res) => {
+  const email = normalizeEmail(
+    req.body?.email
+  );
+
+  const code = String(
+    req.body?.code || ""
+  ).trim();
 
   if (!email) {
-    return res.status(400).json({ message: "Email is required" });
+    return res.status(400).json({
+      message:
+        "Имэйл хаяг шаардлагатай.",
+    });
+  }
+
+  if (!/^\d{6}$/.test(code)) {
+    return res.status(400).json({
+      message:
+        "6 оронтой баталгаажуулах код оруулна уу.",
+    });
   }
 
   try {
-    if (!mustHaveEnv("FRONTEND_URL")) {
-      return res.status(500).json({
-        message: "FRONTEND_URL is missing in .env",
-      });
-    }
-
-    if (!mustHaveEnv("RESET_EMAIL_USER") || !mustHaveEnv("RESET_EMAIL_PASS")) {
-      return res.status(500).json({
-        message:
-          "RESET_EMAIL_USER/RESET_EMAIL_PASS missing. Use Gmail App Password and restart server.",
-      });
-    }
-
-    const [users] = await pool.query(
-      `
-      SELECT
-        id,
-        email,
-        first_name
-      FROM users
-      WHERE LOWER(email) = ?
-      LIMIT 1
-      `,
-      [email]
-    );
+    const [users] =
+      await pool.query(
+        `
+        SELECT
+          id,
+          email
+        FROM users
+        WHERE LOWER(email) = ?
+        LIMIT 1
+        `,
+        [email]
+      );
 
     if (users.length === 0) {
       return res.status(404).json({
-        message: "This email is not registered.",
+        message:
+          "Энэ имэйл хаяг бүртгэлгүй байна.",
       });
     }
 
     const user = users[0];
 
-    await pool.query(
-      `
-      UPDATE password_resets
-      SET used = 1
-      WHERE user_id = ?
-        AND used = 0
-      `,
-      [user.id]
-    );
+    /*
+     * Find newest active reset code.
+     *
+     * We intentionally find the newest active
+     * row first, then compare the hash in Node.
+     *
+     * This allows us to increment attempts even
+     * when the entered code itself is incorrect.
+     */
 
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const tokenHash = sha256(rawToken);
-    const expiresAt = addMinutes(new Date(), 30);
-
-    await pool.query(
-      `
-      INSERT INTO password_resets
-      (
-        user_id,
-        token_hash,
-        expires_at,
-        used
-      )
-      VALUES (?, ?, ?, 0)
-      `,
-      [user.id, tokenHash, expiresAt]
-    );
-
-    const frontendUrl = String(process.env.FRONTEND_URL).replace(/\/+$/, "");
-    const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(
-      rawToken
-    )}`;
-
-    const name = String(user.first_name || "").trim() || "Хэрэглэгч";
-
-    await transporter.sendMail({
-      from: `"Registra" <${process.env.RESET_EMAIL_USER}>`,
-      to: user.email,
-      subject: "Registra нууц үг сэргээх",
-      text:
-        `Сайн байна уу, ${name}.\n\n` +
-        `Доорх холбоосоор нууц үгээ шинэчилнэ үү:\n${resetUrl}\n\n` +
-        `Энэ холбоос 30 минутын дараа хүчингүй болно.`,
-      html: `
-        <div style="margin:0;padding:0;background:#f5f6fb;font-family:Arial,Helvetica,sans-serif;color:#171927">
-          <div style="max-width:620px;margin:0 auto;padding:32px 16px">
-            <div style="font-size:22px;font-weight:800;color:#6847ef;margin-bottom:18px">
-              REGISTRA
-            </div>
-
-            <div style="background:#ffffff;border:1px solid #e7e8ef;border-radius:16px;padding:30px">
-              <div style="width:48px;height:48px;line-height:48px;text-align:center;background:#f0ebff;border-radius:12px;font-size:22px;margin-bottom:18px">
-                🔒
-              </div>
-
-              <h1 style="margin:0 0 14px;font-size:26px;line-height:1.3">
-                Нууц үг сэргээх
-              </h1>
-
-              <p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#656b7c">
-                Сайн байна уу, ${name}.
-              </p>
-
-              <p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#656b7c">
-                Таны Registra бүртгэлийн нууц үгийг сэргээх хүсэлт ирлээ.
-                Доорх товчийг дарж шинэ нууц үгээ тохируулна уу.
-              </p>
-
-              <a
-                href="${resetUrl}"
-                style="display:inline-block;background:#6847ef;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:14px 22px;border-radius:9px"
-              >
-                Нууц үг сэргээх
-              </a>
-
-              <p style="margin:22px 0 0;font-size:12px;line-height:1.7;color:#8e94a6">
-                Энэ холбоос 30 минутын дараа хүчингүй болно.
-              </p>
-
-              <p style="margin:10px 0 0;font-size:12px;line-height:1.7;color:#8e94a6">
-                Хэрэв та энэ хүсэлтийг илгээгээгүй бол энэ имэйлийг үл тоомсорлоно уу.
-              </p>
-
-              <p style="margin:18px 0 0;font-size:11px;line-height:1.6;color:#9ca1af;word-break:break-all">
-                ${resetUrl}
-              </p>
-            </div>
-          </div>
-        </div>
-      `,
-    });
-
-    return res.json({
-      message: "Reset link sent to your email.",
-    });
-  } catch (err) {
-    console.error("POST /api/password/forgot error:", err);
-
-    return res.status(500).json({
-      message: "Server error",
-      error: String(err.message || err),
-    });
-  }
-});
-
-router.post("/reset", async (req, res) => {
-  const token = String(req.body?.token || "").trim();
-  const newPassword = String(req.body?.newPassword || "");
-
-  if (!token || !newPassword) {
-    return res.status(400).json({
-      message: "token and newPassword required",
-    });
-  }
-
-  const strongPassword =
-    newPassword.length >= 10 &&
-    /[a-z]/.test(newPassword) &&
-    /[A-Z]/.test(newPassword) &&
-    /\d/.test(newPassword) &&
-    /[^A-Za-z0-9]/.test(newPassword);
-
-  if (!strongPassword) {
-    return res.status(400).json({
-      message:
-        "Password must be at least 10 characters and include uppercase, lowercase, number and symbol",
-    });
-  }
-
-  try {
-    const tokenHash = sha256(token);
-
-    const [rows] = await pool.query(
-      `
-      SELECT
-        id,
-        user_id,
-        expires_at,
-        used
-      FROM password_resets
-      WHERE token_hash = ?
-      LIMIT 1
-      `,
-      [tokenHash]
-    );
+    const [rows] =
+      await pool.query(
+        `
+        SELECT
+          id,
+          code_hash,
+          expires_at,
+          used,
+          attempts
+        FROM password_reset_codes
+        WHERE user_id = ?
+          AND used = 0
+        ORDER BY id DESC
+        LIMIT 1
+        `,
+        [user.id]
+      );
 
     if (rows.length === 0) {
       return res.status(400).json({
-        message: "Invalid or expired token",
+        message:
+          "Идэвхтэй баталгаажуулах код олдсонгүй. Шинэ код авна уу.",
       });
     }
 
     const resetRow = rows[0];
 
-    if (resetRow.used) {
-      return res.status(400).json({
-        message: "Token already used",
+    if (
+      Number(resetRow.attempts || 0) >=
+      5
+    ) {
+      await pool.query(
+        `
+        UPDATE password_reset_codes
+        SET used = 1
+        WHERE id = ?
+        `,
+        [resetRow.id]
+      );
+
+      return res.status(429).json({
+        message:
+          "Код оруулах оролдлогын хязгаар хэтэрсэн байна. Шинэ код авна уу.",
       });
     }
 
-    const exp = new Date(resetRow.expires_at).getTime();
+    const expiresAt =
+      new Date(
+        resetRow.expires_at
+      ).getTime();
 
-    if (!Number.isFinite(exp) || exp < Date.now()) {
+    if (
+      !Number.isFinite(expiresAt) ||
+      expiresAt < Date.now()
+    ) {
+      await pool.query(
+        `
+        UPDATE password_reset_codes
+        SET used = 1
+        WHERE id = ?
+        `,
+        [resetRow.id]
+      );
+
       return res.status(400).json({
-        message: "Token expired",
+        message:
+          "Баталгаажуулах кодын хугацаа дууссан байна. Шинэ код авна уу.",
       });
     }
 
-    const hashed = await bcrypt.hash(newPassword, 12);
+    const codeHash =
+      sha256(code);
 
-    const connection = await pool.getConnection();
+    if (
+      codeHash !==
+      resetRow.code_hash
+    ) {
+      await pool.query(
+        `
+        UPDATE password_reset_codes
+        SET attempts = attempts + 1
+        WHERE id = ?
+        `,
+        [resetRow.id]
+      );
+
+      const attempts =
+        Number(
+          resetRow.attempts || 0
+        ) + 1;
+
+      const remaining =
+        Math.max(
+          0,
+          5 - attempts
+        );
+
+      if (remaining === 0) {
+        await pool.query(
+          `
+          UPDATE password_reset_codes
+          SET used = 1
+          WHERE id = ?
+          `,
+          [resetRow.id]
+        );
+
+        return res.status(429).json({
+          message:
+            "Код оруулах оролдлогын хязгаар хэтэрсэн байна. Шинэ код авна уу.",
+        });
+      }
+
+      return res.status(400).json({
+        message:
+          `Баталгаажуулах код буруу байна. ${remaining} оролдлого үлдлээ.`,
+      });
+    }
+
+    return res.json({
+      verified: true,
+      message:
+        "Код амжилттай баталгаажлаа.",
+    });
+  } catch (err) {
+    console.error(
+      "POST /api/password/verify-code error:",
+      err
+    );
+
+    return res.status(500).json({
+      message: "Server error",
+      error: String(
+        err?.message || err
+      ),
+    });
+  }
+});
+
+/*
+|--------------------------------------------------------------------------
+| RESET PASSWORD WITH VERIFIED CODE
+|--------------------------------------------------------------------------
+|
+| POST /api/password/reset-with-code
+|
+| body:
+| {
+|   "email": "user@example.com",
+|   "code": "482917",
+|   "newPassword": "Example@123"
+| }
+|
+*/
+
+router.post(
+  "/reset-with-code",
+  async (req, res) => {
+    const email =
+      normalizeEmail(
+        req.body?.email
+      );
+
+    const code = String(
+      req.body?.code || ""
+    ).trim();
+
+    const newPassword =
+      String(
+        req.body?.newPassword ||
+          ""
+      );
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Имэйл хаяг шаардлагатай.",
+        });
+    }
+
+    if (
+      !/^\d{6}$/.test(code)
+    ) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "6 оронтой баталгаажуулах код шаардлагатай.",
+        });
+    }
+
+    if (
+      !isStrongPassword(
+        newPassword
+      )
+    ) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Нууц үг хамгийн багадаа 10 тэмдэгттэй бөгөөд том үсэг, жижиг үсэг, тоо, тусгай тэмдэгт агуулсан байх ёстой.",
+        });
+    }
+
+    let connection = null;
 
     try {
+      const [users] =
+        await pool.query(
+          `
+          SELECT
+            id,
+            email
+          FROM users
+          WHERE LOWER(email) = ?
+          LIMIT 1
+          `,
+          [email]
+        );
+
+      if (
+        users.length === 0
+      ) {
+        return res
+          .status(404)
+          .json({
+            message:
+              "Энэ имэйл хаяг бүртгэлгүй байна.",
+          });
+      }
+
+      const user =
+        users[0];
+
+      const [rows] =
+        await pool.query(
+          `
+          SELECT
+            id,
+            code_hash,
+            expires_at,
+            used,
+            attempts
+          FROM password_reset_codes
+          WHERE user_id = ?
+            AND used = 0
+          ORDER BY id DESC
+          LIMIT 1
+          `,
+          [user.id]
+        );
+
+      if (
+        rows.length === 0
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Баталгаажуулах код хүчингүй болсон байна. Шинэ код авна уу.",
+          });
+      }
+
+      const resetRow =
+        rows[0];
+
+      if (
+        Number(
+          resetRow.attempts ||
+            0
+        ) >= 5
+      ) {
+        await pool.query(
+          `
+          UPDATE password_reset_codes
+          SET used = 1
+          WHERE id = ?
+          `,
+          [resetRow.id]
+        );
+
+        return res
+          .status(429)
+          .json({
+            message:
+              "Код оруулах оролдлогын хязгаар хэтэрсэн байна. Шинэ код авна уу.",
+          });
+      }
+
+      const expiresAt =
+        new Date(
+          resetRow.expires_at
+        ).getTime();
+
+      if (
+        !Number.isFinite(
+          expiresAt
+        ) ||
+        expiresAt <
+          Date.now()
+      ) {
+        await pool.query(
+          `
+          UPDATE password_reset_codes
+          SET used = 1
+          WHERE id = ?
+          `,
+          [resetRow.id]
+        );
+
+        return res
+          .status(400)
+          .json({
+            message:
+              "Баталгаажуулах кодын хугацаа дууссан байна. Шинэ код авна уу.",
+          });
+      }
+
+      const codeHash =
+        sha256(code);
+
+      if (
+        codeHash !==
+        resetRow.code_hash
+      ) {
+        await pool.query(
+          `
+          UPDATE password_reset_codes
+          SET attempts = attempts + 1
+          WHERE id = ?
+          `,
+          [resetRow.id]
+        );
+
+        return res
+          .status(400)
+          .json({
+            message:
+              "Баталгаажуулах код буруу байна.",
+          });
+      }
+
+      const hashedPassword =
+        await bcrypt.hash(
+          newPassword,
+          12
+        );
+
+      connection =
+        await pool.getConnection();
+
       await connection.beginTransaction();
 
       await connection.query(
@@ -249,37 +460,82 @@ router.post("/reset", async (req, res) => {
         SET password = ?
         WHERE id = ?
         `,
-        [hashed, resetRow.user_id]
+        [
+          hashedPassword,
+          user.id,
+        ]
       );
+
+      /*
+       * Mark this code as used.
+       */
 
       await connection.query(
         `
-        UPDATE password_resets
+        UPDATE password_reset_codes
         SET used = 1
         WHERE id = ?
         `,
         [resetRow.id]
       );
 
+      /*
+       * Invalidate any other
+       * active codes for this user.
+       */
+
+      await connection.query(
+        `
+        UPDATE password_reset_codes
+        SET used = 1
+        WHERE user_id = ?
+          AND used = 0
+        `,
+        [user.id]
+      );
+
       await connection.commit();
-    } catch (error) {
-      await connection.rollback();
-      throw error;
+
+      return res.json({
+        success: true,
+        message:
+          "Нууц үг амжилттай шинэчлэгдлээ.",
+      });
+    } catch (err) {
+      if (connection) {
+        try {
+          await connection.rollback();
+        } catch (
+          rollbackError
+        ) {
+          console.error(
+            "Password reset rollback error:",
+            rollbackError
+          );
+        }
+      }
+
+      console.error(
+        "POST /api/password/reset-with-code error:",
+        err
+      );
+
+      return res
+        .status(500)
+        .json({
+          message:
+            "Server error",
+          error: String(
+            err?.message ||
+              err
+          ),
+        });
     } finally {
-      connection.release();
+      if (connection) {
+        connection.release();
+      }
     }
-
-    return res.json({
-      message: "Password updated successfully",
-    });
-  } catch (err) {
-    console.error("POST /api/password/reset error:", err);
-
-    return res.status(500).json({
-      message: "Server error",
-      error: String(err.message || err),
-    });
   }
-});
+);
 
 export default router;
