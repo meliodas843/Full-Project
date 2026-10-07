@@ -1,39 +1,98 @@
+import "dotenv/config";
 import nodemailer from "nodemailer";
+import path from "path";
+import { fileURLToPath } from "url";
 
-function required(name) {
-  const value = String(process.env[name] || "").trim();
-  if (!value) throw new Error(`${name} is missing in .env`);
-  return value;
-}
+const __filename =
+  fileURLToPath(import.meta.url);
+
+const __dirname =
+  path.dirname(__filename);
+
+const registraLogoPath =
+  path.resolve(
+    __dirname,
+    "../../src/assets/registra-logo-def.png"
+  );
+
+const transporter =
+  nodemailer.createTransport({
+    service: "gmail",
+
+    auth: {
+      user:
+        process.env.RESET_EMAIL_USER,
+
+      pass:
+        process.env.RESET_EMAIL_PASS,
+    },
+  });
 
 export function getFrontendUrl() {
-  return required("FRONTEND_URL").replace(/\/+$/, "");
+  return String(
+    process.env.FRONTEND_URL || ""
+  ).replace(/\/+$/, "");
 }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.RESET_EMAIL_USER,
-    pass: process.env.RESET_EMAIL_PASS,
-  },
-});
+export async function sendMail({
+  to,
+  subject,
+  text,
+  html,
+  attachments = [],
+}) {
+  if (!to) {
+    throw new Error(
+      "Email recipient is required"
+    );
+  }
 
-export async function sendMail({ to, subject, text, html }) {
-  const user = required("RESET_EMAIL_USER");
-  required("RESET_EMAIL_PASS");
+  if (
+    !process.env.RESET_EMAIL_USER
+  ) {
+    throw new Error(
+      "RESET_EMAIL_USER is missing"
+    );
+  }
+
+  if (
+    !process.env.RESET_EMAIL_PASS
+  ) {
+    throw new Error(
+      "RESET_EMAIL_PASS is missing"
+    );
+  }
 
   return transporter.sendMail({
-    from: `"Registra" <${user}>`,
+    from:
+      `"Registra" <${process.env.RESET_EMAIL_USER}>`,
+
     to,
+
     subject,
+
     text,
+
     html,
+
+    attachments: [
+      {
+        filename:
+          "registra-logo-def.png",
+
+        path:
+          registraLogoPath,
+
+        cid:
+          "registra-logo",
+      },
+
+      ...attachments,
+    ],
   });
 }
 
 export async function verifyMailer() {
-  required("RESET_EMAIL_USER");
-  required("RESET_EMAIL_PASS");
   return transporter.verify();
 }
 
