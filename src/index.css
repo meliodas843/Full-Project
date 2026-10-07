@@ -44007,8 +44007,7 @@ svg {
   border-color: #6742f5;
   background: #faf9ff;
 
-  box-shadow:
-    0 0 0 3px rgba(103, 66, 245, 0.09);
+  box-shadow: 0 0 0 3px rgba(103, 66, 245, 0.09);
 
   transform: translateY(-1px);
 }
@@ -44057,8 +44056,7 @@ svg {
 
   transform: translateY(-1px);
 
-  box-shadow:
-    0 9px 24px rgba(103, 66, 245, 0.2);
+  box-shadow: 0 9px 24px rgba(103, 66, 245, 0.2);
 }
 
 .rgResetSubmit:disabled {
@@ -44136,131 +44134,435 @@ svg {
 }
 
 /* =========================================================
-   PASSWORD FIELDS - STEP 3
+   RESET PASSWORD - NEW PASSWORD STEP
    ========================================================= */
 
-.rgResetField {
-  margin-bottom: 18px;
+.rgNewPasswordHeading {
+  width: 100%;
+  margin: 0 0 26px;
 }
 
-.rgResetField > label {
-  display: block;
-  margin-bottom: 8px;
-
-  color: #343a4b;
-
-  font-size: 11px;
-  line-height: 1.2;
+.rgNewPasswordHeading h2 {
+  margin: 0 0 8px;
+  color: #171b2c;
+  font-family: "Manrope", sans-serif;
+  font-size: 36px;
+  line-height: 1.12;
+  letter-spacing: -1.4px;
   font-weight: 800;
 }
 
-.rgResetPassword {
+.rgNewPasswordHeading p {
+  margin: 0;
+  color: #8991a5;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.rgNewPasswordForm {
+  width: 100%;
+}
+
+.rgNewPasswordField {
+  width: 100%;
+  margin: 0 0 20px;
+}
+
+.rgNewPasswordField > label {
+  display: block;
+  margin: 0 0 8px;
+  color: #343a4b;
+  font-family: "Manrope", sans-serif;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+/* INPUT */
+
+.rgNewPasswordInput {
   position: relative;
   width: 100%;
 }
 
-.rgResetPassword input {
+.rgNewPasswordInput input {
+  display: block;
   width: 100%;
-  height: 50px;
-
+  height: 52px;
+  margin: 0;
   padding: 0 48px 0 14px;
-
   border: 1px solid #dfe2e9;
-  border-radius: 9px;
-
+  border-radius: 10px;
   outline: none;
-
   background: #ffffff;
-
   color: #202536;
-
   font-family: "Manrope", sans-serif;
   font-size: 12px;
-
+  font-weight: 500;
   box-sizing: border-box;
-
   transition:
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
-.rgResetPassword input::placeholder {
-  color: #9da2ae;
+.rgNewPasswordInput input::placeholder {
+  color: #9da3b0;
 }
 
-.rgResetPassword input:focus {
-  border-color: #684bff;
-
-  box-shadow:
-    0 0 0 3px rgba(104, 75, 255, 0.08);
+.rgNewPasswordInput input:hover {
+  border-color: #cdd1dc;
 }
 
-.rgResetPassword button {
+.rgNewPasswordInput input:focus {
+  border-color: #6847ef;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(104, 71, 239, 0.09);
+}
+
+.rgNewPasswordInput.match input {
+  border-color: #75cda4;
+}
+
+.rgNewPasswordInput.mismatch input {
+  border-color: #ef9a9a;
+}
+
+/* EYE BUTTON */
+
+.rgNewPasswordEye {
   position: absolute;
+  z-index: 3;
   top: 50%;
-  right: 14px;
-
+  right: 11px;
   transform: translateY(-50%);
-
-  width: 28px;
-  height: 28px;
-
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-
+  margin: 0;
   padding: 0;
-
   border: 0;
-
+  border-radius: 8px;
   background: transparent;
-
-  color: #9198aa;
-
+  color: #8d95a7;
   font-size: 17px;
-
   cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
-.rgResetPassword button:hover {
+.rgNewPasswordEye:hover {
+  color: #6847ef;
+  background: #f4f1ff;
+}
+
+/* PASSWORD GUIDE */
+
+.rgPasswordGuide {
+  width: 100%;
+  max-height: 0;
+  margin: 0;
+  padding: 0 15px;
+  overflow: hidden;
+  border: 0 solid transparent;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fbfaff 0%, #f8f7ff 100%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  box-sizing: border-box;
+  transition:
+    max-height 0.3s ease,
+    margin 0.3s ease,
+    padding 0.3s ease,
+    border-width 0.3s ease,
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.25s ease;
+}
+
+.rgPasswordGuide.show {
+  max-height: 300px;
+  margin: 12px 0 0;
+  padding: 15px;
+  border-width: 1px;
+  border-color: #e6e2f6;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  box-shadow: 0 8px 24px rgba(87, 63, 180, 0.045);
+}
+
+/* GUIDE HEADER */
+
+.rgPasswordGuideHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 13px;
+}
+
+.rgPasswordGuideShield {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #eee9ff;
   color: #6742f5;
+  font-size: 15px;
 }
 
-/* =========================================================
-   PASSWORD REQUIREMENTS
-   ========================================================= */
-
-.rgResetRequirements {
-  margin: 2px 0 19px;
-  padding: 14px 16px;
-
-  border: 1px solid #e4e7f0;
-  border-radius: 10px;
-
-  background: #fafaff;
-
-  color: #7e8698;
-
-  font-size: 11px;
-  line-height: 1.6;
+.rgPasswordGuideHeader > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.rgResetRequirements > span {
+.rgPasswordGuideHeader strong {
   display: block;
-
-  margin-bottom: 5px;
-
-  color: #343a4b;
-
+  margin: 0;
+  color: #252a3a;
+  font-size: 11px;
+  line-height: 1.35;
   font-weight: 800;
 }
 
-.rgResetRequirements ul {
+.rgPasswordGuideHeader span {
+  display: block;
   margin: 0;
-  padding-left: 18px;
+  color: #9299aa;
+  font-size: 9px;
+  line-height: 1.4;
+  font-weight: 500;
 }
 
-.rgResetRequirements li {
-  margin: 2px 0;
+/* REQUIREMENT GRID */
+
+.rgPasswordGuideGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rgPasswordGuideItem {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  border: 1px solid #e9e7f1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #858c9e;
+  font-size: 10px;
+  line-height: 1.35;
+  font-weight: 600;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.rgPasswordGuideItem > span:last-child {
+  min-width: 0;
+  display: block;
+}
+
+.rgPasswordGuideCheck {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f0f1f5;
+  color: #a0a5b2;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rgPasswordGuideCheck svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
+}
+
+.rgPasswordGuideItem.valid {
+  border-color: #bfead5;
+  background: #f5fcf8;
+  color: #247151;
+  box-shadow: 0 4px 12px rgba(34, 181, 115, 0.04);
+}
+
+.rgPasswordGuideItem.valid .rgPasswordGuideCheck {
+  background: #dff7ea;
+  color: #15965f;
+  transform: scale(1.05);
+}
+
+/* STRENGTH */
+
+.rgPasswordStrength {
+  width: 100%;
+  margin: 13px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid #eae7f5;
+}
+
+.rgPasswordStrengthText {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 7px;
+}
+
+.rgPasswordStrengthText span {
+  color: #8c93a4;
+  font-size: 9px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.rgPasswordStrengthText strong {
+  color: #7e8597;
+  font-size: 9px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.rgPasswordStrengthText strong.valid {
+  color: #15965f;
+}
+
+.rgPasswordStrengthTrack {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7e8ee;
+}
+
+.rgPasswordStrengthTrack > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8d73ff, #6742f5);
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
+}
+
+.rgPasswordStrengthTrack > span.valid {
+  background: linear-gradient(90deg, #38c98a, #18a96d);
+}
+
+/* CONFIRM PASSWORD */
+
+.rgConfirmPasswordField {
+  margin-top: 2px;
+}
+
+.rgPasswordMatchMessage {
+  min-height: 17px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 7px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.rgPasswordMatchMessage svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  stroke-width: 3;
+}
+
+.rgPasswordMatchMessage.valid {
+  color: #15965f;
+}
+
+.rgPasswordMatchMessage.invalid {
+  color: #d44b4b;
+}
+
+/* SUBMIT */
+
+.rgNewPasswordSubmit {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 0;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #6742f5;
+  color: #ffffff;
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  cursor: pointer;
+  box-sizing: border-box;
+  box-shadow: 0 7px 18px rgba(103, 66, 245, 0.16);
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rgNewPasswordSubmit:hover:not(:disabled) {
+  background: #5934e9;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(103, 66, 245, 0.22);
+}
+
+.rgNewPasswordSubmit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.rgNewPasswordSubmit:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .rgNewPasswordHeading h2 {
+    font-size: 31px;
+  }
+
+  .rgPasswordGuideGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rgPasswordGuide.show {
+    max-height: 430px;
+  }
 }
 
 /* =========================================================
