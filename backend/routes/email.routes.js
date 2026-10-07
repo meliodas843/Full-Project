@@ -37,7 +37,7 @@ function normalizeName(value) {
 }
 
 function validEmail(value) {
-  return /^[^\s@]+@[^\s@]+**\.**[^\s@]+$/.test(value);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 async function getEvent(eventId) {
