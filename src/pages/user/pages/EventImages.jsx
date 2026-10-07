@@ -65,6 +65,7 @@ function imageCategory(image) {
 function safeFileName(name) {
   return String(name || "event-image")
     .replace(/[<>:"/\|?*]+/g, "-")
+
     .trim();
 }
 
@@ -210,6 +211,8 @@ export default function EventImages() {
   async function saveSettings(nextSettings) {
     if (!canManage) return;
 
+    const previousVisibility = visibility;
+
     const payload = {
       visibility:
         nextSettings?.visibility !== undefined
@@ -239,23 +242,17 @@ export default function EventImages() {
 
     try {
       setSavingSettings(true);
-
       setSettingsSaved(false);
-
       setError("");
 
       const response = await fetch(
         `${API_BASE}/api/event-gallery/${id}/settings`,
-
         {
           method: "PATCH",
-
           headers: {
             "Content-Type": "application/json",
-
             Authorization: `Bearer ${token}`,
           },
-
           body: JSON.stringify(payload),
         },
       );
@@ -268,15 +265,41 @@ export default function EventImages() {
 
       const settings = data?.settings || payload;
 
-      setVisibility(
-        settings.visibility === "public" ? "public" : "participants",
-      );
+      const newVisibility =
+        settings.visibility === "public" ? "public" : "participants";
 
+      setVisibility(newVisibility);
       setAllowDownload(settings.allow_download !== false);
-
       setShowNames(settings.notify_participants !== false);
-
       setWatermark(Boolean(settings.watermark));
+
+      if (previousVisibility !== "public" && newVisibility === "public") {
+        const emailResponse = await fetch(
+          `${API_BASE}/api/email/gallery-published`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              event_id: Number(id),
+            }),
+          },
+        );
+
+        const emailData = await emailResponse.json().catch(() => ({}));
+
+        if (!emailResponse.ok) {
+          throw new Error(
+            emailData?.message ||
+              emailData?.error ||
+              "Цомог нийтлэгдсэн боловч оролцогчдод имэйл илгээж чадсангүй.",
+          );
+        }
+
+        console.log("Gallery email result:", emailData);
+      }
 
       setSettingsSaved(true);
 
@@ -284,7 +307,11 @@ export default function EventImages() {
         setSettingsSaved(false);
       }, 1800);
     } catch (err) {
-      setError(err.message || "Тохиргоог хадгалж чадсангүй.");
+      console.error("SAVE/PUBLISH GALLERY ERROR:", err);
+
+      setError(err.message || "Цомгийн тохиргоог хадгалж чадсангүй.");
+
+      await loadGallery();
     } finally {
       setSavingSettings(false);
     }
@@ -904,6 +931,7 @@ export default function EventImages() {
 
                   <div>
                     <strong>Оролцогчдод хандах үг</strong>
+
                     <small>Цомог дээр харагдах мессеж</small>
                   </div>
                 </div>
