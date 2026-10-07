@@ -1,6 +1,6 @@
+import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
-import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,42 +28,30 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function getLogoAttachment() {
-  const possiblePaths = [
-    path.resolve(
-      __dirname,
-      "../../src/assets/registra-logo-def.png"
-    ),
-
-    path.resolve(
-      process.cwd(),
-      "../src/assets/registra-logo-def.png"
-    ),
-
-    path.resolve(
-      process.cwd(),
-      "src/assets/registra-logo-def.png"
-    ),
-
-    path.resolve(
-      "/var/www/registra/src/assets/registra-logo-def.png"
-    ),
+function findLogoPath() {
+  const candidates = [
+    path.resolve(__dirname, "../../src/assets/registra-logo-def.png"),
+    path.resolve(process.cwd(), "../src/assets/registra-logo-def.png"),
+    path.resolve(process.cwd(), "src/assets/registra-logo-def.png"),
+    path.resolve(process.cwd(), "../dist/assets/registra-logo-def.png"),
   ];
 
-  const logoPath = possiblePaths.find((filePath) =>
-    fs.existsSync(filePath)
-  );
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
 
-  if (!logoPath) {
-    console.error(
-      "REGISTRA LOGO NOT FOUND. Checked:",
-      possiblePaths
-    );
-
+  if (!found) {
+    console.warn("Registra logo not found. Tried:", candidates);
     return null;
   }
 
-  console.log("Registra email logo:", logoPath);
+  return found;
+}
+
+function getLogoAttachment() {
+  const logoPath = findLogoPath();
+
+  if (!logoPath) {
+    return null;
+  }
 
   return {
     filename: "registra-logo-def.png",
@@ -83,7 +71,6 @@ export async function sendMail({
   replyTo,
 }) {
   const user = required("RESET_EMAIL_USER");
-
   required("RESET_EMAIL_PASS");
 
   const logoAttachment = getLogoAttachment();
@@ -107,7 +94,6 @@ export async function sendMail({
 export async function verifyMailer() {
   required("RESET_EMAIL_USER");
   required("RESET_EMAIL_PASS");
-
   return transporter.verify();
 }
 

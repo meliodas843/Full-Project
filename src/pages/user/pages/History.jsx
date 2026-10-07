@@ -2113,7 +2113,7 @@ export default function History() {
                     name="email"
                     value={addPeopleForm.email}
                     onChange={handleAddPeopleChange}
-                    placeholder="user\@example.com"
+                    placeholder="user@example.com"
                     autoComplete="email"
                     disabled={addPeopleLoading}
                     autoFocus
