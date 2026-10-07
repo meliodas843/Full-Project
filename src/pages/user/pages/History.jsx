@@ -44,7 +44,7 @@ function formatDateTime(value) {
 
   const raw = String(value).trim();
 
-  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+  if (raw.endsWith("Z") || /[+-]d{2}:d{2}$/.test(raw)) {
     const date = new Date(raw);
 
     if (Number.isNaN(date.getTime())) {
@@ -104,7 +104,7 @@ function toDateTimeLocal(value) {
 
   const raw = String(value).trim();
 
-  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+  if (raw.endsWith("Z") || /[+-]d{2}:d{2}$/.test(raw)) {
     const date = new Date(raw);
 
     if (Number.isNaN(date.getTime())) {
@@ -152,14 +152,14 @@ function parseEventDateTime(value) {
 
   if (!raw) return NaN;
 
-  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+  if (raw.endsWith("Z") || /[+-]d{2}:d{2}$/.test(raw)) {
     return new Date(raw).getTime();
   }
 
   const normalized = raw.replace(" ", "T");
 
   const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/,
+    /^(d{4})-(d{2})-(d{2})T(d{2}):(d{2})(?::(d{2}))?/,
   );
 
   if (!match) {
@@ -371,7 +371,7 @@ function getParticipantInitials(user) {
 
   const parts = name
 
-    .split(/\s+/)
+    .split(/s+/)
 
     .filter(Boolean);
 
@@ -461,9 +461,10 @@ function isOwnedEvent(event) {
 }
 
 function isValidInviteEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+  return /^[^s@]+@[^s@]+.[^s@]+$/.test(
     String(value || "")
       .trim()
+
       .toLowerCase(),
   );
 }
@@ -691,9 +692,13 @@ export default function History() {
 
   function handleAddPeopleChange(event) {
     const value = event.target.value;
+
     setAddPeopleForm({ email: value });
+
     setInviteUser(null);
+
     setAddPeopleError("");
+
     setAddPeopleSuccess("");
   }
 
@@ -702,11 +707,14 @@ export default function History() {
 
     const email = String(addPeopleForm.email || "")
       .trim()
+
       .toLowerCase();
 
     if (!isValidInviteEmail(email)) {
       setInviteUser(null);
+
       setInviteLookupLoading(false);
+
       return undefined;
     }
 
@@ -714,8 +722,11 @@ export default function History() {
 
     if (!token) {
       setInviteUser(null);
+
       setInviteLookupLoading(false);
+
       setAddPeopleError("Эхлээд нэвтэрнэ үү.");
+
       return undefined;
     }
 
@@ -724,14 +735,18 @@ export default function History() {
     const timer = window.setTimeout(async () => {
       try {
         setInviteLookupLoading(true);
+
         setAddPeopleError("");
 
         const response = await fetch(
           `${API_BASE}/api/email/user-lookup?email=${encodeURIComponent(email)}`,
+
           {
             method: "GET",
+
             headers: {
               Authorization: `Bearer ${token}`,
+
               Accept: "application/json",
             },
           },
@@ -743,9 +758,11 @@ export default function History() {
 
         if (!response.ok) {
           setInviteUser(null);
+
           setAddPeopleError(
             data?.message || data?.error || "Хэрэглэгчийг шалгаж чадсангүй.",
           );
+
           return;
         }
 
@@ -764,12 +781,15 @@ export default function History() {
         if (registered && foundUser) {
           setInviteUser({
             ...foundUser,
+
             email: foundUser.email || email,
+
             registered: true,
           });
         } else {
           setInviteUser({
             email,
+
             registered: false,
           });
         }
@@ -778,6 +798,7 @@ export default function History() {
 
         if (!cancelled) {
           setInviteUser(null);
+
           setAddPeopleError("Хэрэглэгчийг шалгах үед сүлжээний алдаа гарлаа.");
         }
       } finally {
@@ -789,6 +810,7 @@ export default function History() {
 
     return () => {
       cancelled = true;
+
       window.clearTimeout(timer);
     };
   }, [addPeopleForm.email, showAddPeople]);
@@ -2092,7 +2114,7 @@ export default function History() {
                     name="email"
                     value={addPeopleForm.email}
                     onChange={handleAddPeopleChange}
-                    placeholder="user\@example.com"
+                    placeholder="user@example.com"
                     autoComplete="email"
                     disabled={addPeopleLoading}
                     autoFocus
