@@ -11,16 +11,25 @@ function formatEventDate(value) {
   return match ? `${match[1]}.${match[2]}.${match[3]}` : raw;
 }
 
-function findStoredFile(storedName) {
-  if (!storedName) return null;
+function galleryFilePath(imageUrl) {
+  const relative = String(imageUrl || "")
+    .split("?")[0]
+    .replace(/^\/+/, "");
+  if (!relative) return null;
 
   const candidates = [
-    path.resolve(process.cwd(), "uploads", "events", storedName),
-    path.resolve(process.cwd(), "backend", "uploads", "events", storedName),
-    path.resolve(process.cwd(), "..", "backend", "uploads", "events", storedName),
+    path.resolve(process.cwd(), relative),
+    path.resolve(process.cwd(), "..", relative),
   ];
 
   return candidates.find((candidate) => fs.existsSync(candidate)) || null;
+}
+
+function mimeFromName(name) {
+  const ext = path.extname(String(name || "")).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  return "image/jpeg";
 }
 
 export async function sendEventGalleryEmails({
@@ -30,42 +39,38 @@ export async function sendEventGalleryEmails({
   excludeUserId = null,
 }) {
   const [participants] = await pool.query(
-    `
-    SELECT DISTINCT
-      u.id,
-      u.email,
-      u.first_name,
-      u.last_name
-    FROM event_bookings eb
-    JOIN users u ON u.id = eb.user_id
-    WHERE eb.event_id = ?
-      AND u.email IS NOT NULL
-      AND u.email <> ''
-    `,
+    `SELECT DISTINCT u.id, u.email, u.first_name, u.last_name
+     FROM event_bookings eb
+     JOIN users u ON u.id = eb.user_id
+     WHERE eb.event_id = ?
+       AND u.email IS NOT NULL
+       AND u.email <> ''`,
     [eventId],
   );
 
+  let event = {};
   const [eventRows] = await pool.query(
-    `
-    SELECT title, start_time, created_by_email
-    FROM events
-    WHERE id = ?
-    LIMIT 1
-    `,
+    `SELECT title, start_time, created_by_email FROM events WHERE id = ? LIMIT 1`,
     [eventId],
   );
 
-  const event = eventRows[0] || {};
+  if (eventRows.length) {
+    event = eventRows[0];
+  } else {
+    const [finishedRows] = await pool.query(
+      `SELECT title, start_time, created_by_email
+       FROM finished_event WHERE original_event_id = ? LIMIT 1`,
+      [eventId],
+    );
+    event = finishedRows[0] || {};
+  }
 
   const [photoRows] = await pool.query(
-    `
-    SELECT id, original_name, stored_name, mime_type
-    FROM event_files
-    WHERE event_id = ?
-      AND mime_type LIKE 'image/%'
-    ORDER BY id ASC
-    LIMIT 3
-    `,
+    `SELECT id, image_url, original_name
+     FROM event_gallery_images
+     WHERE event_id = ?
+     ORDER BY id DESC
+     LIMIT 3`,
     [eventId],
   );
 
@@ -73,48 +78,46 @@ export async function sendEventGalleryEmails({
   const photos = [];
 
   photoRows.forEach((photo, index) => {
-    const absolutePath = findStoredFile(photo.stored_name);
+    const absolutePath = galleryFilePath(photo.image_url);
     if (!absolutePath) return;
 
     const cid = `registra-gallery-${eventId}-${photo.id}-${index}@registra`;
-
     attachments.push({
-      filename: photo.original_name || photo.stored_name,
+      filename: photo.original_name || path.basename(absolutePath),
       path: absolutePath,
-      contentType: photo.mime_type || undefined,
+      contentType: mimeFromName(photo.original_name || absolutePath),
       cid,
       contentDisposition: "inline",
     });
-
     photos.push({ src: `cid:${cid}` });
   });
 
-  const frontendUrl = getFrontendUrl();
-  const albumUrl = `${frontendUrl}/user/events/${eventId}/gallery`;
+  const frontendUrl = String(getFrontendUrl() || "").replace(/\/+$/, "");
+  const albumUrl = `${frontendUrl}/user/events/${eventId}/images`;
   const eventDate = formatEventDate(event.start_time);
   const organizationName = event.created_by_email || "Registra";
+  const totalImages = Number(imageCount) || 0;
   const results = [];
 
   for (const participant of participants) {
-    if (excludeUserId && Number(participant.id) === Number(excludeUserId)) {
+    if (excludeUserId && Number(participant.id) === Number(excludeUserId))
       continue;
-    }
 
     try {
       await sendMail({
         to: participant.email,
-        subject: `${eventName}-ийн зургууд нийтлэгдлээ — ${Number(imageCount) || 0} зураг`,
+        subject: `${eventName}-ийн зургууд нийтлэгдлээ — ${totalImages} зураг`,
         text:
           `Сайн байна уу, ${participant.first_name || "оролцогч"}.\n\n` +
           `${eventName}-ийн зургууд нийтлэгдлээ.\n` +
-          `Нийт ${Number(imageCount) || 0} зураг.\n\n` +
+          `Нийт ${totalImages} зураг.\n\n` +
           `Цомог үзэх: ${albumUrl}`,
         html: galleryPublishedEmail({
           firstName: participant.first_name,
           organizationName,
           eventName,
           eventDate,
-          imageCount,
+          imageCount: totalImages,
           albumUrl,
           photos,
         }),
@@ -128,7 +131,6 @@ export async function sendEventGalleryEmails({
       });
     } catch (err) {
       console.error("EVENT GALLERY EMAIL ERROR:", participant.email, err);
-
       results.push({
         user_id: participant.id,
         email: participant.email,
