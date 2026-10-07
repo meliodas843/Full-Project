@@ -188,21 +188,32 @@ function escapeHtml(value) {
 function absoluteUrl(value, frontendUrl) {
   const raw = String(value || "").trim();
   if (!raw) return "";
-  if (/^https?:\/\//i.test(raw)) return raw;
-  return `${String(frontendUrl || "").replace(/\/+$/, "")}/${raw.replace(/^\/+/, "")}`;
+
+  if (/^https?:\/\//i.test(raw)) {
+    return raw;
+  }
+
+  const base = String(frontendUrl || "").replace(/\/+$/, "");
+  const path = raw.startsWith("/") ? raw : `/${raw}`;
+
+  return `${base}${path}`;
 }
 
 function formatInviteDate(value) {
   if (!value) return "Огноо тодорхойгүй";
+
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
   try {
     return new Intl.DateTimeFormat("mn-MN", {
       timeZone: "Asia/Ulaanbaatar",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      weekday: "short",
     }).format(date);
   } catch {
     return String(value);
@@ -210,10 +221,15 @@ function formatInviteDate(value) {
 }
 
 function formatInviteTime(start, end) {
-  const fmt = (value) => {
+  const format = (value) => {
     if (!value) return "";
+
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
     try {
       return new Intl.DateTimeFormat("mn-MN", {
         timeZone: "Asia/Ulaanbaatar",
@@ -226,10 +242,14 @@ function formatInviteTime(start, end) {
     }
   };
 
-  const a = fmt(start);
-  const b = fmt(end);
-  if (a && b) return `${a} – ${b}`;
-  return a || b || "Цаг тодорхойгүй";
+  const startText = format(start);
+  const endText = format(end);
+
+  if (startText && endText) {
+    return `${startText} – ${endText}`;
+  }
+
+  return startText || endText || "Цаг тодорхойгүй";
 }
 
 function eventInviteEmail({
@@ -247,13 +267,27 @@ function eventInviteEmail({
     [firstName, lastName].filter(Boolean).join(" ").trim() ||
     (registered ? "Хэрэглэгч" : "Зочин");
 
-  const eventName = event?.title || "Registra эвент";
+  const eventName = String(event?.title || "Registra эвент").trim();
+
   const description =
     String(event?.description || "").trim() ||
     "Таныг энэхүү арга хэмжээнд хүрэлцэн ирэхийг урьж байна.";
 
+  const organizer = String(event?.created_by_email || "Registra").trim();
+  const category = String(event?.category || "Эвент").trim();
+
+  /*
+   * IMPORTANT:
+   * Uploaded event images must be reachable from the email client.
+   * FRONTEND_URL should therefore be a PUBLIC URL, preferably HTTPS.
+   *
+   * Examples:
+   *   event.image_url = /uploads/events/abc.jpg
+   *   FRONTEND_URL    = https://your-domain.com
+   *   final image URL = https://your-domain.com/uploads/events/abc.jpg
+   */
   const imageUrl = absoluteUrl(event?.image_url, frontendUrl);
-  const organizer = event?.created_by_email || "Registra";
+
   const primaryUrl = registered ? eventUrl : signupUrl;
   const dateText = formatInviteDate(event?.start_time);
   const timeText = formatInviteTime(event?.start_time, event?.end_time);
@@ -266,7 +300,7 @@ function eventInviteEmail({
     eventName: escapeHtml(eventName),
     description: escapeHtml(description),
     organizer: escapeHtml(organizer),
-    category: escapeHtml(event?.category || "Эвент"),
+    category: escapeHtml(category),
     dateText: escapeHtml(dateText),
     timeText: escapeHtml(timeText),
     imageUrl: escapeHtml(imageUrl),
@@ -274,26 +308,99 @@ function eventInviteEmail({
     eventUrl: escapeHtml(eventUrl),
   };
 
+  const imageBlock = safe.imageUrl
+    ? `
+      <tr>
+        <td style="padding:0;background:#f2f0ff;">
+          <img
+            src="${safe.imageUrl}"
+            alt="${safe.eventName}"
+            width="560"
+            style="display:block;width:100%;max-width:560px;height:auto;max-height:300px;object-fit:cover;border:0;margin:0;"
+          >
+        </td>
+      </tr>
+    `
+    : "";
+
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>${safe.eventName}</title>
 </head>
-<body style="margin:0;padding:0;background:#f5f6fb;font-family:Arial,Helvetica,sans-serif;color:#171725;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f6fb;">
+
+<body
+  bgcolor="#f5f6fb"
+  style="
+    margin:0;
+    padding:0;
+    background:#f5f6fb !important;
+    color:#171725 !important;
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-text-size-adjust:100%;
+    -ms-text-size-adjust:100%;
+  "
+>
+  <table
+    role="presentation"
+    width="100%"
+    cellspacing="0"
+    cellpadding="0"
+    border="0"
+    bgcolor="#f5f6fb"
+    style="width:100%;margin:0;padding:0;background:#f5f6fb !important;"
+  >
     <tr>
-      <td align="center" style="padding:28px 14px 36px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;">
+      <td align="center" style="padding:20px 10px 28px;">
+
+        <table
+          role="presentation"
+          width="100%"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          style="width:100%;max-width:620px;margin:0 auto;"
+        >
           <tr>
-            <td style="padding:0 8px 18px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <td style="padding:0 8px 14px;">
+              <table
+                role="presentation"
+                width="100%"
+                cellspacing="0"
+                cellpadding="0"
+                border="0"
+              >
                 <tr>
-                  <td align="left">
-                    <img src="cid:registra-logo" alt="REGISTRA" width="128" style="display:block;width:128px;max-width:128px;height:auto;border:0;">
+                  <td align="left" valign="middle">
+                    <img
+                      src="cid:registra-logo"
+                      alt="REGISTRA"
+                      width="116"
+                      style="
+                        display:block;
+                        width:116px;
+                        max-width:116px;
+                        height:auto;
+                        border:0;
+                        outline:none;
+                        text-decoration:none;
+                      "
+                    >
                   </td>
-                  <td align="right" style="font-size:12px;color:#9295a5;">
+
+                  <td
+                    align="right"
+                    valign="middle"
+                    style="
+                      font-size:11px;
+                      line-height:16px;
+                      color:#9699a8;
+                    "
+                  >
                     Хөтөч дээр харах
                   </td>
                 </tr>
@@ -302,92 +409,407 @@ function eventInviteEmail({
           </tr>
 
           <tr>
-            <td style="background:#ffffff;border:1px solid #e7e7ef;border-radius:18px;padding:30px 30px 26px;">
-              <div style="display:inline-block;background:#f0ebff;color:#6c4df6;border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700;margin-bottom:20px;">
-                ✉ Хувийн урилга
-              </div>
-
-              <div style="font-size:26px;line-height:1.25;font-weight:800;color:#171725;margin:0 0 8px;">
-                ${safe.firstName}, ${safe.eventName}-д урьж байна
-              </div>
-
-              <div style="font-size:16px;line-height:1.65;color:#666978;margin-bottom:20px;">
-                <strong style="color:#30313b;">${safe.organizer}</strong> таныг доорх эвэнтэд урьлаа.
-                ${
-                  registered
-                    ? "Таны Registra бүртгэл бэлэн тул эвэнтийн дэлгэрэнгүйг шууд харах боломжтой."
-                    : "Registra-д бүртгүүлээд урилгаа үргэлжлүүлнэ үү."
-                }
-              </div>
-
-              <div style="border-left:4px solid #6c4df6;background:#fafaff;border-radius:0 10px 10px 0;padding:14px 16px;margin:0 0 22px;font-size:13px;line-height:1.6;color:#666978;font-style:italic;">
-                “${safe.description}”
-              </div>
-
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #e6e6ee;border-radius:14px;overflow:hidden;margin-bottom:18px;">
-                ${
-                  safe.imageUrl
-                    ? `
+            <td
+              bgcolor="#ffffff"
+              style="
+                background:#ffffff !important;
+                border:1px solid #e7e7ef;
+                border-radius:16px;
+                padding:24px;
+              "
+            >
+              <table
+                role="presentation"
+                width="100%"
+                cellspacing="0"
+                cellpadding="0"
+                border="0"
+              >
                 <tr>
-                  <td style="padding:0;background:#11152d;">
-                    <img src="${safe.imageUrl}" alt="${safe.eventName}" width="618" style="display:block;width:100%;max-width:618px;height:auto;border:0;">
+                  <td style="padding:0 0 16px;">
+                    <span
+                      style="
+                        display:inline-block;
+                        padding:6px 10px;
+                        background:#f0ebff;
+                        border-radius:7px;
+                        color:#6c4df6;
+                        font-size:11px;
+                        line-height:16px;
+                        font-weight:700;
+                      "
+                    >
+                      ✉ Хувийн урилга
+                    </span>
                   </td>
-                </tr>`
-                    : ""
-                }
+                </tr>
+
                 <tr>
-                  <td style="padding:18px 20px;background:#ffffff;">
-                    <div style="font-size:20px;font-weight:800;color:#171725;margin-bottom:14px;">${safe.eventName}</div>
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <td
+                    style="
+                      padding:0 0 8px;
+                      color:#171725 !important;
+                      font-size:23px;
+                      line-height:30px;
+                      font-weight:800;
+                    "
+                  >
+                    ${safe.firstName}, ${safe.eventName}-д урьж байна
+                  </td>
+                </tr>
+
+                <tr>
+                  <td
+                    style="
+                      padding:0 0 16px;
+                      color:#666978 !important;
+                      font-size:14px;
+                      line-height:22px;
+                    "
+                  >
+                    <strong style="color:#30313b !important;">${safe.organizer}</strong>
+                    таныг доорх эвэнтэд урьлаа.
+                    ${
+                      registered
+                        ? "Таны Registra бүртгэл бэлэн тул эвэнтийн дэлгэрэнгүйг шууд харах боломжтой."
+                        : "Registra-д бүртгүүлээд урилгаа үргэлжлүүлнэ үү."
+                    }
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:0 0 18px;">
+                    <table
+                      role="presentation"
+                      width="100%"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      bgcolor="#fafaff"
+                      style="
+                        width:100%;
+                        background:#fafaff !important;
+                        border-radius:9px;
+                      "
+                    >
                       <tr>
-                        <td width="50%" style="padding:5px 8px 5px 0;font-size:13px;color:#686b7a;">📅 ${safe.dateText}</td>
-                        <td width="50%" style="padding:5px 0 5px 8px;font-size:13px;color:#686b7a;">🕘 ${safe.timeText}</td>
-                      </tr>
-                      <tr>
-                        <td width="50%" style="padding:5px 8px 5px 0;font-size:13px;color:#686b7a;">🏷 ${safe.category}</td>
-                        <td width="50%" style="padding:5px 0 5px 8px;font-size:13px;color:#686b7a;">👤 ${safe.organizer}</td>
+                        <td
+                          width="4"
+                          bgcolor="#6c4df6"
+                          style="width:4px;background:#6c4df6;"
+                        ></td>
+
+                        <td
+                          style="
+                            padding:12px 14px;
+                            color:#666978 !important;
+                            font-size:12px;
+                            line-height:19px;
+                            font-style:italic;
+                          "
+                        >
+                          “${safe.description}”
+                        </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
-              </table>
 
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #e6e6ee;border-radius:14px;margin-bottom:22px;">
                 <tr>
-                  <td style="padding:18px 20px;">
-                    <div style="font-size:13px;font-weight:800;color:#777a88;letter-spacing:.3px;margin-bottom:14px;">
-                      БҮРТГЭЛИЙН МЭДЭЭЛЭЛ
-                    </div>
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <td style="padding:0 0 16px;">
+                    <table
+                      role="presentation"
+                      width="100%"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      style="
+                        width:100%;
+                        border:1px solid #e5e6ee;
+                        border-radius:13px;
+                        border-collapse:separate;
+                        overflow:hidden;
+                      "
+                    >
+                      ${imageBlock}
+
                       <tr>
-                        <td width="34%" style="padding:5px 0;font-size:13px;color:#8b8e9b;">Нэр</td>
-                        <td style="padding:5px 0;font-size:13px;color:#333540;font-weight:700;">${safe.recipientName}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 0;font-size:13px;color:#8b8e9b;">Имэйл</td>
-                        <td style="padding:5px 0;font-size:13px;color:#333540;font-weight:700;">${safe.email}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:5px 0;font-size:13px;color:#8b8e9b;">Байгууллага</td>
-                        <td style="padding:5px 0;font-size:13px;color:#333540;font-weight:700;">${safe.companyName}</td>
+                        <td
+                          bgcolor="#ffffff"
+                          style="
+                            padding:16px 18px;
+                            background:#ffffff !important;
+                          "
+                        >
+                          <div
+                            style="
+                              margin:0 0 12px;
+                              color:#171725 !important;
+                              font-size:18px;
+                              line-height:24px;
+                              font-weight:800;
+                            "
+                          >
+                            ${safe.eventName}
+                          </div>
+
+                          <table
+                            role="presentation"
+                            width="100%"
+                            cellspacing="0"
+                            cellpadding="0"
+                            border="0"
+                          >
+                            <tr>
+                              <td
+                                width="50%"
+                                valign="top"
+                                style="
+                                  padding:4px 8px 4px 0;
+                                  color:#686b7a !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                "
+                              >
+                                📅 ${safe.dateText}
+                              </td>
+
+                              <td
+                                width="50%"
+                                valign="top"
+                                style="
+                                  padding:4px 0 4px 8px;
+                                  color:#686b7a !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                "
+                              >
+                                🕘 ${safe.timeText}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td
+                                width="50%"
+                                valign="top"
+                                style="
+                                  padding:4px 8px 4px 0;
+                                  color:#686b7a !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                "
+                              >
+                                🏷 ${safe.category}
+                              </td>
+
+                              <td
+                                width="50%"
+                                valign="top"
+                                style="
+                                  padding:4px 0 4px 8px;
+                                  color:#686b7a !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                  word-break:break-word;
+                                "
+                              >
+                                👤 ${safe.organizer}
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
-              </table>
 
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="border-radius:9px;background:#6c4df6;">
-                    <a href="${safe.primaryUrl}" target="_blank" style="display:inline-block;padding:14px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;">
-                      ${registered ? "✓ Урилга хүлээн авах" : "Registra-д бүртгүүлэх"}
-                    </a>
+                  <td style="padding:0 0 18px;">
+                    <table
+                      role="presentation"
+                      width="100%"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                      style="
+                        width:100%;
+                        border:1px solid #e5e6ee;
+                        border-radius:13px;
+                        border-collapse:separate;
+                      "
+                    >
+                      <tr>
+                        <td style="padding:16px 18px;">
+                          <div
+                            style="
+                              margin:0 0 10px;
+                              color:#777a88 !important;
+                              font-size:12px;
+                              line-height:18px;
+                              font-weight:800;
+                              letter-spacing:.25px;
+                            "
+                          >
+                            БҮРТГЭЛИЙН МЭДЭЭЛЭЛ
+                          </div>
+
+                          <table
+                            role="presentation"
+                            width="100%"
+                            cellspacing="0"
+                            cellpadding="0"
+                            border="0"
+                          >
+                            <tr>
+                              <td
+                                width="31%"
+                                valign="top"
+                                style="
+                                  padding:4px 10px 4px 0;
+                                  color:#8b8e9b !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                "
+                              >
+                                Нэр
+                              </td>
+
+                              <td
+                                valign="top"
+                                style="
+                                  padding:4px 0;
+                                  color:#333540 !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                  font-weight:700;
+                                "
+                              >
+                                ${safe.recipientName}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td
+                                valign="top"
+                                style="
+                                  padding:4px 10px 4px 0;
+                                  color:#8b8e9b !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                "
+                              >
+                                Имэйл
+                              </td>
+
+                              <td
+                                valign="top"
+                                style="
+                                  padding:4px 0;
+                                  color:#333540 !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                  font-weight:700;
+                                  word-break:break-word;
+                                "
+                              >
+                                ${safe.email}
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td
+                                valign="top"
+                                style="
+                                  padding:4px 10px 4px 0;
+                                  color:#8b8e9b !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                "
+                              >
+                                Байгууллага
+                              </td>
+
+                              <td
+                                valign="top"
+                                style="
+                                  padding:4px 0;
+                                  color:#333540 !important;
+                                  font-size:12px;
+                                  line-height:18px;
+                                  font-weight:700;
+                                "
+                              >
+                                ${safe.companyName}
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
-                  <td width="10"></td>
-                  <td style="border:1px solid #dedee7;border-radius:9px;background:#ffffff;">
-                    <a href="${safe.eventUrl}" target="_blank" style="display:inline-block;padding:13px 20px;color:#3c3d48;text-decoration:none;font-size:14px;font-weight:700;">
-                      Эвэнт харах
-                    </a>
+                </tr>
+
+                <tr>
+                  <td style="padding:0;">
+                    <table
+                      role="presentation"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <tr>
+                        <td
+                          bgcolor="#6c4df6"
+                          style="
+                            background:#6c4df6 !important;
+                            border-radius:8px;
+                          "
+                        >
+                          <a
+                            href="${safe.primaryUrl}"
+                            target="_blank"
+                            style="
+                              display:inline-block;
+                              padding:12px 17px;
+                              color:#ffffff !important;
+                              text-decoration:none;
+                              font-size:13px;
+                              line-height:18px;
+                              font-weight:800;
+                            "
+                          >
+                            ${registered ? "✓ Урилга хүлээн авах" : "Registra-д бүртгүүлэх"}
+                          </a>
+                        </td>
+
+                        <td width="8"></td>
+
+                        <td
+                          bgcolor="#ffffff"
+                          style="
+                            background:#ffffff !important;
+                            border:1px solid #dedee7;
+                            border-radius:8px;
+                          "
+                        >
+                          <a
+                            href="${safe.eventUrl}"
+                            target="_blank"
+                            style="
+                              display:inline-block;
+                              padding:11px 16px;
+                              color:#3c3d48 !important;
+                              text-decoration:none;
+                              font-size:13px;
+                              line-height:18px;
+                              font-weight:700;
+                            "
+                          >
+                            Эвэнт харах
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
@@ -395,18 +817,35 @@ function eventInviteEmail({
           </tr>
 
           <tr>
-            <td align="center" style="padding:20px 20px 0;font-size:13px;line-height:1.6;color:#8a8d9c;">
+            <td
+              align="center"
+              style="
+                padding:16px 20px 0;
+                color:#8a8d9c !important;
+                font-size:12px;
+                line-height:18px;
+              "
+            >
               ${
                 registered
                   ? `Та Registra-д <strong>${safe.email}</strong> хаягаар бүртгэлтэй учир энэ урилгыг хүлээн авлаа.`
                   : `Энэ урилгыг <strong>${safe.email}</strong> хаягт илгээлээ.`
               }
-              <div style="margin-top:14px;font-size:11px;color:#aaaabd;">
+
+              <div
+                style="
+                  margin-top:10px;
+                  color:#aaaabd !important;
+                  font-size:10px;
+                  line-height:16px;
+                "
+              >
                 © 2026 Registra · Улаанбаатар
               </div>
             </td>
           </tr>
         </table>
+
       </td>
     </tr>
   </table>
@@ -467,12 +906,19 @@ router.post("/event-invite", authMiddleware, async (req, res) => {
 
         html: eventInviteEmail({
           firstName: user.first_name,
+
           lastName: user.last_name,
+
           email: user.email,
+
           companyName: user.company_name,
+
           event,
+
           eventUrl,
+
           frontendUrl,
+
           registered: true,
         }),
       });
@@ -506,13 +952,21 @@ router.post("/event-invite", authMiddleware, async (req, res) => {
 
       html: eventInviteEmail({
         firstName: "Хэрэглэгч",
+
         lastName: "",
+
         email,
+
         companyName: "",
+
         event,
+
         eventUrl: `${frontendUrl}/events/${event.id}`,
+
         frontendUrl,
+
         registered: false,
+
         signupUrl,
       }),
     });
