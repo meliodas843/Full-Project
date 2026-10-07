@@ -1,4 +1,10 @@
+import fs from "fs";
+import path from "path";
 import nodemailer from "nodemailer";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function required(name) {
   const value = String(process.env[name] || "").trim();
@@ -23,21 +29,46 @@ const transporter = nodemailer.createTransport({
 });
 
 function getLogoAttachment() {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="300" height="72" viewBox="0 0 300 72">
-      <rect width="300" height="72" rx="10" fill="#ffffff"/>
-      <g transform="translate(16 14)" fill="#6c4df6">
-        <path d="M0 0h17l21 22-21 22H0l21-22L0 0z"/>
-        <circle cx="48" cy="22" r="8"/>
-      </g>
-      <text x="82" y="46" font-family="Arial,Helvetica,sans-serif" font-size="31" font-weight="700" fill="#171725">REGISTRA</text>
-    </svg>
-  `.trim();
+  const possiblePaths = [
+    path.resolve(
+      __dirname,
+      "../../src/assets/registra-logo-def.png"
+    ),
+
+    path.resolve(
+      process.cwd(),
+      "../src/assets/registra-logo-def.png"
+    ),
+
+    path.resolve(
+      process.cwd(),
+      "src/assets/registra-logo-def.png"
+    ),
+
+    path.resolve(
+      "/var/www/registra/src/assets/registra-logo-def.png"
+    ),
+  ];
+
+  const logoPath = possiblePaths.find((filePath) =>
+    fs.existsSync(filePath)
+  );
+
+  if (!logoPath) {
+    console.error(
+      "REGISTRA LOGO NOT FOUND. Checked:",
+      possiblePaths
+    );
+
+    return null;
+  }
+
+  console.log("Registra email logo:", logoPath);
 
   return {
     filename: "registra-logo-def.png",
-    content: Buffer.from(svg, "utf8"),
-    contentType: "image/svg+xml",
+    path: logoPath,
+    contentType: "image/png",
     cid: "registra-logo",
     contentDisposition: "inline",
   };
@@ -52,7 +83,15 @@ export async function sendMail({
   replyTo,
 }) {
   const user = required("RESET_EMAIL_USER");
+
   required("RESET_EMAIL_PASS");
+
+  const logoAttachment = getLogoAttachment();
+
+  const finalAttachments = [
+    ...(logoAttachment ? [logoAttachment] : []),
+    ...attachments,
+  ];
 
   return transporter.sendMail({
     from: `"Registra" <${user}>`,
@@ -60,7 +99,7 @@ export async function sendMail({
     subject,
     text,
     html,
-    attachments: [getLogoAttachment(), ...attachments],
+    attachments: finalAttachments,
     ...(replyTo ? { replyTo } : {}),
   });
 }
@@ -68,6 +107,7 @@ export async function sendMail({
 export async function verifyMailer() {
   required("RESET_EMAIL_USER");
   required("RESET_EMAIL_PASS");
+
   return transporter.verify();
 }
 
