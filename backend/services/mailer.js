@@ -35,7 +35,7 @@ function getLogoAttachment() {
   `.trim();
 
   return {
-    filename: "registra-logo.svg",
+    filename: "registra-logo-def.png",
     content: Buffer.from(svg, "utf8"),
     contentType: "image/svg+xml",
     cid: "registra-logo",
