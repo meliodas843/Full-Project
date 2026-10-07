@@ -6,6 +6,10 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 import { createZoomMeeting } from "../utils/zoom.js";
 
+import { sendMail, getFrontendUrl } from "../services/mailer.js";
+
+import { meetingInviteEmail } from "../templates/emailTemplates.js";
+
 const router = express.Router();
 
 const TZ = "Asia/Ulaanbaatar";
@@ -316,6 +320,19 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const createdMeetingIds = [];
 
+    const pendingMeetingEmails = [];
+
+    const [[creatorUser]] = await conn.query(
+      `SELECT id, email, first_name, last_name, company_name FROM users WHERE id=? LIMIT 1`,
+      [creatorId],
+    );
+
+    const creatorName =
+      [creatorUser?.first_name, creatorUser?.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || creatorUser?.email || "Registra хэрэглэгч";
+
     for (const email of inviteList) {
       const recipientId = foundByEmail.get(email);
 
@@ -352,9 +369,58 @@ router.post("/", authMiddleware, async (req, res) => {
 
         [recipientId, meetingId],
       );
+
+      pendingMeetingEmails.push({
+        meetingId,
+        recipientUser,
+      });
     }
 
     await conn.commit();
+
+    const frontendUrl = getFrontendUrl();
+    const meetingUrl = `${frontendUrl}/user/calendar`;
+
+    for (const item of pendingMeetingEmails) {
+      const recipient = item.recipientUser;
+      const recipientName =
+        [recipient?.first_name, recipient?.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim() || recipient?.email || "Хэрэглэгч";
+
+      try {
+        await sendMail({
+          to: recipient.email,
+          subject: `${creatorName} танд 1:1 уулзалтын урилга илгээлээ`,
+          text:
+            `Сайн байна уу, ${recipientName}.\n\n` +
+            `${creatorName} тантай уулзах хүсэлт илгээлээ.\n` +
+            `Уулзалт: ${finalTitle}\n` +
+            `Огноо: ${date}\n` +
+            `Цаг: ${startTime}${endTime ? ` - ${endTime}` : ""}\n` +
+            `Шалтгаан: ${description}\n\n` +
+            `${meetingUrl}`,
+          html: meetingInviteEmail({
+            recipientName,
+            senderName: creatorName,
+            senderCompany: creatorUser?.company_name || "",
+            title: finalTitle,
+            description,
+            date,
+            startTime,
+            endTime,
+            meetingUrl,
+          }),
+          replyTo: creatorUser?.email || undefined,
+        });
+      } catch (mailError) {
+        console.error(
+          `MEETING INVITE EMAIL ERROR meeting ${item.meetingId}:`,
+          mailError,
+        );
+      }
+    }
 
     return res
 

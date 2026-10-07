@@ -278,3 +278,64 @@ export function galleryPublishedEmail({
     `${eventName}-ийн ${Number(imageCount) || 0} зураг нийтлэгдлээ`,
   );
 }
+
+
+export function meetingInviteEmail({
+  recipientName,
+  senderName,
+  senderCompany = "",
+  title,
+  description,
+  date,
+  startTime,
+  endTime,
+  meetingUrl,
+}) {
+  const timeText = endTime ? `${startTime} – ${endTime}` : startTime;
+
+  return layout(
+    `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background:#ffffff;border:1px solid #e7e8ef;border-radius:16px;">
+      <tr>
+        <td style="padding:30px;">
+          <div style="display:inline-block;background:#f0ebff;color:#6847ef;border-radius:20px;padding:7px 11px;font-size:12px;font-weight:700;">📅 1:1 уулзалтын урилга</div>
+
+          <h1 style="margin:18px 0 8px;color:#171927;font-size:25px;line-height:32px;font-weight:800;">
+            ${e(recipientName || "Сайн байна уу")}, танд уулзалтын урилга ирлээ
+          </h1>
+
+          <p style="margin:0 0 18px;color:#666978;font-size:14px;line-height:22px;">
+            <strong style="color:#30313b;">${e(senderName || "Registra хэрэглэгч")}</strong>${senderCompany ? ` · ${e(senderCompany)}` : ""} тантай 1:1 уулзалт хийх хүсэлт илгээлээ.
+          </p>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border:1px solid #e5e6ee;border-radius:13px;border-collapse:separate;">
+            <tr>
+              <td style="padding:18px;">
+                <div style="margin:0 0 14px;color:#171927;font-size:19px;line-height:25px;font-weight:800;">${e(title || "1:1 уулзалт")}</div>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td width="50%" style="padding:5px 8px 5px 0;color:#686b7a;font-size:12px;line-height:18px;">📅 ${e(date)}</td>
+                    <td width="50%" style="padding:5px 0 5px 8px;color:#686b7a;font-size:12px;line-height:18px;">🕘 ${e(timeText)}</td>
+                  </tr>
+                </table>
+
+                ${description ? `<div style="margin-top:14px;padding:12px 14px;background:#fafaff;border-left:4px solid #6847ef;border-radius:8px;color:#666978;font-size:12px;line-height:19px;">“${e(description)}”</div>` : ""}
+              </td>
+            </tr>
+          </table>
+
+          <div style="margin-top:20px;">
+            ${button("Урилгыг харах", meetingUrl)}
+          </div>
+
+          <p style="margin:16px 0 0;color:#8e94a6;font-size:11px;line-height:17px;">
+            Урилгыг зөвшөөрөх эсвэл татгалзахын тулд Registra руу нэвтэрч уулзалтын хүсэлтээ нээнэ үү.
+          </p>
+        </td>
+      </tr>
+    </table>
+    `,
+    `${senderName || "Registra хэрэглэгч"} танд 1:1 уулзалтын урилга илгээлээ`,
+  );
+}

@@ -6,6 +6,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import { sendEventGalleryEmails } from "../services/galleryEmail.js";
 
 const router = express.Router();
 
@@ -1080,6 +1081,7 @@ router.post(
               `
               SELECT
                 id,
+                title,
                 end_time,
                 created_by_email
               FROM events
@@ -1271,6 +1273,49 @@ router.post(
             });
           }
 
+          const uploadedImageCount = inserted.filter((file) =>
+            String(file.mime_type || "").toLowerCase().startsWith("image/"),
+          ).length;
+
+          let galleryEmail = null;
+
+          if (uploadedImageCount > 0) {
+            try {
+              const [countRows] = await pool.query(
+                `
+                SELECT COUNT(*) AS total
+                FROM event_files
+                WHERE event_id = ?
+                  AND mime_type LIKE 'image/%'
+                `,
+                [eventId],
+              );
+
+              const imageCount = Number(countRows[0]?.total || 0);
+
+              const emailResults = await sendEventGalleryEmails({
+                eventId,
+                eventName: ev.title || "Event",
+                imageCount,
+              });
+
+              galleryEmail = {
+                total: emailResults.length,
+                sent: emailResults.filter((item) => item.sent).length,
+                failed: emailResults.filter((item) => !item.sent).length,
+              };
+            } catch (mailError) {
+              console.error("GALLERY PUBLISHED EMAIL ERROR:", mailError);
+
+              galleryEmail = {
+                total: 0,
+                sent: 0,
+                failed: 1,
+                error: String(mailError?.message || mailError),
+              };
+            }
+          }
+
           return res
             .status(201)
             .json({
@@ -1279,6 +1324,9 @@ router.post(
 
               files:
                 inserted,
+
+              gallery_email:
+                galleryEmail,
             });
         } catch (err) {
           console.error(
