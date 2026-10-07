@@ -43673,6 +43673,686 @@ svg {
   text-decoration: underline;
 }
 
+/* =========================================================
+   RESET PASSWORD / CODE VERIFICATION
+   ========================================================= */
+
+.rgResetPage {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 46% 54%;
+  background: #ffffff;
+  font-family: "Manrope", sans-serif;
+}
+
+/* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+.rgResetLeft {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 54px 64px 42px;
+  display: flex;
+  flex-direction: column;
+  background: #080c22;
+  color: #ffffff;
+}
+
+.rgResetLogo {
+  position: relative;
+  z-index: 5;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.rgResetLogo img {
+  display: block;
+  width: auto;
+  height: 42px;
+  object-fit: contain;
+}
+
+.rgResetLeftContent {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 520px;
+  margin-top: auto;
+  margin-bottom: 75px;
+}
+
+.rgResetLeftContent h1 {
+  margin: 0 0 22px;
+  color: #ffffff;
+  font-size: clamp(38px, 3.2vw, 55px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+
+.rgResetLeftContent > p {
+  max-width: 480px;
+  margin: 0 0 30px;
+  color: #a8b0c7;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.rgResetSecurityCard {
+  width: min(100%, 460px);
+  min-height: 90px;
+  padding: 17px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #272d55;
+  border-radius: 15px;
+  background: #171c3c;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.13);
+}
+
+.rgResetSecurityIcon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #10324e;
+  color: #20cbe8;
+  font-size: 23px;
+}
+
+.rgResetSecurityCard > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rgResetSecurityCard span {
+  color: #18cbe8;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.rgResetSecurityCard strong {
+  max-width: 330px;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.rgResetCircle {
+  position: absolute;
+  border: 1px solid rgba(105, 90, 255, 0.25);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.rgResetCircleOne {
+  width: 480px;
+  height: 480px;
+  right: -175px;
+  bottom: -210px;
+}
+
+.rgResetCircleTwo {
+  width: 300px;
+  height: 300px;
+  right: -85px;
+  bottom: -125px;
+}
+
+.rgResetCopyright {
+  position: relative;
+  z-index: 5;
+  margin-top: auto;
+  color: #828ba6;
+  font-size: 11px;
+}
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.rgResetRight {
+  position: relative;
+  min-width: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 70px 50px;
+  background: #ffffff;
+}
+
+.rgResetBack {
+  position: absolute;
+  top: 38px;
+  right: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #626b7c;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rgResetBack:hover {
+  color: #6742f5;
+}
+
+.rgResetContent {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* =========================================================
+   PROGRESS
+   ========================================================= */
+
+.rgResetProgress {
+  width: 100%;
+  margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rgResetProgress span {
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  background: #e7e8ed;
+}
+
+.rgResetProgress span.active {
+  background: #6742f5;
+}
+
+/* =========================================================
+   ICON
+   ========================================================= */
+
+.rgResetIconBox {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #f0ebff;
+  color: #6742f5;
+  font-size: 24px;
+}
+
+/* =========================================================
+   HEADING
+   ========================================================= */
+
+.rgResetHeading {
+  margin-bottom: 25px;
+}
+
+.rgResetHeading h2 {
+  margin: 0 0 9px;
+  color: #161b2d;
+  font-size: 37px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.rgResetHeading p {
+  max-width: 420px;
+  margin: 0;
+  color: #7e8698;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.rgResetHeading p strong {
+  color: #737c91;
+  font-weight: 800;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.rgResetForm {
+  width: 100%;
+}
+
+/* =========================================================
+   CODE
+   ========================================================= */
+
+.rgResetCodeWrap {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.rgResetCodeWrap > label {
+  display: block;
+  margin-bottom: 10px;
+  color: #343a4b;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rgResetCodeInputs {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 9px;
+}
+
+.rgResetCodeInputs input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 62px;
+  margin: 0;
+  padding: 0;
+
+  border: 1px solid #dfe2e9;
+  border-radius: 10px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #6742f5;
+
+  font-family: "Manrope", sans-serif;
+  font-size: 23px;
+  line-height: 62px;
+  font-weight: 800;
+
+  text-align: center;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rgResetCodeInputs input:hover {
+  border-color: #c8c3e8;
+}
+
+.rgResetCodeInputs input:focus {
+  border-color: #6742f5;
+  background: #faf9ff;
+
+  box-shadow:
+    0 0 0 3px rgba(103, 66, 245, 0.09);
+
+  transform: translateY(-1px);
+}
+
+.rgResetCodeHint {
+  margin: 12px 0 0;
+  color: #8a91a2;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* =========================================================
+   SUBMIT BUTTON
+   ========================================================= */
+
+.rgResetSubmit {
+  width: 100%;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #6742f5;
+
+  color: #ffffff;
+
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rgResetSubmit:hover:not(:disabled) {
+  background: #5934e9;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 24px rgba(103, 66, 245, 0.2);
+}
+
+.rgResetSubmit:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   RESEND
+   ========================================================= */
+
+.rgResetResend {
+  width: 100%;
+  margin-top: 17px;
+  padding: 7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #6742f5;
+
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.rgResetResend:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.rgResetResend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+.rgResetError {
+  margin: 0 0 15px;
+  padding: 11px 13px;
+
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+
+  background: #fff5f5;
+
+  color: #c62828;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.rgResetSuccess {
+  margin: 0 0 15px;
+  padding: 11px 13px;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+
+  background: #f0fdf4;
+
+  color: #15803d;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   PASSWORD FIELDS - STEP 3
+   ========================================================= */
+
+.rgResetField {
+  margin-bottom: 18px;
+}
+
+.rgResetField > label {
+  display: block;
+  margin-bottom: 8px;
+
+  color: #343a4b;
+
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.rgResetPassword {
+  position: relative;
+  width: 100%;
+}
+
+.rgResetPassword input {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 48px 0 14px;
+
+  border: 1px solid #dfe2e9;
+  border-radius: 9px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #202536;
+
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.rgResetPassword input::placeholder {
+  color: #9da2ae;
+}
+
+.rgResetPassword input:focus {
+  border-color: #684bff;
+
+  box-shadow:
+    0 0 0 3px rgba(104, 75, 255, 0.08);
+}
+
+.rgResetPassword button {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+
+  transform: translateY(-50%);
+
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #9198aa;
+
+  font-size: 17px;
+
+  cursor: pointer;
+}
+
+.rgResetPassword button:hover {
+  color: #6742f5;
+}
+
+/* =========================================================
+   PASSWORD REQUIREMENTS
+   ========================================================= */
+
+.rgResetRequirements {
+  margin: 2px 0 19px;
+  padding: 14px 16px;
+
+  border: 1px solid #e4e7f0;
+  border-radius: 10px;
+
+  background: #fafaff;
+
+  color: #7e8698;
+
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.rgResetRequirements > span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #343a4b;
+
+  font-weight: 800;
+}
+
+.rgResetRequirements ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.rgResetRequirements li {
+  margin: 2px 0;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+  .rgResetPage {
+    grid-template-columns: 42% 58%;
+  }
+
+  .rgResetLeft {
+    padding: 45px 36px 38px;
+  }
+
+  .rgResetLeftContent h1 {
+    font-size: 40px;
+  }
+
+  .rgResetRight {
+    padding: 70px 40px 50px;
+  }
+}
+
+@media (max-width: 800px) {
+  .rgResetPage {
+    display: block;
+  }
+
+  .rgResetLeft {
+    display: none;
+  }
+
+  .rgResetRight {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 75px 25px 55px;
+  }
+
+  .rgResetBack {
+    top: 22px;
+    right: 25px;
+  }
+
+  .rgResetContent {
+    max-width: 440px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rgResetRight {
+    padding: 70px 20px 40px;
+  }
+
+  .rgResetContent {
+    max-width: 100%;
+  }
+
+  .rgResetHeading h2 {
+    font-size: 31px;
+  }
+
+  .rgResetIconBox {
+    width: 50px;
+    height: 50px;
+    font-size: 21px;
+  }
+
+  .rgResetCodeInputs {
+    gap: 6px;
+  }
+
+  .rgResetCodeInputs input {
+    height: 52px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 52px;
+  }
+}
+
+@media (max-width: 370px) {
+  .rgResetCodeInputs {
+    gap: 4px;
+  }
+
+  .rgResetCodeInputs input {
+    height: 47px;
+    font-size: 18px;
+    line-height: 47px;
+  }
+}
+
 @media (max-width: 1000px) {
   .forgotPasswordPage {
     grid-template-columns: 42% 58%;
