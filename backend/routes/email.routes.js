@@ -44,29 +44,55 @@ async function getEvent(eventId) {
   const [rows] = await pool.query(
     `
 
+
+
     SELECT
+
+
 
       id,
 
+
+
       title,
+
+
 
       description,
 
+
+
       category,
+
+
 
       image_url,
 
+
+
       start_time,
+
+
 
       end_time,
 
+
+
       created_by_email
+
+
 
     FROM events
 
+
+
     WHERE id = ?
 
+
+
     LIMIT 1
+
+
 
     `,
 
@@ -80,25 +106,47 @@ async function getUserByEmail(email) {
   const [rows] = await pool.query(
     `
 
+
+
     SELECT
+
+
 
       id,
 
+
+
       email,
+
+
 
       first_name,
 
+
+
       last_name,
+
+
 
       company_name,
 
+
+
       phone
+
+
 
     FROM users
 
+
+
     WHERE LOWER(email) = ?
 
+
+
     LIMIT 1
+
+
 
     `,
 
@@ -119,6 +167,51 @@ async function canManageEvent(event, req) {
 
   return normalizeEmail(event?.created_by_email) === userEmail;
 }
+
+router.get("/user-lookup", authMiddleware, async (req, res) => {
+  try {
+    const email = normalizeEmail(req.query?.email);
+
+    if (!email || !validEmail(email)) {
+      return res.status(400).json({
+        message: "Valid email is required",
+        registered: false,
+        user: null,
+      });
+    }
+
+    const user = await getUserByEmail(email);
+
+    if (!user) {
+      return res.json({
+        registered: false,
+        user: null,
+      });
+    }
+
+    return res.json({
+      registered: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        company_name: user.company_name,
+        phone: user.phone,
+        registered: true,
+      },
+    });
+  } catch (err) {
+    console.error("GET /api/email/user-lookup error:", err);
+
+    return res.status(500).json({
+      message: "Server error",
+      registered: false,
+      user: null,
+      error: String(err.message || err),
+    });
+  }
+});
 
 router.post("/event-invite", authMiddleware, async (req, res) => {
   try {
@@ -263,25 +356,47 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
     const [participants] = await pool.query(
       `
 
+
+
           SELECT DISTINCT
+
+
 
             u.id,
 
+
+
             u.email,
+
+
 
             u.first_name
 
+
+
           FROM event_bookings eb
+
+
 
           JOIN users u
 
+
+
             ON u.id = eb.user_id
+
+
 
           WHERE eb.event_id = ?
 
+
+
             AND u.email IS NOT NULL
 
+
+
             AND u.email <> ''
+
+
 
           `,
 
@@ -291,11 +406,19 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
     const [fileRows] = await pool.query(
       `
 
+
+
           SELECT COUNT(*) AS total
+
+
 
           FROM event_files
 
+
+
           WHERE event_id = ?
+
+
 
           `,
 
@@ -409,11 +532,21 @@ router.post("/password-code", async (req, res) => {
     await pool.query(
       `
 
+
+
         CREATE TABLE IF NOT EXISTS password_reset_codes
+
+
 
         (
 
+
+
           id BIGINT NOT NULL AUTO_INCREMENT,
+
+
+
+
 
 
 
@@ -421,7 +554,15 @@ router.post("/password-code", async (req, res) => {
 
 
 
+
+
+
+
           code_hash CHAR(64) NOT NULL,
+
+
+
+
 
 
 
@@ -429,27 +570,55 @@ router.post("/password-code", async (req, res) => {
 
 
 
+
+
+
+
           used TINYINT(1)
+
+
 
             NOT NULL
 
+
+
             DEFAULT 0,
+
+
+
+
 
 
 
           attempts INT
 
+
+
             NOT NULL
+
+
 
             DEFAULT 0,
 
 
 
+
+
+
+
           created_at DATETIME
+
+
 
             NOT NULL
 
+
+
             DEFAULT CURRENT_TIMESTAMP,
+
+
+
+
 
 
 
@@ -457,21 +626,41 @@ router.post("/password-code", async (req, res) => {
 
 
 
+
+
+
+
           KEY idx_reset_user
+
+
 
             (user_id),
 
 
 
+
+
+
+
           KEY idx_reset_code
+
+
 
             (code_hash)
 
+
+
         )
+
+
 
         ENGINE=InnoDB
 
+
+
         DEFAULT CHARSET=utf8mb4
+
+
 
         `,
     );
@@ -479,7 +668,13 @@ router.post("/password-code", async (req, res) => {
     await pool.query(
       `
 
+
+
         UPDATE password_reset_codes
+
+
+
+
 
 
 
@@ -487,9 +682,17 @@ router.post("/password-code", async (req, res) => {
 
 
 
+
+
+
+
         WHERE user_id = ?
 
+
+
           AND used = 0
+
+
 
         `,
 
@@ -505,27 +708,51 @@ router.post("/password-code", async (req, res) => {
     await pool.query(
       `
 
+
+
         INSERT INTO password_reset_codes
+
+
 
         (
 
+
+
           user_id,
+
+
 
           code_hash,
 
+
+
           expires_at,
+
+
 
           used,
 
+
+
           attempts
+
+
 
         )
 
 
 
+
+
+
+
         VALUES
 
+
+
         (?, ?, ?, 0, 0)
+
+
 
         `,
 
@@ -590,71 +817,139 @@ router.post("/test", authMiddleware, async (req, res) => {
 
       html: `
 
+
+
           <div
 
+
+
             style="
+
+
 
               max-width:600px;
 
+
+
               margin:0 auto;
+
+
 
               padding:40px;
 
+
+
               font-family:Arial,sans-serif;
 
+
+
             "
+
+
 
           >
 
+
+
             <img
+
+
 
             src="cid:registra-logo"
 
+
+
             alt="REGISTRA"
+
+
 
             width="145"
 
+
+
             style="
+
+
 
                 display:block;
 
+
+
                 width:145px;
+
+
 
                 max-width:145px;
 
+
+
                 height:auto;
+
+
 
                 margin:0 0 16px;
 
+
+
                 border:0;
+
+
 
                 outline:none;
 
+
+
                 text-decoration:none;
 
+
+
             "
+
+
 
             />
 
 
 
+
+
+
+
             <h2>
 
+
+
               Email system ажиллаж байна
+
+
 
             </h2>
 
 
 
+
+
+
+
             <p>
+
+
 
               Энэ бол Registra backend-ээс
 
+
+
               илгээсэн тест имэйл.
+
+
 
             </p>
 
+
+
           </div>
+
+
 
         `,
     });
