@@ -1,37 +1,51 @@
-import "dotenv/config";
-import nodemailer from "nodemailer";
+import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
 
-const __filename =
-  fileURLToPath(import.meta.url);
+function required(name) {
+  const value = String(process.env[name] || "").trim();
 
-const __dirname =
-  path.dirname(__filename);
+  if (!value) {
+    throw new Error(`${name} is missing in .env`);
+  }
 
-const registraLogoPath =
-  path.resolve(
-    __dirname,
-    "../../src/assets/reigistra-logo-def.png"
-  );
-
-const transporter =
-  nodemailer.createTransport({
-    service: "gmail",
-
-    auth: {
-      user:
-        process.env.RESET_EMAIL_USER,
-
-      pass:
-        process.env.RESET_EMAIL_PASS,
-    },
-  });
+  return value;
+}
 
 export function getFrontendUrl() {
-  return String(
-    process.env.FRONTEND_URL || ""
-  ).replace(/\/+$/, "");
+  return required("FRONTEND_URL").replace(/\/+$/, "");
+}
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.RESET_EMAIL_USER,
+    pass: process.env.RESET_EMAIL_PASS,
+  },
+});
+
+function getLogoAttachment() {
+  const candidates = [
+    path.resolve(process.cwd(), "public", "logo.png"),
+    path.resolve(process.cwd(), "..", "public", "logo.png"),
+    path.resolve(process.cwd(), "public", "registra-logo.png"),
+    path.resolve(process.cwd(), "..", "public", "registra-logo.png"),
+    path.resolve(process.cwd(), "assets", "logo.png"),
+    path.resolve(process.cwd(), "..", "src", "assets", "logo.png"),
+  ];
+
+  const logoPath = candidates.find((candidate) => fs.existsSync(candidate));
+
+  if (!logoPath) {
+    return null;
+  }
+
+  return {
+    filename: path.basename(logoPath),
+    path: logoPath,
+    cid: "registra-logo",
+    contentDisposition: "inline",
+  };
 }
 
 export async function sendMail({
@@ -40,59 +54,34 @@ export async function sendMail({
   text,
   html,
   attachments = [],
+  replyTo,
 }) {
-  if (!to) {
-    throw new Error(
-      "Email recipient is required"
-    );
-  }
+  const user = required("RESET_EMAIL_USER");
 
-  if (
-    !process.env.RESET_EMAIL_USER
-  ) {
-    throw new Error(
-      "RESET_EMAIL_USER is missing"
-    );
-  }
+  required("RESET_EMAIL_PASS");
 
-  if (
-    !process.env.RESET_EMAIL_PASS
-  ) {
-    throw new Error(
-      "RESET_EMAIL_PASS is missing"
-    );
-  }
+  const logo = getLogoAttachment();
+
+  const finalAttachments = [
+    ...(logo ? [logo] : []),
+    ...attachments,
+  ];
 
   return transporter.sendMail({
-    from:
-      `"Registra" <${process.env.RESET_EMAIL_USER}>`,
-
+    from: `"Registra" <${user}>`,
     to,
-
     subject,
-
     text,
-
     html,
-
-    attachments: [
-      {
-        filename:
-          "registra-logo-def.png",
-
-        path:
-          registraLogoPath,
-
-        cid:
-          "registra-logo",
-      },
-
-      ...attachments,
-    ],
+    attachments: finalAttachments,
+    ...(replyTo ? { replyTo } : {}),
   });
 }
 
 export async function verifyMailer() {
+  required("RESET_EMAIL_USER");
+  required("RESET_EMAIL_PASS");
+
   return transporter.verify();
 }
 

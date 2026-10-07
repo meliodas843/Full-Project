@@ -2,6 +2,10 @@ import express from "express";
 
 import crypto from "crypto";
 
+import fs from "fs";
+
+import path from "path";
+
 import pool from "../db.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -35,36 +39,114 @@ function normalizeName(value) {
 }
 
 function validEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
 async function getEvent(eventId) {
   const [rows] = await pool.query(
     `
 
+
+
+
+
+
+
     SELECT
+
+
+
+
+
+
 
       id,
 
+
+
+
+
+
+
       title,
+
+
+
+
+
+
 
       description,
 
+
+
+
+
+
+
       category,
+
+
+
+
+
+
 
       image_url,
 
+
+
+
+
+
+
       start_time,
+
+
+
+
+
+
 
       end_time,
 
+
+
+
+
+
+
       created_by_email
+
+
+
+
+
+
 
     FROM events
 
+
+
+
+
+
+
     WHERE id = ?
 
+
+
+
+
+
+
     LIMIT 1
+
+
+
+
+
+
 
     `,
 
@@ -78,25 +160,91 @@ async function getUserByEmail(email) {
   const [rows] = await pool.query(
     `
 
+
+
+
+
+
+
     SELECT
+
+
+
+
+
+
 
       id,
 
+
+
+
+
+
+
       email,
+
+
+
+
+
+
 
       first_name,
 
+
+
+
+
+
+
       last_name,
+
+
+
+
+
+
 
       company_name,
 
+
+
+
+
+
+
       phone
+
+
+
+
+
+
 
     FROM users
 
+
+
+
+
+
+
     WHERE LOWER(email) = ?
 
+
+
+
+
+
+
     LIMIT 1
+
+
+
+
+
+
 
     `,
 
@@ -178,15 +326,20 @@ router.get("/user-lookup", authMiddleware, async (req, res) => {
 
 function escapeHtml(value) {
   return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g, "&")
+
+    .replace(/</g, "<")
+
+    .replace(/>/g, ">")
+
+    .replace(/"/g, "")
+
+    .replace(/'/g, "");
 }
 
 function absoluteUrl(value, frontendUrl) {
   const raw = String(value || "").trim();
+
   if (!raw) return "";
 
   if (/^https?:\/\//i.test(raw)) {
@@ -194,56 +347,96 @@ function absoluteUrl(value, frontendUrl) {
   }
 
   const base = String(frontendUrl || "").replace(/\/+$/, "");
-  const path = raw.startsWith("/") ? raw : `/${raw}`;
+  const cleanPath = raw.startsWith("/") ? raw : `/${raw}`;
 
-  return `${base}${path}`;
+  return `${base}${cleanPath}`;
 }
 
-function formatInviteDate(value) {
-  if (!value) return "Огноо тодорхойгүй";
+function parseMongoliaDateTime(value) {
+  if (!value) return null;
 
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
-  }
-
-  try {
-    return new Intl.DateTimeFormat("mn-MN", {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Ulaanbaatar",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-    }).format(date);
-  } catch {
-    return String(value);
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(value);
+
+    const get = (type) => parts.find((part) => part.type === type)?.value || "";
+
+    return {
+      year: get("year"),
+      month: get("month"),
+      day: get("day"),
+      hour: get("hour"),
+      minute: get("minute"),
+    };
   }
+
+  const raw = String(value).trim();
+
+  const wallClock = raw.match(
+    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+
+  if (wallClock) {
+    return {
+      year: wallClock[1],
+      month: wallClock[2],
+      day: wallClock[3],
+      hour: wallClock[4],
+      minute: wallClock[5],
+    };
+  }
+
+  const parsed = new Date(raw);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ulaanbaatar",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(parsed);
+
+  const get = (type) => parts.find((part) => part.type === type)?.value || "";
+
+  return {
+    year: get("year"),
+    month: get("month"),
+    day: get("day"),
+    hour: get("hour"),
+    minute: get("minute"),
+  };
+}
+
+function formatInviteDate(value) {
+  const parts = parseMongoliaDateTime(value);
+
+  if (!parts) {
+    return value ? String(value) : "Огноо тодорхойгүй";
+  }
+
+  return `${parts.year}.${parts.month}.${parts.day}`;
 }
 
 function formatInviteTime(start, end) {
-  const format = (value) => {
-    if (!value) return "";
+  const startParts = parseMongoliaDateTime(start);
+  const endParts = parseMongoliaDateTime(end);
 
-    const date = new Date(value);
+  const startText = startParts ? `${startParts.hour}:${startParts.minute}` : "";
 
-    if (Number.isNaN(date.getTime())) {
-      return "";
-    }
-
-    try {
-      return new Intl.DateTimeFormat("mn-MN", {
-        timeZone: "Asia/Ulaanbaatar",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }).format(date);
-    } catch {
-      return "";
-    }
-  };
-
-  const startText = format(start);
-  const endText = format(end);
+  const endText = endParts ? `${endParts.hour}:${endParts.minute}` : "";
 
   if (startText && endText) {
     return `${startText} – ${endText}`;
@@ -252,15 +445,83 @@ function formatInviteTime(start, end) {
   return startText || endText || "Цаг тодорхойгүй";
 }
 
+function getEventImageAttachment(imageUrl) {
+  const raw = String(imageUrl || "").trim();
+
+  if (!raw || /^https?:\/\//i.test(raw)) {
+    return null;
+  }
+
+  let relativePath = raw.split("?")[0].split("#")[0];
+
+  try {
+    relativePath = decodeURIComponent(relativePath);
+  } catch {
+    // Keep the original path.
+  }
+
+  relativePath = relativePath.replace(/^\/+/, "");
+
+  if (!relativePath.startsWith("uploads/events/")) {
+    return null;
+  }
+
+  const candidates = [
+    path.resolve(process.cwd(), relativePath),
+    path.resolve(process.cwd(), "..", relativePath),
+    path.resolve(process.cwd(), "backend", relativePath),
+  ];
+
+  const absolutePath = candidates.find((candidate) => fs.existsSync(candidate));
+
+  if (!absolutePath) {
+    console.warn("Invite image not found. Tried:", candidates);
+    return null;
+  }
+
+  return {
+    filename: path.basename(absolutePath),
+    path: absolutePath,
+    cid: "registra-event-cover@registra",
+    contentDisposition: "inline",
+  };
+}
+
+function buildEventImage(event, frontendUrl) {
+  const attachment = getEventImageAttachment(event?.image_url);
+
+  if (attachment) {
+    return {
+      src: "cid:registra-event-cover@registra",
+      attachments: [attachment],
+    };
+  }
+
+  const publicUrl = absoluteUrl(event?.image_url, frontendUrl);
+
+  return {
+    src: publicUrl,
+    attachments: [],
+  };
+}
+
 function eventInviteEmail({
   firstName,
+
   lastName,
+
   email,
+
   companyName,
+
   event,
+
   eventUrl,
+
   frontendUrl,
+
   registered = true,
+
   signupUrl = "",
 }) {
   const recipientName =
@@ -274,582 +535,2177 @@ function eventInviteEmail({
     "Таныг энэхүү арга хэмжээнд хүрэлцэн ирэхийг урьж байна.";
 
   const organizer = String(event?.created_by_email || "Registra").trim();
+
   const category = String(event?.category || "Эвент").trim();
 
-  /*
-   * IMPORTANT:
-   * Uploaded event images must be reachable from the email client.
-   * FRONTEND_URL should therefore be a PUBLIC URL, preferably HTTPS.
-   *
-   * Examples:
-   *   event.image_url = /uploads/events/abc.jpg
-   *   FRONTEND_URL    = https://your-domain.com
-   *   final image URL = https://your-domain.com/uploads/events/abc.jpg
-   */
-  const imageUrl = absoluteUrl(event?.image_url, frontendUrl);
+  const { src: imageUrl } = buildEventImage(event, frontendUrl);
 
   const primaryUrl = registered ? eventUrl : signupUrl;
+
   const dateText = formatInviteDate(event?.start_time);
+
   const timeText = formatInviteTime(event?.start_time, event?.end_time);
 
   const safe = {
     recipientName: escapeHtml(recipientName),
+
     firstName: escapeHtml(firstName || recipientName),
+
     email: escapeHtml(email),
+
     companyName: escapeHtml(companyName || "—"),
+
     eventName: escapeHtml(eventName),
+
     description: escapeHtml(description),
+
     organizer: escapeHtml(organizer),
+
     category: escapeHtml(category),
+
     dateText: escapeHtml(dateText),
+
     timeText: escapeHtml(timeText),
+
     imageUrl: escapeHtml(imageUrl),
+
     primaryUrl: escapeHtml(primaryUrl),
+
     eventUrl: escapeHtml(eventUrl),
   };
 
   const imageBlock = safe.imageUrl
     ? `
+
+
+
       <tr>
+
+
+
         <td style="padding:0;background:#f2f0ff;">
+
+
+
           <img
+
+
+
             src="${safe.imageUrl}"
+
+
+
             alt="${safe.eventName}"
+
+
+
             width="560"
+
+
+
             style="display:block;width:100%;max-width:560px;height:auto;max-height:300px;object-fit:cover;border:0;margin:0;"
+
+
+
           >
+
+
+
         </td>
+
+
+
       </tr>
+
+
+
     `
     : "";
 
   return `<!doctype html>
+
+
+
 <html>
+
+
+
 <head>
+
+
+
   <meta charset="utf-8">
+
+
+
   <meta name="viewport" content="width=device-width,initial-scale=1">
+
+
+
   <meta name="color-scheme" content="light">
+
+
+
   <meta name="supported-color-schemes" content="light">
+
+
+
   <title>${safe.eventName}</title>
+
+
+
 </head>
 
+
+
+
+
+
+
 <body
+
+
+
   bgcolor="#f5f6fb"
+
+
+
   style="
+
+
+
     margin:0;
+
+
+
     padding:0;
-    background:#f5f6fb !important;
-    color:#171725 !important;
+
+
+
+    background:#f5f6fb;
+
+
+
+    color:#171725;
+
+
+
     font-family:Arial,Helvetica,sans-serif;
+
+
+
     -webkit-text-size-adjust:100%;
+
+
+
     -ms-text-size-adjust:100%;
+
+
+
   "
+
+
+
 >
+
+
+
   <table
+
+
+
     role="presentation"
+
+
+
     width="100%"
+
+
+
     cellspacing="0"
+
+
+
     cellpadding="0"
+
+
+
     border="0"
+
+
+
     bgcolor="#f5f6fb"
-    style="width:100%;margin:0;padding:0;background:#f5f6fb !important;"
+
+
+
+    style="width:100%;margin:0;padding:0;background:#f5f6fb;"
+
+
+
   >
+
+
+
     <tr>
+
+
+
       <td align="center" style="padding:20px 10px 28px;">
 
+
+
+
+
+
+
         <table
+
+
+
           role="presentation"
+
+
+
           width="100%"
+
+
+
           cellspacing="0"
+
+
+
           cellpadding="0"
+
+
+
           border="0"
+
+
+
           style="width:100%;max-width:620px;margin:0 auto;"
+
+
+
         >
+
+
+
           <tr>
+
+
+
             <td style="padding:0 8px 14px;">
+
+
+
               <table
+
+
+
                 role="presentation"
+
+
+
                 width="100%"
+
+
+
                 cellspacing="0"
+
+
+
                 cellpadding="0"
+
+
+
                 border="0"
+
+
+
               >
+
+
+
                 <tr>
+
+
+
                   <td align="left" valign="middle">
+
+
+
                     <img
+
+
+
                       src="cid:registra-logo"
+
+
+
                       alt="REGISTRA"
+
+
+
                       width="116"
+
+
+
                       style="
+
+
+
                         display:block;
+
+
+
                         width:116px;
+
+
+
                         max-width:116px;
+
+
+
                         height:auto;
+
+
+
                         border:0;
+
+
+
                         outline:none;
+
+
+
                         text-decoration:none;
+
+
+
                       "
+
+
+
                     >
+
+
+
                   </td>
 
+
+
+
+
+
+
                   <td
+
+
+
                     align="right"
+
+
+
                     valign="middle"
+
+
+
                     style="
+
+
+
                       font-size:11px;
+
+
+
                       line-height:16px;
+
+
+
                       color:#9699a8;
+
+
+
                     "
+
+
+
                   >
+
+
+
                     Хөтөч дээр харах
+
+
+
                   </td>
+
+
+
                 </tr>
+
+
+
               </table>
+
+
+
             </td>
+
+
+
           </tr>
 
+
+
+
+
+
+
           <tr>
+
+
+
             <td
+
+
+
               bgcolor="#ffffff"
+
+
+
               style="
-                background:#ffffff !important;
+
+
+
+                background:#ffffff;
+
+
+
                 border:1px solid #e7e7ef;
+
+
+
                 border-radius:16px;
+
+
+
                 padding:24px;
+
+
+
               "
+
+
+
             >
+
+
+
               <table
+
+
+
                 role="presentation"
+
+
+
                 width="100%"
+
+
+
                 cellspacing="0"
+
+
+
                 cellpadding="0"
+
+
+
                 border="0"
+
+
+
               >
+
+
+
                 <tr>
+
+
+
                   <td style="padding:0 0 16px;">
+
+
+
                     <span
+
+
+
                       style="
+
+
+
                         display:inline-block;
+
+
+
                         padding:6px 10px;
+
+
+
                         background:#f0ebff;
+
+
+
                         border-radius:7px;
+
+
+
                         color:#6c4df6;
+
+
+
                         font-size:11px;
+
+
+
                         line-height:16px;
+
+
+
                         font-weight:700;
+
+
+
                       "
+
+
+
                     >
+
+
+
                       ✉ Хувийн урилга
+
+
+
                     </span>
+
+
+
                   </td>
+
+
+
                 </tr>
 
+
+
+
+
+
+
                 <tr>
+
+
+
                   <td
+
+
+
                     style="
+
+
+
                       padding:0 0 8px;
-                      color:#171725 !important;
+
+
+
+                      color:#171725;
+
+
+
                       font-size:23px;
+
+
+
                       line-height:30px;
+
+
+
                       font-weight:800;
+
+
+
                     "
+
+
+
                   >
+
+
+
                     ${safe.firstName}, ${safe.eventName}-д урьж байна
+
+
+
                   </td>
+
+
+
                 </tr>
 
+
+
+
+
+
+
                 <tr>
+
+
+
                   <td
+
+
+
                     style="
+
+
+
                       padding:0 0 16px;
-                      color:#666978 !important;
+
+
+
+                      color:#666978;
+
+
+
                       font-size:14px;
+
+
+
                       line-height:22px;
+
+
+
                     "
+
+
+
                   >
-                    <strong style="color:#30313b !important;">${safe.organizer}</strong>
+
+
+
+                    <strong style="color:#30313b;">${safe.organizer}</strong>
+
+
+
                     таныг доорх эвэнтэд урьлаа.
+
+
+
                     ${
                       registered
                         ? "Таны Registra бүртгэл бэлэн тул эвэнтийн дэлгэрэнгүйг шууд харах боломжтой."
                         : "Registra-д бүртгүүлээд урилгаа үргэлжлүүлнэ үү."
                     }
+
+
+
                   </td>
+
+
+
                 </tr>
 
+
+
+
+
+
+
                 <tr>
+
+
+
                   <td style="padding:0 0 18px;">
+
+
+
                     <table
+
+
+
                       role="presentation"
+
+
+
                       width="100%"
+
+
+
                       cellspacing="0"
+
+
+
                       cellpadding="0"
+
+
+
                       border="0"
+
+
+
                       bgcolor="#fafaff"
+
+
+
                       style="
+
+
+
                         width:100%;
-                        background:#fafaff !important;
+
+
+
+                        background:#fafaff;
+
+
+
                         border-radius:9px;
+
+
+
                       "
+
+
+
                     >
+
+
+
                       <tr>
+
+
+
                         <td
+
+
+
                           width="4"
+
+
+
                           bgcolor="#6c4df6"
+
+
+
                           style="width:4px;background:#6c4df6;"
+
+
+
                         ></td>
 
+
+
+
+
+
+
                         <td
+
+
+
                           style="
+
+
+
                             padding:12px 14px;
-                            color:#666978 !important;
+
+
+
+                            color:#666978;
+
+
+
                             font-size:12px;
+
+
+
                             line-height:19px;
+
+
+
                             font-style:italic;
+
+
+
                           "
+
+
+
                         >
+
+
+
                           “${safe.description}”
+
+
+
                         </td>
+
+
+
                       </tr>
+
+
+
                     </table>
+
+
+
                   </td>
+
+
+
                 </tr>
 
+
+
+
+
+
+
                 <tr>
+
+
+
                   <td style="padding:0 0 16px;">
+
+
+
                     <table
+
+
+
                       role="presentation"
+
+
+
                       width="100%"
+
+
+
                       cellspacing="0"
+
+
+
                       cellpadding="0"
+
+
+
                       border="0"
+
+
+
                       style="
+
+
+
                         width:100%;
+
+
+
                         border:1px solid #e5e6ee;
+
+
+
                         border-radius:13px;
+
+
+
                         border-collapse:separate;
+
+
+
                         overflow:hidden;
+
+
+
                       "
+
+
+
                     >
+
+
+
                       ${imageBlock}
 
+
+
+
+
+
+
                       <tr>
+
+
+
                         <td
+
+
+
                           bgcolor="#ffffff"
+
+
+
                           style="
+
+
+
                             padding:16px 18px;
-                            background:#ffffff !important;
+
+
+
+                            background:#ffffff;
+
+
+
                           "
+
+
+
                         >
+
+
+
                           <div
+
+
+
                             style="
+
+
+
                               margin:0 0 12px;
-                              color:#171725 !important;
+
+
+
+                              color:#171725;
+
+
+
                               font-size:18px;
+
+
+
                               line-height:24px;
+
+
+
                               font-weight:800;
+
+
+
                             "
+
+
+
                           >
+
+
+
                             ${safe.eventName}
+
+
+
                           </div>
 
+
+
+
+
+
+
                           <table
+
+
+
                             role="presentation"
+
+
+
                             width="100%"
+
+
+
                             cellspacing="0"
+
+
+
                             cellpadding="0"
+
+
+
                             border="0"
+
+
+
                           >
+
+
+
                             <tr>
+
+
+
                               <td
+
+
+
                                 width="50%"
+
+
+
                                 valign="top"
+
+
+
                                 style="
+
+
+
                                   padding:4px 8px 4px 0;
-                                  color:#686b7a !important;
+
+
+
+                                  color:#686b7a;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
+
+
+
                                 "
+
+
+
                               >
+
+
+
                                 📅 ${safe.dateText}
+
+
+
                               </td>
 
+
+
+
+
+
+
                               <td
+
+
+
                                 width="50%"
+
+
+
                                 valign="top"
+
+
+
                                 style="
+
+
+
                                   padding:4px 0 4px 8px;
-                                  color:#686b7a !important;
+
+
+
+                                  color:#686b7a;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
+
+
+
                                 "
+
+
+
                               >
+
+
+
                                 🕘 ${safe.timeText}
+
+
+
                               </td>
+
+
+
                             </tr>
+
+
+
+
+
+
 
                             <tr>
-                              <td
-                                width="50%"
-                                valign="top"
-                                style="
-                                  padding:4px 8px 4px 0;
-                                  color:#686b7a !important;
-                                  font-size:12px;
-                                  line-height:18px;
-                                "
-                              >
-                                🏷 ${safe.category}
-                              </td>
+
+
 
                               <td
+
+
+
                                 width="50%"
+
+
+
                                 valign="top"
+
+
+
                                 style="
-                                  padding:4px 0 4px 8px;
-                                  color:#686b7a !important;
+
+
+
+                                  padding:4px 8px 4px 0;
+
+
+
+                                  color:#686b7a;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
-                                  word-break:break-word;
+
+
+
                                 "
+
+
+
                               >
-                                👤 ${safe.organizer}
+
+
+
+                                🏷 ${safe.category}
+
+
+
                               </td>
+
+
+
+
+
+
+
+                              <td
+
+
+
+                                width="50%"
+
+
+
+                                valign="top"
+
+
+
+                                style="
+
+
+
+                                  padding:4px 0 4px 8px;
+
+
+
+                                  color:#686b7a;
+
+
+
+                                  font-size:12px;
+
+
+
+                                  line-height:18px;
+
+
+
+                                  word-break:break-word;
+
+
+
+                                "
+
+
+
+                              >
+
+
+
+                                👤 ${safe.organizer}
+
+
+
+                              </td>
+
+
+
                             </tr>
+
+
+
                           </table>
+
+
+
                         </td>
+
+
+
                       </tr>
+
+
+
                     </table>
+
+
+
                   </td>
+
+
+
                 </tr>
 
+
+
+
+
+
+
                 <tr>
+
+
+
                   <td style="padding:0 0 18px;">
+
+
+
                     <table
+
+
+
                       role="presentation"
+
+
+
                       width="100%"
+
+
+
                       cellspacing="0"
+
+
+
                       cellpadding="0"
+
+
+
                       border="0"
+
+
+
                       style="
+
+
+
                         width:100%;
+
+
+
                         border:1px solid #e5e6ee;
+
+
+
                         border-radius:13px;
+
+
+
                         border-collapse:separate;
+
+
+
                       "
+
+
+
                     >
+
+
+
                       <tr>
+
+
+
                         <td style="padding:16px 18px;">
+
+
+
                           <div
+
+
+
                             style="
+
+
+
                               margin:0 0 10px;
-                              color:#777a88 !important;
+
+
+
+                              color:#777a88;
+
+
+
                               font-size:12px;
+
+
+
                               line-height:18px;
+
+
+
                               font-weight:800;
+
+
+
                               letter-spacing:.25px;
+
+
+
                             "
+
+
+
                           >
+
+
+
                             БҮРТГЭЛИЙН МЭДЭЭЛЭЛ
+
+
+
                           </div>
 
+
+
+
+
+
+
                           <table
+
+
+
                             role="presentation"
+
+
+
                             width="100%"
+
+
+
                             cellspacing="0"
+
+
+
                             cellpadding="0"
+
+
+
                             border="0"
+
+
+
                           >
+
+
+
                             <tr>
+
+
+
                               <td
+
+
+
                                 width="31%"
+
+
+
                                 valign="top"
+
+
+
                                 style="
+
+
+
                                   padding:4px 10px 4px 0;
-                                  color:#8b8e9b !important;
+
+
+
+                                  color:#8b8e9b;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
+
+
+
                                 "
+
+
+
                               >
+
+
+
                                 Нэр
+
+
+
                               </td>
 
+
+
+
+
+
+
                               <td
+
+
+
                                 valign="top"
+
+
+
                                 style="
+
+
+
                                   padding:4px 0;
-                                  color:#333540 !important;
+
+
+
+                                  color:#333540;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
+
+
+
                                   font-weight:700;
+
+
+
                                 "
+
+
+
                               >
+
+
+
                                 ${safe.recipientName}
+
+
+
                               </td>
+
+
+
                             </tr>
 
+
+
+
+
+
+
                             <tr>
+
+
+
                               <td
+
+
+
                                 valign="top"
+
+
+
                                 style="
+
+
+
                                   padding:4px 10px 4px 0;
-                                  color:#8b8e9b !important;
+
+
+
+                                  color:#8b8e9b;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
+
+
+
                                 "
+
+
+
                               >
+
+
+
                                 Имэйл
+
+
+
                               </td>
 
+
+
+
+
+
+
                               <td
+
+
+
                                 valign="top"
+
+
+
                                 style="
+
+
+
                                   padding:4px 0;
-                                  color:#333540 !important;
+
+
+
+                                  color:#333540;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
+
+
+
                                   font-weight:700;
+
+
+
                                   word-break:break-word;
+
+
+
                                 "
+
+
+
                               >
+
+
+
                                 ${safe.email}
+
+
+
                               </td>
+
+
+
                             </tr>
+
+
+
+
+
+
 
                             <tr>
-                              <td
-                                valign="top"
-                                style="
-                                  padding:4px 10px 4px 0;
-                                  color:#8b8e9b !important;
-                                  font-size:12px;
-                                  line-height:18px;
-                                "
-                              >
-                                Байгууллага
-                              </td>
+
+
 
                               <td
+
+
+
                                 valign="top"
+
+
+
                                 style="
-                                  padding:4px 0;
-                                  color:#333540 !important;
+
+
+
+                                  padding:4px 10px 4px 0;
+
+
+
+                                  color:#8b8e9b;
+
+
+
                                   font-size:12px;
+
+
+
                                   line-height:18px;
-                                  font-weight:700;
+
+
+
                                 "
+
+
+
                               >
-                                ${safe.companyName}
+
+
+
+                                Байгууллага
+
+
+
                               </td>
+
+
+
+
+
+
+
+                              <td
+
+
+
+                                valign="top"
+
+
+
+                                style="
+
+
+
+                                  padding:4px 0;
+
+
+
+                                  color:#333540;
+
+
+
+                                  font-size:12px;
+
+
+
+                                  line-height:18px;
+
+
+
+                                  font-weight:700;
+
+
+
+                                "
+
+
+
+                              >
+
+
+
+                                ${safe.companyName}
+
+
+
+                              </td>
+
+
+
                             </tr>
+
+
+
                           </table>
+
+
+
                         </td>
+
+
+
                       </tr>
+
+
+
                     </table>
+
+
+
                   </td>
+
+
+
                 </tr>
 
+
+
+
+
+
+
                 <tr>
+
+
+
                   <td style="padding:0;">
+
+
+
                     <table
+
+
+
                       role="presentation"
+
+
+
                       cellspacing="0"
+
+
+
                       cellpadding="0"
+
+
+
                       border="0"
+
+
+
                     >
+
+
+
                       <tr>
+
+
+
                         <td
+
+
+
                           bgcolor="#6c4df6"
+
+
+
                           style="
-                            background:#6c4df6 !important;
+
+
+
+                            background:#6c4df6;
+
+
+
                             border-radius:8px;
+
+
+
                           "
+
+
+
                         >
+
+
+
                           <a
+
+
+
                             href="${safe.primaryUrl}"
-                            target="_blank"
+
+
+
+                            target="\\_blank"
+
+
+
                             style="
+
+
+
                               display:inline-block;
+
+
+
                               padding:12px 17px;
-                              color:#ffffff !important;
+
+
+
+                              color:#ffffff;
+
+
+
                               text-decoration:none;
+
+
+
                               font-size:13px;
+
+
+
                               line-height:18px;
+
+
+
                               font-weight:800;
+
+
+
                             "
+
+
+
                           >
+
+
+
                             ${registered ? "✓ Урилга хүлээн авах" : "Registra-д бүртгүүлэх"}
+
+
+
                           </a>
+
+
+
                         </td>
+
+
+
+
+
+
 
                         <td width="8"></td>
 
+
+
+
+
+
+
                         <td
+
+
+
                           bgcolor="#ffffff"
+
+
+
                           style="
-                            background:#ffffff !important;
+
+
+
+                            background:#ffffff;
+
+
+
                             border:1px solid #dedee7;
+
+
+
                             border-radius:8px;
+
+
+
                           "
+
+
+
                         >
+
+
+
                           <a
+
+
+
                             href="${safe.eventUrl}"
-                            target="_blank"
+
+
+
+                            target="\\_blank"
+
+
+
                             style="
+
+
+
                               display:inline-block;
+
+
+
                               padding:11px 16px;
-                              color:#3c3d48 !important;
+
+
+
+                              color:#3c3d48;
+
+
+
                               text-decoration:none;
+
+
+
                               font-size:13px;
+
+
+
                               line-height:18px;
+
+
+
                               font-weight:700;
+
+
+
                             "
+
+
+
                           >
+
+
+
                             Эвэнт харах
+
+
+
                           </a>
+
+
+
                         </td>
+
+
+
                       </tr>
+
+
+
                     </table>
+
+
+
                   </td>
+
+
+
                 </tr>
+
+
+
               </table>
+
+
+
             </td>
+
+
+
           </tr>
 
+
+
+
+
+
+
           <tr>
+
+
+
             <td
+
+
+
               align="center"
+
+
+
               style="
+
+
+
                 padding:16px 20px 0;
-                color:#8a8d9c !important;
+
+
+
+                color:#8a8d9c;
+
+
+
                 font-size:12px;
+
+
+
                 line-height:18px;
+
+
+
               "
+
+
+
             >
+
+
+
               ${
                 registered
                   ? `Та Registra-д <strong>${safe.email}</strong> хаягаар бүртгэлтэй учир энэ урилгыг хүлээн авлаа.`
                   : `Энэ урилгыг <strong>${safe.email}</strong> хаягт илгээлээ.`
               }
 
+
+
+
+
+
+
               <div
+
+
+
                 style="
+
+
+
                   margin-top:10px;
-                  color:#aaaabd !important;
+
+
+
+                  color:#aaaabd;
+
+
+
                   font-size:10px;
+
+
+
                   line-height:16px;
+
+
+
                 "
+
+
+
               >
+
+
+
                 © 2026 Registra · Улаанбаатар
+
+
+
               </div>
+
+
+
             </td>
+
+
+
           </tr>
+
+
+
         </table>
 
+
+
+
+
+
+
       </td>
+
+
+
     </tr>
+
+
+
   </table>
+
+
+
 </body>
+
+
+
 </html>`;
 }
 
@@ -903,6 +2759,10 @@ router.post("/event-invite", authMiddleware, async (req, res) => {
           `Сайн байна уу, ${user.first_name || "Хэрэглэгч"}.\n\n` +
           `Таныг "${event.title}" арга хэмжээнд урьж байна.\n\n` +
           `${eventUrl}`,
+
+        attachments: buildEventImage(event, frontendUrl).attachments,
+
+        attachments: buildEventImage(event, frontendUrl).attachments,
 
         html: eventInviteEmail({
           firstName: user.first_name,
@@ -1018,25 +2878,91 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
     const [participants] = await pool.query(
       `
 
+
+
+
+
+
+
           SELECT DISTINCT
+
+
+
+
+
+
 
             u.id,
 
+
+
+
+
+
+
             u.email,
+
+
+
+
+
+
 
             u.first_name
 
+
+
+
+
+
+
           FROM event_bookings eb
+
+
+
+
+
+
 
           JOIN users u
 
+
+
+
+
+
+
             ON u.id = eb.user_id
+
+
+
+
+
+
 
           WHERE eb.event_id = ?
 
+
+
+
+
+
+
             AND u.email IS NOT NULL
 
+
+
+
+
+
+
             AND u.email <> ''
+
+
+
+
+
+
 
           `,
 
@@ -1046,11 +2972,35 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
     const [fileRows] = await pool.query(
       `
 
-          SELECT COUNT(*) AS total
+
+
+
+
+
+
+          SELECT COUNT(\\\*) AS total
+
+
+
+
+
+
 
           FROM event_files
 
+
+
+
+
+
+
           WHERE event_id = ?
+
+
+
+
+
+
 
           `,
 
@@ -1164,51 +3114,195 @@ router.post("/password-code", async (req, res) => {
     await pool.query(
       `
 
+
+
+
+
+
+
         CREATE TABLE IF NOT EXISTS password_reset_codes
+
+
+
+
+
+
 
         (
 
+
+
+
+
+
+
           id BIGINT NOT NULL AUTO_INCREMENT,
+
+
+
+
+
+
 
           user_id BIGINT NOT NULL,
 
+
+
+
+
+
+
           code_hash CHAR(64) NOT NULL,
+
+
+
+
+
+
 
           expires_at DATETIME NOT NULL,
 
+
+
+
+
+
+
           used TINYINT(1)
+
+
+
+
+
+
 
             NOT NULL
 
+
+
+
+
+
+
             DEFAULT 0,
+
+
+
+
+
+
 
           attempts INT
 
+
+
+
+
+
+
             NOT NULL
+
+
+
+
+
+
 
             DEFAULT 0,
 
+
+
+
+
+
+
           created_at DATETIME
+
+
+
+
+
+
 
             NOT NULL
 
+
+
+
+
+
+
             DEFAULT CURRENT_TIMESTAMP,
+
+
+
+
+
+
 
           PRIMARY KEY (id),
 
+
+
+
+
+
+
           KEY idx_reset_user
+
+
+
+
+
+
 
             (user_id),
 
+
+
+
+
+
+
           KEY idx_reset_code
+
+
+
+
+
+
 
             (code_hash)
 
+
+
+
+
+
+
         )
+
+
+
+
+
+
 
         ENGINE=InnoDB
 
+
+
+
+
+
+
         DEFAULT CHARSET=utf8mb4
+
+
+
+
+
+
 
         `,
     );
@@ -1216,13 +3310,43 @@ router.post("/password-code", async (req, res) => {
     await pool.query(
       `
 
+
+
+
+
+
+
         UPDATE password_reset_codes
+
+
+
+
+
+
 
         SET used = 1
 
+
+
+
+
+
+
         WHERE user_id = ?
 
+
+
+
+
+
+
           AND used = 0
+
+
+
+
+
+
 
         `,
 
@@ -1237,26 +3361,39 @@ router.post("/password-code", async (req, res) => {
 
     await pool.query(
       `
-
         INSERT INTO password_reset_codes
 
         (
 
           user_id,
-
           code_hash,
-
           expires_at,
-
           used,
-
           attempts
 
         )
 
+
+
+
+
+
+
         VALUES
 
+
+
+
+
+
+
         (?, ?, ?, 0, 0)
+
+
+
+
+
+
 
         `,
 
@@ -1321,67 +3458,259 @@ router.post("/test", authMiddleware, async (req, res) => {
 
       html: `
 
+
+
+
+
+
+
           <div
 
+
+
+
+
+
+
             style="
+
+
+
+
+
+
 
               max-width:600px;
 
+
+
+
+
+
+
               margin:0 auto;
+
+
+
+
+
+
 
               padding:40px;
 
+
+
+
+
+
+
               font-family:Arial,sans-serif;
 
+
+
+
+
+
+
             "
+
+
+
+
+
+
 
           >
 
+
+
+
+
+
+
             <img
+
+
+
+
+
+
 
             src="cid:registra-logo"
 
+
+
+
+
+
+
             alt="REGISTRA"
+
+
+
+
+
+
 
             width="145"
 
+
+
+
+
+
+
             style="
+
+
+
+
+
+
 
                 display:block;
 
+
+
+
+
+
+
                 width:145px;
+
+
+
+
+
+
 
                 max-width:145px;
 
+
+
+
+
+
+
                 height:auto;
+
+
+
+
+
+
 
                 margin:0 0 16px;
 
+
+
+
+
+
+
                 border:0;
+
+
+
+
+
+
 
                 outline:none;
 
+
+
+
+
+
+
                 text-decoration:none;
+
+
+
+
+
+
 
             "
 
+
+
+
+
+
+
             />
+
+
+
+
+
+
 
             <h2>
 
+
+
+
+
+
+
               Email system ажиллаж байна
+
+
+
+
+
+
 
             </h2>
 
+
+
+
+
+
+
             <p>
+
+
+
+
+
+
 
               Энэ бол Registra backend-ээс
 
+
+
+
+
+
+
               илгээсэн тест имэйл.
+
+
+
+
+
+
 
             </p>
 
+
+
+
+
+
+
           </div>
+
+
+
+
+
+
 
         `,
     });
