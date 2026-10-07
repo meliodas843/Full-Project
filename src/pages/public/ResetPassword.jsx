@@ -76,11 +76,6 @@ export default function ResetPassword() {
     setShowConfirmPassword,
   ] = useState(false);
 
-  const [
-    showRequirements,
-    setShowRequirements,
-  ] = useState(false);
-
   const [message, setMessage] =
     useState("");
 
@@ -153,9 +148,34 @@ export default function ResetPassword() {
   ].filter(Boolean).length;
 
   const passwordStrength =
-    passedRequirements === 0
-      ? 0
-      : passedRequirements * 25;
+    passedRequirements * 25;
+
+  const strengthLabel = useMemo(() => {
+    if (!password.length) {
+      return "";
+    }
+
+    if (passedRequirements === 1) {
+      return "Сул";
+    }
+
+    if (passedRequirements === 2) {
+      return "Дунд";
+    }
+
+    if (passedRequirements === 3) {
+      return "Сайн";
+    }
+
+    if (passedRequirements === 4) {
+      return "Хүчтэй";
+    }
+
+    return "Сул";
+  }, [
+    password.length,
+    passedRequirements,
+  ]);
 
   /* =========================================================
      CODE INPUT
@@ -476,10 +496,6 @@ export default function ResetPassword() {
       }
 
       if (!passwordValid) {
-        setShowRequirements(
-          true
-        );
-
         setMessage(
           "Нууц үгийн бүх шаардлагыг хангана уу."
         );
@@ -586,6 +602,10 @@ export default function ResetPassword() {
 
   return (
     <main className="rgLoginPage">
+      {/* =====================================================
+          LEFT SIDE
+          ===================================================== */}
+
       <section className="rgLoginLeft">
         <Link
           to="/"
@@ -640,6 +660,10 @@ export default function ResetPassword() {
         </div>
       </section>
 
+      {/* =====================================================
+          RIGHT SIDE
+          ===================================================== */}
+
       <section className="rgLoginRight">
         <button
           type="button"
@@ -669,6 +693,10 @@ export default function ResetPassword() {
           {step ===
           "code" ? (
             <>
+              {/* ===============================================
+                  CODE STEP
+                  =============================================== */}
+
               <div className="rgLoginHeading">
                 <h2>
                   Код баталгаажуулах
@@ -811,6 +839,10 @@ export default function ResetPassword() {
             </>
           ) : (
             <>
+              {/* ===============================================
+                  NEW PASSWORD STEP
+                  =============================================== */}
+
               <div className="rgLoginHeading">
                 <h2>
                   Шинэ нууц үг
@@ -829,13 +861,16 @@ export default function ResetPassword() {
                 onSubmit={
                   submitPassword
                 }
+                noValidate
               >
-                <div className="rgLoginField">
+                {/* NEW PASSWORD */}
+
+                <div className="rgNewPasswordField">
                   <label htmlFor="new-password">
                     ШИНЭ НУУЦ ҮГ
                   </label>
 
-                  <div className="rgLoginPassword">
+                  <div className="rgNewPasswordInput">
                     <input
                       id="new-password"
                       type={
@@ -846,11 +881,6 @@ export default function ResetPassword() {
                       value={
                         password
                       }
-                      onFocus={() =>
-                        setShowRequirements(
-                          true
-                        )
-                      }
                       onChange={(
                         event
                       ) => {
@@ -860,21 +890,17 @@ export default function ResetPassword() {
                             .value
                         );
 
-                        setShowRequirements(
-                          true
-                        );
-
                         setMessage(
                           ""
                         );
                       }}
                       placeholder="Шинэ нууц үгээ оруулна уу"
                       autoComplete="new-password"
-                      required
                     />
 
                     <button
                       type="button"
+                      className="rgNewPasswordEye"
                       aria-label={
                         showPassword
                           ? "Нууц үг нуух"
@@ -897,159 +923,165 @@ export default function ResetPassword() {
                     </button>
                   </div>
 
-                  <div
-                    className={`rgPasswordRequirements ${
-                      showRequirements
-                        ? "show"
-                        : ""
-                    }`}
-                  >
-                    <div className="rgPasswordRequirementsHeader">
-                      <div className="rgPasswordRequirementsIcon">
-                        <FiShield />
+                  {/* ===========================================
+                      REQUIREMENTS
+                      Completely hidden while password is empty
+                      =========================================== */}
+
+                  {password.length >
+                    0 && (
+                    <div className="rgPasswordGuide">
+                      <div className="rgPasswordGuideHeader">
+                        <div className="rgPasswordGuideShield">
+                          <FiShield />
+                        </div>
+
+                        <div className="rgPasswordGuideTitle">
+                          <strong>
+                            Нууц үгийн
+                            шаардлага
+                          </strong>
+
+                          <span>
+                            Аюулгүй,
+                            найдвартай
+                            нууц үг
+                            үүсгэнэ үү.
+                          </span>
+                        </div>
                       </div>
 
-                      <div>
-                        <strong>
-                          Нууц үгийн шаардлага
-                        </strong>
-
-                        <span>
-                          Аюулгүй нууц үг үүсгэнэ үү
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="rgPasswordRequirementGrid">
-                      <div
-                        className={`rgPasswordRequirement ${
-                          passwordChecks.length
-                            ? "valid"
-                            : ""
-                        }`}
-                      >
-                        <span className="rgRequirementCheck">
-                          {passwordChecks.length ? (
-                            <FiCheck />
-                          ) : (
-                            "•"
-                          )}
-                        </span>
-
-                        <span>
-                          10-аас доошгүй тэмдэгт
-                        </span>
-                      </div>
-
-                      <div
-                        className={`rgPasswordRequirement ${
-                          lettersValid
-                            ? "valid"
-                            : ""
-                        }`}
-                      >
-                        <span className="rgRequirementCheck">
-                          {lettersValid ? (
-                            <FiCheck />
-                          ) : (
-                            "•"
-                          )}
-                        </span>
-
-                        <span>
-                          Том болон жижиг үсэг
-                        </span>
-                      </div>
-
-                      <div
-                        className={`rgPasswordRequirement ${
-                          passwordChecks.number
-                            ? "valid"
-                            : ""
-                        }`}
-                      >
-                        <span className="rgRequirementCheck">
-                          {passwordChecks.number ? (
-                            <FiCheck />
-                          ) : (
-                            "•"
-                          )}
-                        </span>
-
-                        <span>
-                          Тоо
-                        </span>
-                      </div>
-
-                      <div
-                        className={`rgPasswordRequirement ${
-                          passwordChecks.symbol
-                            ? "valid"
-                            : ""
-                        }`}
-                      >
-                        <span className="rgRequirementCheck">
-                          {passwordChecks.symbol ? (
-                            <FiCheck />
-                          ) : (
-                            "•"
-                          )}
-                        </span>
-
-                        <span>
-                          Тусгай тэмдэг
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="rgPasswordStrength">
-                      <div className="rgPasswordStrengthTop">
-                        <span>
-                          Нууц үгийн хамгаалалт
-                        </span>
-
-                        <strong
-                          className={
-                            passwordValid
+                      <div className="rgPasswordGuideGrid">
+                        <div
+                          className={`rgPasswordGuideItem ${
+                            passwordChecks.length
                               ? "valid"
                               : ""
-                          }
+                          }`}
                         >
-                          {passwordValid
-                            ? "Хангалттай"
-                            : password.length
-                              ? `${passedRequirements}/4 шаардлага`
-                              : "—"}
-                        </strong>
+                          <span className="rgPasswordGuideCheck">
+                            <FiCheck />
+                          </span>
+
+                          <span>
+                            10-аас
+                            доошгүй
+                            тэмдэгт
+                          </span>
+                        </div>
+
+                        <div
+                          className={`rgPasswordGuideItem ${
+                            lettersValid
+                              ? "valid"
+                              : ""
+                          }`}
+                        >
+                          <span className="rgPasswordGuideCheck">
+                            <FiCheck />
+                          </span>
+
+                          <span>
+                            Том болон
+                            жижиг үсэг
+                          </span>
+                        </div>
+
+                        <div
+                          className={`rgPasswordGuideItem ${
+                            passwordChecks.number
+                              ? "valid"
+                              : ""
+                          }`}
+                        >
+                          <span className="rgPasswordGuideCheck">
+                            <FiCheck />
+                          </span>
+
+                          <span>
+                            Дор хаяж
+                            нэг тоо
+                          </span>
+                        </div>
+
+                        <div
+                          className={`rgPasswordGuideItem ${
+                            passwordChecks.symbol
+                              ? "valid"
+                              : ""
+                          }`}
+                        >
+                          <span className="rgPasswordGuideCheck">
+                            <FiCheck />
+                          </span>
+
+                          <span>
+                            Дор хаяж
+                            нэг тусгай
+                            тэмдэг
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="rgPasswordStrengthBar">
-                        <span
-                          className={
-                            passwordValid
-                              ? "strong"
-                              : password.length
-                                ? "partial"
+                      <div className="rgPasswordStrength">
+                        <div className="rgPasswordStrengthText">
+                          <span>
+                            Нууц үгийн
+                            хамгаалалт
+                          </span>
+
+                          <strong
+                            className={
+                              passwordValid
+                                ? "valid"
                                 : ""
-                          }
-                          style={{
-                            width:
-                              password.length
-                                ? `${passwordStrength}%`
-                                : "0%",
-                          }}
-                        />
+                            }
+                          >
+                            {
+                              strengthLabel
+                            }
+                          </strong>
+                        </div>
+
+                        <div className="rgPasswordStrengthTrack">
+                          <span
+                            className={
+                              passwordValid
+                                ? "valid"
+                                : ""
+                            }
+                            style={{
+                              width: `${passwordStrength}%`,
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                <div className="rgLoginField">
+                {/* CONFIRM PASSWORD */}
+
+                <div className="rgNewPasswordField rgConfirmPasswordField">
                   <label htmlFor="confirm-password">
                     НУУЦ ҮГ ДАВТАХ
                   </label>
 
-                  <div className="rgLoginPassword">
+                  <div
+                    className={`rgNewPasswordInput ${
+                      confirmPassword &&
+                      password ===
+                        confirmPassword
+                        ? "match"
+                        : ""
+                    } ${
+                      confirmPassword &&
+                      password !==
+                        confirmPassword
+                        ? "mismatch"
+                        : ""
+                    }`}
+                  >
                     <input
                       id="confirm-password"
                       type={
@@ -1075,11 +1107,11 @@ export default function ResetPassword() {
                       }}
                       placeholder="Нууц үгээ дахин оруулна уу"
                       autoComplete="new-password"
-                      required
                     />
 
                     <button
                       type="button"
+                      className="rgNewPasswordEye"
                       aria-label={
                         showConfirmPassword
                           ? "Нууц үг нуух"
@@ -1105,10 +1137,12 @@ export default function ResetPassword() {
                   {confirmPassword &&
                     password ===
                       confirmPassword && (
-                      <div className="rgPasswordMatch valid">
+                      <div className="rgPasswordMatchMessage valid">
                         <FiCheck />
+
                         <span>
-                          Нууц үгүүд таарч байна
+                          Нууц үгүүд
+                          таарч байна
                         </span>
                       </div>
                     )}
@@ -1116,9 +1150,11 @@ export default function ResetPassword() {
                   {confirmPassword &&
                     password !==
                       confirmPassword && (
-                      <div className="rgPasswordMatch invalid">
+                      <div className="rgPasswordMatchMessage invalid">
                         <span>
-                          Нууц үгүүд таарахгүй байна
+                          Нууц үгүүд
+                          таарахгүй
+                          байна
                         </span>
                       </div>
                     )}
@@ -1138,7 +1174,7 @@ export default function ResetPassword() {
 
                 <button
                   type="submit"
-                  className="rgLoginSubmit"
+                  className="rgNewPasswordSubmit"
                   disabled={
                     loading
                   }
