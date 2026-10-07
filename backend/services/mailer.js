@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import nodemailer from "nodemailer";
 
 function required(name) {
@@ -25,24 +23,21 @@ const transporter = nodemailer.createTransport({
 });
 
 function getLogoAttachment() {
-  const candidates = [
-    path.resolve(process.cwd(), "public", "logo.png"),
-    path.resolve(process.cwd(), "..", "public", "logo.png"),
-    path.resolve(process.cwd(), "public", "registra-logo.png"),
-    path.resolve(process.cwd(), "..", "public", "registra-logo.png"),
-    path.resolve(process.cwd(), "assets", "logo.png"),
-    path.resolve(process.cwd(), "..", "src", "assets", "logo.png"),
-  ];
-
-  const logoPath = candidates.find((candidate) => fs.existsSync(candidate));
-
-  if (!logoPath) {
-    return null;
-  }
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="300" height="72" viewBox="0 0 300 72">
+      <rect width="300" height="72" rx="10" fill="#ffffff"/>
+      <g transform="translate(16 14)" fill="#6c4df6">
+        <path d="M0 0h17l21 22-21 22H0l21-22L0 0z"/>
+        <circle cx="48" cy="22" r="8"/>
+      </g>
+      <text x="82" y="46" font-family="Arial,Helvetica,sans-serif" font-size="31" font-weight="700" fill="#171725">REGISTRA</text>
+    </svg>
+  `.trim();
 
   return {
-    filename: path.basename(logoPath),
-    path: logoPath,
+    filename: "registra-logo.svg",
+    content: Buffer.from(svg, "utf8"),
+    contentType: "image/svg+xml",
     cid: "registra-logo",
     contentDisposition: "inline",
   };
@@ -57,15 +52,7 @@ export async function sendMail({
   replyTo,
 }) {
   const user = required("RESET_EMAIL_USER");
-
   required("RESET_EMAIL_PASS");
-
-  const logo = getLogoAttachment();
-
-  const finalAttachments = [
-    ...(logo ? [logo] : []),
-    ...attachments,
-  ];
 
   return transporter.sendMail({
     from: `"Registra" <${user}>`,
@@ -73,7 +60,7 @@ export async function sendMail({
     subject,
     text,
     html,
-    attachments: finalAttachments,
+    attachments: [getLogoAttachment(), ...attachments],
     ...(replyTo ? { replyTo } : {}),
   });
 }
@@ -81,7 +68,6 @@ export async function sendMail({
 export async function verifyMailer() {
   required("RESET_EMAIL_USER");
   required("RESET_EMAIL_PASS");
-
   return transporter.verify();
 }
 

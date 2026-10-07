@@ -100,7 +100,7 @@ async function getEvent(eventId) {
 
 
 
-      start_time,
+      DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s') AS start_time,
 
 
 
@@ -108,7 +108,7 @@ async function getEvent(eventId) {
 
 
 
-      end_time,
+      DATE_FORMAT(end_time, '%Y-%m-%d %H:%i:%s') AS end_time,
 
 
 
@@ -353,70 +353,20 @@ function absoluteUrl(value, frontendUrl) {
 }
 
 function parseMongoliaDateTime(value) {
-  if (!value) return null;
+  const raw = String(value || "").trim();
 
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Ulaanbaatar",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    }).formatToParts(value);
+  const match = raw.match(/^(d{4})-(d{2})-(d{2})[ T](d{2}):(d{2})(?::(d{2}))?/);
 
-    const get = (type) => parts.find((part) => part.type === type)?.value || "";
-
-    return {
-      year: get("year"),
-      month: get("month"),
-      day: get("day"),
-      hour: get("hour"),
-      minute: get("minute"),
-    };
-  }
-
-  const raw = String(value).trim();
-
-  const wallClock = raw.match(
-    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-
-  if (wallClock) {
-    return {
-      year: wallClock[1],
-      month: wallClock[2],
-      day: wallClock[3],
-      hour: wallClock[4],
-      minute: wallClock[5],
-    };
-  }
-
-  const parsed = new Date(raw);
-
-  if (Number.isNaN(parsed.getTime())) {
+  if (!match) {
     return null;
   }
 
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Ulaanbaatar",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(parsed);
-
-  const get = (type) => parts.find((part) => part.type === type)?.value || "";
-
   return {
-    year: get("year"),
-    month: get("month"),
-    day: get("day"),
-    hour: get("hour"),
-    minute: get("minute"),
+    year: match[1],
+    month: match[2],
+    day: match[3],
+    hour: match[4],
+    minute: match[5],
   };
 }
 
@@ -3361,15 +3311,68 @@ router.post("/password-code", async (req, res) => {
 
     await pool.query(
       `
+
+
+
+
+
+
+
         INSERT INTO password_reset_codes
+
+
+
+
+
+
 
         (
 
+
+
+
+
+
+
           user_id,
+
+
+
+
+
+
+
           code_hash,
+
+
+
+
+
+
+
           expires_at,
+
+
+
+
+
+
+
           used,
+
+
+
+
+
+
+
           attempts
+
+
+
+
+
+
 
         )
 
