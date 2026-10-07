@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { createPortal } from "react-dom";
 
 import {
@@ -43,7 +44,7 @@ function formatDateTime(value) {
 
   const raw = String(value).trim();
 
-  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+  if (raw.endsWith("Z") || /[+-]d{2}:d{2}$/.test(raw)) {
     const date = new Date(raw);
 
     if (Number.isNaN(date.getTime())) {
@@ -103,7 +104,7 @@ function toDateTimeLocal(value) {
 
   const raw = String(value).trim();
 
-  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+  if (raw.endsWith("Z") || /[+-]d{2}:d{2}$/.test(raw)) {
     const date = new Date(raw);
 
     if (Number.isNaN(date.getTime())) {
@@ -151,14 +152,14 @@ function parseEventDateTime(value) {
 
   if (!raw) return NaN;
 
-  if (raw.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(raw)) {
+  if (raw.endsWith("Z") || /[+-]d{2}:d{2}$/.test(raw)) {
     return new Date(raw).getTime();
   }
 
   const normalized = raw.replace(" ", "T");
 
   const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/,
+    /^(d{4})-(d{2})-(d{2})T(d{2}):(d{2})(?::(d{2}))?/,
   );
 
   if (!match) {
@@ -370,7 +371,7 @@ function getParticipantInitials(user) {
 
   const parts = name
 
-    .split(/\s+/)
+    .split(/s+/)
 
     .filter(Boolean);
 
@@ -485,16 +486,21 @@ export default function History() {
 
     const closeMenu = () => {
       setOpenMenuId(null);
+
       setMenuPosition(null);
     };
 
     document.addEventListener("pointerdown", closeMenu);
+
     window.addEventListener("scroll", closeMenu, true);
+
     window.addEventListener("resize", closeMenu);
 
     return () => {
       document.removeEventListener("pointerdown", closeMenu);
+
       window.removeEventListener("scroll", closeMenu, true);
+
       window.removeEventListener("resize", closeMenu);
     };
   }, [openMenuId]);
@@ -548,25 +554,13 @@ export default function History() {
   const [participantsLoading, setParticipantsLoading] = useState(false);
 
   const [showAddPeople, setShowAddPeople] = useState(false);
-
-  const [addPeopleForm, setAddPeopleForm] = useState({
-    email: "",
-
-    firstName: "",
-
-    lastName: "",
-
-    phone: "",
-  });
-
+  const [addPeopleForm, setAddPeopleForm] = useState({ email: "" });
   const [addPeopleLoading, setAddPeopleLoading] = useState(false);
-
   const [addPeopleError, setAddPeopleError] = useState("");
-
   const [addPeopleSuccess, setAddPeopleSuccess] = useState("");
-
+  const [inviteUser, setInviteUser] = useState(null);
+  const [inviteLookupLoading, setInviteLookupLoading] = useState(false);
   const [peopleResults, setPeopleResults] = useState([]);
-
   const [addingUserId, setAddingUserId] = useState(null);
 
   async function load() {
@@ -680,162 +674,114 @@ export default function History() {
   }
 
   function handleAddPeopleChange(event) {
-    const {
-      name,
-
-      value,
-    } = event.target;
-
-    setAddPeopleForm((current) => ({
-      ...current,
-
-      [name]: value,
-    }));
-
+    const value = event.target.value;
+    setAddPeopleForm({ email: value });
+    setInviteUser(null);
     setAddPeopleError("");
-
     setAddPeopleSuccess("");
   }
 
-  async function createAndAddPerson(event) {
-    event.preventDefault();
+  useEffect(() => {
+    if (!showAddPeople) return undefined;
 
-    if (addPeopleLoading) {
-      return;
+    const email = addPeopleForm.email.trim().toLowerCase();
+    const isValidEmail = /^[^s@]+@[^s@]+.[^s@]+$/.test(email);
+
+    if (!isValidEmail) {
+      setInviteUser(null);
+      setInviteLookupLoading(false);
+      return undefined;
     }
 
+    const token = localStorage.getItem("token");
+    if (!token) return undefined;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        setInviteLookupLoading(true);
+        const response = await fetch(
+          `${API_BASE}/api/email/user-lookup?email=${encodeURIComponent(email)}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        const data = await response.json().catch(() => ({}));
+        if (cancelled) return;
+
+        if (response.ok && data?.registered && data?.user) {
+          setInviteUser(data.user);
+        } else {
+          setInviteUser({ email, registered: false });
+        }
+      } catch (err) {
+        console.error("INVITE USER LOOKUP ERROR:", err);
+        if (!cancelled) setInviteUser({ email, registered: false });
+      } finally {
+        if (!cancelled) setInviteLookupLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [addPeopleForm.email, showAddPeople]);
+
+  async function createAndAddPerson(event) {
+    event.preventDefault();
+    if (addPeopleLoading) return;
+
     const eventId = selectedEvent?.id;
-
-    const email = addPeopleForm.email
-
-      .trim()
-
-      .toLowerCase();
-
-    const firstName = addPeopleForm.firstName.trim();
-
-    const lastName = addPeopleForm.lastName.trim();
-
-    const phone = addPeopleForm.phone.trim();
+    const email = addPeopleForm.email.trim().toLowerCase();
 
     if (!eventId) {
       setAddPeopleError("Эвент олдсонгүй.");
-
       return;
     }
 
     if (!email) {
       setAddPeopleError("И-мэйл хаяг оруулна уу.");
-
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^s@]+@[^s@]+.[^s@]+$/.test(email)) {
       setAddPeopleError("Зөв и-мэйл хаяг оруулна уу.");
-
-      return;
-    }
-
-    if (!firstName) {
-      setAddPeopleError("Нэр оруулна уу.");
-
-      return;
-    }
-
-    if (!lastName) {
-      setAddPeopleError("Овог оруулна уу.");
-
-      return;
-    }
-
-    if (!phone) {
-      setAddPeopleError("Утасны дугаар оруулна уу.");
-
       return;
     }
 
     try {
       setAddPeopleLoading(true);
-
       setAddPeopleError("");
-
       setAddPeopleSuccess("");
 
       const token = localStorage.getItem("token");
-
       if (!token) {
         setAddPeopleError("Эхлээд нэвтэрнэ үү.");
-
         return;
       }
 
-      const response = await fetch(
-        `${API_BASE}/api/events/${eventId}/participants`,
-
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            email,
-
-            first_name: firstName,
-
-            last_name: lastName,
-
-            phone,
-          }),
+      const response = await fetch(`${API_BASE}/api/email/event-invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
-
-      const data = await response
-
-        .json()
-
-        .catch(() => ({}));
-
-      if (!response.ok) {
-        setAddPeopleError(
-          data?.message ||
-            data?.error ||
-            "Хэрэглэгч үүсгэж эвентэд нэмж чадсангүй.",
-        );
-
-        return;
-      }
-
-      if (data?.already_joined) {
-        setAddPeopleSuccess(
-          "Энэ хэрэглэгч эвентэд аль хэдийн нэмэгдсэн байна.",
-        );
-      } else if (data?.created) {
-        setAddPeopleSuccess("Хэрэглэгч үүсгэж эвентэд амжилттай нэмлээ.");
-      } else {
-        setAddPeopleSuccess(
-          "Бүртгэлтэй хэрэглэгчийг эвентэд амжилттай нэмлээ.",
-        );
-      }
-
-      setAddPeopleForm({
-        email: "",
-
-        firstName: "",
-
-        lastName: "",
-
-        phone: "",
+        body: JSON.stringify({ event_id: eventId, email }),
       });
 
-      await loadParticipants(eventId);
-    } catch (err) {
-      console.error(err);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setAddPeopleError(
+          data?.message || data?.error || "Урилга илгээж чадсангүй.",
+        );
+        return;
+      }
 
-      setAddPeopleError("Хэрэглэгч нэмэх үед сүлжээний алдаа гарлаа.");
+      setAddPeopleSuccess(`Урилгыг ${email} хаяг руу амжилттай илгээлээ.`);
+      setAddPeopleForm({ email: "" });
+      setInviteUser(null);
+    } catch (err) {
+      console.error("EVENT INVITE ERROR:", err);
+      setAddPeopleError("Урилга илгээх үед сүлжээний алдаа гарлаа.");
     } finally {
       setAddPeopleLoading(false);
     }
@@ -1178,104 +1124,6 @@ export default function History() {
 
       formData.append("description", cleanDescription);
 
-      /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       * IMPORTANT
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       * React state name = badge
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       * API field name    = category
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       * MySQL column      = category
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       */
-
       formData.append("category", cleanCategory);
 
       formData.append("speaker", JSON.stringify(cleanedSpeakers));
@@ -1431,22 +1279,12 @@ export default function History() {
   }
 
   async function openAddPeople() {
-    setAddPeopleForm({
-      email: "",
-
-      firstName: "",
-
-      lastName: "",
-
-      phone: "",
-    });
-
+    setAddPeopleForm({ email: "" });
+    setInviteUser(null);
+    setInviteLookupLoading(false);
     setAddPeopleError("");
-
     setAddPeopleSuccess("");
-
     setShowAddPeople(true);
-
     await loadParticipants(selectedEvent.id);
   }
 
@@ -1989,7 +1827,9 @@ export default function History() {
 
                                   if (openMenuId === event.id) {
                                     setOpenMenuId(null);
+
                                     setMenuPosition(null);
+
                                     return;
                                   }
 
@@ -1997,7 +1837,9 @@ export default function History() {
                                     e.currentTarget.getBoundingClientRect();
 
                                   const menuWidth = 155;
+
                                   const gap = 10;
+
                                   const spaceOnRight =
                                     window.innerWidth - rect.right;
 
@@ -2006,16 +1848,19 @@ export default function History() {
                                       ? rect.right + gap
                                       : Math.max(
                                           8,
+
                                           rect.left - menuWidth - gap,
                                         );
 
                                   const top = Math.min(
                                     rect.top,
+
                                     window.innerHeight - 105,
                                   );
 
                                   setMenuPosition({
                                     top: Math.max(8, top),
+
                                     left,
                                   });
 
@@ -2033,6 +1878,7 @@ export default function History() {
                                       className="endedEventMenu"
                                       style={{
                                         top: `${menuPosition.top}px`,
+
                                         left: `${menuPosition.left}px`,
                                       }}
                                       onPointerDown={(e) => e.stopPropagation()}
@@ -2043,13 +1889,16 @@ export default function History() {
                                         className="endedEventMenuItem endedEventImageItem"
                                         onClick={() => {
                                           setOpenMenuId(null);
+
                                           setMenuPosition(null);
+
                                           navigate(
                                             `/user/history/${event.id}/images`,
                                           );
                                         }}
                                       >
                                         <FiImage size={17} />
+
                                         <span>Add img</span>
                                       </button>
 
@@ -2059,7 +1908,9 @@ export default function History() {
                                         disabled={deletingId === event.id}
                                         onClick={() => {
                                           setOpenMenuId(null);
+
                                           setMenuPosition(null);
+
                                           deleteEvent(event);
                                         }}
                                       >
@@ -2072,6 +1923,7 @@ export default function History() {
                                         </span>
                                       </button>
                                     </div>,
+
                                     document.body,
                                   )
                                 : null}
@@ -2121,18 +1973,17 @@ export default function History() {
             }
           }}
         >
-          <div className="historyModal">
+          <div className="historyModal historyInviteModal">
             <div className="historyModalHeader">
               <div>
-                <h2>Хүн нэмэх</h2>
-
+                <h2>Хүн урих</h2>
                 <p>{selectedEvent?.title}</p>
               </div>
-
               <button
                 type="button"
                 disabled={addPeopleLoading}
                 onClick={() => setShowAddPeople(false)}
+                aria-label="Хаах"
               >
                 <FiX />
               </button>
@@ -2142,7 +1993,6 @@ export default function History() {
               <form className="historyInviteForm" onSubmit={createAndAddPerson}>
                 <div className="historyInviteField">
                   <label htmlFor="invite-email">И-мэйл</label>
-
                   <input
                     id="invite-email"
                     type="email"
@@ -2152,60 +2002,61 @@ export default function History() {
                     placeholder="user@example.com"
                     autoComplete="email"
                     disabled={addPeopleLoading}
+                    autoFocus
                   />
+                  <span className="historyInviteHint">
+                    Урьж буй хүний и-мэйл хаягийг оруулна уу.
+                  </span>
                 </div>
 
-                <div className="historyInviteGrid">
-                  <div className="historyInviteField">
-                    <label htmlFor="invite-first-name">Name</label>
-
-                    <input
-                      id="invite-first-name"
-                      type="text"
-                      name="firstName"
-                      value={addPeopleForm.firstName}
-                      onChange={handleAddPeopleChange}
-                      placeholder="Нэр"
-                      autoComplete="given-name"
-                      disabled={addPeopleLoading}
-                    />
+                {inviteLookupLoading ? (
+                  <div className="historyInviteLookup">
+                    Хэрэглэгчийг шалгаж байна...
                   </div>
+                ) : null}
 
-                  <div className="historyInviteField">
-                    <label htmlFor="invite-last-name">Овог</label>
-
-                    <input
-                      id="invite-last-name"
-                      type="text"
-                      name="lastName"
-                      value={addPeopleForm.lastName}
-                      onChange={handleAddPeopleChange}
-                      placeholder="Овог"
-                      autoComplete="family-name"
-                      disabled={addPeopleLoading}
-                    />
+                {inviteUser && addPeopleForm.email.trim() ? (
+                  <div
+                    className={`historyInviteUserCard ${inviteUser.registered === false ? "guest" : "registered"}`}
+                  >
+                    <div className="historyInviteAvatar">
+                      {inviteUser.registered === false
+                        ? addPeopleForm.email.trim().charAt(0).toUpperCase()
+                        : getParticipantInitials(inviteUser)}
+                    </div>
+                    <div className="historyInviteUserInfo">
+                      <strong>
+                        {inviteUser.registered === false
+                          ? addPeopleForm.email.trim()
+                          : getParticipantName(inviteUser)}
+                      </strong>
+                      <span>
+                        {inviteUser.registered === false
+                          ? "Registra бүртгэлгүй хэрэглэгч"
+                          : getParticipantEmail(inviteUser) ||
+                            addPeopleForm.email.trim()}
+                      </span>
+                    </div>
+                    <div
+                      className={`historyInviteStatus ${inviteUser.registered === false ? "guest" : "registered"}`}
+                    >
+                      {inviteUser.registered === false
+                        ? "Шинэ"
+                        : "Registra хэрэглэгч"}
+                    </div>
                   </div>
-                </div>
+                ) : null}
 
-                <div className="historyInviteField">
-                  <label htmlFor="invite-phone">Утасны дугаар</label>
-
-                  <input
-                    id="invite-phone"
-                    type="tel"
-                    name="phone"
-                    value={addPeopleForm.phone}
-                    onChange={handleAddPeopleChange}
-                    placeholder="99112233"
-                    autoComplete="tel"
-                    disabled={addPeopleLoading}
-                  />
-                </div>
+                {inviteUser?.registered === false ? (
+                  <div className="historyInviteGuestNote">
+                    Урилгын и-мэйлтэй хамт Registra-д бүртгүүлэх холбоос
+                    илгээгдэнэ.
+                  </div>
+                ) : null}
 
                 {addPeopleError ? (
                   <div className="historyMessage error">{addPeopleError}</div>
                 ) : null}
-
                 {addPeopleSuccess ? (
                   <div className="historyMessage success">
                     {addPeopleSuccess}
@@ -2221,13 +2072,16 @@ export default function History() {
                   >
                     Цуцлах
                   </button>
-
                   <button
                     type="submit"
                     className="historyInviteSubmitBtn"
-                    disabled={addPeopleLoading}
+                    disabled={
+                      addPeopleLoading ||
+                      inviteLookupLoading ||
+                      !/^[^s@]+@[^s@]+.[^s@]+$/.test(addPeopleForm.email.trim())
+                    }
                   >
-                    {addPeopleLoading ? "Үүсгэж байна..." : "Үүсгээд нэмэх"}
+                    {addPeopleLoading ? "Илгээж байна..." : "Урилга илгээх"}
                   </button>
                 </div>
               </form>

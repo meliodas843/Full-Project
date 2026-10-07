@@ -1,8 +1,13 @@
 import express from "express";
+
 import crypto from "crypto";
+
 import pool from "../db.js";
+
 import authMiddleware from "../middleware/authMiddleware.js";
+
 import { sendMail, getFrontendUrl } from "../services/mailer.js";
+
 import {
   existingParticipantEmail,
   newParticipantEmail,
@@ -23,6 +28,7 @@ function createResetCode() {
 function normalizeEmail(value) {
   return String(value || "")
     .trim()
+
     .toLowerCase();
 }
 
@@ -31,25 +37,39 @@ function normalizeName(value) {
 }
 
 function validEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return /^[^\s@]+@[^\s@]+**\.**[^\s@]+$/.test(value);
 }
 
 async function getEvent(eventId) {
   const [rows] = await pool.query(
     `
+
     SELECT
+
       id,
+
       title,
+
       description,
+
       category,
+
       image_url,
+
       start_time,
+
       end_time,
+
       created_by_email
+
     FROM events
+
     WHERE id = ?
+
     LIMIT 1
+
     `,
+
     [eventId],
   );
 
@@ -59,17 +79,29 @@ async function getEvent(eventId) {
 async function getUserByEmail(email) {
   const [rows] = await pool.query(
     `
+
     SELECT
+
       id,
+
       email,
+
       first_name,
+
       last_name,
+
       company_name,
+
       phone
+
     FROM users
+
     WHERE LOWER(email) = ?
+
     LIMIT 1
+
     `,
+
     [email],
   );
 
@@ -230,26 +262,43 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
 
     const [participants] = await pool.query(
       `
+
           SELECT DISTINCT
+
             u.id,
+
             u.email,
+
             u.first_name
+
           FROM event_bookings eb
+
           JOIN users u
+
             ON u.id = eb.user_id
+
           WHERE eb.event_id = ?
+
             AND u.email IS NOT NULL
+
             AND u.email <> ''
+
           `,
+
       [eventId],
     );
 
     const [fileRows] = await pool.query(
       `
+
           SELECT COUNT(*) AS total
+
           FROM event_files
+
           WHERE event_id = ?
+
           `,
+
       [eventId],
     );
 
@@ -359,50 +408,91 @@ router.post("/password-code", async (req, res) => {
 
     await pool.query(
       `
+
         CREATE TABLE IF NOT EXISTS password_reset_codes
+
         (
+
           id BIGINT NOT NULL AUTO_INCREMENT,
+
+
 
           user_id BIGINT NOT NULL,
 
+
+
           code_hash CHAR(64) NOT NULL,
+
+
 
           expires_at DATETIME NOT NULL,
 
+
+
           used TINYINT(1)
+
             NOT NULL
+
             DEFAULT 0,
+
+
 
           attempts INT
+
             NOT NULL
+
             DEFAULT 0,
 
+
+
           created_at DATETIME
+
             NOT NULL
+
             DEFAULT CURRENT_TIMESTAMP,
+
+
 
           PRIMARY KEY (id),
 
+
+
           KEY idx_reset_user
+
             (user_id),
 
+
+
           KEY idx_reset_code
+
             (code_hash)
+
         )
+
         ENGINE=InnoDB
+
         DEFAULT CHARSET=utf8mb4
+
         `,
     );
 
     await pool.query(
       `
+
         UPDATE password_reset_codes
+
+
 
         SET used = 1
 
+
+
         WHERE user_id = ?
+
           AND used = 0
+
         `,
+
       [user.id],
     );
 
@@ -414,18 +504,31 @@ router.post("/password-code", async (req, res) => {
 
     await pool.query(
       `
+
         INSERT INTO password_reset_codes
+
         (
+
           user_id,
+
           code_hash,
+
           expires_at,
+
           used,
+
           attempts
+
         )
 
+
+
         VALUES
+
         (?, ?, ?, 0, 0)
+
         `,
+
       [user.id, codeHash, expiresAt],
     );
 
@@ -486,39 +589,73 @@ router.post("/test", authMiddleware, async (req, res) => {
       text: "Registra email system is working.",
 
       html: `
+
           <div
+
             style="
+
               max-width:600px;
+
               margin:0 auto;
+
               padding:40px;
+
               font-family:Arial,sans-serif;
+
             "
+
           >
+
             <img
+
             src="cid:registra-logo"
+
             alt="REGISTRA"
+
             width="145"
+
             style="
+
                 display:block;
+
                 width:145px;
+
                 max-width:145px;
+
                 height:auto;
+
                 margin:0 0 16px;
+
                 border:0;
+
                 outline:none;
+
                 text-decoration:none;
+
             "
+
             />
 
+
+
             <h2>
+
               Email system ажиллаж байна
+
             </h2>
 
+
+
             <p>
+
               Энэ бол Registra backend-ээс
+
               илгээсэн тест имэйл.
+
             </p>
+
           </div>
+
         `,
     });
 
