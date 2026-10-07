@@ -493,8 +493,6 @@ export function passwordResetCodeEmail({
         Нууц үг сэргээх код
       </h1>
 
-      <!-- DESCRIPTION -->
-
       <p
         style="
           margin:0;
@@ -520,8 +518,6 @@ export function passwordResetCodeEmail({
         Доорх 6 оронтой баталгаажуулах кодыг
         нууц үг сэргээх хуудсанд оруулна уу.
       </p>
-
-      <!-- CODE BOXES -->
 
       <table
         role="presentation"
@@ -552,20 +548,6 @@ export function passwordResetCodeEmail({
         ⏱ Код 10 минутын турш хүчинтэй бөгөөд
         нэг удаа ашиглагдана.
       </p>
-
-      <!-- BUTTON -->
-
-      <div
-        style="
-          text-align:center;
-          margin-top:22px;
-        "
-      >
-        ${button(
-          "Нууц үг сэргээх",
-          resetUrl
-        )}
-      </div>
 
       <!-- SECURITY NOTE -->
 

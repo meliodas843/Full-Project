@@ -12,7 +12,7 @@ const __dirname =
 const registraLogoPath =
   path.resolve(
     __dirname,
-    "../../src/assets/registra-logo-def.png"
+    "../../src/assets/reigistra-logo-def.png"
   );
 
 const transporter =
