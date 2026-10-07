@@ -509,111 +509,112 @@ export default function OrganizationProfile() {
 
     if (!token) {
       navigate("/login", { replace: true });
-
       return;
     }
 
-    if (!clean(form.name)) {
-      setError("Байгууллагын нэрээ оруулна уу.");
+    const required = {
+      name: clean(form.name),
+      registration_number: clean(form.registration_number),
+      industry: clean(form.industry),
+      employee_count: clean(form.employee_count),
+      description: clean(form.description),
+      email: clean(form.email),
+      phone: clean(form.phone),
+      address: clean(form.address),
+    };
 
+    if (Object.values(required).some((value) => !value)) {
+      setError("Шаардлагатай бүх талбарыг бөглөнө үү.");
       return;
     }
 
     setSaving(true);
-
     setError("");
-
     setSuccess("");
 
     try {
-      const payload = {
-        name: clean(form.name),
+      const body = new FormData();
+      body.append("name", required.name);
+      body.append("registration_number", required.registration_number);
+      body.append("industry", required.industry);
+      body.append("employee_count", required.employee_count);
+      body.append("description", required.description);
+      body.append("website", clean(form.website));
+      body.append("email", required.email);
+      body.append("phone", required.phone);
+      body.append("address", required.address);
+      body.append("facebook", clean(form.facebook));
+      body.append("linkedin", clean(form.linkedin));
+      body.append("contact_person", clean(form.contact_person));
 
-        registration_number: clean(form.registration_number),
+      if (logoFile) {
+        body.append("logo", logoFile);
+      } else if (organization?.logo_url) {
+        body.append("logo_url", organization.logo_url);
+      }
 
-        industry: clean(form.industry),
-
-        employee_count: clean(form.employee_count),
-
-        description: clean(form.description),
-
-        website: clean(form.website),
-
-        email: clean(form.email),
-
-        phone: clean(form.phone),
-
-        address: clean(form.address),
-
-        facebook: clean(form.facebook),
-
-        linkedin: clean(form.linkedin),
-
-        contact_person: clean(form.contact_person),
-
-        logo_url: organization?.logo_url || defaultLogo,
-
-        cover_url: organization?.cover_url || defaultCover,
-      };
+      if (coverFile) {
+        body.append("cover", coverFile);
+      } else if (organization?.cover_url) {
+        body.append("cover_url", organization.cover_url);
+      }
 
       const response = await fetch(`${API_BASE}/api/organizations/me`, {
         method: "PUT",
-
         headers: {
           Authorization: `Bearer ${token}`,
-
-          "Content-Type": "application/json",
         },
-
-        body: JSON.stringify(payload),
+        body,
       });
+
+      const data = await response.json().catch(() => ({}));
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
-
         localStorage.removeItem("adminToken");
-
         localStorage.removeItem("user");
-
+        localStorage.removeItem("profileComplete");
+        localStorage.removeItem("organizationProfileComplete");
         navigate("/login", { replace: true });
-
         return;
       }
-
-      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(data?.message || "Organization save failed");
       }
 
       const normalized = normalizeOrganization(data);
-
       setOrganization(normalized);
-
       setForm(createForm(normalized));
-
       setLogoFile(null);
-
       setCoverFile(null);
 
       if (logoPreview && logoPreview.startsWith("blob:")) {
         URL.revokeObjectURL(logoPreview);
       }
-
       if (coverPreview && coverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(coverPreview);
       }
 
       setLogoPreview("");
-
       setCoverPreview("");
 
-      setSuccess("Байгууллагын мэдээлэл амжилттай хадгалагдлаа.");
+      localStorage.setItem("organizationProfileComplete", "true");
+      localStorage.setItem("profileComplete", "true");
+      localStorage.setItem("accountType", "organization");
+      localStorage.setItem("account_type", "organization");
 
       window.dispatchEvent(new Event("organization-updated"));
+      window.dispatchEvent(new Event("profile-updated"));
+
+      setSuccess("Байгууллагын мэдээлэл амжилттай хадгалагдлаа.");
+      setShowCompleteModal(true);
+
+      setTimeout(() => {
+        window.location.replace("/user/home");
+      }, 900);
     } catch (err) {
       console.error("Save organization error:", err);
-
       setError(
         err?.message || "Байгууллагын мэдээлэл хадгалахад алдаа гарлаа.",
       );
@@ -1138,6 +1139,19 @@ export default function OrganizationProfile() {
             {saving ? "Хадгалж байна..." : "Өөрчлөлт хадгалах"}
           </button>
         </footer>
+
+        {showCompleteModal && (
+          <div className="orgCompleteModalBackdrop">
+            <div className="orgCompleteModal">
+              <FiCheck />
+              <h2>Байгууллагын профайл бүрэн боллоо!</h2>
+              <p>Мэдээлэл, лого болон cover зураг амжилттай хадгалагдлаа.</p>
+              <button type="button" onClick={goToDashboard}>
+                Нүүр хуудас руу очих
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </UserShell>
   );

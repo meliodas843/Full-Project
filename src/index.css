@@ -46,22 +46,6 @@
   --rg-shadow: 0 2px 5px rgba(18, 24, 40, 0.07);
 }
 
-body {
-  margin: 0;
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Arial,
-    "Noto Sans",
-    "Helvetica Neue",
-    sans-serif;
-  color: var(--text-900);
-  background: #fff;
-}
-
 img {
   max-width: 100%;
   display: block;
@@ -776,23 +760,6 @@ hr,
   border-radius: 50%;
   background: var(--ri-cyan);
   animation: riLivePulse 1.5s ease-in-out infinite;
-}
-
-.riFeatureCard::before {
-  content: "";
-  position: absolute;
-  width: 130px;
-  height: 130px;
-  right: -75px;
-  top: -75px;
-  border-radius: 50%;
-  background: rgba(88, 71, 238, 0.09);
-  transform: scale(0);
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.riFeatureCard:hover::before {
-  transform: scale(1.8);
 }
 
 .riFeatureCard:hover .riFeatureIcon {
@@ -8124,12 +8091,6 @@ hr,
   line-height: 1.6;
 }
 
-html,
-body {
-  height: 100%;
-  overflow-x: hidden;
-}
-
 .newsWrap,
 .newsPageBg {
   overflow-x: hidden;
@@ -10548,15 +10509,6 @@ html.modal-open {
   overflow: visible;
 }
 
-.myEventCard {
-  position: relative;
-}
-
-.myEventActions {
-  position: relative;
-  z-index: 20;
-}
-
 @media (max-width: 900px) {
   .endedEventMenu {
     right: auto;
@@ -11296,20 +11248,6 @@ body,
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
-}
-
-*,
-*::before,
-*::after {
-  min-width: 0;
-}
-
-img,
-video,
-canvas,
-svg {
-  max-width: 100%;
-  height: auto;
 }
 
 button,
@@ -14957,17 +14895,6 @@ textarea {
   }
 }
 
-html[data-public-theme="light"] {
-  --ri-bg: #f7f8ff;
-  --ri-bg-2: #ffffff;
-  --ri-card: #ffffff;
-  --ri-card-2: #f5f6ff;
-  --ri-border: #dfe3f3;
-  --ri-text: #14162a;
-  --ri-muted: #68708a;
-  --ri-shadow: 0 24px 65px rgba(41, 47, 85, 0.1);
-}
-
 .riPublicPage,
 .riPublicPage *,
 .riNavbar,
@@ -15047,10 +14974,6 @@ body.dark-mode .riFeatureCard:hover .riFeatureIcon {
     0 12px 25px rgba(38, 201, 232, 0.14);
 }
 
-html[data-public-theme="light"] .riNavbar {
-  background: rgba(255, 255, 255, 0.94);
-}
-
 html[data-user-theme="dark"] .uep-right {
   background: #171b35;
   border-color: #292e49;
@@ -15128,10 +15051,6 @@ html[data-user-theme="dark"] .uep-section {
 html[data-user-theme="dark"] .uep-listItem {
   background: #111529;
   border-color: #4b3fb3;
-}
-
-html[data-user-theme="dark"] .uep-listItem:hover {
-  background: #181d38;
 }
 
 html[data-user-theme="dark"] .uep-listName {
@@ -15241,19 +15160,6 @@ html[data-user-theme="dark"] .eventWizardPanel {
   background: #171b35;
   border-color: #292e49;
   color: #f6f7fb;
-}
-
-html[data-user-theme="dark"] input,
-html[data-user-theme="dark"] textarea,
-html[data-user-theme="dark"] select {
-  background: #111529;
-  border-color: #303650;
-  color: #f6f7fb;
-}
-
-html[data-user-theme="dark"] input::placeholder,
-html[data-user-theme="dark"] textarea::placeholder {
-  color: #9ba3bd;
 }
 
 .riNavbarInner {
@@ -15683,15 +15589,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   border-bottom: 1px solid rgba(41, 46, 80, 0.25);
 }
 
-.riFeaturesSection {
-  position: relative;
-  overflow: hidden;
-  background: #ffffff;
-  color: #111827;
-  border-top: 1px solid #e8ebf3;
-  border-bottom: 1px solid #e8ebf3;
-}
-
 .riFeaturesSection,
 .riHowSection,
 .riPricingSection {
@@ -15814,6 +15711,10 @@ html[data-user-theme="dark"] textarea::placeholder {
 }
 
 .riFeatureCard::before {
+  content: "";
+  position: absolute;
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 1;
   width: 150px;
   height: 150px;
@@ -15826,11 +15727,6 @@ html[data-user-theme="dark"] textarea::placeholder {
 
 .riFeatureCard:hover::before {
   transform: scale(1.45);
-}
-
-.riFeaturesSection .riContainer {
-  position: relative;
-  z-index: 2;
 }
 
 .riFeaturesSection .riSectionHead h2 {
@@ -17289,6 +17185,7 @@ html[data-user-theme="dark"] textarea::placeholder {
   width: 100%;
   padding: 26px 24px 60px;
   box-sizing: border-box;
+  margin-top: -20px;
 }
 
 .orgDetailTopRow {
@@ -17518,17 +17415,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   font-weight: 700;
 }
 
-.orgDetailLayout {
-  width: 100%;
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    290px;
-  gap: 22px;
-  margin-top: 22px;
-  align-items: start;
-}
-
 .orgDetailMain {
   min-width: 0;
 }
@@ -17725,68 +17611,10 @@ html[data-user-theme="dark"] textarea::placeholder {
   font-size: 10px;
 }
 
-.orgInfoCard {
-  width: 100%;
-  padding: 17px;
-  border: 1px solid #e1e4ec;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.orgInfoCard > h3 {
-  margin: 0 0 14px;
-  color: #6d7486;
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.orgStat {
-  min-height: 54px;
-  padding: 9px 8px;
-  border-radius: 9px;
-  background: #f3f4f9;
-}
-
-.orgStat strong {
-  display: block;
-  margin-bottom: 4px;
-  color: #202536;
-  font-size: 15px;
-  line-height: 1;
-  font-weight: 800;
-}
-
-.orgStat span {
-  display: block;
-  overflow: hidden;
-  color: #8a91a2;
-  font-size: 8px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .orgInfoDivider {
   height: 1px;
   margin: 16px 0;
   background: #eef0f5;
-}
-
-.orgInfoList {
-  display: grid;
-  gap: 12px;
-}
-
-.orgInfoItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  color: #666e80;
-  font-size: 10px;
-  line-height: 1.45;
-  font-weight: 600;
-  text-decoration: none;
-  word-break: break-word;
 }
 
 .orgInfoItem svg {
@@ -18732,14 +18560,6 @@ html[data-user-theme="dark"] textarea::placeholder {
   padding: 0;
   box-sizing: border-box;
   font-family: Montserrat, sans-serif;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
 }
 
 .forgotPasswordPage {
@@ -20077,6 +19897,7 @@ body,
   background: #f6f7fb;
   color: #151a2d;
   font-family: Inter, sans-serif;
+  margin-top: -20px;
 }
 
 .egTopbar {
@@ -20853,8 +20674,7 @@ body,
   width: 100%;
   padding: 26px 30px 60px;
   color: #172033;
-  margin-top: -10px;
-  margin-left: -10px;
+  margin-top: -20px;
 }
 
 .statisticsTopbar {
@@ -21451,12 +21271,6 @@ body,
   background: #f7f8fc;
   margin-top: -50px;
   margin-left: -40px;
-}
-
-.organizationsContainer {
-  width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
 }
 
 .organizationsHero {
@@ -22208,7 +22022,7 @@ body,
   display: block;
   margin-bottom: 7px;
   color: #343a4b;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.2;
   font-weight: 800;
 }
@@ -22266,7 +22080,7 @@ html[data-public-theme="dark"] .rgLoginField input:-webkit-autofill:focus {
 .rgLoginPasswordLabel a {
   margin-bottom: 7px;
   color: #684bff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -22891,6 +22705,7 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
+  margin-top: -20px;
 }
 
 .orgProfileTopbar > div {
@@ -23126,15 +22941,6 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
   gap: 6px;
   font-size: 10px;
   line-height: 1.4;
-}
-
-.orgStats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(110px, 1fr));
-  gap: 9px;
-  flex: 1 1 auto;
-  min-width: 0;
-  margin-left: auto;
 }
 
 .orgStats > div {
@@ -25207,63 +25013,6 @@ html[data-public-theme="light"] .riNewsRelatedBox {
   text-align: center;
 }
 
-.passwordProfileContent {
-  min-width: 0;
-  width: 100%;
-}
-
-.passwordProfileCard {
-  width: 100%;
-  overflow: hidden;
-  padding: 0;
-}
-
-.passwordProfileCardHeader {
-  min-height: 62px;
-  padding: 0 26px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid #e8ebf2;
-}
-
-.passwordProfileCardHeader h2 {
-  margin: 0;
-  color: #171b2e;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.3;
-}
-
-.passwordSecurityBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 78px;
-  height: 26px;
-  padding: 0 16px;
-  border-radius: 999px;
-  background: #e4faff;
-  color: #19b9dc;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.passwordProfileForm {
-  padding: 28px 26px 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.passwordProfileField {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
 .passwordProfileField > label {
   margin: 0;
   color: #8992a8;
@@ -25277,88 +25026,8 @@ html[data-public-theme="light"] .riNewsRelatedBox {
   color: #7352f4;
 }
 
-.passwordProfileInput {
-  position: relative;
-  width: 100%;
-}
-
-.passwordProfileInput input {
-  display: block;
-  width: 100%;
-  height: 46px;
-  padding: 0 52px 0 15px;
-  outline: none;
-  border: 1px solid #dce1eb;
-  border-radius: 11px;
-  background: #fafbfe;
-  color: #171b2e;
-  font-size: 14px;
-  font-weight: 500;
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
 .passwordProfileInput input:hover {
   border-color: #cbd1de;
-}
-
-.passwordProfileInput input:focus {
-  background: #ffffff;
-  border-color: #7450f5;
-  box-shadow: 0 0 0 3px rgba(116, 80, 245, 0.09);
-}
-
-.passwordProfileInput button {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(-50%);
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #8f98aa;
-  cursor: pointer;
-  font-size: 17px;
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
-}
-
-.passwordProfileInput button:hover {
-  color: #6845ee;
-  background: #f2efff;
-}
-
-.passwordProfileMessage {
-  min-height: 44px;
-  padding: 11px 14px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
-.passwordProfileMessage.error {
-  background: #fff2f3;
-  border: 1px solid #ffd7db;
-  color: #dc3545;
-}
-
-.passwordProfileMessage.success {
-  background: #edfff7;
-  border: 1px solid #c8f5df;
-  color: #159764;
 }
 
 .passwordProfileMessage svg {
@@ -25366,68 +25035,13 @@ html[data-public-theme="light"] .riNewsRelatedBox {
   font-size: 17px;
 }
 
-.passwordProfileActions {
-  margin-top: 2px;
-  padding-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  border-top: 1px solid #eceef4;
-}
-
-.passwordProfileCancel,
-.passwordProfileSave {
-  height: 44px;
-  padding: 0 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 11px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
-}
-
-.passwordProfileCancel {
-  min-width: 92px;
-  border: 1px solid #dce1eb;
-  background: #ffffff;
-  color: #536078;
-}
-
 .passwordProfileCancel:hover {
   border-color: #c8cfdb;
   background: #f9fafc;
 }
 
-.passwordProfileSave {
-  min-width: 170px;
-  border: 0;
-  background: linear-gradient(135deg, #593df1 0%, #8650ef 100%);
-  color: #ffffff;
-  box-shadow: 0 7px 17px rgba(101, 70, 239, 0.2);
-}
-
-.passwordProfileSave:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(101, 70, 239, 0.27);
-}
-
 .passwordProfileSave:active:not(:disabled) {
   transform: translateY(0);
-}
-
-.passwordProfileCancel:disabled,
-.passwordProfileSave:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
 }
 
 html[data-user-theme="dark"] .passwordProfileCardHeader {
@@ -25486,70 +25100,9 @@ html[data-user-theme="dark"] .passwordProfileCancel:hover {
   background: #202640;
 }
 
-.passwordRequirements {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  margin-top: 3px;
-}
-
-.passwordRequirement {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #8e96a8;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.4;
-  transition: color 0.2s ease;
-}
-
-.passwordRequirementIcon {
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #f0f2f6;
-  color: #9ba3b4;
-  font-size: 11px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.passwordRequirement.valid {
-  color: #159764;
-}
-
-.passwordRequirement.valid .passwordRequirementIcon {
-  background: #dcf8ec;
-  color: #159764;
-}
-
-.passwordMatch {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
 .passwordMatch svg {
   font-size: 14px;
   flex-shrink: 0;
-}
-
-.passwordMatch.valid {
-  color: #159764;
-}
-
-.passwordMatch.invalid {
-  color: #e34856;
 }
 
 .passwordProfileSave:disabled {
@@ -25594,6 +25147,7 @@ html[data-user-theme="dark"] .passwordMatch.invalid {
     flex-direction: column;
     align-items: flex-start;
     gap: 7px;
+    font-size: 11px;
   }
 
   .passwordRequirement {
@@ -26791,17 +26345,6 @@ html[data-user-theme="dark"] .rgAuthDivider::after {
     box-shadow 0.2s ease;
 }
 
-.rgUserLayout {
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns:
-    var(--rg-sidebar-width)
-    minmax(0, 1fr);
-  background: var(--rg-bg);
-  color: var(--rg-text);
-}
-
 .rgNewBadge {
   margin-left: auto;
   padding: 3px 6px;
@@ -26810,19 +26353,6 @@ html[data-user-theme="dark"] .rgAuthDivider::after {
   color: #604cf2;
   font-size: 9px;
   line-height: 1;
-}
-
-.rgUserMain {
-  grid-column: 2;
-  min-width: 0;
-  min-height: 100vh;
-}
-
-.rgUserContent {
-  width: 100%;
-  min-height: calc(100vh - var(--rg-topbar-height));
-  padding: 24px;
-  background: var(--rg-bg);
 }
 
 .rgMobileHeader,
@@ -26841,47 +26371,6 @@ html[data-user-theme="dark"] .nt-card {
   background: var(--rg-panel);
   border-color: var(--rg-border);
   color: var(--rg-text);
-}
-
-html[data-user-theme="dark"] input,
-html[data-user-theme="dark"] textarea,
-html[data-user-theme="dark"] select {
-  border-color: var(--rg-border);
-  background: #111529;
-  color: var(--rg-text);
-}
-
-.rgDashboardCard {
-  border: 1px solid var(--rg-border);
-  border-radius: 16px;
-  background: var(--rg-panel);
-  box-shadow: var(--rg-shadow);
-}
-
-.rgHomePage {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    320px;
-  gap: 20px;
-  min-height: calc(100vh - var(--rg-topbar-height) - 48px);
-}
-
-.rgHomeMain {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.rgDashboardCardHeader {
-  min-height: 54px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--rg-border);
 }
 
 .rgDashboardCardHeader h2 {
@@ -26921,19 +26410,6 @@ html[data-user-theme="dark"] select {
 
 .rgUpcomingEvent {
   overflow: hidden;
-}
-
-.rgUpcomingImage {
-  width: 100%;
-  height: 250px;
-  overflow: hidden;
-  background: #111827;
-}
-
-.rgUpcomingImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .rgUpcomingBody {
@@ -32753,16 +32229,6 @@ html[data-user-theme="dark"] .eventOrganizerInfo strong {
   color: #f6f7fb;
 }
 
-html[data-user-theme="dark"] {
-  --rg-bg: #0d1022;
-  --rg-panel: #171b35;
-  --rg-panel-soft: #111529;
-  --rg-text: #f6f7fb;
-  --rg-muted: #9ba3bd;
-  --rg-border: #292e49;
-  color-scheme: dark;
-}
-
 html[data-user-theme="dark"] body,
 html[data-user-theme="dark"] .user-layout,
 html[data-user-theme="dark"] .user-page-content {
@@ -33189,6 +32655,7 @@ html[data-user-theme="dark"] .uep-wrap.is-detail .uep-right {
 }
 
 .myEventCard {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   border: 1px solid #e1e4ea;
@@ -33287,6 +32754,8 @@ html[data-user-theme="dark"] .uep-wrap.is-detail .uep-right {
 }
 
 .myEventActions {
+  position: relative;
+  z-index: 20;
   display: grid;
   grid-template-columns: 1fr 1fr 32px;
   gap: 8px;
@@ -34448,10 +33917,6 @@ html[data-user-theme="dark"] .rgProfileSettingsMain {
 html[data-user-theme="dark"] .rgAuthSetupPassword {
   border-color: #9d8cff;
   color: #b9adff;
-}
-
-html[data-user-theme="dark"] .myEventsPage {
-  color: #f5f6fb;
 }
 
 html[data-user-theme="dark"] .myEventsTitle,
@@ -38458,26 +37923,6 @@ html[data-user-theme="dark"] .rgProfileDropdown button:hover {
   }
 }
 
-html[data-user-theme="dark"] {
-  --bg: #0f1426;
-  --surface: #171b35;
-  --surface-2: #111529;
-  --surface-3: #1d243f;
-  --text: #f6f7fb;
-  --text-2: #c4cada;
-  --muted: #9ba3bd;
-  --muted-2: #7f889f;
-  --border: #292e49;
-  --border-2: #343c59;
-  --rg-bg: #0f1426;
-  --rg-panel: #171b35;
-  --rg-panel-soft: #111529;
-  --rg-text: #f6f7fb;
-  --rg-muted: #9ba3bd;
-  --rg-border: #292e49;
-  color-scheme: dark;
-}
-
 html[data-user-theme="dark"],
 html[data-user-theme="dark"] body,
 html[data-user-theme="dark"] #root,
@@ -38502,6 +37947,7 @@ html[data-user-theme="dark"] .user-main {
 }
 
 html[data-user-theme="dark"] .myEventsPage {
+  color: #f5f6fb;
   min-height: calc(100vh - var(--rg-topbar-height));
 }
 
@@ -38732,13 +38178,6 @@ html[data-user-theme="dark"] .rgRequestList button:hover {
   background: #222742;
 }
 
-.riBrowserMockup img,
-.riLaptopMockup img,
-.riPhoneMockup img {
-  display: block;
-  width: 100%;
-}
-
 @media (max-width: 900px) {
   html[data-user-theme="dark"] .rgMobileDrawer,
   html[data-user-theme="dark"] .rgUserMobileSidebar {
@@ -38759,6 +38198,22 @@ html[data-user-theme="light"] {
 }
 
 html[data-user-theme="dark"] {
+  --bg: #0f1426;
+  --surface: #171b35;
+  --surface-2: #111529;
+  --surface-3: #1d243f;
+  --text: #f6f7fb;
+  --text-2: #c4cada;
+  --muted: #9ba3bd;
+  --muted-2: #7f889f;
+  --border: #292e49;
+  --border-2: #343c59;
+  --rg-bg: #0f1426;
+  --rg-panel: #171b35;
+  --rg-panel-soft: #111529;
+  --rg-text: #f6f7fb;
+  --rg-muted: #9ba3bd;
+  --rg-border: #292e49;
   color-scheme: dark;
   --rg-page-bg: #0f1426;
   --rg-surface: #171b35;
@@ -38925,6 +38380,7 @@ html[data-user-theme="dark"] [role="dialog"] {
 html[data-user-theme="dark"] input,
 html[data-user-theme="dark"] textarea,
 html[data-user-theme="dark"] select {
+  background: #111529;
   background-color: var(--rg-field);
   border-color: #303650;
   color: var(--rg-text-main);
@@ -38997,7 +38453,6 @@ html[data-user-theme="light"] .myEventSearch,
 html:not([data-user-theme="dark"]) .myEventSearch {
   background: #ffffff;
   border-color: #e0e3eb;
-  margin-top: 20px;
 }
 
 html[data-user-theme="light"] .myEventSearch input,
@@ -39090,21 +38545,6 @@ html[data-public-theme="light"] .riFeaturesSection .riFeatureCard h3 {
 
 html[data-public-theme="light"] .riFeaturesSection .riFeatureCard p {
   color: #697386;
-}
-
-html[data-public-theme="light"] .riFeaturesSection .riFeatureCard::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  width: 150px;
-  height: 150px;
-  right: -75px;
-  top: -75px;
-  border-radius: 50%;
-  background: rgba(101, 88, 245, 0.08);
-  pointer-events: none;
-  transform: scale(1);
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html[data-public-theme="light"]
@@ -39266,6 +38706,17 @@ html[data-public-theme="dark"] .riFeaturesSection .riFeatureCard::before {
 }
 
 html[data-public-theme="light"] .riFeaturesSection .riFeatureCard::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  right: -75px;
+  top: -75px;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   background: rgba(101, 88, 245, 0.08);
 }
 
@@ -39528,6 +38979,10 @@ html[data-public-theme="dark"] .riDeviceList small {
 }
 
 .riFeaturesSection {
+  background: #ffffff;
+  color: #111827;
+  border-top: 1px solid #e8ebf3;
+  border-bottom: 1px solid #e8ebf3;
   position: relative;
   overflow: hidden;
 }
@@ -39832,18 +39287,6 @@ html[data-public-theme="dark"] .riMobileMenu {
   }
 }
 
-.orgInfoCard {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  padding: 17px;
-  box-sizing: border-box;
-  border: 1px solid #e1e4ec;
-  border-radius: 14px;
-  background: #ffffff;
-  overflow: hidden;
-}
-
 .orgInfoCard > h3 {
   margin: 0 0 14px;
   color: #6d7486;
@@ -39873,23 +39316,8 @@ html[data-public-theme="dark"] .riMobileMenu {
   margin-bottom: 6px;
 }
 
-.orgStat {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  min-height: 70px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 12px 10px;
-  box-sizing: border-box;
-  border-radius: 9px;
-  background: #f3f4f9;
-  overflow: hidden;
-}
-
 .orgStat strong {
+  margin-bottom: 4px;
   display: block;
   width: 100%;
   min-width: 0;
@@ -39900,21 +39328,6 @@ html[data-public-theme="dark"] .riMobileMenu {
   font-weight: 800;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.orgStat span {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  color: #8a91a2;
-  font-size: 8px;
-  line-height: 1.35;
-  font-weight: 600;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  overflow-wrap: anywhere;
-  word-break: normal;
 }
 
 .orgInfoList {
@@ -40080,17 +39493,8 @@ html[data-user-theme="dark"] .orgInfoItem svg {
 }
 
 html,
-body,
-#root {
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-html,
 body {
+  height: 100%;
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -40114,15 +39518,6 @@ body {
   box-sizing: border-box;
 }
 
-.rgUserLayout {
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: var(--rg-sidebar-width) minmax(0, 1fr);
-  background: var(--rg-bg);
-  color: var(--rg-text);
-}
-
 .rgUserMain {
   grid-column: 2;
   width: 100%;
@@ -40130,16 +39525,8 @@ body {
   min-height: 100vh;
 }
 
-.rgUserContent {
-  width: 100%;
-  min-width: 0;
-  min-height: calc(100vh - var(--rg-topbar-height));
-  padding: 24px;
-  overflow-x: clip;
-  background: var(--rg-bg);
-}
-
 .rgHomePage {
+  min-height: calc(100vh - var(--rg-topbar-height) - 48px);
   width: 100%;
   min-width: 0;
   display: grid;
@@ -40148,17 +39535,31 @@ body {
 }
 
 .rgHomeMain {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   width: 100%;
   min-width: 0;
 }
 
 .rgDashboardCard {
+  border: 1px solid var(--rg-border);
+  border-radius: 16px;
+  background: var(--rg-panel);
+  box-shadow: var(--rg-shadow);
   width: 100%;
   min-width: 0;
   overflow: hidden;
 }
 
 .rgDashboardCardHeader {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--rg-border);
   width: 100%;
   min-width: 0;
 }
@@ -40178,11 +39579,15 @@ body {
 }
 
 .rgUpcomingImage {
+  height: 250px;
+  overflow: hidden;
+  background: #111827;
   width: 100%;
   max-width: 100%;
 }
 
 .rgUpcomingImage img {
+  height: 100%;
   width: 100%;
   max-width: 100%;
   object-fit: cover;
@@ -40813,6 +40218,8 @@ body {
 html,
 body,
 #root {
+  min-height: 100%;
+  padding: 0;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -40820,6 +40227,19 @@ body,
 }
 
 body {
+  margin: 0;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    "Noto Sans",
+    "Helvetica Neue",
+    sans-serif;
+  color: var(--text-900);
+  background: #fff;
   overflow-x: hidden;
 }
 
@@ -40834,10 +40254,16 @@ img,
 video,
 canvas,
 svg {
+  height: auto;
   max-width: 100%;
 }
 
 .rgUserLayout {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  background: var(--rg-bg);
+  color: var(--rg-text);
   grid-template-columns: var(--rg-sidebar-width) minmax(0, 1fr);
 }
 
@@ -40848,10 +40274,19 @@ svg {
 }
 
 .rgUserContent {
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - var(--rg-topbar-height));
+  padding: 24px;
+  background: var(--rg-bg);
   overflow-x: clip;
 }
 
 .orgDetailLayout {
+  width: 100%;
+  display: grid;
+  margin-top: 22px;
+  align-items: start;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
   gap: 22px;
 }
@@ -40863,12 +40298,21 @@ svg {
 }
 
 .orgInfoCard {
+  min-width: 0;
+  padding: 17px;
+  box-sizing: border-box;
+  border: 1px solid #e1e4ec;
+  border-radius: 14px;
+  background: #ffffff;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
 }
 
 .orgStats {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
@@ -40876,6 +40320,15 @@ svg {
 }
 
 .orgStat {
+  max-width: 100%;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #f3f4f9;
   width: 100%;
   min-width: 0;
   padding: 12px 8px;
@@ -40892,6 +40345,16 @@ svg {
 }
 
 .orgStat span {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  color: #8a91a2;
+  font-size: 8px;
+  line-height: 1.35;
+  font-weight: 600;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: normal;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -41427,16 +40890,13 @@ svg {
     gap: 12px;
   }
 
-  .calMain {
-    overflow: hidden;
-  }
-
   .calGrid,
   .calWeekdays {
     min-width: 630px;
   }
 
   .calMain {
+    overflow: hidden;
     overflow-x: auto;
   }
 
@@ -42558,6 +42018,8 @@ svg {
 }
 
 .organizationsContainer {
+  width: 100%;
+  margin: 0 auto;
   max-width: 1180px;
 }
 
@@ -42977,5 +42439,910 @@ svg {
 
   .organizationsHero h1 {
     font-size: 21px;
+  }
+}
+
+.passwordProfileContent {
+  width: 100%;
+  min-width: 0;
+}
+
+.passwordProfileCardHeader h2 {
+  color: #171b2e;
+  line-height: 1.3;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.passwordProfileField label span {
+  color: #6847ef;
+}
+
+@media (max-width: 620px) {
+  .passwordProfileForm {
+    padding: 16px 14px;
+  }
+  .passwordRequirements {
+    display: grid;
+    grid-template-columns: 1fr;
+    font-size: 11px;
+  }
+  .passwordProfileActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .passwordProfileCancel,
+  .passwordProfileSave {
+    width: 100%;
+    padding: 0 8px;
+  }
+}
+
+.rpPage {
+  min-height: 100%;
+  background: #f7f8fc;
+  padding: 22px 26px 70px;
+  color: #252536;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  margin-top: -20px;
+}
+
+.rpHeading {
+  margin: 0 auto 18px;
+  max-width: 1180px;
+}
+
+.rpHeading h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+  font-weight: 800;
+}
+
+.rpHeading p {
+  margin: 0;
+  color: #8b8c99;
+  font-size: 14px;
+}
+
+.rpLayout {
+  max-width: 1180px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.rpSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rpProfileCard,
+.rpNav,
+.rpCard {
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(34, 31, 66, 0.035);
+}
+
+.rpProfileCard {
+  padding: 22px 18px 16px;
+  text-align: center;
+}
+
+.rpAvatarWrap {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 12px;
+}
+
+.rpAvatar {
+  width: 78px;
+  height: 78px;
+  min-width: 78px;
+  min-height: 78px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #6847ef;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.rpAvatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  margin: 0;
+  padding: 0;
+}
+
+.rpCamera {
+  position: absolute;
+  right: -1px;
+  bottom: 2px;
+  width: 23px;
+  height: 23px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #f4f4f8;
+  color: #6f7080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.rpCamera svg {
+  width: 11px;
+  height: 11px;
+}
+
+.rpCamera:hover {
+  background: #6847ef;
+  color: #fff;
+}
+
+.rpProfileCard h2 {
+  font-size: 14px;
+  margin: 0 0 5px;
+}
+
+.rpProfileCard p {
+  font-size: 14px;
+  color: #7c7d89;
+  margin: 0;
+}
+
+.rpProgressTitle {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rpProgressTitle b {
+  color: #6847ef;
+  font-size: 14px;
+}
+
+.rpProgress {
+  height: 5px;
+  background: #ececf5;
+  border-radius: 20px;
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.rpProgress span {
+  display: block;
+  height: 100%;
+  background: #6847ef;
+  border-radius: 20px;
+  transition: 0.25s;
+}
+
+.rpNav {
+  padding: 8px;
+}
+
+.rpNav a {
+  height: 40px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #676875;
+  font-size: 12px;
+  font-weight: 650;
+  margin: 2px 0;
+}
+
+.rpNav a svg {
+  font-size: 15px;
+}
+
+.rpNav a.active {
+  background: #eee9ff;
+  color: #6745ec;
+}
+
+.rpContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rpCard {
+  overflow: hidden;
+}
+
+.rpCardHead {
+  height: 52px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.rpCardHead h3 {
+  font-size: 14px;
+  margin: 0;
+  font-weight: 800;
+}
+
+.rpComplete {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #eafaf8;
+  color: #27a8aa;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rpCardBody {
+  padding: 18px;
+}
+
+.rpGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.rpGrid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.rpField {
+  min-width: 0;
+}
+
+.rpField label {
+  display: block;
+  margin: 0 0 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #858692;
+  letter-spacing: 0.02em;
+}
+
+.rpField label span {
+  color: #6847ef;
+}
+
+.rpField input,
+.rpField select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 39px;
+  border: 1px solid #e6e6ee;
+  border-radius: 8px;
+  padding: 0 11px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.rpField input:focus,
+.rpField select:focus {
+  border-color: #8b73ef;
+  box-shadow: 0 0 0 3px rgba(104, 71, 239, 0.08);
+}
+
+.rpReadonly {
+  position: relative;
+}
+
+.rpReadonly input {
+  background: #fafafd;
+  color: #8a8b95;
+  padding-right: 130px;
+}
+
+.rpVerified {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rpInterests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rpInterest {
+  border: 1px solid #e5e4eb;
+  background: #fff;
+  border-radius: 18px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #555765;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rpInterest.selected {
+  border-color: #cfc3ff;
+  background: #f0ebff;
+  color: #6745ec;
+}
+
+.rpInterest:hover {
+  border-color: #9f8df1;
+}
+
+.rpMeetingIntro {
+  font-size: 12px;
+  color: #8a8b96;
+  margin: -8px 0 14px;
+}
+
+.rpMeetingToggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+}
+
+.rpMeetingToggleRow strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.rpMeetingToggleRow span {
+  display: block;
+  color: #91929d;
+  font-size: 12px;
+}
+
+.rpSwitch {
+  width: 35px;
+  height: 20px;
+  border: 0;
+  border-radius: 20px;
+  background: #d6d6de;
+  padding: 2px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.rpSwitch i {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: 0.2s;
+}
+
+.rpSwitch.on {
+  background: #6847ef;
+}
+
+.rpSwitch.on i {
+  transform: translateX(15px);
+}
+
+.rpZoomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ececf2;
+  border-radius: 9px;
+  padding: 11px 12px;
+  margin-bottom: 15px;
+}
+
+.rpZoomLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rpZoomIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #e8f7fb;
+  color: #55b6cc;
+  display: grid;
+  place-items: center;
+}
+
+.rpZoomLeft strong {
+  font-size: 12px;
+  display: block;
+}
+
+.rpZoomLeft span {
+  font-size: 12px;
+  color: #92939c;
+}
+
+.rpConnect {
+  border: 1px solid #e4e4eb;
+  background: #fff;
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rpActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.rpSaved {
+  color: #22a06b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rpSave {
+  border: 0;
+  border-radius: 9px;
+  background: #6847ef;
+  color: #fff;
+  padding: 11px 20px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(104, 71, 239, 0.2);
+}
+
+.rpSave:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rpError {
+  padding: 11px 14px;
+  border-radius: 9px;
+  background: #fff1f1;
+  border: 1px solid #ffd7d7;
+  color: #c83d3d;
+  font-size: 11px;
+}
+
+.rpLoading {
+  padding: 40px;
+  text-align: center;
+  color: #777;
+}
+
+@media (max-width: 900px) {
+  .rpPage {
+    padding: 16px;
+  }
+  .rpLayout {
+    grid-template-columns: 1fr;
+  }
+  .rpSidebar {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+  }
+  .rpNav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-content: start;
+  }
+  .rpGrid3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .rpPage {
+    padding: 30px 10px 50px;
+  }
+  .rpSidebar {
+    display: flex;
+  }
+  .rpNav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 7px;
+    overflow: visible;
+    width: 100%;
+  }
+  .rpNav a {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    margin: 0;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    border-radius: 7px;
+  }
+  .rpNav a svg {
+    flex: 0 0 auto;
+    width: 13px;
+    height: 13px;
+    font-size: 13px;
+  }
+
+  .rpNav a.active {
+    background: #eee9ff;
+    color: #6745ec;
+  }
+  .rpGrid2,
+  .rpGrid3 {
+    grid-template-columns: 1fr;
+  }
+  .rpCardBody {
+    padding: 14px;
+  }
+  .rpCardHead {
+    padding: 0 14px;
+  }
+  .rpReadonly input {
+    padding-right: 105px;
+  }
+  .rpActions {
+    position: sticky;
+    bottom: 10px;
+  }
+  .rpSave {
+    width: 100%;
+  }
+}
+.passwordProfileCard {
+  padding: 0;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(34, 31, 66, 0.035);
+  width: 100%;
+}
+
+.passwordProfileCardHeader {
+  gap: 20px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f5;
+  min-height: 52px;
+  height: 52px;
+}
+
+.passwordSecurityBadge {
+  min-width: 78px;
+  height: 26px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #eafaf8;
+  color: #27a8aa;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.passwordProfileForm {
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.passwordProfileField {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+}
+
+.passwordProfileField label {
+  display: block;
+  margin: 0 0 7px;
+  color: #858692;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.passwordProfileInput {
+  position: relative;
+  width: 100%;
+}
+
+.passwordProfileInput input {
+  display: block;
+  font-weight: 500;
+  width: 100%;
+  height: 39px;
+  box-sizing: border-box;
+  padding: 0 45px 0 11px;
+  border: 1px solid #e6e6ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.passwordProfileInput input:focus {
+  background: #ffffff;
+  border-color: #8b73ef;
+  box-shadow: 0 0 0 3px rgba(104, 71, 239, 0.08);
+}
+
+.passwordProfileInput button {
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #7c7d89;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.passwordProfileInput button:hover {
+  background: #f3f1ff;
+  color: #6847ef;
+}
+
+.passwordRequirements {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  font-size: 11px;
+}
+
+.passwordRequirement {
+  line-height: 1.4;
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #92939d;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.passwordRequirement.valid {
+  color: #22a06b;
+}
+
+.passwordRequirementIcon {
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #9ba3b4;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f0f0f5;
+  font-size: 10px;
+}
+
+.passwordRequirement.valid .passwordRequirementIcon {
+  color: #159764;
+  background: #e8f8f0;
+}
+
+.passwordMatch {
+  margin-top: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.passwordMatch.valid {
+  color: #22a06b;
+}
+
+.passwordMatch.invalid {
+  color: #c83d3d;
+}
+
+.passwordProfileMessage {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  line-height: 1.45;
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.passwordProfileMessage.error {
+  background: #fff1f1;
+  border: 1px solid #ffd7d7;
+  color: #c83d3d;
+}
+
+.passwordProfileMessage.success {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #effbf5;
+  border: 1px solid #cdeedc;
+  color: #21875b;
+}
+
+.passwordProfileActions {
+  margin-top: 2px;
+  border-top: 1px solid #eceef4;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.passwordProfileCancel,
+.passwordProfileSave {
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.passwordProfileCancel {
+  min-width: 92px;
+  border: 1px solid #e3e3eb;
+  background: #fff;
+  color: #5f606c;
+}
+
+.passwordProfileCancel:hover:not(:disabled) {
+  background: #f8f8fb;
+}
+
+.passwordProfileSave {
+  min-width: 170px;
+  border: 0;
+  background: #6847ef;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(104, 71, 239, 0.2);
+}
+
+.passwordProfileSave:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(101, 70, 239, 0.27);
+  background: #5d3fe0;
+}
+
+.passwordProfileCancel:disabled,
+.passwordProfileSave:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 620px) {
+  .passwordProfileForm {
+    padding: 16px 14px;
+    gap: 17px;
+  }
+
+  .passwordRequirements {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .passwordProfileActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .passwordProfileCancel,
+  .passwordProfileSave {
+    width: 100%;
+    padding: 0 8px;
+  }
+}
+
+@media (max-width: 390px) {
+  .passwordProfileActions {
+    grid-template-columns: 1fr;
   }
 }

@@ -706,7 +706,7 @@ router.put("/:id", authMiddleware, (req, res) => {
 
       const finalImageUrl = imageFile
         ? `/uploads/events/${imageFile.filename}`
-        : String(image_url || "").trim() || event.image_url || randomDefaultEventCover();
+        : String(image_url || "").trim() || event.image_url || randomDefaultEventCover();;
 
       const finalAgenda = sanitizeAgenda(safeJsonParse(agenda, []));
 

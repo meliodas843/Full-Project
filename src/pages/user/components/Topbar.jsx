@@ -18,10 +18,15 @@ import { API_BASE } from "../../../lib/config";
 
 const ORGANIZATION_LOGOS = [
   "/registra-default-images/logos/logo-color-1-example.svg",
+
   "/registra-default-images/logos/logo-color-2-example.svg",
+
   "/registra-default-images/logos/logo-color-3-example.svg",
+
   "/registra-default-images/logos/logo-color-4-example.svg",
+
   "/registra-default-images/logos/logo-color-5-example.svg",
+
   "/registra-default-images/logos/logo-color-6-example.svg",
 ];
 
@@ -31,6 +36,7 @@ function cleanValue(value) {
 
 function hashIdentity(value) {
   const text = cleanValue(value) || "registra";
+
   let hash = 0;
 
   for (let index = 0; index < text.length; index += 1) {
@@ -50,8 +56,8 @@ function resolveOrganizationImage(value) {
   if (!image) return "";
 
   if (
-    image.startsWith("http://") ||
-    image.startsWith("https://") ||
+    image.startsWith("http\://") ||
+    image.startsWith("https\://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -252,13 +258,43 @@ export default function Topbar({
 
   const [organizationLogo, setOrganizationLogo] = useState("");
 
-  const user = useMemo(() => {
+  const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "{}");
     } catch {
       return {};
     }
+  });
+
+  const refreshUserIdentity = useCallback(() => {
+    try {
+      setUser(JSON.parse(localStorage.getItem("user") || "{}"));
+    } catch {
+      setUser({});
+    }
   }, []);
+
+  useEffect(() => {
+    refreshUserIdentity();
+
+    const handleProfileUpdated = () => {
+      refreshUserIdentity();
+    };
+
+    const handleStorage = (event) => {
+      if (!event.key || event.key === "user") {
+        refreshUserIdentity();
+      }
+    };
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("profile-updated", handleProfileUpdated);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [refreshUserIdentity]);
 
   const fullName =
     `${user?.firstName || user?.first_name || ""} ${
@@ -290,6 +326,7 @@ export default function Topbar({
   const organizationFallbackLogo = useMemo(
     () =>
       stableOrganizationLogo(`${organizationIdentityKey}-organization-logo`),
+
     [organizationIdentityKey],
   );
 
@@ -299,6 +336,7 @@ export default function Topbar({
   const loadOrganizationIdentity = useCallback(async () => {
     if (!isOrganizationAccount) {
       setOrganizationLogo("");
+
       return;
     }
 
@@ -307,6 +345,7 @@ export default function Topbar({
 
     if (!token) {
       setOrganizationLogo("");
+
       return;
     }
 
@@ -319,10 +358,12 @@ export default function Topbar({
 
       if (!response.ok) {
         setOrganizationLogo("");
+
         return;
       }
 
       const data = await response.json().catch(() => ({}));
+
       const organization =
         data?.organization || data?.company || data?.data || data || {};
 
@@ -349,6 +390,7 @@ export default function Topbar({
     return () => {
       window.removeEventListener(
         "organization-updated",
+
         handleOrganizationUpdated,
       );
     };
@@ -905,14 +947,20 @@ export default function Topbar({
               height={42}
               onError={(event) => {
                 event.currentTarget.onerror = null;
+
                 event.currentTarget.src = organizationFallbackLogo;
               }}
               style={{
                 width: 42,
+
                 height: 42,
+
                 flex: "0 0 42px",
+
                 display: "block",
+
                 objectFit: "cover",
+
                 borderRadius: 10,
               }}
             />
@@ -920,7 +968,13 @@ export default function Topbar({
             <UserAvatar
               name={fullName}
               email={user?.email}
-              src={user?.avatar_url}
+              src={
+                user?.avatar_url ||
+                user?.avatar ||
+                user?.profile_image ||
+                user?.profile_image_url ||
+                ""
+              }
               apiBase={API_BASE}
               size={42}
             />

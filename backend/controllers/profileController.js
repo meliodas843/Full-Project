@@ -1,5 +1,11 @@
 import pool from "../db.js";
 
+function getUserId(req) {
+  const userId = Number(req.user?.id ?? req.user?.userId ?? req.user?.user_id);
+
+  return Number.isFinite(userId) ? userId : null;
+}
+
 function normalizeText(value) {
   return String(value ?? "").trim();
 }
@@ -11,13 +17,26 @@ function normalizePhone(value) {
 }
 
 function normalizeInterests(value) {
-  if (!Array.isArray(value)) {
-    return [];
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item ?? "").trim()).filter(Boolean);
   }
 
-  return value
-    .map((item) => String(item ?? "").trim())
-    .filter(Boolean);
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+      }
+    } catch {
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+  }
+
+  return [];
 }
 
 function parseInterests(value) {
@@ -50,54 +69,86 @@ function parseInterests(value) {
 function formatUser(user) {
   return {
     id: user.id,
-    company_name: user.company_name || "",
-    job_title: user.job_title || "",
-    interests: parseInterests(user.interests),
+
     email: user.email || "",
-    role: user.role || "user",
+
+    company_name: user.company_name || "",
+    company: user.company_name || "",
+    organization: user.company_name || "",
+
     phone: user.phone || "",
-    first_name: user.first_name || "",
-    last_name: user.last_name || "",
+
     firstName: user.first_name || "",
+    first_name: user.first_name || "",
+
     lastName: user.last_name || "",
-    avatar_url: user.avatar_url || null,
+    last_name: user.last_name || "",
+
+    job_title: user.job_title || "",
+    jobTitle: user.job_title || "",
+
+    interests: parseInterests(user.interests),
+
+    professional_interests: parseInterests(user.interests),
+
+    professionalInterests: parseInterests(user.interests),
+
+    role: user.role || "user",
+
+    avatar_url: user.avatar_url || "",
+    avatar: user.avatar_url || "",
+    profile_image: user.avatar_url || "",
+    profile_image_url: user.avatar_url || "",
+
     created_at: user.created_at || null,
   };
 }
 
+async function getUserById(userId) {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      id,
+      email,
+      company_name,
+      phone,
+      first_name,
+      last_name,
+      job_title,
+      interests,
+      role,
+      avatar_url,
+      created_at
+    FROM users
+    WHERE id = ?
+    LIMIT 1
+    `,
+    [userId],
+  );
+
+  return rows[0] || null;
+}
+
 export const getMyProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = getUserId(req);
 
-    const [rows] = await pool.query(
-      `
-      SELECT
-        id,
-        company_name,
-        job_title,
-        interests,
-        email,
-        role,
-        phone,
-        first_name,
-        last_name,
-        avatar_url,
-        created_at
-      FROM users
-      WHERE id = ?
-      LIMIT 1
-      `,
-      [userId]
-    );
+    if (!userId) {
+      return res.status(401).json({
+        message: "Invalid token payload",
+      });
+    }
 
-    if (!rows.length) {
+    const user = await getUserById(userId);
+
+    if (!user) {
       return res.status(404).json({
         message: "User not found",
       });
     }
 
     return res.status(200).json({
-      user: formatUser(rows[0]),
+      user: formatUser(user),
     });
   } catch (err) {
     console.error("GET PROFILE ERROR:", err);
@@ -110,91 +161,93 @@ export const getMyProfile = async (req, res) => {
 
 export const updateMyProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = getUserId(req);
 
-    const {
-      firstName,
-      first_name,
-      lastName,
-      last_name,
-      company_name,
-      phone,
-      job_title,
-      interests,
-    } = req.body;
+    if (!userId) {
+      return res.status(401).json({
+        message: "Invalid token payload",
+      });
+    }
 
-    const normalizedFirstName = normalizeText(
-      firstName ?? first_name
+    const firstName = normalizeText(
+      req.body?.firstName ?? req.body?.first_name,
     );
 
-    const normalizedLastName = normalizeText(
-      lastName ?? last_name
+    const lastName = normalizeText(req.body?.lastName ?? req.body?.last_name);
+
+    const companyName = normalizeText(
+      req.body?.company_name ?? req.body?.company ?? req.body?.organization,
     );
 
-    const normalizedCompanyName = normalizeText(
-      company_name
+    const phone = normalizePhone(req.body?.phone);
+
+    const jobTitle = normalizeText(req.body?.job_title ?? req.body?.jobTitle);
+
+    const interests = normalizeInterests(
+      req.body?.interests ??
+        req.body?.professional_interests ??
+        req.body?.professionalInterests,
     );
 
-    const normalizedPhone = normalizePhone(phone);
-
-    const normalizedJobTitle = normalizeText(
-      job_title
-    );
-
-    const normalizedInterests =
-      normalizeInterests(interests);
-
-    if (!normalizedFirstName) {
+    if (!firstName) {
       return res.status(400).json({
         message: "First name is required",
       });
     }
 
-    if (!normalizedLastName) {
+    if (!lastName) {
       return res.status(400).json({
         message: "Last name is required",
       });
     }
 
-    if (!/^\d{8}$/.test(normalizedPhone)) {
-      return res.status(400).json({
-        message: "Phone number must contain 8 digits",
-      });
-    }
-
-    if (!normalizedCompanyName) {
+    if (!companyName) {
       return res.status(400).json({
         message: "Organization is required",
       });
     }
 
-    if (!normalizedJobTitle) {
+    if (!/^\d{8}$/.test(phone)) {
+      return res.status(400).json({
+        message: "Phone number must contain 8 digits",
+      });
+    }
+
+    if (!jobTitle) {
       return res.status(400).json({
         message: "Job title is required",
       });
     }
 
-    if (!normalizedInterests.length) {
+    if (!interests.length) {
       return res.status(400).json({
-        message:
-          "Select at least one professional interest",
+        message: "Select at least one professional interest",
       });
     }
 
-    const [existing] = await pool.query(
-      `
-      SELECT id
-      FROM users
-      WHERE id = ?
-      LIMIT 1
-      `,
-      [userId]
-    );
+    const existingUser = await getUserById(userId);
 
-    if (!existing.length) {
+    if (!existingUser) {
       return res.status(404).json({
         message: "User not found",
       });
+    }
+
+    let avatarUrl = existingUser.avatar_url || "";
+
+    if (req.file) {
+      avatarUrl = `/uploads/profile/${req.file.filename}`;
+    } else {
+      const bodyAvatar = normalizeText(
+        req.body?.avatar_url ??
+          req.body?.avatar ??
+          req.body?.profile_image ??
+          req.body?.profile_image_url,
+      );
+
+      if (bodyAvatar) {
+        avatarUrl = bodyAvatar;
+      }
     }
 
     await pool.query(
@@ -206,42 +259,25 @@ export const updateMyProfile = async (req, res) => {
         company_name = ?,
         phone = ?,
         job_title = ?,
-        interests = ?
+        interests = ?,
+        avatar_url = ?
       WHERE id = ?
       `,
       [
-        normalizedFirstName,
-        normalizedLastName,
-        normalizedCompanyName,
-        normalizedPhone,
-        normalizedJobTitle,
-        JSON.stringify(normalizedInterests),
-        userId,
-      ]
-    );
-
-    const [rows] = await pool.query(
-      `
-      SELECT
-        id,
-        company_name,
-        job_title,
-        interests,
-        email,
-        role,
+        firstName,
+        lastName,
+        companyName,
         phone,
-        first_name,
-        last_name,
-        avatar_url,
-        created_at
-      FROM users
-      WHERE id = ?
-      LIMIT 1
-      `,
-      [userId]
+        jobTitle,
+        JSON.stringify(interests),
+        avatarUrl,
+        userId,
+      ],
     );
 
-    if (!rows.length) {
+    const updatedUser = await getUserById(userId);
+
+    if (!updatedUser) {
       return res.status(404).json({
         message: "User not found",
       });
@@ -249,7 +285,7 @@ export const updateMyProfile = async (req, res) => {
 
     return res.status(200).json({
       message: "Profile updated successfully",
-      user: formatUser(rows[0]),
+      user: formatUser(updatedUser),
     });
   } catch (err) {
     console.error("UPDATE PROFILE ERROR:", err);

@@ -1,10 +1,35 @@
+import fs from "fs";
+import path from "path";
 import express from "express";
+import multer from "multer";
 
 import pool from "../db.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+const ORGANIZATION_UPLOAD_DIR = path.join(process.cwd(), "uploads", "organizations");
+fs.mkdirSync(ORGANIZATION_UPLOAD_DIR, { recursive: true });
+
+const organizationStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, ORGANIZATION_UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || "");
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+  },
+});
+
+const organizationUpload = multer({
+  storage: organizationStorage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+      return cb(new Error("Only image files are allowed"));
+    }
+    cb(null, true);
+  },
+});
 
 function parseCategories(value) {
   if (Array.isArray(value)) {
@@ -299,7 +324,14 @@ router.get(
   },
 );
 
-router.put("/me", authMiddleware, async (req, res) => {
+router.put(
+  "/me",
+  authMiddleware,
+  organizationUpload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "cover", maxCount: 1 },
+  ]),
+  async (req, res) => {
   try {
     const userId = Number(req.user?.id);
 
@@ -368,13 +400,16 @@ router.put("/me", authMiddleware, async (req, res) => {
       body.employee_count ?? body.employeeCount ?? "",
     ).trim();
 
-    const logoUrl = String(
-      body.logo_url ?? body.logo ?? body.logoUrl ?? "",
-    ).trim();
+    const uploadedLogo = req.files?.logo?.[0];
+    const uploadedCover = req.files?.cover?.[0];
 
-    const coverUrl = String(
-      body.cover_url ?? body.cover ?? body.coverUrl ?? "",
-    ).trim();
+    const logoUrl = uploadedLogo
+      ? `/uploads/organizations/${uploadedLogo.filename}`
+      : String(body.logo_url ?? body.logoUrl ?? "").trim();
+
+    const coverUrl = uploadedCover
+      ? `/uploads/organizations/${uploadedCover.filename}`
+      : String(body.cover_url ?? body.coverUrl ?? "").trim();
 
     const [existing] = await pool.query(
       "SELECT id FROM organizations WHERE user_id=? LIMIT 1",

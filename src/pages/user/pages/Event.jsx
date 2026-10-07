@@ -14,9 +14,11 @@ function formatDateTime(dt) {
   const raw = String(dt).trim().replace("T", " ").replace(/Z$/, "");
 
   const [datePart, timePart = ""] = raw.split(" ");
+
   if (!datePart) return "";
 
   const [year, month, day] = datePart.split("-");
+
   const time = timePart.slice(0, 5);
 
   return `${year}/${month}/${day}${time ? ` ${time}` : ""}`;
@@ -1435,17 +1437,13 @@ export default function Event() {
 
   const visibleEvents = useMemo(() => {
     return events.filter((ev) => {
-      if (isEventFinished(ev)) {
-        return false;
-      }
-
       if (ev.visibility === "private") {
         return canEditEvent(ev);
       }
 
       return true;
     });
-  }, [events, now]);
+  }, [events]);
 
   const managedEvents = useMemo(() => {
     const query = eventSearch.trim().toLowerCase();
@@ -1541,7 +1539,12 @@ export default function Event() {
 
               <div className="eventDetailHero">
                 <img
-                  src={resolveUrl(selectedEvent.image_url) || fallbackImgSrc(selectedEvent?.id || selectedEvent?.event_id || 0)}
+                  src={
+                    resolveUrl(selectedEvent.image_url) ||
+                    fallbackImgSrc(
+                      selectedEvent?.id || selectedEvent?.event_id || 0,
+                    )
+                  }
                   alt={selectedEvent.title || "Эвент"}
                   className="eventDetailHeroImage"
                   onError={(e) => {
@@ -2183,7 +2186,8 @@ export default function Event() {
                         ev.is_draft === true;
 
                       const cover =
-                        resolveUrl(ev.image_url) || fallbackImgSrc(ev?.id || ev?.event_id || 0);
+                        resolveUrl(ev.image_url) ||
+                        fallbackImgSrc(ev?.id || ev?.event_id || 0);
 
                       const registered =
                         Number(
@@ -2214,22 +2218,6 @@ export default function Event() {
                                 e.currentTarget.src = fallbackImgSrc();
                               }}
                             />
-
-                            <span
-                              className={`myEventStatus ${
-                                finished
-                                  ? "finished"
-                                  : draft
-                                    ? "draft"
-                                    : "published"
-                              }`}
-                            >
-                              {finished
-                                ? "Дууссан"
-                                : draft
-                                  ? "Draft"
-                                  : "Нийтлэгдсэн"}
-                            </span>
                           </button>
 
                           <div className="myEventCardBody">
