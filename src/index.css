@@ -44710,6 +44710,175 @@ svg {
   box-shadow: none;
 }
 
+/* =========================================================
+   INVITE USER LOOKUP
+   ========================================================= */
+
+.inviteLookupCard {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: #f8f9fc;
+  border: 1px solid #e7e9f1;
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+.inviteLookupAvatar {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ede9fe;
+  color: #6d4aff;
+
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.inviteLookupInfo {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inviteLookupName {
+  margin: 0;
+
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+
+  color: #171927;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inviteLookupEmail {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+
+  color: #73798b;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inviteLookupBadge {
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+}
+
+.inviteLookupBadge.registered {
+  background: #e9f8ef;
+  color: #168447;
+}
+
+.inviteLookupBadge.new {
+  background: #f0ebff;
+  color: #6847ef;
+}
+
+.inviteLookupHint {
+  margin-top: 10px;
+
+  font-size: 13px;
+  line-height: 19px;
+
+  color: #73798b;
+}
+
+.inviteLookupLoading {
+  margin-top: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  color: #73798b;
+}
+
+.inviteLookupSpinner {
+  width: 15px;
+  height: 15px;
+
+  border: 2px solid #dedbe9;
+  border-top-color: #6847ef;
+  border-radius: 50%;
+
+  animation: inviteSpin 0.7s linear infinite;
+}
+
+@keyframes inviteSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .inviteLookupCard {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .inviteLookupAvatar {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+
+  .inviteLookupName {
+    font-size: 13px;
+  }
+
+  .inviteLookupEmail {
+    font-size: 12px;
+  }
+
+  .inviteLookupBadge {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 600px) {
   .rgPasswordGuide {
     padding: 14px;
