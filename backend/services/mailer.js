@@ -30,10 +30,10 @@ const transporter = nodemailer.createTransport({
 
 function findLogoPath() {
   const candidates = [
-    path.resolve(__dirname, "../../src/assets/registra-logo-def.png"),
-    path.resolve(process.cwd(), "../src/assets/registra-logo-def.png"),
-    path.resolve(process.cwd(), "src/assets/registra-logo-def.png"),
-    path.resolve(process.cwd(), "../dist/assets/registra-logo-def.png"),
+    path.resolve(__dirname, "../../src/assets/reigistra-logo-def.png"),
+    path.resolve(process.cwd(), "../src/assets/reigistra-logo-def.png"),
+    path.resolve(process.cwd(), "src/assets/reigistra-logo-def.png"),
+    path.resolve(process.cwd(), "../dist/assets/reigistra-logo-def.png"),
   ];
 
   const found = candidates.find((candidate) => fs.existsSync(candidate));
@@ -54,7 +54,7 @@ function getLogoAttachment() {
   }
 
   return {
-    filename: "registra-logo-def.png",
+    filename: "reigistra-logo-def.png",
     path: logoPath,
     contentType: "image/png",
     cid: "registra-logo",
