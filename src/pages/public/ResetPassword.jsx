@@ -1,23 +1,34 @@
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+
 import {
+  Link,
   useNavigate,
 } from "react-router-dom";
-import {
-  API_BASE,
-} from "@/lib/config";
-import Navbar from "../../components/Navbar";
 
-const API = API_BASE;
+import {
+  FiArrowLeft,
+  FiEye,
+  FiEyeOff,
+} from "react-icons/fi";
+
+import logo from "../../assets/registra-logo-def.png";
+import { API_BASE } from "../../lib/config";
+
+const CODE_LENGTH = 6;
 
 export default function ResetPassword() {
   const navigate =
     useNavigate();
 
-  const email =
+  const inputsRef =
+    useRef([]);
+
+  const emailFromUrl =
     useMemo(() => {
       return (
         new URLSearchParams(
@@ -28,88 +39,105 @@ export default function ResetPassword() {
         .toLowerCase();
     }, []);
 
-  const [
-    step,
-    setStep,
-  ] = useState("code");
+  const [email, setEmail] =
+    useState(
+      emailFromUrl ||
+        sessionStorage.getItem(
+          "passwordResetEmail"
+        ) ||
+        ""
+    );
 
-  const [
-    digits,
-    setDigits,
-  ] = useState([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-  ]);
+  const [step, setStep] =
+    useState("code");
 
-  const inputsRef =
-    useRef([]);
+  const [code, setCode] =
+    useState(
+      Array(CODE_LENGTH).fill("")
+    );
 
-  const [p1, setP1] =
+  const [verificationToken, setVerificationToken] =
     useState("");
 
-  const [p2, setP2] =
+  const [password, setPassword] =
     useState("");
 
-  const [msg, setMsg] =
+  const [confirmPassword, setConfirmPassword] =
     useState("");
 
   const [
-    msgType,
-    setMsgType,
-  ] = useState("");
-
-  const [
-    loading,
-    setLoading,
+    showPassword,
+    setShowPassword,
   ] = useState(false);
 
-  const code =
-    digits.join("");
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] = useState(false);
 
-  const setError = (
-    message
-  ) => {
-    setMsg(message);
-    setMsgType("error");
-  };
+  const [message, setMessage] =
+    useState("");
 
-  const setSuccess = (
-    message
-  ) => {
-    setMsg(message);
-    setMsgType("success");
-  };
+  const [success, setSuccess] =
+    useState(false);
 
-  const clearMessage = () => {
-    setMsg("");
-    setMsgType("");
-  };
+  const [loading, setLoading] =
+    useState(false);
 
-  const changeDigit = (
+  const [resending, setResending] =
+    useState(false);
+
+  useEffect(() => {
+    if (email) {
+      sessionStorage.setItem(
+        "passwordResetEmail",
+        email
+      );
+    }
+  }, [email]);
+
+  useEffect(() => {
+    if (
+      !email &&
+      step === "code"
+    ) {
+      navigate(
+        "/forgot-password",
+        {
+          replace: true,
+        }
+      );
+    }
+  }, [
+    email,
+    step,
+    navigate,
+  ]);
+
+  const fullCode =
+    code.join("");
+
+  const handleCodeChange = (
     index,
     value
   ) => {
-    const clean =
-      String(value)
+    const digit =
+      value
         .replace(/\D/g, "")
         .slice(-1);
 
-    const next = [
-      ...digits,
-    ];
+    const next = [...code];
 
-    next[index] =
-      clean;
+    next[index] = digit;
 
-    setDigits(next);
+    setCode(next);
+    setMessage("");
+    setSuccess(false);
 
     if (
-      clean &&
-      index < 5
+      digit &&
+      index <
+        CODE_LENGTH - 1
     ) {
       inputsRef.current[
         index + 1
@@ -117,14 +145,14 @@ export default function ResetPassword() {
     }
   };
 
-  const handleKeyDown = (
+  const handleCodeKeyDown = (
     index,
     event
   ) => {
     if (
       event.key ===
         "Backspace" &&
-      !digits[index] &&
+      !code[index] &&
       index > 0
     ) {
       inputsRef.current[
@@ -137,6 +165,8 @@ export default function ResetPassword() {
         "ArrowLeft" &&
       index > 0
     ) {
+      event.preventDefault();
+
       inputsRef.current[
         index - 1
       ]?.focus();
@@ -145,8 +175,11 @@ export default function ResetPassword() {
     if (
       event.key ===
         "ArrowRight" &&
-      index < 5
+      index <
+        CODE_LENGTH - 1
     ) {
+      event.preventDefault();
+
       inputsRef.current[
         index + 1
       ]?.focus();
@@ -156,26 +189,23 @@ export default function ResetPassword() {
   const handlePaste = (
     event
   ) => {
+    event.preventDefault();
+
     const pasted =
       event.clipboardData
         .getData("text")
         .replace(/\D/g, "")
-        .slice(0, 6);
+        .slice(
+          0,
+          CODE_LENGTH
+        );
 
     if (!pasted) {
       return;
     }
 
-    event.preventDefault();
-
-    const next = [
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-    ];
+    const next =
+      Array(CODE_LENGTH).fill("");
 
     pasted
       .split("")
@@ -189,58 +219,52 @@ export default function ResetPassword() {
         }
       );
 
-    setDigits(next);
+    setCode(next);
+    setMessage("");
+    setSuccess(false);
 
     const focusIndex =
       Math.min(
         pasted.length,
-        6
+        CODE_LENGTH
       ) - 1;
 
-    if (
-      focusIndex >= 0
-    ) {
+    setTimeout(() => {
       inputsRef.current[
         focusIndex
       ]?.focus();
-    }
+    }, 0);
   };
 
   const verifyCode =
     async (event) => {
       event.preventDefault();
 
-      clearMessage();
-
-      if (!email) {
-        setError(
-          "Имэйл хаяг олдсонгүй. Нууц үг сэргээх хүсэлтээ дахин илгээнэ үү."
-        );
-
+      if (loading) {
         return;
       }
 
       if (
-        !/^\d{6}$/.test(
-          code
-        )
+        fullCode.length !==
+        CODE_LENGTH
       ) {
-        setError(
-          "6 оронтой кодыг бүрэн оруулна уу."
+        setMessage(
+          "6 оронтой баталгаажуулах кодоо бүрэн оруулна уу."
         );
 
         return;
       }
 
       setLoading(true);
+      setMessage("");
+      setSuccess(false);
 
       try {
-        const res =
+        const response =
           await fetch(
-            `${API}/api/password/verify-code`,
+            `${API_BASE}/api/password/verify-code`,
             {
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
                 "Content-Type":
@@ -248,40 +272,61 @@ export default function ResetPassword() {
               },
 
               body:
-                JSON.stringify(
-                  {
-                    email,
-                    code,
-                  }
-                ),
+                JSON.stringify({
+                  email,
+                  code:
+                    fullCode,
+                }),
             }
           );
 
         const data =
-          await res
+          await response
             .json()
             .catch(
               () => ({})
             );
 
-        if (!res.ok) {
-          setError(
+        if (!response.ok) {
+          setMessage(
             data?.message ||
-              "Код баталгаажуулж чадсангүй."
+              "Баталгаажуулах код буруу эсвэл хугацаа дууссан байна."
           );
 
           return;
         }
 
-        clearMessage();
+        const token =
+          data?.verificationToken ||
+          data?.resetToken ||
+          data?.token ||
+          "";
 
-        setStep(
-          "password"
+        setVerificationToken(
+          token
         );
-      } catch (err) {
-        console.error(err);
 
-        setError(
+        setSuccess(true);
+
+        setMessage(
+          "Код амжилттай баталгаажлаа."
+        );
+
+        setTimeout(() => {
+          setStep(
+            "password"
+          );
+
+          setMessage("");
+          setSuccess(false);
+        }, 400);
+      } catch (error) {
+        console.error(
+          "Verify code error:",
+          error
+        );
+
+        setMessage(
           "Сервертэй холбогдож чадсангүй."
         );
       } finally {
@@ -292,23 +337,22 @@ export default function ResetPassword() {
   const resendCode =
     async () => {
       if (
-        !email ||
-        loading
+        resending ||
+        !email
       ) {
         return;
       }
 
-      clearMessage();
-
-      setLoading(true);
+      setResending(true);
+      setMessage("");
+      setSuccess(false);
 
       try {
-        const res =
+        const response =
           await fetch(
-            `${API}/api/email/password-code`,
+            `${API_BASE}/api/email/password-code`,
             {
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
                 "Content-Type":
@@ -316,87 +360,96 @@ export default function ResetPassword() {
               },
 
               body:
-                JSON.stringify(
-                  {
-                    email,
-                  }
-                ),
+                JSON.stringify({
+                  email,
+                }),
             }
           );
 
         const data =
-          await res
+          await response
             .json()
             .catch(
               () => ({})
             );
 
-        if (!res.ok) {
-          setError(
+        if (!response.ok) {
+          setMessage(
             data?.message ||
-              "Шинэ код илгээж чадсангүй."
+              "Код дахин илгээж чадсангүй."
           );
 
           return;
         }
 
-        setDigits([
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-        ]);
-
-        setSuccess(
-          "Шинэ 6 оронтой код таны имэйл хаяг руу илгээгдлээ."
+        setCode(
+          Array(
+            CODE_LENGTH
+          ).fill("")
         );
 
-        setTimeout(
-          () => {
-            inputsRef.current[
-              0
-            ]?.focus();
-          },
-          100
-        );
-      } catch (err) {
-        console.error(err);
+        setSuccess(true);
 
-        setError(
+        setMessage(
+          "Шинэ баталгаажуулах код илгээгдлээ."
+        );
+
+        setTimeout(() => {
+          inputsRef.current[
+            0
+          ]?.focus();
+        }, 100);
+      } catch (error) {
+        console.error(
+          "Resend code error:",
+          error
+        );
+
+        setMessage(
           "Сервертэй холбогдож чадсангүй."
         );
       } finally {
-        setLoading(false);
+        setResending(false);
       }
     };
 
-  const resetPassword =
+  const submitPassword =
     async (event) => {
       event.preventDefault();
 
-      clearMessage();
+      if (loading) {
+        return;
+      }
 
-      const strong =
-        p1.length >= 10 &&
-        /[a-z]/.test(p1) &&
-        /[A-Z]/.test(p1) &&
-        /\d/.test(p1) &&
+      const strongPassword =
+        password.length >=
+          10 &&
+        /[a-z]/.test(
+          password
+        ) &&
+        /[A-Z]/.test(
+          password
+        ) &&
+        /\d/.test(
+          password
+        ) &&
         /[^A-Za-z0-9]/.test(
-          p1
+          password
         );
 
-      if (!strong) {
-        setError(
-          "Нууц үг хамгийн багадаа 10 тэмдэгттэй бөгөөд том үсэг, жижиг үсэг, тоо, тусгай тэмдэгт агуулсан байх ёстой."
+      if (!strongPassword) {
+        setMessage(
+          "Нууц үг хамгийн багадаа 10 тэмдэгт бөгөөд том үсэг, жижиг үсэг, тоо, тусгай тэмдэг агуулсан байх ёстой."
         );
 
         return;
       }
 
-      if (p1 !== p2) {
-        setError(
+      if (
+        password !==
+        confirmPassword
+      ) {
+        setMessage(
           "Нууц үгүүд таарахгүй байна."
         );
 
@@ -404,14 +457,30 @@ export default function ResetPassword() {
       }
 
       setLoading(true);
+      setMessage("");
+      setSuccess(false);
 
       try {
-        const res =
+        const body = {
+          email,
+          code:
+            fullCode,
+          newPassword:
+            password,
+        };
+
+        if (
+          verificationToken
+        ) {
+          body.verificationToken =
+            verificationToken;
+        }
+
+        const response =
           await fetch(
-            `${API}/api/password/reset-with-code`,
+            `${API_BASE}/api/password/reset-with-code`,
             {
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
                 "Content-Type":
@@ -420,25 +489,20 @@ export default function ResetPassword() {
 
               body:
                 JSON.stringify(
-                  {
-                    email,
-                    code,
-                    newPassword:
-                      p1,
-                  }
+                  body
                 ),
             }
           );
 
         const data =
-          await res
+          await response
             .json()
             .catch(
               () => ({})
             );
 
-        if (!res.ok) {
-          setError(
+        if (!response.ok) {
+          setMessage(
             data?.message ||
               "Нууц үг шинэчилж чадсангүй."
           );
@@ -446,30 +510,31 @@ export default function ResetPassword() {
           return;
         }
 
-        setStep(
-          "success"
+        sessionStorage.removeItem(
+          "passwordResetEmail"
         );
 
-        setSuccess(
-          "Нууц үг амжилттай шинэчлэгдлээ."
+        setSuccess(true);
+
+        setMessage(
+          "Нууц үг амжилттай шинэчлэгдлээ. Нэвтрэх хуудас руу шилжиж байна..."
         );
 
-        setTimeout(
-          () => {
-            navigate(
-              "/login",
-              {
-                replace:
-                  true,
-              }
-            );
-          },
-          1800
+        setTimeout(() => {
+          navigate(
+            "/login",
+            {
+              replace: true,
+            }
+          );
+        }, 1000);
+      } catch (error) {
+        console.error(
+          "Reset password error:",
+          error
         );
-      } catch (err) {
-        console.error(err);
 
-        setError(
+        setMessage(
           "Сервертэй холбогдож чадсангүй."
         );
       } finally {
@@ -478,321 +543,403 @@ export default function ResetPassword() {
     };
 
   return (
-    <>
-      <Navbar />
-
-      <div className="login-page">
-        <div
-          className="login-box"
-          style={{
-            maxWidth: 500,
-          }}
+    <main className="rgLoginPage">
+      <section className="rgLoginLeft">
+        <Link
+          to="/"
+          className="rgLoginBrand"
         >
-          {step ===
-            "code" && (
-            <>
-              <h2>
-                Нууц үг
-                сэргээх
-              </h2>
+          <img
+            src={logo}
+            alt="Registra"
+            className="rgLoginBrandLogo"
+          />
+        </Link>
 
-              <p
-                style={{
-                  lineHeight:
-                    1.6,
-                }}
-              >
-                Таны{" "}
-                <strong>
-                  {email ||
-                    "имэйл"}
-                </strong>{" "}
-                хаяг руу
-                илгээсэн 6
-                оронтой
-                баталгаажуулах
-                кодыг оруулна
-                уу.
-              </p>
+        <div className="rgLoginHero">
+          <h1>
+            Эвэнтээ бүртгэж,
+            <br />
+            хүмүүстэй уулз.
+          </h1>
+
+          <p>
+            Бүртгэл, хуваарь,
+            уулзалтын хүсэлт —
+            бүгд нэг календарьт.
+          </p>
+
+          <div className="rgLoginMeetingCard">
+            <div className="rgLoginAvatar">
+              БГ
+            </div>
+
+            <div className="rgLoginMeetingInfo">
+              <span>
+                ДАРААГИЙН УУЛЗАЛТ
+              </span>
+
+              <strong>
+                14:00 · Бат-Эрдэнэ Г.
+              </strong>
+            </div>
+
+            <div className="rgLoginZoom">
+              1:1 Zoom
+            </div>
+          </div>
+        </div>
+
+        <div className="rgLoginCircle rgLoginCircleOne" />
+        <div className="rgLoginCircle rgLoginCircleTwo" />
+
+        <div className="rgLoginCopyright">
+          © 2026 Registra
+        </div>
+      </section>
+
+      <section className="rgLoginRight">
+        <button
+          type="button"
+          className="rgLoginBack"
+          onClick={() =>
+            step ===
+            "password"
+              ? setStep(
+                  "code"
+                )
+              : navigate(
+                  "/login"
+                )
+          }
+        >
+          <FiArrowLeft />
+
+          <span>
+            {step ===
+            "password"
+              ? "Буцах"
+              : "Нэвтрэх хуудас"}
+          </span>
+        </button>
+
+        <div className="rgLoginContent">
+          {step ===
+          "code" ? (
+            <>
+              <div className="rgLoginHeading">
+                <h2>
+                  Код баталгаажуулах
+                </h2>
+
+                <p>
+                  <strong>
+                    {email}
+                  </strong>{" "}
+                  хаяг руу
+                  илгээсэн 6
+                  оронтой кодыг
+                  оруулна уу.
+                </p>
+              </div>
 
               <form
+                className="rgLoginForm"
                 onSubmit={
                   verifyCode
                 }
               >
-                <div
-                  onPaste={
-                    handlePaste
-                  }
-                  style={{
-                    display:
-                      "flex",
-                    justifyContent:
-                      "center",
-                    gap: 10,
-                    margin:
-                      "28px 0",
-                  }}
-                >
-                  {digits.map(
-                    (
-                      digit,
-                      index
-                    ) => (
-                      <input
-                        key={
-                          index
-                        }
-                        ref={(
-                          el
-                        ) => {
-                          inputsRef.current[
+                <div className="rgResetCodeWrap">
+                  <label>
+                    БАТАЛГААЖУУЛАХ КОД
+                  </label>
+
+                  <div
+                    className="rgResetCodeInputs"
+                    onPaste={
+                      handlePaste
+                    }
+                  >
+                    {code.map(
+                      (
+                        digit,
+                        index
+                      ) => (
+                        <input
+                          key={
                             index
-                          ] = el;
-                        }}
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={
-                          1
-                        }
-                        autoFocus={
-                          index ===
-                          0
-                        }
-                        autoComplete={
-                          index ===
-                          0
-                            ? "one-time-code"
-                            : "off"
-                        }
-                        value={
-                          digit
-                        }
-                        onChange={(
-                          e
-                        ) =>
-                          changeDigit(
-                            index,
-                            e
-                              .target
-                              .value
-                          )
-                        }
-                        onKeyDown={(
-                          e
-                        ) =>
-                          handleKeyDown(
-                            index,
-                            e
-                          )
-                        }
-                        style={{
-                          width:
-                            50,
-                          height:
-                            58,
-                          padding:
-                            0,
-                          textAlign:
-                            "center",
-                          fontSize:
-                            22,
-                          fontWeight:
-                            700,
-                          border:
-                            "1px solid #d9d9e3",
-                          borderRadius:
-                            10,
-                          outline:
-                            "none",
-                          boxSizing:
-                            "border-box",
-                        }}
-                      />
-                    )
-                  )}
+                          }
+                          ref={(
+                            element
+                          ) => {
+                            inputsRef.current[
+                              index
+                            ] =
+                              element;
+                          }}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={
+                            1
+                          }
+                          value={
+                            digit
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            handleCodeChange(
+                              index,
+                              event
+                                .target
+                                .value
+                            )
+                          }
+                          onKeyDown={(
+                            event
+                          ) =>
+                            handleCodeKeyDown(
+                              index,
+                              event
+                            )
+                          }
+                          autoFocus={
+                            index ===
+                            0
+                          }
+                          aria-label={`Код ${
+                            index +
+                            1
+                          }`}
+                        />
+                      )
+                    )}
+                  </div>
+
+                  <p className="rgResetCodeHint">
+                    Код 10
+                    минутын
+                    хугацаанд
+                    хүчинтэй.
+                  </p>
                 </div>
 
-                <p
-                  style={{
-                    textAlign:
-                      "center",
-                    fontSize:
-                      13,
-                    color:
-                      "#777",
-                    marginBottom:
-                      20,
-                  }}
-                >
-                  Код 10
-                  минутын
-                  турш
-                  хүчинтэй.
-                </p>
+                {message && (
+                  <div
+                    className={
+                      success
+                        ? "rgResetSuccess"
+                        : "rgLoginError"
+                    }
+                  >
+                    {message}
+                  </div>
+                )}
 
                 <button
-                  className="sign-btn"
                   type="submit"
+                  className="rgLoginSubmit"
                   disabled={
                     loading ||
-                    code.length !==
-                      6
+                    fullCode.length !==
+                      CODE_LENGTH
                   }
                 >
                   {loading
                     ? "Шалгаж байна..."
-                    : "Код баталгаажуулах"}
+                    : "Үргэлжлүүлэх"}
                 </button>
-              </form>
-
-              <div
-                style={{
-                  textAlign:
-                    "center",
-                  marginTop:
-                    18,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize:
-                      14,
-                  }}
-                >
-                  Код
-                  ирээгүй юу?
-                </span>
 
                 <button
                   type="button"
+                  className="rgResetResend"
+                  disabled={
+                    resending
+                  }
                   onClick={
                     resendCode
                   }
-                  disabled={
-                    loading
-                  }
-                  style={{
-                    border: 0,
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    fontWeight:
-                      600,
-                    marginLeft:
-                      5,
-                    padding:
-                      0,
-                    color:
-                      "#6847ef",
-                  }}
                 >
-                  Дахин
-                  илгээх
+                  {resending
+                    ? "Илгээж байна..."
+                    : "Код ирээгүй юу? Дахин илгээх"}
                 </button>
-              </div>
+              </form>
             </>
-          )}
-
-          {step ===
-            "password" && (
+          ) : (
             <>
-              <h2>
-                Шинэ нууц
-                үг
-              </h2>
+              <div className="rgLoginHeading">
+                <h2>
+                  Шинэ нууц үг
+                </h2>
 
-              <p
-                style={{
-                  lineHeight:
-                    1.6,
-                  marginBottom:
-                    22,
-                }}
-              >
-                Код
-                амжилттай
-                баталгаажлаа.
-                Шинэ нууц
-                үгээ
-                тохируулна
-                уу.
-              </p>
+                <p>
+                  Бүртгэлдээ
+                  ашиглах шинэ
+                  нууц үгээ
+                  тохируулна уу.
+                </p>
+              </div>
 
               <form
+                className="rgLoginForm"
                 onSubmit={
-                  resetPassword
+                  submitPassword
                 }
               >
-                <label>
-                  Шинэ нууц
-                  үг
-                </label>
+                <div className="rgLoginField">
+                  <label htmlFor="new-password">
+                    ШИНЭ НУУЦ ҮГ
+                  </label>
 
-                <input
-                  type="password"
-                  value={p1}
-                  onChange={(
-                    e
-                  ) =>
-                    setP1(
-                      e.target
-                        .value
-                    )
-                  }
-                  autoComplete="new-password"
-                  required
-                />
+                  <div className="rgLoginPassword">
+                    <input
+                      id="new-password"
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
+                      value={
+                        password
+                      }
+                      onChange={(
+                        event
+                      ) => {
+                        setPassword(
+                          event
+                            .target
+                            .value
+                        );
 
-                <label>
-                  Нууц үгээ
-                  дахин
-                  оруулах
-                </label>
+                        setMessage(
+                          ""
+                        );
+                      }}
+                      placeholder="Шинэ нууц үгээ оруулна уу"
+                      autoComplete="new-password"
+                      required
+                    />
 
-                <input
-                  type="password"
-                  value={p2}
-                  onChange={(
-                    e
-                  ) =>
-                    setP2(
-                      e.target
-                        .value
-                    )
-                  }
-                  autoComplete="new-password"
-                  required
-                />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword(
+                          (
+                            current
+                          ) =>
+                            !current
+                        )
+                      }
+                    >
+                      {showPassword ? (
+                        <FiEyeOff />
+                      ) : (
+                        <FiEye />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-                <p
-                  style={{
-                    fontSize:
-                      12,
-                    lineHeight:
-                      1.6,
-                    color:
-                      "#777",
-                    margin:
-                      "10px 0 18px",
-                  }}
-                >
-                  Хамгийн
-                  багадаа 10
-                  тэмдэгт,
-                  том болон
-                  жижиг үсэг,
-                  тоо, тусгай
-                  тэмдэгт
-                  агуулсан
-                  байна.
-                </p>
+                <div className="rgLoginField">
+                  <label htmlFor="confirm-password">
+                    НУУЦ ҮГ
+                    ДАВТАХ
+                  </label>
+
+                  <div className="rgLoginPassword">
+                    <input
+                      id="confirm-password"
+                      type={
+                        showConfirmPassword
+                          ? "text"
+                          : "password"
+                      }
+                      value={
+                        confirmPassword
+                      }
+                      onChange={(
+                        event
+                      ) => {
+                        setConfirmPassword(
+                          event
+                            .target
+                            .value
+                        );
+
+                        setMessage(
+                          ""
+                        );
+                      }}
+                      placeholder="Нууц үгээ дахин оруулна уу"
+                      autoComplete="new-password"
+                      required
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(
+                          (
+                            current
+                          ) =>
+                            !current
+                        )
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <FiEyeOff />
+                      ) : (
+                        <FiEye />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rgResetRequirements">
+                  <span>
+                    Нууц үг:
+                  </span>
+
+                  <ul>
+                    <li>
+                      10-аас
+                      доошгүй
+                      тэмдэгт
+                    </li>
+
+                    <li>
+                      Том болон
+                      жижиг үсэг
+                    </li>
+
+                    <li>
+                      Тоо
+                    </li>
+
+                    <li>
+                      Тусгай
+                      тэмдэг
+                    </li>
+                  </ul>
+                </div>
+
+                {message && (
+                  <div
+                    className={
+                      success
+                        ? "rgResetSuccess"
+                        : "rgLoginError"
+                    }
+                  >
+                    {message}
+                  </div>
+                )}
 
                 <button
-                  className="sign-btn"
                   type="submit"
+                  className="rgLoginSubmit"
                   disabled={
                     loading
                   }
@@ -804,94 +951,8 @@ export default function ResetPassword() {
               </form>
             </>
           )}
-
-          {step ===
-            "success" && (
-            <div
-              style={{
-                textAlign:
-                  "center",
-                padding:
-                  "20px 0",
-              }}
-            >
-              <div
-                style={{
-                  width:
-                    64,
-                  height:
-                    64,
-                  borderRadius:
-                    "50%",
-                  display:
-                    "flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "center",
-                  margin:
-                    "0 auto 20px",
-                  background:
-                    "#f0ebff",
-                  color:
-                    "#6847ef",
-                  fontSize:
-                    30,
-                  fontWeight:
-                    700,
-                }}
-              >
-                ✓
-              </div>
-
-              <h2>
-                Амжилттай
-              </h2>
-
-              <p>
-                Нууц үг
-                амжилттай
-                шинэчлэгдлээ.
-                Нэвтрэх
-                хуудас руу
-                шилжиж
-                байна...
-              </p>
-            </div>
-          )}
-
-          {msg && (
-            <div
-              style={{
-                marginTop:
-                  18,
-                padding:
-                  "12px 14px",
-                borderRadius:
-                  8,
-                fontSize:
-                  13,
-                lineHeight:
-                  1.5,
-
-                background:
-                  msgType ===
-                  "success"
-                    ? "#ecfdf3"
-                    : "#fff1f2",
-
-                color:
-                  msgType ===
-                  "success"
-                    ? "#16794b"
-                    : "#c62828",
-              }}
-            >
-              {msg}
-            </div>
-          )}
         </div>
-      </div>
-    </>
+      </section>
+    </main>
   );
 }

@@ -1,190 +1,196 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  useState,
-} from "react";
-import {
-  useNavigate,
-} from "react-router-dom";
-import {
-  API_BASE,
-} from "@/lib/config";
-import Navbar from "../../components/Navbar";
+  FiArrowLeft,
+  FiArrowRight,
+  FiLock,
+  FiShield,
+} from "react-icons/fi";
 
-const API = API_BASE;
+import logo from "../../assets/registra-logo-def.png";
+import { API_BASE } from "../../lib/config";
 
 export default function ForgotPassword() {
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
-  const [
-    email,
-    setEmail,
-  ] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const [
-    msg,
-    setMsg,
-  ] = useState("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+    const cleanEmail = email.trim().toLowerCase();
 
-  const submit =
-    async (e) => {
-      e.preventDefault();
+    if (!cleanEmail) {
+      setMessage("И-мэйл хаягаа оруулна уу.");
+      return;
+    }
 
-      setMsg("");
+    setLoading(true);
+    setMessage("");
 
-      const cleanEmail =
-        String(email || "")
-          .trim()
-          .toLowerCase();
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/email/password-code`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: cleanEmail,
+          }),
+        }
+      );
 
-      if (!cleanEmail) {
-        setMsg(
-          "Имэйл хаягаа оруулна уу."
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setMessage(
+          data?.message || "Сэргээх код илгээж чадсангүй."
         );
-
         return;
       }
 
-      setLoading(true);
+      sessionStorage.setItem(
+        "passwordResetEmail",
+        cleanEmail
+      );
 
-      try {
-        const res =
-          await fetch(
-            `${API}/api/email/password-code`,
-            {
-              method:
-                "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify(
-                  {
-                    email:
-                      cleanEmail,
-                  }
-                ),
-            }
-          );
-
-        const data =
-          await res
-            .json()
-            .catch(
-              () => ({})
-            );
-
-        if (!res.ok) {
-          setMsg(
-            data?.message ||
-              "Баталгаажуулах код илгээж чадсангүй."
-          );
-
-          return;
-        }
-
-        navigate(
-          `/reset-password?email=${encodeURIComponent(
-            cleanEmail
-          )}`
-        );
-      } catch (err) {
-        console.error(err);
-
-        setMsg(
-          "Сервертэй холбогдож чадсангүй."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+      navigate(
+        `/reset-password?email=${encodeURIComponent(cleanEmail)}`
+      );
+    } catch (error) {
+      console.error(error);
+      setMessage("Сервертэй холбогдож чадсангүй.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <Navbar />
+    <main className="forgotPasswordPage">
+      {/* LEFT */}
+      <section className="forgotPasswordLeft">
+        <Link to="/" className="forgotPasswordLogo">
+          <img src={logo} alt="Registra" />
+        </Link>
 
-      <div className="login-page">
-        <div className="login-box">
-          <h2>
-            Нууц үг
-            сэргээх
-          </h2>
+        <div className="forgotPasswordLeftContent">
+          <h1>
+            Бүртгэлдээ аюулгүй буцах
+            <br />
+            ороорой.
+          </h1>
 
-          <p
-            style={{
-              lineHeight:
-                1.6,
-              marginBottom:
-                22,
-            }}
-          >
-            Бүртгэлтэй
-            имэйл хаягаа
-            оруулна уу.
-            Танд 6 оронтой
-            баталгаажуулах
-            код илгээнэ.
+          <p>
+            Сэргээх код зөвхөн таны и-мэйл рүү очно.
+            Код 10 минутын турш хүчинтэй бөгөөд нэг удаа
+            ашиглагдана.
           </p>
 
-          <form
-            onSubmit={
-              submit
-            }
-          >
-            <label>
-              Имэйл
-            </label>
+          <div className="forgotSecurityCard">
+            <div className="forgotSecurityIcon">
+              <FiShield />
+            </div>
 
-            <input
-              type="email"
-              value={email}
-              onChange={(
-                e
-              ) =>
-                setEmail(
-                  e.target
-                    .value
-                )
-              }
-              placeholder="name@example.com"
-              autoComplete="email"
-              required
-            />
+            <div>
+              <span>АЮУЛГҮЙ БАЙДАЛ</span>
+              <strong>
+                Registra ажилтнууд таны нууц үг, кодыг
+                хэзээ ч асуухгүй.
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="forgotCircle forgotCircleOne" />
+        <div className="forgotCircle forgotCircleTwo" />
+
+        <div className="forgotCopyright">
+          © 2026 Registra
+        </div>
+      </section>
+
+      {/* RIGHT */}
+      <section className="forgotPasswordRight">
+        <Link to="/" className="forgotHomeLink">
+          <FiArrowLeft />
+          Нүүр хуудас
+        </Link>
+
+        <div className="forgotPasswordContent">
+          {/* PROGRESS */}
+          <div className="forgotProgress">
+            <span className="active" />
+            <span />
+            <span />
+          </div>
+
+          <div className="forgotIconBox">
+            <FiLock />
+          </div>
+
+          <div className="forgotHeading">
+            <h2>Нууц үгээ мартсан уу?</h2>
+
+            <p>
+              Бүртгэлтэй и-мэйл хаягаа оруулна уу.
+              Бид танд 6 оронтой сэргээх код илгээнэ.
+            </p>
+          </div>
+
+          <form
+            className="forgotPasswordForm"
+            onSubmit={handleSubmit}
+          >
+            <div className="forgotField">
+              <label htmlFor="forgot-email">
+                И-мэйл хаяг
+              </label>
+
+              <input
+                id="forgot-email"
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setMessage("");
+                }}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            {message && (
+              <div className="forgotError">
+                {message}
+              </div>
+            )}
 
             <button
-              className="sign-btn"
               type="submit"
-              disabled={
-                loading
-              }
+              className="forgotSubmit"
+              disabled={loading}
             >
               {loading
-                ? "Илгээж байна..."
-                : "Код илгээх"}
+                ? "Код илгээж байна..."
+                : "Сэргээх код илгээх"}
             </button>
           </form>
 
-          {msg && (
-            <p
-              style={{
-                marginTop:
-                  14,
-                color:
-                  "#c62828",
-              }}
-            >
-              {msg}
-            </p>
-          )}
+          <button
+            type="button"
+            className="forgotBackLogin"
+            onClick={() => navigate("/login")}
+          >
+            <FiArrowLeft />
+            Нэвтрэх хуудас руу буцах
+          </button>
         </div>
-      </div>
-    </>
+      </section>
+    </main>
   );
 }
