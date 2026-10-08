@@ -1445,8 +1445,6 @@ export default function Event() {
     });
   }, [events]);
 
-  // Include events created by this user AND events they have joined.
-  // A finished event remains in this collection and moves to the Finished tab.
   const allMyEvents = useMemo(() => {
     const merged = new Map();
     for (const ev of events) {
@@ -2131,16 +2129,6 @@ export default function Event() {
                   className="myEventsPageHeading"
                   style={{ marginBottom: 18 }}
                 >
-                  <p
-                    style={{
-                      margin: "6px 0 0",
-                      color: "#8a91a5",
-                      fontSize: 13,
-                    }}
-                  >
-                    Таны үүсгэсэн болон оролцсон эвентүүд. Дууссан эвентүүд
-                    архивт хадгалагдана.
-                  </p>
                 </div>
 
                 <div className="myEventsToolbar">
