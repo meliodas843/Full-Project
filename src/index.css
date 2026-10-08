@@ -33641,7 +33641,6 @@ html[data-user-theme="dark"] .rgProfileSettingsMain {
   }
 }
 
-/* Spacing and alignment fix */
 .rgResetCodeWrap {
   display: flex;
   flex-direction: column;
@@ -43586,6 +43585,83 @@ svg {
 @media (max-width: 390px) {
   .passwordProfileActions {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Reset-password progress and completion */
+.rgLoginContent .forgotProgress {
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  margin: 0 0 32px;
+  align-items: center;
+}
+.rgLoginContent .forgotProgress span {
+  display: block;
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: #e9e9f2;
+  transition: background 0.25s ease;
+}
+.rgLoginContent .forgotProgress span.active {
+  background: #7855f7;
+}
+.rgLoginContent .forgotProgress span.completed {
+  background: #27bf91;
+}
+.rgResetComplete {
+  text-align: center;
+  padding: 24px 0 12px;
+}
+.rgResetCompleteIcon {
+  width: 94px;
+  height: 94px;
+  border-radius: 26px;
+  background: #dcfbef;
+  color: #10a77a;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 25px;
+  box-shadow: 0 0 0 9px #f0fdf7;
+  animation: rgCompletePop 0.5s ease both;
+}
+.rgResetCompleteIcon svg {
+  width: 48px;
+  height: 48px;
+  stroke-width: 3;
+}
+.rgResetComplete h2 {
+  font-size: 27px;
+  line-height: 1.3;
+  color: #171927;
+  margin: 0 0 12px;
+}
+.rgResetComplete p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #737c91;
+  margin: 0 0 30px;
+}
+.rgResetComplete .rgLoginSubmit {
+  width: 100%;
+}
+@keyframes rgCompletePop {
+  from {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (max-width: 600px) {
+  .rgLoginContent .forgotProgress {
+    margin-bottom: 25px;
+  }
+  .rgResetComplete h2 {
+    font-size: 23px;
   }
 }
 

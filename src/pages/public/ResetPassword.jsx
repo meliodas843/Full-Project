@@ -471,20 +471,8 @@ export default function ResetPassword() {
       sessionStorage.removeItem("passwordResetEmail");
 
       setSuccess(true);
-
-      setMessage(
-        "Нууц үг амжилттай шинэчлэгдлээ. Нэвтрэх хуудас руу шилжиж байна...",
-      );
-
-      setTimeout(() => {
-        navigate(
-          "/login",
-
-          {
-            replace: true,
-          },
-        );
-      }, 1000);
+      setMessage("Нууц үг амжилттай хадгалагдлаа.");
+      setStep("complete");
     } catch (error) {
       console.error(
         "Reset password error:",
@@ -560,6 +548,24 @@ export default function ResetPassword() {
         </button>
 
         <div className="rgLoginContent">
+          <div
+            className="forgotProgress"
+            role="group"
+            aria-label="Нууц үг сэргээх явц"
+          >
+            <span className={step === "code" ? "active" : "completed"} />
+            <span
+              className={
+                step === "password"
+                  ? "active"
+                  : step === "complete"
+                    ? "completed"
+                    : ""
+              }
+            />
+            <span className={step === "complete" ? "active" : ""} />
+          </div>
+
           {step === "code" ? (
             <>
               {/* ===============================================
@@ -685,7 +691,7 @@ export default function ResetPassword() {
               </form>
             </>
           ) : (
-            <>
+            (<>
               {/* ===============================================
 
                   NEW PASSWORD STEP
@@ -900,7 +906,25 @@ export default function ResetPassword() {
                   {loading ? "Хадгалж байна..." : "Нууц үг шинэчлэх"}
                 </button>
               </form>
-            </>
+            </>)(
+              <div className="rgResetComplete" role="status" aria-live="polite">
+                <div className="rgResetCompleteIcon">
+                  <FiCheck />
+                </div>
+                <h2>Нууц үг амжилттай хадгалагдлаа</h2>
+                <p>
+                  Таны шинэ нууц үг шинэчлэгдсэн. Одоо шинэ нууц үгээрээ
+                  нэвтэрнэ үү.
+                </p>
+                <button
+                  type="button"
+                  className="rgLoginSubmit"
+                  onClick={() => navigate("/login", { replace: true })}
+                >
+                  Нэвтрэх хуудас руу шилжих
+                </button>
+              </div>,
+            )
           )}
         </div>
       </section>
