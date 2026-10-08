@@ -1814,15 +1814,6 @@ export default function History() {
                     <FiUsers />
                     Оролцогчдыг харах
                   </button>
-
-                  <button
-                    type="button"
-                    className="eventDetailAddPeopleBtn"
-                    onClick={openAddPeople}
-                  >
-                    <FiUserPlus />
-                    Check In
-                  </button>
                 </section>
               </aside>
             </div>
@@ -2051,12 +2042,24 @@ export default function History() {
                           </>
                         ) : (
                           <>
-                            <button
-                              type="button"
-                              onClick={() => openEdit(event)}
-                            >
-                              Edit
-                            </button>
+                            {getEventStatus(event) === "draft" ? (
+                              <button
+                                type="button"
+                                onClick={() => openEdit(event)}
+                              >
+                                Edit
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="myEventStatisticsBtn"
+                                onClick={() =>
+                                  navigate(`/user/events/${event.id}/checkin`)
+                                }
+                              >
+                                Check-in
+                              </button>
+                            )}
 
                             <button
                               type="button"

@@ -18,6 +18,7 @@ import profileRoutes from "./routes/profile.routes.js";
 import projectsRoutes from "./routes/projects.routes.js";
 import passwordRoutes from "./routes/password.routes.js";
 import emailRoutes from "./routes/email.routes.js";
+import checkinRoutes from "./routes/checkin.routes.js";
 import organizationRoutes from "./routes/organizations.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -66,6 +67,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/events", eventFilesRouter);
 app.use("/api/events", eventsRoutes);
+app.use("/api/checkin", checkinRoutes);
 app.use("/api/email", emailRoutes);
 app.use(
   "/api/event-gallery",
