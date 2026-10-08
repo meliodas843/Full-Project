@@ -1530,14 +1530,13 @@ export default function Event() {
           gridTemplateColumns: "1fr",
         }}
       >
+        <header className="calTop">
+          <div>
+            <h1>Эвент</h1>
+          </div>
+        </header>
         <main className="uep-right">
           <div ref={rightTopRef} />
-
-          <header className="calTop">
-            <div>
-              <h1>Эвент</h1>
-            </div>
-          </header>
 
           {errMsg ? <div className="uep-error">{errMsg}</div> : null}
 
