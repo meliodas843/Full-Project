@@ -160,7 +160,6 @@ export function passwordResetCodeEmail({ firstName, code, resetUrl }) {
           <p style="margin:8px 0 0;font-size:15px;line-height:1.7;color:#656b7c;">Доорх 6 оронтой баталгаажуулах кодыг нууц үг сэргээх хуудсанд оруулна уу.</p>
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:26px auto 16px;"><tr>${boxes}</tr></table>
           <p style="margin:0;text-align:center;color:#858b9d;font-size:12px;line-height:1.6;">Код 10 минутын турш хүчинтэй бөгөөд нэг удаа ашиглагдана.</p>
-          ${resetUrl ? `<div style="margin-top:18px;text-align:center;">${button("Нууц үг сэргээх", resetUrl)}</div>` : ""}
         </td>
       </tr>
     </table>

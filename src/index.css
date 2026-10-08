@@ -33473,6 +33473,174 @@ html[data-user-theme="dark"] .rgProfileSettingsMain {
   font-weight: 600;
 }
 
+/* Registra OTP: six boxes merge into a single verification ring */
+.rgOtpStage {
+  position: relative;
+  min-height: 78px;
+  isolation: isolate;
+}
+.rgOtpStage .rgResetCodeInputs {
+  transition:
+    opacity 0.28s ease,
+    transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1),
+    filter 0.4s ease;
+  transform-origin: center;
+}
+.rgOtpStage.rgOtp-merging .rgResetCodeInputs {
+  transform: scale(0.2);
+  opacity: 0;
+  filter: blur(8px);
+}
+.rgOtpStage.rgOtp-checking .rgResetCodeInputs,
+.rgOtpStage.rgOtp-valid .rgResetCodeInputs,
+.rgOtpStage.rgOtp-invalid .rgResetCodeInputs {
+  opacity: 0;
+  transform: scale(0.12);
+  pointer-events: none;
+}
+.rgOtpOverlay {
+  position: absolute;
+  inset: -35px 0 -45px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  animation: rgOtpAppear 0.5s ease both;
+  text-align: center;
+}
+.rgOtpOrbit {
+  width: 92px;
+  height: 92px;
+  border-radius: 27px;
+  display: grid;
+  place-items: center;
+  background: #161a24;
+  border: 1px solid #373b4b;
+  box-shadow: 0 14px 40px #10111a28;
+  position: relative;
+}
+.rgOtpOrbit:before,
+.rgOtpOrbit:after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border: 2px solid #a28aff;
+  border-radius: 32px;
+  opacity: 0.45;
+  animation: rgOtpPulse 1.7s ease-in-out infinite;
+}
+.rgOtpOrbit:after {
+  inset: -18px;
+  opacity: 0.16;
+  animation-delay: 0.4s;
+}
+.rgOtpSpinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ffffff20;
+  border-top-color: #a28aff;
+  border-right-color: #a28aff;
+  border-radius: 50%;
+  animation: rgOtpSpin 0.75s linear infinite;
+}
+.rgOtpOverlay strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #565b71;
+  max-width: 320px;
+}
+.rgOtpOverlay-valid .rgOtpOrbit {
+  background: #0a3027;
+  border-color: #27c999;
+  box-shadow: 0 0 45px #21c99544;
+  animation: rgOtpPop 0.45s cubic-bezier(0.2, 1.7, 0.4, 1) both;
+}
+.rgOtpOverlay-valid .rgOtpOrbit:before,
+.rgOtpOverlay-valid .rgOtpOrbit:after {
+  border-color: #2ccf9d;
+}
+.rgOtpOverlay-valid strong {
+  color: #18a878;
+}
+.rgOtpOverlay-invalid .rgOtpOrbit {
+  background: #3a161e;
+  border-color: #ef596e;
+  animation: rgOtpShake 0.4s ease both;
+}
+.rgOtpOverlay-invalid .rgOtpOrbit:before,
+.rgOtpOverlay-invalid .rgOtpOrbit:after {
+  border-color: #ef596e;
+}
+.rgOtpOverlay-invalid strong {
+  color: #e94d65;
+}
+.rgOtpResultIcon {
+  width: 43px;
+  height: 43px;
+  font-size: 50px;
+  color: #30d6a3;
+  stroke-width: 2.8;
+}
+.rgOtpOverlay-invalid .rgOtpResultIcon {
+  color: #ff6379;
+}
+@keyframes rgOtpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes rgOtpAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes rgOtpPulse {
+  50% {
+    transform: scale(1.08);
+    opacity: 0.08;
+  }
+}
+@keyframes rgOtpPop {
+  0% {
+    transform: scale(0.55);
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes rgOtpShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-7px);
+  }
+  40%,
+  80% {
+    transform: translateX(7px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rgOtpStage *,
+  .rgOtpStage *:before,
+  .rgOtpStage *:after {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}
+
 .historyModalOverlay {
   position: fixed;
   inset: 0;
