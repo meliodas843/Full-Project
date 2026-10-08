@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
-import "./EventCheckin.css";
 
 const api = (path) => `${API_BASE}/api/checkin${path}`;
 
