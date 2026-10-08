@@ -1617,16 +1617,9 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
     );
 
     const [fileRows] = await pool.query(
-      `
-
-          SELECT COUNT(*) AS total
-
-          FROM event_files
-
-          WHERE event_id = ?
-
-          `,
-
+      `SELECT COUNT(*) AS total
+    FROM event_gallery_images
+    WHERE event_id = ?`,
       [eventId],
     );
 
@@ -1634,7 +1627,7 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
 
     const frontendUrl = getFrontendUrl();
 
-    const albumUrl = `${frontendUrl}/user/events/${eventId}/gallery`;
+    const albumUrl = `http://194.59.165.105/user/history/${eventId}/images`;
 
     const results = [];
 
