@@ -690,8 +690,8 @@ export default function ResetPassword() {
                 </button>
               </form>
             </>
-          ) : (
-            (<>
+          ) : step === "password" ? (
+            <>
               {/* ===============================================
 
                   NEW PASSWORD STEP
@@ -906,25 +906,25 @@ export default function ResetPassword() {
                   {loading ? "Хадгалж байна..." : "Нууц үг шинэчлэх"}
                 </button>
               </form>
-            </>)(
-              <div className="rgResetComplete" role="status" aria-live="polite">
-                <div className="rgResetCompleteIcon">
-                  <FiCheck />
-                </div>
-                <h2>Нууц үг амжилттай хадгалагдлаа</h2>
-                <p>
-                  Таны шинэ нууц үг шинэчлэгдсэн. Одоо шинэ нууц үгээрээ
-                  нэвтэрнэ үү.
-                </p>
-                <button
-                  type="button"
-                  className="rgLoginSubmit"
-                  onClick={() => navigate("/login", { replace: true })}
-                >
-                  Нэвтрэх хуудас руу шилжих
-                </button>
-              </div>,
-            )
+            </>
+          ) : (
+            <div className="rgResetComplete" role="status" aria-live="polite">
+              <div className="rgResetCompleteIcon">
+                <FiCheck />
+              </div>
+              <h2>Нууц үг амжилттай хадгалагдлаа</h2>
+              <p>
+                Таны шинэ нууц үг шинэчлэгдсэн. Одоо шинэ нууц үгээрээ нэвтэрнэ
+                үү.
+              </p>
+              <button
+                type="button"
+                className="rgLoginSubmit"
+                onClick={() => navigate("/login", { replace: true })}
+              >
+                Нэвтрэх хуудас руу шилжих
+              </button>
+            </div>
           )}
         </div>
       </section>
