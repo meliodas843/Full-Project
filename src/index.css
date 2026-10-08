@@ -33641,6 +33641,79 @@ html[data-user-theme="dark"] .rgProfileSettingsMain {
   }
 }
 
+/* Spacing and alignment fix */
+.rgResetCodeWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rgResetCodeWrap > label {
+  display: block;
+  margin: 0;
+}
+.rgOtpStage {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: min-height 0.35s ease;
+}
+.rgOtpStage.rgOtp-merging,
+.rgOtpStage.rgOtp-checking,
+.rgOtpStage.rgOtp-valid,
+.rgOtpStage.rgOtp-invalid {
+  min-height: 176px;
+}
+.rgOtpStage .rgResetCodeInputs {
+  width: 100%;
+}
+.rgOtpOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 12px 0;
+  box-sizing: border-box;
+}
+.rgOtpOrbit {
+  flex: 0 0 92px;
+}
+.rgOtpOverlay strong {
+  display: block;
+  position: relative;
+  line-height: 1.5;
+  max-width: 100%;
+  padding: 0 10px;
+  text-align: center;
+}
+.rgResetCodeWrap .rgResetCodeHint {
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+.rgOtpStage.rgOtp-valid + .rgResetCodeHint,
+.rgOtpStage.rgOtp-invalid + .rgResetCodeHint {
+  opacity: 0.65;
+}
+.rgLoginForm:has(.rgOtpOverlay) > .rgResetSuccess,
+.rgLoginForm:has(.rgOtpOverlay) > .rgLoginError {
+  display: none;
+}
+@media (max-width: 540px) {
+  .rgOtpStage.rgOtp-merging,
+  .rgOtpStage.rgOtp-checking,
+  .rgOtpStage.rgOtp-valid,
+  .rgOtpStage.rgOtp-invalid {
+    min-height: 170px;
+  }
+  .rgOtpOverlay {
+    gap: 20px;
+  }
+}
+
 .historyModalOverlay {
   position: fixed;
   inset: 0;
