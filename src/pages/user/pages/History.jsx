@@ -1814,6 +1814,15 @@ export default function History() {
                     <FiUsers />
                     Оролцогчдыг харах
                   </button>
+
+                  <button
+                    type="button"
+                    className="eventDetailAddPeopleBtn"
+                    onClick={openAddPeople}
+                  >
+                    <FiUserPlus />
+                    Check In
+                  </button>
                 </section>
               </aside>
             </div>

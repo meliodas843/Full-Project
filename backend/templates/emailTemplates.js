@@ -388,8 +388,6 @@ export function galleryPublishedEmail({
   );
 }
 
-
-
 export function meetingInviteEmail({
   recipientName,
   senderName,
