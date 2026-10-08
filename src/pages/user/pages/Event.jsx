@@ -1532,6 +1532,9 @@ export default function Event() {
       >
         <main className="uep-right">
           <div ref={rightTopRef} />
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
+            Миний оролцсон эвентүүд
+          </h2>
 
           {errMsg ? <div className="uep-error">{errMsg}</div> : null}
 
@@ -2126,9 +2129,6 @@ export default function Event() {
                   className="myEventsPageHeading"
                   style={{ marginBottom: 18 }}
                 >
-                  <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
-                    Миний оролцсон эвентүүд
-                  </h2>
                   <p
                     style={{
                       margin: "6px 0 0",
