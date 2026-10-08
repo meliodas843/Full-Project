@@ -168,6 +168,7 @@ export function passwordResetCodeEmail({ firstName, code, resetUrl }) {
   );
 }
 
+
 export function galleryPublishedEmail({
   firstName,
   organizationName = "Registra",
@@ -179,104 +180,214 @@ export function galleryPublishedEmail({
   photos = [],
   nextEventText = "",
 }) {
+  const total = Math.max(0, Number(imageCount) || 0);
   const visiblePhotos = Array.isArray(photos)
-    ? photos.filter((photo) => photo && photo.src).slice(0, 3)
+    ? photos.filter((photo) => photo?.src).slice(0, 3)
     : [];
+
+  const remaining = Math.max(0, total - 3);
+
+  const photo = (item, width, height, overlay = "") => {
+    if (!item?.src) return "";
+
+    return `
+      <td width="${width}" valign="top" style="padding:3px;">
+        <a href="${e(albumUrl)}"
+           style="display:block;text-decoration:none;">
+          <img
+            src="${e(item.src)}"
+            alt="Эвэнтийн зураг"
+            width="${width === "100%" ? "180" : "350"}"
+            style="display:block;width:100%;height:${height}px;
+                   object-fit:cover;border-radius:10px;
+                   border:0;background:#f1f1f8;"
+          >
+          ${overlay ? `
+            <div style="margin-top:-33px;position:relative;
+                        text-align:center;color:#ffffff;
+                        background:#252347;font-size:14px;
+                        font-weight:800;padding:7px;">
+              ${e(overlay)}
+            </div>
+          ` : ""}
+        </a>
+      </td>
+    `;
+  };
 
   let galleryBlock = "";
 
-  if (visiblePhotos.length > 0) {
-    const first = visiblePhotos[0];
-    const second = visiblePhotos[1];
-    const third = visiblePhotos[2];
+  if (visiblePhotos.length) {
+    const [first, second, third] = visiblePhotos;
 
     galleryBlock = `
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:18px 0 12px;">
+      <table role="presentation"
+             width="100%"
+             cellpadding="0"
+             cellspacing="0"
+             border="0"
+             style="width:100%;margin:20px 0 12px;">
         <tr>
-          ${photoCell(first, visiblePhotos.length === 1 ? "100%" : "66%")}
-          ${
-            visiblePhotos.length > 1
-              ? `<td width="34%" valign="top" style="padding:0;">
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                    ${second ? `<tr>${photoCell(second, "100%")}</tr>` : ""}
-                    ${third ? `<tr>${photoCell(third, "100%")}</tr>` : ""}
-                  </table>
-                </td>`
-              : ""
-          }
+          <td width="66%" valign="top" style="padding:0;">
+            <table role="presentation"
+                   width="100%"
+                   cellpadding="0"
+                   cellspacing="0"
+                   border="0">
+              <tr>
+                ${photo(first, "100%", 252)}
+              </tr>
+            </table>
+          </td>
+
+          <td width="34%" valign="top" style="padding:0;">
+            <table role="presentation"
+                   width="100%"
+                   cellpadding="0"
+                   cellspacing="0"
+                   border="0">
+              ${second ? `
+                <tr>${photo(second, "100%", 122)}</tr>
+              ` : ""}
+              ${third ? `
+                <tr>
+                  ${photo(
+                    third,
+                    "100%",
+                    122,
+                    remaining > 0 ? `+${remaining}` : ""
+                  )}
+                </tr>
+              ` : ""}
+            </table>
+          </td>
         </tr>
       </table>
     `;
   }
 
-  const dateLine = eventDate
-    ? `<span style="color:#777b8c;">${e(eventDate)}</span>`
-    : "";
+  const orgInitials = String(organizationName || "R")
+    .trim()
+    .slice(0, 2)
+    .toUpperCase();
 
   return layout(
     `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background:#ffffff;border:1px solid #e7e8ef;border-radius:16px;">
+    <table role="presentation"
+           width="100%"
+           cellspacing="0"
+           cellpadding="0"
+           border="0"
+           bgcolor="#ffffff"
+           style="width:100%;background:#ffffff;
+                  border:1px solid #e7e8ef;
+                  border-radius:16px;">
+
       <tr>
         <td style="padding:26px 26px 28px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+
+          <table role="presentation"
+                 cellspacing="0"
+                 cellpadding="0"
+                 border="0">
             <tr>
-              <td valign="middle">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                  <tr>
-                    <td align="center" valign="middle" style="width:34px;height:34px;background:#6847ef;border-radius:9px;color:#ffffff;font-size:12px;font-weight:800;">
-                      ${e(
-                        String(organizationName || "R")
-                          .trim()
-                          .slice(0, 2)
-                          .toUpperCase(),
-                      )}
-                    </td>
-                    <td style="padding-left:10px;">
-                      <div style="color:#171927;font-size:13px;font-weight:800;line-height:18px;">${e(organizationName)}</div>
-                      <div style="color:#9699a8;font-size:10px;line-height:15px;">${e(eventName)}${eventDate ? ` · ${e(eventDate)}` : ""}</div>
-                    </td>
-                  </tr>
-                </table>
+              <td align="center"
+                  style="width:36px;height:36px;
+                         background:#6847ef;
+                         border-radius:9px;
+                         color:#ffffff;
+                         font-size:12px;
+                         font-weight:800;">
+                ${e(orgInitials)}
+              </td>
+
+              <td style="padding-left:11px;">
+                <div style="font-size:14px;
+                            font-weight:800;
+                            color:#171927;">
+                  ${e(organizationName)}
+                </div>
+
+                <div style="font-size:11px;
+                            line-height:17px;
+                            color:#9699a8;">
+                  ${e(eventName)}
+                  ${eventDate ? ` · ${e(eventDate)}` : ""}
+                </div>
               </td>
             </tr>
           </table>
 
-          <h1 style="margin:24px 0 8px;color:#171927;font-size:25px;line-height:31px;font-weight:800;">
-            ${e(firstName || "Сайн байна уу")}, ${e(eventName)}-ийн зургууд нийтлэгдлээ
+          <h1 style="margin:25px 0 10px;
+                     color:#171927;
+                     font-size:25px;
+                     line-height:32px;
+                     font-weight:800;">
+            ${e(firstName || "Сайн байна уу")},
+            ${e(eventName)}-ийн зургууд нийтлэгдлээ
           </h1>
 
-          <p style="margin:0;color:#666978;font-size:14px;line-height:22px;">
-            Та оролцсон тул цомгийг үзэж, зургаа бүрэн чанараар татаж авах боломжтой.
-            ${imageCount ? ` Нийт ${Number(imageCount) || 0} зураг нийтлэгдлээ.` : ""}
+          <p style="margin:0;
+                    color:#666978;
+                    font-size:14px;
+                    line-height:22px;">
+            Та оролцсон тул цомгийг үзэж,
+            зургаа бүрэн чанараар татаж авах боломжтой.
+            Нийт ${total} зураг нийтлэгдлээ.
           </p>
 
           ${galleryBlock}
 
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:14px;">
+          <table role="presentation"
+                 cellspacing="0"
+                 cellpadding="0"
+                 border="0"
+                 style="margin-top:15px;">
             <tr>
-              <td style="padding-right:8px;">${button(`Цомог үзэх (${Number(imageCount) || 0} зураг)`, albumUrl)}</td>
-              ${downloadUrl ? `<td>${button("⇩ Бүгдийг татах", downloadUrl, true)}</td>` : ""}
+              <td style="padding-right:8px;">
+                ${button(`Цомог үзэх (${total} зураг)`, albumUrl)}
+              </td>
+
+              ${downloadUrl ? `
+                <td>
+                  ${button("⇩ Бүгдийг татах", downloadUrl, true)}
+                </td>
+              ` : ""}
             </tr>
           </table>
 
-          ${
-            nextEventText
-              ? `<div style="margin-top:18px;padding:13px 15px;background:#f2efff;border-radius:10px;color:#6847ef;font-size:12px;line-height:18px;font-weight:700;">▣ ${e(nextEventText)}</div>`
-              : ""
-          }
+          ${nextEventText ? `
+            <div style="margin-top:20px;
+                        padding:14px 16px;
+                        background:#f2efff;
+                        border-radius:10px;
+                        color:#6847ef;
+                        font-size:12px;
+                        line-height:19px;
+                        font-weight:700;">
+              ▣ ${e(nextEventText)}
+            </div>
+          ` : ""}
+
         </td>
       </tr>
     </table>
 
-    <p style="margin:16px 8px 0;text-align:center;color:#858b9d;font-size:12px;line-height:19px;">
-      Та ${e(eventName)} эвэнтэд оролцсон учир энэ имэйлийг хүлээн авлаа.
+    <p style="margin:17px 8px 0;
+              text-align:center;
+              color:#858b9d;
+              font-size:12px;
+              line-height:19px;">
+      Та ${e(eventName)} эвэнтэд оролцсон учир
+      энэ имэйлийг хүлээн авлаа.
       <br>
       Цомог эвэнтийн оролцогчдод харагдана.
     </p>
-  `,
-    `${eventName}-ийн ${Number(imageCount) || 0} зураг нийтлэгдлээ`,
+    `,
+    `${eventName}-ийн ${total} зураг нийтлэгдлээ`
   );
 }
+
 
 
 export function meetingInviteEmail({
