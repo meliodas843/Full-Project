@@ -1445,69 +1445,80 @@ export default function Event() {
     });
   }, [events]);
 
+  // Include events created by this user AND events they have joined.
+  // A finished event remains in this collection and moves to the Finished tab.
+  const allMyEvents = useMemo(() => {
+    const merged = new Map();
+    for (const ev of events) {
+      if (canEditEvent(ev)) merged.set(Number(ev.id), ev);
+    }
+    for (const ev of myEvents) {
+      const id = Number(ev.id || ev.event_id);
+      if (!Number.isFinite(id)) continue;
+      const existing = merged.get(id);
+      merged.set(id, existing ? { ...existing, ...ev, id } : { ...ev, id });
+    }
+    return [...merged.values()];
+  }, [events, myEvents]);
+
+  const isDraftEvent = (ev) => {
+    const status = String(ev.status || "").toLowerCase();
+    return status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
+  };
+
   const managedEvents = useMemo(() => {
     const query = eventSearch.trim().toLowerCase();
+    return allMyEvents
+      .filter((ev) => {
+        const finished =
+          isEventFinished(ev) ||
+          ["finished", "completed", "ended"].includes(
+            String(ev.status || "").toLowerCase(),
+          );
+        const draft = isDraftEvent(ev);
+        if (eventTab === "draft" && (!draft || !canEditEvent(ev))) return false;
+        if (eventTab === "published" && (draft || finished)) return false;
+        if (eventTab === "finished" && !finished) return false;
+        if (
+          query &&
+          ![ev.title, ev.description, ev.category]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        )
+          return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const aTime = parseEventDateTime(a.start_time);
+        const bTime = parseEventDateTime(b.start_time);
+        return eventSort === "oldest" ? aTime - bTime : bTime - aTime;
+      });
+  }, [allMyEvents, eventSearch, eventTab, eventSort, now]);
 
-    let list = events.filter((ev) => canEditEvent(ev));
-
-    list = list.filter((ev) => {
-      const finished = isEventFinished(ev);
-
-      const status = String(ev.status || "").toLowerCase();
-
-      const isDraft =
-        status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
-
-      if (eventTab === "draft" && !isDraft) return false;
-
-      if (eventTab === "published" && (isDraft || finished)) return false;
-
-      if (eventTab === "finished" && !finished) return false;
-
-      if (!query) return true;
-
-      return [ev.title, ev.description, ev.category]
-
-        .join(" ")
-
-        .toLowerCase()
-
-        .includes(query);
-    });
-
-    return [...list].sort((a, b) => {
-      const aTime = parseEventDateTime(a.start_time);
-
-      const bTime = parseEventDateTime(b.start_time);
-
-      return eventSort === "oldest" ? aTime - bTime : bTime - aTime;
-    });
-  }, [events, eventSearch, eventTab, eventSort, now]);
-
-  const managedCounts = useMemo(() => {
-    const own = events.filter((ev) => canEditEvent(ev));
-
-    return {
-      all: own.length,
-
-      draft: own.filter((ev) => {
-        const status = String(ev.status || "").toLowerCase();
-
-        return status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
-      }).length,
-
-      published: own.filter((ev) => {
-        const status = String(ev.status || "").toLowerCase();
-
-        const draft =
-          status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
-
-        return !draft && !isEventFinished(ev);
-      }).length,
-
-      finished: own.filter((ev) => isEventFinished(ev)).length,
-    };
-  }, [events, now]);
+  const managedCounts = useMemo(
+    () => ({
+      all: allMyEvents.length,
+      draft: allMyEvents.filter((ev) => isDraftEvent(ev) && canEditEvent(ev))
+        .length,
+      published: allMyEvents.filter(
+        (ev) =>
+          !isDraftEvent(ev) &&
+          !isEventFinished(ev) &&
+          !["finished", "completed", "ended"].includes(
+            String(ev.status || "").toLowerCase(),
+          ),
+      ).length,
+      finished: allMyEvents.filter(
+        (ev) =>
+          isEventFinished(ev) ||
+          ["finished", "completed", "ended"].includes(
+            String(ev.status || "").toLowerCase(),
+          ),
+      ).length,
+    }),
+    [allMyEvents, now],
+  );
 
   return (
     <UserShell title={reportEvent ? "Статистик & тайлан" : "Миний эвэнтүүд"}>
@@ -2111,6 +2122,25 @@ export default function Event() {
               </div>
             ) : (
               <div className="myEventsPage">
+                <div
+                  className="myEventsPageHeading"
+                  style={{ marginBottom: 18 }}
+                >
+                  <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
+                    Миний оролцсон эвентүүд
+                  </h2>
+                  <p
+                    style={{
+                      margin: "6px 0 0",
+                      color: "#8a91a5",
+                      fontSize: 13,
+                    }}
+                  >
+                    Таны үүсгэсэн болон оролцсон эвентүүд. Дууссан эвентүүд
+                    архивт хадгалагдана.
+                  </p>
+                </div>
+
                 <div className="myEventsToolbar">
                   <div className="myEventTabs">
                     {[
@@ -2169,7 +2199,7 @@ export default function Event() {
                   </div>
                 ) : managedEvents.length === 0 ? (
                   <div className="myEventsEmpty">
-                    <strong>Эвэнт олдсонгүй</strong>
+                    <strong>Эвент олдсонгүй</strong>
 
                     <span>Хайлт эсвэл сонгосон төлвөө өөрчилж үзнэ үү.</span>
                   </div>

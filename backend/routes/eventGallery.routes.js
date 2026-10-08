@@ -186,12 +186,10 @@ router.get("/:eventId", authMiddleware, async (req, res) => {
         .json({ message: "Энэ цомог хараахан нийтлэгдээгүй байна." });
     }
     if (!canManage && settings.visibility === "participants" && !participant) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Энэ зургийн цомгийг зөвхөн эвентэд бүртгүүлсэн оролцогчид харах боломжтой.",
-        });
+      return res.status(403).json({
+        message:
+          "Энэ зургийн цомгийг зөвхөн эвентэд бүртгүүлсэн оролцогчид харах боломжтой.",
+      });
     }
 
     const images = await getImages(eventId);
@@ -357,9 +355,12 @@ router.post(
       }
 
       await pool.query(
-        `INSERT INTO event_gallery_settings (event_id, is_published)
-       VALUES (?, 0)
-       ON DUPLICATE KEY UPDATE is_published = 0, published_at = NULL`,
+        `INSERT INTO event_gallery_settings
+    (event_id, is_published, published_at)
+    VALUES (?, 1, NOW())
+    ON DUPLICATE KEY UPDATE
+        is_published = 1,
+        published_at = NOW()`,
         [eventId],
       );
 

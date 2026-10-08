@@ -590,9 +590,13 @@ export default function EventImages() {
               <button
                 type="button"
                 className="egParticipantViewButton"
-                onClick={() =>
-                  window.open(`/user/events/${id}/images`, "_blank")
-                }
+                onClick={() => {
+                  window.open(
+                    `/user/history/${id}/images`,
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
               >
                 <FiEye />
                 Оролцогчийн харагдац
