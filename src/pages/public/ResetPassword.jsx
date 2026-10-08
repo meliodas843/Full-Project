@@ -1,13 +1,35 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
 
-import { Link, useNavigate } from "react-router-dom";
+  useEffect,
+
+  useMemo,
+
+  useRef,
+
+  useState,
+
+} from "react";
 
 import {
+
+  Link,
+
+  useNavigate,
+
+} from "react-router-dom";
+
+import {
+
   FiArrowLeft,
+
   FiCheck,
+
   FiEye,
+
   FiEyeOff,
+
   FiShield,
+
 } from "react-icons/fi";
 
 import logo from "../../assets/registra-logo-def.png";
@@ -17,6 +39,7 @@ import { API_BASE } from "../../lib/config";
 const CODE_LENGTH = 6;
 
 export default function ResetPassword() {
+
   const navigate = useNavigate();
 
   const inputsRef = useRef([]);
@@ -25,75 +48,166 @@ export default function ResetPassword() {
   const [otpError, setOtpError] = useState("");
 
   const emailFromUrl = useMemo(() => {
-    return (new URLSearchParams(window.location.search).get("email") || "")
+
+    return (
+
+      new URLSearchParams(
+
+        window.location.search
+
+      ).get("email") || ""
+
+    )
 
       .trim()
 
       .toLowerCase();
+
   }, []);
 
   const [email, setEmail] = useState(
-    emailFromUrl || sessionStorage.getItem("passwordResetEmail") || "",
+
+    emailFromUrl ||
+
+      sessionStorage.getItem(
+
+        "passwordResetEmail"
+
+      ) ||
+
+      ""
+
   );
 
-  const [step, setStep] = useState("code");
+  const [step, setStep] =
 
-  const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
+    useState("code");
 
-  const [verificationToken, setVerificationToken] = useState("");
+  const [code, setCode] = useState(
 
-  const [password, setPassword] = useState("");
+    Array(CODE_LENGTH).fill("")
 
-  const [confirmPassword, setConfirmPassword] = useState("");
+  );
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [
 
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    verificationToken,
 
-  const [message, setMessage] = useState("");
+    setVerificationToken,
 
-  const [success, setSuccess] = useState(false);
+  ] = useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [password, setPassword] =
 
-  const [resending, setResending] = useState(false);
+    useState("");
+
+  const [
+
+    confirmPassword,
+
+    setConfirmPassword,
+
+  ] = useState("");
+
+  const [
+
+    showPassword,
+
+    setShowPassword,
+
+  ] = useState(false);
+
+  const [
+
+    showConfirmPassword,
+
+    setShowConfirmPassword,
+
+  ] = useState(false);
+
+  const [message, setMessage] =
+
+    useState("");
+
+  const [success, setSuccess] =
+
+    useState(false);
+
+  const [loading, setLoading] =
+
+    useState(false);
+
+  const [resending, setResending] =
+
+    useState(false);
 
   useEffect(() => {
+
     if (email) {
+
       sessionStorage.setItem(
+
         "passwordResetEmail",
 
-        email,
+        email
+
       );
+
     }
+
   }, [email]);
 
   useEffect(() => {
-    if (!email && step === "code") {
+
+    if (
+
+      !email &&
+
+      step === "code"
+
+    ) {
+
       navigate(
+
         "/forgot-password",
 
         {
+
           replace: true,
-        },
+
+        }
+
       );
+
     }
-  }, [email, step, navigate]);
+
+  }, [
+
+    email,
+
+    step,
+
+    navigate,
+
+  ]);
+
+  useEffect(() => {
+    if (step !== "complete") return undefined;
+    const redirectTimer = window.setTimeout(() => {
+      navigate("/login", { replace: true });
+    }, 1800);
+    return () => window.clearTimeout(redirectTimer);
+  }, [step, navigate]);
 
   const fullCode = code.join("");
 
   useEffect(() => {
-    if (
-      step !== "code" ||
-      fullCode.length !== CODE_LENGTH ||
-      otpPhase !== "idle" ||
-      verificationStartedRef.current
-    )
-      return;
+    if (step !== "code" || fullCode.length !== CODE_LENGTH || otpPhase !== "idle" || verificationStartedRef.current) return;
     verificationStartedRef.current = true;
     const timer = setTimeout(() => verifyCode(null, fullCode), 160);
     return () => clearTimeout(timer);
   }, [fullCode, otpPhase, step]);
+
 
   /* =========================================================
 
@@ -102,6 +216,7 @@ export default function ResetPassword() {
      \========================================================= */
 
   const passwordChecks = {
+
     length: password.length >= 10,
 
     upper: /[A-Z]/.test(password),
@@ -110,18 +225,30 @@ export default function ResetPassword() {
 
     number: /\d/.test(password),
 
-    symbol: /[^A-Za-z0-9]/.test(password),
+    symbol:
+
+      /[^A-Za-z0-9]/.test(password),
+
   };
 
-  const lettersValid = passwordChecks.upper && passwordChecks.lower;
+  const lettersValid =
+
+    passwordChecks.upper &&
+
+    passwordChecks.lower;
 
   const passwordValid =
+
     passwordChecks.length &&
+
     lettersValid &&
+
     passwordChecks.number &&
+
     passwordChecks.symbol;
 
   const passedRequirements = [
+
     passwordChecks.length,
 
     lettersValid,
@@ -129,33 +256,54 @@ export default function ResetPassword() {
     passwordChecks.number,
 
     passwordChecks.symbol,
+
   ].filter(Boolean).length;
 
-  const passwordStrength = passedRequirements * 25;
+  const passwordStrength =
+
+    passedRequirements * 25;
 
   const strengthLabel = useMemo(() => {
+
     if (!password.length) {
+
       return "";
+
     }
 
     if (passedRequirements === 1) {
+
       return "Сул";
+
     }
 
     if (passedRequirements === 2) {
+
       return "Дунд";
+
     }
 
     if (passedRequirements === 3) {
+
       return "Сайн";
+
     }
 
     if (passedRequirements === 4) {
+
       return "Хүчтэй";
+
     }
 
     return "Сул";
-  }, [password.length, passedRequirements]);
+
+  }, [
+
+    password.length,
+
+    passedRequirements,
+
+  ]);
 
   /* =========================================================
 
@@ -164,10 +312,13 @@ export default function ResetPassword() {
      \========================================================= */
 
   const handleCodeChange = (
+
     index,
 
-    value,
+    value
+
   ) => {
+
     const digit = value
 
       .replace(/\D/g, "")
@@ -185,66 +336,150 @@ export default function ResetPassword() {
 
     setSuccess(false);
 
-    if (digit && index < CODE_LENGTH - 1) {
-      inputsRef.current[index + 1]?.focus();
+    if (
+
+      digit &&
+
+      index < CODE_LENGTH - 1
+
+    ) {
+
+      inputsRef.current[
+
+        index + 1
+
+      ]?.focus();
+
     }
+
   };
 
   const handleCodeKeyDown = (
+
     index,
 
-    event,
+    event
+
   ) => {
-    if (event.key === "Backspace" && !code[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
+
+    if (
+
+      event.key ===
+
+        "Backspace" &&
+
+      !code[index] &&
+
+      index > 0
+
+    ) {
+
+      inputsRef.current[
+
+        index - 1
+
+      ]?.focus();
+
     }
 
-    if (event.key === "ArrowLeft" && index > 0) {
+    if (
+
+      event.key ===
+
+        "ArrowLeft" &&
+
+      index > 0
+
+    ) {
+
       event.preventDefault();
 
-      inputsRef.current[index - 1]?.focus();
+      inputsRef.current[
+
+        index - 1
+
+      ]?.focus();
+
     }
 
-    if (event.key === "ArrowRight" && index < CODE_LENGTH - 1) {
+    if (
+
+      event.key ===
+
+        "ArrowRight" &&
+
+      index <
+
+        CODE_LENGTH - 1
+
+    ) {
+
       event.preventDefault();
 
-      inputsRef.current[index + 1]?.focus();
+      inputsRef.current[
+
+        index + 1
+
+      ]?.focus();
+
     }
+
   };
 
-  const handlePaste = (event) => {
+  const handlePaste = (
+
+    event
+
+  ) => {
+
     event.preventDefault();
 
-    const pasted = event.clipboardData
+    const pasted =
 
-      .getData("text")
+      event.clipboardData
 
-      .replace(/\D/g, "")
+        .getData("text")
 
-      .slice(
-        0,
+        .replace(/\D/g, "")
 
-        CODE_LENGTH,
-      );
+        .slice(
+
+          0,
+
+          CODE_LENGTH
+
+        );
 
     if (!pasted) {
+
       return;
+
     }
 
-    const next = Array(CODE_LENGTH).fill("");
+    const next =
+
+      Array(CODE_LENGTH).fill("");
 
     pasted
 
       .split("")
 
       .forEach(
+
         (
+
           digit,
 
-          index,
+          index
+
         ) => {
-          next[index] = digit;
-        },
+
+          next[index] =
+
+            digit;
+
+        }
+
       );
 
     setCode(next);
@@ -254,15 +489,25 @@ export default function ResetPassword() {
     setSuccess(false);
 
     const focusIndex =
+
       Math.min(
+
         pasted.length,
 
-        CODE_LENGTH,
+        CODE_LENGTH
+
       ) - 1;
 
     setTimeout(() => {
-      inputsRef.current[focusIndex]?.focus();
+
+      inputsRef.current[
+
+        focusIndex
+
+      ]?.focus();
+
     }, 0);
+
   };
 
   /* =========================================================
@@ -280,7 +525,7 @@ export default function ResetPassword() {
     setOtpError("");
     setMessage("");
     setSuccess(false);
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    await new Promise(resolve => setTimeout(resolve, 650));
     setOtpPhase("checking");
     setLoading(true);
     try {
@@ -291,10 +536,7 @@ export default function ResetPassword() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setOtpError(
-          data?.message ||
-            "Баталгаажуулах код буруу эсвэл хугацаа дууссан байна.",
-        );
+        setOtpError(data?.message || "Баталгаажуулах код буруу эсвэл хугацаа дууссан байна.");
         setOtpPhase("invalid");
         setTimeout(() => {
           setCode(Array(CODE_LENGTH).fill(""));
@@ -304,8 +546,7 @@ export default function ResetPassword() {
         }, 1900);
         return;
       }
-      const token =
-        data?.verificationToken || data?.resetToken || data?.token || "";
+      const token = data?.verificationToken || data?.resetToken || data?.token || "";
       setVerificationToken(token);
       setOtpPhase("valid");
       setSuccess(true);
@@ -336,67 +577,137 @@ export default function ResetPassword() {
 
      \========================================================= */
 
-  const resendCode = async () => {
-    if (resending || !email) {
-      return;
-    }
+  const resendCode =
 
-    setResending(true);
+    async () => {
 
-    setMessage("");
+      if (
 
-    setSuccess(false);
+        resending ||
 
-    try {
-      const response = await fetch(
-        `${API_BASE}/api/email/password-code`,
+        !email
 
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            email,
-          }),
-        },
-      );
-
-      const data = await response
-
-        .json()
-
-        .catch(() => ({}));
-
-      if (!response.ok) {
-        setMessage(data?.message || "Код дахин илгээж чадсангүй.");
+      ) {
 
         return;
+
       }
 
-      setCode(Array(CODE_LENGTH).fill(""));
+      setResending(true);
 
-      setSuccess(true);
+      setMessage("");
 
-      setMessage("Шинэ баталгаажуулах код илгээгдлээ.");
+      setSuccess(false);
 
-      setTimeout(() => {
-        inputsRef.current[0]?.focus();
-      }, 100);
-    } catch (error) {
-      console.error(
-        "Resend code error:",
+      try {
 
-        error,
-      );
+        const response =
 
-      setMessage("Сервертэй холбогдож чадсангүй.");
-    } finally {
-      setResending(false);
-    }
-  };
+          await fetch(
+
+            `${API_BASE}/api/email/password-code`,
+
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type":
+
+                  "application/json",
+
+              },
+
+              body:
+
+                JSON.stringify({
+
+                  email,
+
+                }),
+
+            }
+
+          );
+
+        const data =
+
+          await response
+
+            .json()
+
+            .catch(
+
+              () => ({})
+
+            );
+
+        if (!response.ok) {
+
+          setMessage(
+
+            data?.message ||
+
+              "Код дахин илгээж чадсангүй."
+
+          );
+
+          return;
+
+        }
+
+        setCode(
+
+          Array(
+
+            CODE_LENGTH
+
+          ).fill("")
+
+        );
+
+        setSuccess(true);
+
+        setMessage(
+
+          "Шинэ баталгаажуулах код илгээгдлээ."
+
+        );
+
+        setTimeout(() => {
+
+          inputsRef.current[
+
+            0
+
+          ]?.focus();
+
+        }, 100);
+
+      } catch (error) {
+
+        console.error(
+
+          "Resend code error:",
+
+          error
+
+        );
+
+        setMessage(
+
+          "Сервертэй холбогдож чадсангүй."
+
+        );
+
+      } finally {
+
+        setResending(false);
+
+      }
+
+    };
 
   /* =========================================================
 
@@ -404,90 +715,175 @@ export default function ResetPassword() {
 
      \========================================================= */
 
-  const submitPassword = async (event) => {
-    event.preventDefault();
+  const submitPassword =
 
-    if (loading) {
-      return;
-    }
+    async (event) => {
 
-    if (!passwordValid) {
-      setMessage("Нууц үгийн бүх шаардлагыг хангана уу.");
+      event.preventDefault();
 
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setMessage("Нууц үгүүд таарахгүй байна.");
-
-      return;
-    }
-
-    setLoading(true);
-
-    setMessage("");
-
-    setSuccess(false);
-
-    try {
-      const body = {
-        email,
-
-        code: fullCode,
-
-        newPassword: password,
-      };
-
-      if (verificationToken) {
-        body.verificationToken = verificationToken;
-      }
-
-      const response = await fetch(
-        `${API_BASE}/api/password/reset-with-code`,
-
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(body),
-        },
-      );
-
-      const data = await response
-
-        .json()
-
-        .catch(() => ({}));
-
-      if (!response.ok) {
-        setMessage(data?.message || "Нууц үг шинэчилж чадсангүй.");
+      if (loading) {
 
         return;
+
       }
 
-      sessionStorage.removeItem("passwordResetEmail");
+      if (!passwordValid) {
 
-      setSuccess(true);
-      setMessage("Нууц үг амжилттай хадгалагдлаа.");
-      setStep("complete");
-    } catch (error) {
-      console.error(
-        "Reset password error:",
+        setMessage(
 
-        error,
-      );
+          "Нууц үгийн бүх шаардлагыг хангана уу."
 
-      setMessage("Сервертэй холбогдож чадсангүй.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        );
+
+        return;
+
+      }
+
+      if (
+
+        password !==
+
+        confirmPassword
+
+      ) {
+
+        setMessage(
+
+          "Нууц үгүүд таарахгүй байна."
+
+        );
+
+        return;
+
+      }
+
+      setLoading(true);
+
+      setMessage("");
+
+      setSuccess(false);
+
+      try {
+
+        const body = {
+
+          email,
+
+          code:
+
+            fullCode,
+
+          newPassword:
+
+            password,
+
+        };
+
+        if (
+
+          verificationToken
+
+        ) {
+
+          body.verificationToken =
+
+            verificationToken;
+
+        }
+
+        const response =
+
+          await fetch(
+
+            `${API_BASE}/api/password/reset-with-code`,
+
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type":
+
+                  "application/json",
+
+              },
+
+              body:
+
+                JSON.stringify(
+
+                  body
+
+                ),
+
+            }
+
+          );
+
+        const data =
+
+          await response
+
+            .json()
+
+            .catch(
+
+              () => ({})
+
+            );
+
+        if (!response.ok) {
+
+          setMessage(
+
+            data?.message ||
+
+              "Нууц үг шинэчилж чадсангүй."
+
+          );
+
+          return;
+
+        }
+
+        sessionStorage.removeItem(
+
+          "passwordResetEmail"
+
+        );
+
+        setSuccess(true);
+        setMessage("Нууц үг амжилттай хадгалагдлаа.");
+        setStep("complete");
+      } catch (error) {
+
+        console.error(
+
+          "Reset password error:",
+
+          error
+
+        );
+
+        setMessage(
+
+          "Сервертэй холбогдож чадсангүй."
+
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
 
   return (
+
     <main className="rgLoginPage">
+
       {/* =====================================================
 
           LEFT SIDE
@@ -495,37 +891,93 @@ export default function ResetPassword() {
           \===================================================== */}
 
       <section className="rgLoginLeft">
-        <Link to="/" className="rgLoginBrand">
-          <img src={logo} alt="Registra" className="rgLoginBrandLogo" />
+
+        <Link
+
+          to="/"
+
+          className="rgLoginBrand"
+
+        >
+
+          <img
+
+            src={logo}
+
+            alt="Registra"
+
+            className="rgLoginBrandLogo"
+
+          />
+
         </Link>
 
         <div className="rgLoginHero">
+
           <h1>
+
             Эвэнтээ бүртгэж,
+
             <br />
+
             хүмүүстэй уулз.
+
           </h1>
 
-          <p>Бүртгэл, хуваарь, уулзалтын хүсэлт — бүгд нэг календарьт.</p>
+          <p>
+
+            Бүртгэл, хуваарь,
+
+            уулзалтын хүсэлт —
+
+            бүгд нэг календарьт.
+
+          </p>
 
           <div className="rgLoginMeetingCard">
-            <div className="rgLoginAvatar">БГ</div>
 
-            <div className="rgLoginMeetingInfo">
-              <span>ДАРААГИЙН УУЛЗАЛТ</span>
+            <div className="rgLoginAvatar">
 
-              <strong>14:00 · Бат-Эрдэнэ Г.</strong>
+              БГ
+
             </div>
 
-            <div className="rgLoginZoom">1:1 Zoom</div>
+            <div className="rgLoginMeetingInfo">
+
+              <span>
+
+                ДАРААГИЙН УУЛЗАЛТ
+
+              </span>
+
+              <strong>
+
+                14:00 · Бат-Эрдэнэ Г.
+
+              </strong>
+
+            </div>
+
+            <div className="rgLoginZoom">
+
+              1:1 Zoom
+
+            </div>
+
           </div>
+
         </div>
 
         <div className="rgLoginCircle rgLoginCircleOne" />
 
         <div className="rgLoginCircle rgLoginCircleTwo" />
 
-        <div className="rgLoginCopyright">© 2026 Registra</div>
+        <div className="rgLoginCopyright">
+
+          © 2026 Registra
+
+        </div>
+
       </section>
 
       {/* =====================================================
@@ -535,39 +987,64 @@ export default function ResetPassword() {
           \===================================================== */}
 
       <section className="rgLoginRight">
+
         <button
+
           type="button"
+
           className="rgLoginBack"
+
           onClick={() =>
-            step === "password" ? setStep("code") : navigate("/login")
+
+            step ===
+
+            "password"
+
+              ? setStep(
+
+                  "code"
+
+                )
+
+              : navigate(
+
+                  "/login"
+
+                )
+
           }
+
         >
+
           <FiArrowLeft />
 
-          <span>{step === "password" ? "Буцах" : "Нэвтрэх хуудас"}</span>
+          <span>
+
+            {step ===
+
+            "password"
+
+              ? "Буцах"
+
+              : "Нэвтрэх хуудас"}
+
+          </span>
+
         </button>
 
         <div className="rgLoginContent">
-          <div
-            className="forgotProgress"
-            role="group"
-            aria-label="Нууц үг сэргээх явц"
-          >
-            <span className={step === "code" ? "active" : "completed"} />
-            <span
-              className={
-                step === "password"
-                  ? "active"
-                  : step === "complete"
-                    ? "completed"
-                    : ""
-              }
-            />
-            <span className={step === "complete" ? "active" : ""} />
+          <div className="forgotProgress" role="group" aria-label="Нууц үг сэргээх явц">
+            <span className="active" />
+            <span className="active" />
+            <span className={step === "password" || step === "complete" ? "active" : ""} />
           </div>
 
-          {step === "code" ? (
+          {step ===
+
+          "code" ? (
+
             <>
+
               {/* ===============================================
 
                   CODE STEP
@@ -575,123 +1052,295 @@ export default function ResetPassword() {
                   \=============================================== */}
 
               <div className="rgLoginHeading">
-                <h2>Код баталгаажуулах</h2>
+
+                <h2>
+
+                  Код баталгаажуулах
+
+                </h2>
 
                 <p>
-                  <strong>{email}</strong> хаяг руу илгээсэн 6 оронтой кодыг
+
+                  <strong>
+
+                    {email}
+
+                  </strong>{" "}
+
+                  хаяг руу
+
+                  илгээсэн 6
+
+                  оронтой кодыг
+
                   оруулна уу.
+
                 </p>
+
               </div>
 
-              <form className="rgLoginForm" onSubmit={verifyCode}>
+              <form
+
+                className="rgLoginForm"
+
+                onSubmit={
+
+                  verifyCode
+
+                }
+
+              >
+
                 <div className="rgResetCodeWrap">
-                  <label>БАТАЛГААЖУУЛАХ КОД</label>
+
+                  <label>
+
+                    БАТАЛГААЖУУЛАХ КОД
+
+                  </label>
 
                   <div className={`rgOtpStage rgOtp-${otpPhase}`}>
-                    <div className="rgResetCodeInputs" onPaste={handlePaste}>
-                      {code.map(
-                        (
-                          digit,
+                  <div
 
-                          index,
-                        ) => (
-                          <input
-                            key={index}
-                            ref={(element) => {
-                              inputsRef.current[index] = element;
-                            }}
-                            type="text"
-                            disabled={otpPhase !== "idle"}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(event) =>
-                              handleCodeChange(
-                                index,
+                    className="rgResetCodeInputs"
 
-                                event.target.value,
-                              )
-                            }
-                            onKeyDown={(event) =>
-                              handleCodeKeyDown(
-                                index,
+                    onPaste={
 
-                                event,
-                              )
-                            }
-                            autoFocus={index === 0}
-                            aria-label={`Код ${index + 1}`}
-                          />
-                        ),
-                      )}
-                    </div>
+                      handlePaste
 
-                    {otpPhase !== "idle" && (
-                      <div
-                        className={`rgOtpOverlay rgOtpOverlay-${otpPhase}`}
-                        role="status"
-                        aria-live="polite"
-                      >
-                        <div className="rgOtpOrbit">
-                          {otpPhase === "checking" || otpPhase === "merging" ? (
-                            <span className="rgOtpSpinner" />
-                          ) : otpPhase === "valid" ? (
-                            <FiCheck className="rgOtpResultIcon" />
-                          ) : (
-                            <span className="rgOtpResultIcon">×</span>
-                          )}
-                        </div>
-                        {otpPhase === "checking" && (
-                          <strong>Код шалгаж байна...</strong>
-                        )}
-                        {otpPhase === "valid" && (
-                          <strong>Амжилттай баталгаажлаа</strong>
-                        )}
-                        {otpPhase === "invalid" && (
-                          <strong>{otpError || "Код буруу байна"}</strong>
-                        )}
-                      </div>
+                    }
+
+                  >
+
+                    {code.map(
+
+                      (
+
+                        digit,
+
+                        index
+
+                      ) => (
+
+                        <input
+
+                          key={
+
+                            index
+
+                          }
+
+                          ref={(
+
+                            element
+
+                          ) => {
+
+                            inputsRef.current[
+
+                              index
+
+                            ] =
+
+                              element;
+
+                          }}
+
+                          type="text"
+                        disabled={otpPhase !== "idle"}
+
+                          inputMode="numeric"
+
+                          pattern="[0-9]*"
+
+                          maxLength={
+
+                            1
+
+                          }
+
+                          value={
+
+                            digit
+
+                          }
+
+                          onChange={(
+
+                            event
+
+                          ) =>
+
+                            handleCodeChange(
+
+                              index,
+
+                              event
+
+                                .target
+
+                                .value
+
+                            )
+
+                          }
+
+                          onKeyDown={(
+
+                            event
+
+                          ) =>
+
+                            handleCodeKeyDown(
+
+                              index,
+
+                              event
+
+                            )
+
+                          }
+
+                          autoFocus={
+
+                            index ===
+
+                            0
+
+                          }
+
+                          aria-label={`Код ${
+
+                            index +
+
+                            1
+
+                          }`}
+
+                        />
+
+                      )
+
                     )}
+
                   </div>
 
-                  <p className="rgResetCodeHint">
-                    Код 10 минутын хугацаанд хүчинтэй.
+                  {otpPhase !== "idle" && (
+                  <div className={`rgOtpOverlay rgOtpOverlay-${otpPhase}`} role="status" aria-live="polite">
+                    <div className="rgOtpOrbit">
+                      {otpPhase === "checking" || otpPhase === "merging" ? (
+                        <span className="rgOtpSpinner" />
+                      ) : otpPhase === "valid" ? (
+                        <FiCheck className="rgOtpResultIcon" />
+                      ) : (
+                        <span className="rgOtpResultIcon">×</span>
+                      )}
+                    </div>
+                    {otpPhase === "checking" && <strong>Код шалгаж байна...</strong>}
+                    {otpPhase === "valid" && <strong>Амжилттай баталгаажлаа</strong>}
+                    {otpPhase === "invalid" && <strong>{otpError || "Код буруу байна"}</strong>}
+                  </div>
+                )}
+                </div>
+
+                <p className="rgResetCodeHint">
+
+                    Код 10
+
+                    минутын
+
+                    хугацаанд
+
+                    хүчинтэй.
+
                   </p>
+
                 </div>
 
                 {message && (
-                  <div className={success ? "rgResetSuccess" : "rgLoginError"}>
+
+                  <div
+
+                    className={
+
+                      success
+
+                        ? "rgResetSuccess"
+
+                        : "rgLoginError"
+
+                    }
+
+                  >
+
                     {message}
+
                   </div>
+
                 )}
 
                 <button
+
                   type="submit"
+
                   className="rgLoginSubmit"
+
                   disabled={
-                    loading ||
-                    otpPhase !== "idle" ||
-                    fullCode.length !== CODE_LENGTH
+
+                    loading || otpPhase !== "idle" ||
+
+                    fullCode.length !==
+
+                      CODE_LENGTH
+
                   }
+
                 >
-                  {loading ? "Шалгаж байна..." : "Үргэлжлүүлэх"}
+
+                  {loading
+
+                    ? "Шалгаж байна..."
+
+                    : "Үргэлжлүүлэх"}
+
                 </button>
 
                 <button
+
                   type="button"
+
                   className="rgResetResend"
-                  disabled={resending}
-                  onClick={resendCode}
+
+                  disabled={
+
+                    resending
+
+                  }
+
+                  onClick={
+
+                    resendCode
+
+                  }
+
                 >
+
                   {resending
+
                     ? "Илгээж байна..."
+
                     : "Код ирээгүй юу? Дахин илгээх"}
+
                 </button>
+
               </form>
+
             </>
+
           ) : step === "password" ? (
+
             <>
+
               {/* ===============================================
 
                   NEW PASSWORD STEP
@@ -699,45 +1348,149 @@ export default function ResetPassword() {
                   \=============================================== */}
 
               <div className="rgLoginHeading">
-                <h2>Шинэ нууц үг</h2>
 
-                <p>Бүртгэлдээ ашиглах шинэ нууц үгээ тохируулна уу.</p>
+                <h2>
+
+                  Шинэ нууц үг
+
+                </h2>
+
+                <p>
+
+                  Бүртгэлдээ
+
+                  ашиглах шинэ
+
+                  нууц үгээ
+
+                  тохируулна уу.
+
+                </p>
+
               </div>
 
               <form
+
                 className="rgLoginForm"
-                onSubmit={submitPassword}
+
+                onSubmit={
+
+                  submitPassword
+
+                }
+
                 noValidate
+
               >
+
                 {/* NEW PASSWORD */}
 
                 <div className="rgNewPasswordField">
-                  <label htmlFor="new-password">ШИНЭ НУУЦ ҮГ</label>
+
+                  <label htmlFor="new-password">
+
+                    ШИНЭ НУУЦ ҮГ
+
+                  </label>
 
                   <div className="rgNewPasswordInput">
-                    <input
-                      id="new-password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(event) => {
-                        setPassword(event.target.value);
 
-                        setMessage("");
+                    <input
+
+                      id="new-password"
+
+                      type={
+
+                        showPassword
+
+                          ? "text"
+
+                          : "password"
+
+                      }
+
+                      value={
+
+                        password
+
+                      }
+
+                      onChange={(
+
+                        event
+
+                      ) => {
+
+                        setPassword(
+
+                          event
+
+                            .target
+
+                            .value
+
+                        );
+
+                        setMessage(
+
+                          ""
+
+                        );
+
                       }}
+
                       placeholder="Шинэ нууц үгээ оруулна уу"
+
                       autoComplete="new-password"
+
                     />
 
                     <button
+
                       type="button"
+
                       className="rgNewPasswordEye"
+
                       aria-label={
-                        showPassword ? "Нууц үг нуух" : "Нууц үг харах"
+
+                        showPassword
+
+                          ? "Нууц үг нуух"
+
+                          : "Нууц үг харах"
+
                       }
-                      onClick={() => setShowPassword((current) => !current)}
+
+                      onClick={() =>
+
+                        setShowPassword(
+
+                          (
+
+                            current
+
+                          ) =>
+
+                            !current
+
+                        )
+
+                      }
+
                     >
-                      {showPassword ? <FiEyeOff /> : <FiEye />}
+
+                      {showPassword ? (
+
+                        <FiEyeOff />
+
+                      ) : (
+
+                        <FiEye />
+
+                      )}
+
                     </button>
+
                   </div>
 
                   {/* ===========================================
@@ -748,186 +1501,490 @@ export default function ResetPassword() {
 
                       \=========================================== */}
 
-                  {password.length > 0 && (
+                  {password.length >
+
+                    0 && (
+
                     <div className="rgPasswordGuide">
+
                       <div className="rgPasswordGuideHeader">
+
                         <div className="rgPasswordGuideShield">
+
                           <FiShield />
+
                         </div>
 
                         <div className="rgPasswordGuideTitle">
-                          <strong>Нууц үгийн шаардлага</strong>
 
-                          <span>Аюулгүй, найдвартай нууц үг үүсгэнэ үү.</span>
+                          <strong>
+
+                            Нууц үгийн
+
+                            шаардлага
+
+                          </strong>
+
+                          <span>
+
+                            Аюулгүй,
+
+                            найдвартай
+
+                            нууц үг
+
+                            үүсгэнэ үү.
+
+                          </span>
+
                         </div>
+
                       </div>
 
                       <div className="rgPasswordGuideGrid">
+
                         <div
+
                           className={`rgPasswordGuideItem ${
-                            passwordChecks.length ? "valid" : ""
+
+                            passwordChecks.length
+
+                              ? "valid"
+
+                              : ""
+
                           }`}
+
                         >
+
                           <span className="rgPasswordGuideCheck">
+
                             <FiCheck />
+
                           </span>
 
-                          <span>10-аас доошгүй тэмдэгт</span>
+                          <span>
+
+                            10-аас
+
+                            доошгүй
+
+                            тэмдэгт
+
+                          </span>
+
                         </div>
 
                         <div
+
                           className={`rgPasswordGuideItem ${
-                            lettersValid ? "valid" : ""
+
+                            lettersValid
+
+                              ? "valid"
+
+                              : ""
+
                           }`}
+
                         >
+
                           <span className="rgPasswordGuideCheck">
+
                             <FiCheck />
+
                           </span>
 
-                          <span>Том болон жижиг үсэг</span>
+                          <span>
+
+                            Том болон
+
+                            жижиг үсэг
+
+                          </span>
+
                         </div>
 
                         <div
+
                           className={`rgPasswordGuideItem ${
-                            passwordChecks.number ? "valid" : ""
+
+                            passwordChecks.number
+
+                              ? "valid"
+
+                              : ""
+
                           }`}
+
                         >
+
                           <span className="rgPasswordGuideCheck">
+
                             <FiCheck />
+
                           </span>
 
-                          <span>Дор хаяж нэг тоо</span>
+                          <span>
+
+                            Дор хаяж
+
+                            нэг тоо
+
+                          </span>
+
                         </div>
 
                         <div
+
                           className={`rgPasswordGuideItem ${
-                            passwordChecks.symbol ? "valid" : ""
+
+                            passwordChecks.symbol
+
+                              ? "valid"
+
+                              : ""
+
                           }`}
+
                         >
+
                           <span className="rgPasswordGuideCheck">
+
                             <FiCheck />
+
                           </span>
 
-                          <span>Дор хаяж нэг тусгай тэмдэг</span>
+                          <span>
+
+                            Дор хаяж
+
+                            нэг тусгай
+
+                            тэмдэг
+
+                          </span>
+
                         </div>
+
                       </div>
 
                       <div className="rgPasswordStrength">
-                        <div className="rgPasswordStrengthText">
-                          <span>Нууц үгийн хамгаалалт</span>
 
-                          <strong className={passwordValid ? "valid" : ""}>
-                            {strengthLabel}
+                        <div className="rgPasswordStrengthText">
+
+                          <span>
+
+                            Нууц үгийн
+
+                            хамгаалалт
+
+                          </span>
+
+                          <strong
+
+                            className={
+
+                              passwordValid
+
+                                ? "valid"
+
+                                : ""
+
+                            }
+
+                          >
+
+                            {
+
+                              strengthLabel
+
+                            }
+
                           </strong>
+
                         </div>
 
                         <div className="rgPasswordStrengthTrack">
+
                           <span
-                            className={passwordValid ? "valid" : ""}
+
+                            className={
+
+                              passwordValid
+
+                                ? "valid"
+
+                                : ""
+
+                            }
+
                             style={{
+
                               width: `${passwordStrength}%`,
+
                             }}
+
                           />
+
                         </div>
+
                       </div>
+
                     </div>
+
                   )}
+
                 </div>
 
                 {/* CONFIRM PASSWORD */}
 
                 <div className="rgNewPasswordField rgConfirmPasswordField">
-                  <label htmlFor="confirm-password">НУУЦ ҮГ ДАВТАХ</label>
+
+                  <label htmlFor="confirm-password">
+
+                    НУУЦ ҮГ ДАВТАХ
+
+                  </label>
 
                   <div
-                    className={`rgNewPasswordInput ${
-                      confirmPassword && password === confirmPassword
-                        ? "match"
-                        : ""
-                    } ${
-                      confirmPassword && password !== confirmPassword
-                        ? "mismatch"
-                        : ""
-                    }`}
-                  >
-                    <input
-                      id="confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(event) => {
-                        setConfirmPassword(event.target.value);
 
-                        setMessage("");
+                    className={`rgNewPasswordInput ${
+
+                      confirmPassword &&
+
+                      password ===
+
+                        confirmPassword
+
+                        ? "match"
+
+                        : ""
+
+                    } ${
+
+                      confirmPassword &&
+
+                      password !==
+
+                        confirmPassword
+
+                        ? "mismatch"
+
+                        : ""
+
+                    }`}
+
+                  >
+
+                    <input
+
+                      id="confirm-password"
+
+                      type={
+
+                        showConfirmPassword
+
+                          ? "text"
+
+                          : "password"
+
+                      }
+
+                      value={
+
+                        confirmPassword
+
+                      }
+
+                      onChange={(
+
+                        event
+
+                      ) => {
+
+                        setConfirmPassword(
+
+                          event
+
+                            .target
+
+                            .value
+
+                        );
+
+                        setMessage(
+
+                          ""
+
+                        );
+
                       }}
+
                       placeholder="Нууц үгээ дахин оруулна уу"
+
                       autoComplete="new-password"
+
                     />
 
                     <button
+
                       type="button"
+
                       className="rgNewPasswordEye"
+
                       aria-label={
-                        showConfirmPassword ? "Нууц үг нуух" : "Нууц үг харах"
+
+                        showConfirmPassword
+
+                          ? "Нууц үг нуух"
+
+                          : "Нууц үг харах"
+
                       }
+
                       onClick={() =>
-                        setShowConfirmPassword((current) => !current)
+
+                        setShowConfirmPassword(
+
+                          (
+
+                            current
+
+                          ) =>
+
+                            !current
+
+                        )
+
                       }
+
                     >
-                      {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+
+                      {showConfirmPassword ? (
+
+                        <FiEyeOff />
+
+                      ) : (
+
+                        <FiEye />
+
+                      )}
+
                     </button>
+
                   </div>
 
-                  {confirmPassword && password === confirmPassword && (
-                    <div className="rgPasswordMatchMessage valid">
-                      <FiCheck />
+                  {confirmPassword &&
 
-                      <span>Нууц үгүүд таарч байна</span>
-                    </div>
-                  )}
+                    password ===
 
-                  {confirmPassword && password !== confirmPassword && (
-                    <div className="rgPasswordMatchMessage invalid">
-                      <span>Нууц үгүүд таарахгүй байна</span>
-                    </div>
-                  )}
+                      confirmPassword && (
+
+                      <div className="rgPasswordMatchMessage valid">
+
+                        <FiCheck />
+
+                        <span>
+
+                          Нууц үгүүд
+
+                          таарч байна
+
+                        </span>
+
+                      </div>
+
+                    )}
+
+                  {confirmPassword &&
+
+                    password !==
+
+                      confirmPassword && (
+
+                      <div className="rgPasswordMatchMessage invalid">
+
+                        <span>
+
+                          Нууц үгүүд
+
+                          таарахгүй
+
+                          байна
+
+                        </span>
+
+                      </div>
+
+                    )}
+
                 </div>
 
                 {message && (
-                  <div className={success ? "rgResetSuccess" : "rgLoginError"}>
+
+                  <div
+
+                    className={
+
+                      success
+
+                        ? "rgResetSuccess"
+
+                        : "rgLoginError"
+
+                    }
+
+                  >
+
                     {message}
+
                   </div>
+
                 )}
 
                 <button
+
                   type="submit"
+
                   className="rgNewPasswordSubmit"
-                  disabled={loading}
+
+                  disabled={
+
+                    loading
+
+                  }
+
                 >
-                  {loading ? "Хадгалж байна..." : "Нууц үг шинэчлэх"}
+
+                  {loading
+
+                    ? "Хадгалж байна..."
+
+                    : "Нууц үг шинэчлэх"}
+
                 </button>
+
               </form>
+
             </>
+
           ) : (
             <div className="rgResetComplete" role="status" aria-live="polite">
-              <div className="rgResetCompleteIcon">
-                <FiCheck />
-              </div>
+              <div className="rgResetCompleteIcon"><FiCheck /></div>
               <h2>Нууц үг амжилттай хадгалагдлаа</h2>
-              <p>
-                Таны шинэ нууц үг шинэчлэгдсэн. Одоо шинэ нууц үгээрээ нэвтэрнэ
-                үү.
-              </p>
-              <button
-                type="button"
-                className="rgLoginSubmit"
-                onClick={() => navigate("/login", { replace: true })}
-              >
+              <p>Таны шинэ нууц үг шинэчлэгдсэн. Одоо шинэ нууц үгээрээ нэвтэрнэ үү.</p>
+              <button type="button" className="rgLoginSubmit" onClick={() => navigate("/login", { replace: true })}>
                 Нэвтрэх хуудас руу шилжих
               </button>
             </div>
           )}
         </div>
+
       </section>
+
     </main>
+
   );
+
 }

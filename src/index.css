@@ -33623,6 +33623,46 @@ html[data-user-theme="dark"] .rgProfileSettingsMain {
   text-align: center;
   line-height: 1.5;
 }
+
+rgResetCodeWrap .rgOtpStage.rgOtp-invalid,
+.rgResetCodeWrap .rgOtpStage.rgOtp-valid {
+  min-height: 138px;
+}
+
+.rgResetCodeWrap .rgOtpStage .rgOtpOverlay {
+  inset: 0;
+  gap: 12px;
+  padding: 6px 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.rgResetCodeWrap .rgOtpStage .rgOtpOrbit {
+  flex: 0 0 68px;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+.rgResetCodeWrap .rgOtpStage .rgOtpResultIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 39px;
+  line-height: 1;
+  margin: 0;
+  text-align: center;
+}
+
+.rgResetCodeWrap .rgOtpStage .rgOtpOverlay strong {
+  margin: 0;
+  line-height: 1.45;
+}
+
+
 .rgOtpStage.rgOtp-valid + .rgResetCodeHint,
 .rgOtpStage.rgOtp-invalid + .rgResetCodeHint {
   opacity: 0.65;
