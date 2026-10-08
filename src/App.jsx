@@ -19,6 +19,7 @@ import PublicEvents from "./pages/public/Event";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
+import EventCheckin from "./pages/user/pages/EventCheckin";
 import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
@@ -47,8 +48,7 @@ function AppRoutes() {
   const isSuperAdminArea = location.pathname.startsWith("/super-admin");
 
   const isProfilePage =
-    location.pathname === "/profile" ||
-    location.pathname === "/user/profile";
+    location.pathname === "/profile" || location.pathname === "/user/profile";
 
   const isAuthPage =
     location.pathname === "/login" ||
@@ -57,10 +57,7 @@ function AppRoutes() {
     location.pathname === "/reset-password";
 
   const showPublicNavbar =
-    !isUserArea &&
-    !isSuperAdminArea &&
-    !isProfilePage &&
-    !isAuthPage;
+    !isUserArea && !isSuperAdminArea && !isProfilePage && !isAuthPage;
 
   return (
     <>
@@ -78,10 +75,7 @@ function AppRoutes() {
         <Route path="/events/:id" element={<EventDetail />} />
 
         <Route path="/organization" element={<Organization />} />
-        <Route
-          path="/organization/:id"
-          element={<OrganizationDetail />}
-        />
+        <Route path="/organization/:id" element={<OrganizationDetail />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -113,6 +107,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute roles={["user"]}>
               <UserEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/user/events/:eventId/checkin"
+          element={
+            <ProtectedRoute roles={["user"]}>
+              <EventCheckin />
             </ProtectedRoute>
           }
         />

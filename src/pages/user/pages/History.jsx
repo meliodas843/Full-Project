@@ -2052,7 +2052,6 @@ export default function History() {
                             ) : (
                               <button
                                 type="button"
-                                className="myEventStatisticsBtn"
                                 onClick={() =>
                                   navigate(`/user/events/${event.id}/checkin`)
                                 }
