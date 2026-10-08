@@ -2,7 +2,7 @@
 import express from "express";
 import crypto from "node:crypto";
 import pool from "../db.js";
-import auth from "../middleware/auth.js";
+import auth from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -20,15 +20,28 @@ function newTicketCode() {
 
 async function findEvent(eventId) {
   const [rows] = await pool.query(
-    "SELECT id, title, user_id FROM events WHERE id = ? LIMIT 1",
+    `SELECT id, title, user_id
+     FROM events
+     WHERE id = ?
+     LIMIT 1`,
     [eventId]
   );
-  return rows[0];
+
+  return rows[0] || null;
 }
 
 async function requireOrganizer(req, res, next) {
   try {
-    const event = await findEvent(req.params.eventId);
+    const { eventId } = req.params;
+    const userId = currentUserId(req);
+
+    if (!validId(eventId) || !validId(userId)) {
+      return res.status(400).json({
+        message: "Буруу хүсэлт."
+      });
+    }
+
+    const event = await findEvent(eventId);
 
     if (!event) {
       return res.status(404).json({
@@ -36,9 +49,10 @@ async function requireOrganizer(req, res, next) {
       });
     }
 
-    if (Number(event.user_id) !== currentUserId(req)) {
+    if (Number(event.user_id) !== userId) {
       return res.status(403).json({
-        message: "Зөвхөн эвент зохион байгуулагч нэвтрэх эрхтэй."
+        message:
+          "Зөвхөн эвент зохион байгуулагч нэвтрэх эрхтэй."
       });
     }
 
@@ -50,16 +64,19 @@ async function requireOrganizer(req, res, next) {
 }
 
 async function ensureTicket(eventId, userId) {
-  const [booking] = await pool.query(
+  const [bookings] = await pool.query(
     `SELECT user_id
      FROM event_bookings
-     WHERE event_id = ? AND user_id = ?
+     WHERE event_id = ?
+       AND user_id = ?
      LIMIT 1`,
     [eventId, userId]
   );
 
-  if (!booking.length) {
-    const error = new Error("Та энэ эвентэд бүртгүүлээгүй байна.");
+  if (!bookings.length) {
+    const error = new Error(
+      "Та энэ эвентэд бүртгүүлээгүй байна."
+    );
     error.status = 403;
     throw error;
   }
@@ -75,44 +92,62 @@ async function ensureTicket(eventId, userId) {
   const [tickets] = await pool.query(
     `SELECT ticket_code, checked_in_at
      FROM event_checkins
-     WHERE event_id = ? AND user_id = ?
+     WHERE event_id = ?
+       AND user_id = ?
      LIMIT 1`,
     [eventId, userId]
   );
 
+  if (!tickets.length) {
+    throw new Error("QR тасалбар үүсгэж чадсангүй.");
+  }
+
   return tickets[0];
 }
 
-router.get("/:eventId/my-ticket", async (req, res) => {
-  try {
-    const { eventId } = req.params;
-    const userId = currentUserId(req);
+router.get(
+  "/:eventId/my-ticket",
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const userId = currentUserId(req);
 
-    if (!validId(eventId) || !validId(userId)) {
-      return res.status(400).json({ message: "Буруу хүсэлт." });
+      if (!validId(eventId) || !validId(userId)) {
+        return res.status(400).json({
+          message: "Буруу хүсэлт."
+        });
+      }
+
+      const event = await findEvent(eventId);
+
+      if (!event) {
+        return res.status(404).json({
+          message: "Эвент олдсонгүй."
+        });
+      }
+
+      const ticket = await ensureTicket(
+        eventId,
+        userId
+      );
+
+      return res.json({
+        event_id: Number(eventId),
+        event_title: event.title,
+        ticket_code: ticket.ticket_code,
+        checked_in_at: ticket.checked_in_at
+      });
+    } catch (error) {
+      console.error("MY TICKET ERROR:", error);
+
+      return res.status(error.status || 500).json({
+        message: error.status
+          ? error.message
+          : "QR тасалбар авахад алдаа гарлаа."
+      });
     }
-
-    const event = await findEvent(eventId);
-    if (!event) {
-      return res.status(404).json({ message: "Эвент олдсонгүй." });
-    }
-
-    const ticket = await ensureTicket(eventId, userId);
-
-    res.json({
-      event_id: Number(eventId),
-      event_title: event.title,
-      ticket_code: ticket.ticket_code,
-      checked_in_at: ticket.checked_in_at
-    });
-  } catch (error) {
-    res.status(error.status || 500).json({
-      message: error.status
-        ? error.message
-        : "QR тасалбар авахад алдаа гарлаа."
-    });
   }
-});
+);
 
 router.get(
   "/:eventId/attendance",
@@ -130,7 +165,8 @@ router.get(
            ec.ticket_code,
            ec.checked_in_at
          FROM event_bookings eb
-         JOIN users u ON u.id = eb.user_id
+         JOIN users u
+           ON u.id = eb.user_id
          LEFT JOIN event_checkins ec
            ON ec.event_id = eb.event_id
           AND ec.user_id = eb.user_id
@@ -146,7 +182,7 @@ router.get(
         (row) => row.checked_in_at !== null
       ).length;
 
-      res.json({
+      return res.json({
         event: req.checkinEvent,
         total: rows.length,
         checked_in: checkedIn,
@@ -155,8 +191,10 @@ router.get(
       });
     } catch (error) {
       console.error("ATTENDANCE ERROR:", error);
-      res.status(500).json({
-        message: "Ирцийн мэдээлэл авахад алдаа гарлаа."
+
+      return res.status(500).json({
+        message:
+          "Ирцийн мэдээлэл авахад алдаа гарлаа."
       });
     }
   }
@@ -168,7 +206,10 @@ router.post(
   async (req, res) => {
     try {
       const { eventId } = req.params;
-      const code = String(req.body?.ticket_code || "").trim();
+
+      const code = String(
+        req.body?.ticket_code || ""
+      ).trim();
 
       if (!/^RGS-[a-f0-9]{48}$/.test(code)) {
         return res.status(400).json({
@@ -199,10 +240,11 @@ router.post(
            u.last_name,
            u.email
          FROM event_checkins ec
-         JOIN event_bookings eb
+         INNER JOIN event_bookings eb
            ON eb.event_id = ec.event_id
           AND eb.user_id = ec.user_id
-         JOIN users u ON u.id = ec.user_id
+         INNER JOIN users u
+           ON u.id = ec.user_id
          WHERE ec.event_id = ?
            AND ec.ticket_code = ?
          LIMIT 1`,
@@ -212,7 +254,8 @@ router.post(
       if (!rows.length) {
         return res.status(404).json({
           status: "invalid",
-          message: "Энэ эвентийн тасалбар олдсонгүй."
+          message:
+            "Энэ эвентийн тасалбар олдсонгүй."
         });
       }
 
@@ -233,8 +276,10 @@ router.post(
       });
     } catch (error) {
       console.error("CHECKIN SCAN ERROR:", error);
-      res.status(500).json({
-        message: "Бүртгэл хийхэд алдаа гарлаа."
+
+      return res.status(500).json({
+        message:
+          "Бүртгэл хийхэд алдаа гарлаа."
       });
     }
   }
