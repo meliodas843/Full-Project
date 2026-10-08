@@ -1625,6 +1625,61 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
 
     const imageCount = Number(fileRows[0]?.total || 0);
 
+    const [photoRows] = await pool.query(
+      `SELECT id, image_url, original_name
+   FROM event_gallery_images
+   WHERE event_id = ?
+   ORDER BY id DESC
+   LIMIT 3`,
+      [eventId],
+    );
+
+    const photos = [];
+    const attachments = [];
+
+    for (const photo of photoRows) {
+      const relativePath = String(photo.image_url || "")
+        .split("?")[0]
+        .replace(/^\/+/, "");
+
+      const possiblePaths = [
+        path.resolve(process.cwd(), relativePath),
+        path.resolve(process.cwd(), "..", relativePath),
+      ];
+
+      const absolutePath = possiblePaths.find((filePath) =>
+        fs.existsSync(filePath),
+      );
+
+      if (!absolutePath) {
+        console.warn("Gallery image file not found:", photo.image_url);
+        continue;
+      }
+
+      const cid = `gallery-${eventId}-${photo.id}@registra`;
+
+      const ext = path.extname(absolutePath).toLowerCase();
+
+      const contentType =
+        ext === ".png"
+          ? "image/png"
+          : ext === ".webp"
+            ? "image/webp"
+            : "image/jpeg";
+
+      attachments.push({
+        filename: photo.original_name || path.basename(absolutePath),
+        path: absolutePath,
+        contentType,
+        cid,
+        contentDisposition: "inline",
+      });
+
+      photos.push({
+        src: `cid:${cid}`,
+      });
+    }
+
     const frontendUrl = getFrontendUrl();
 
     const albumUrl = `http://194.59.165.105/user/history/${eventId}/images`;
@@ -1646,13 +1701,13 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
 
           html: galleryPublishedEmail({
             firstName: participant.first_name,
-
             eventName: event.title,
-
             imageCount,
-
             albumUrl,
+            photos,
           }),
+
+          attachments,
         });
 
         results.push({
