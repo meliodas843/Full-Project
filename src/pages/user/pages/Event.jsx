@@ -1532,9 +1532,12 @@ export default function Event() {
       >
         <main className="uep-right">
           <div ref={rightTopRef} />
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
-            Миний оролцсон эвентүүд
-          </h2>
+
+          <header className="calTop">
+            <div>
+              <h1>Эвент</h1>
+            </div>
+          </header>
 
           {errMsg ? <div className="uep-error">{errMsg}</div> : null}
 
