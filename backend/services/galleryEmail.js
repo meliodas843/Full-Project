@@ -92,11 +92,18 @@ export async function sendEventGalleryEmails({
     photos.push({ src: `cid:${cid}` });
   });
 
-  const frontendUrl = String(getFrontendUrl() || "").replace(/\/+$/, "");
-  const albumUrl = `${frontendUrl}/user/events/${eventId}/images`;
+  const frontendUrl = String(
+    process.env.FRONTEND_URL || "http://194.59.165.105",
+  ).replace(/\/+$/, "");
+
+  const albumUrl = `${frontendUrl}/user/history/${eventId}/images`;
   const eventDate = formatEventDate(event.start_time);
   const organizationName = event.created_by_email || "Registra";
-  const totalImages = Number(imageCount) || 0;
+  const [[countRow]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM event_gallery_images WHERE event_id = ?`,
+    [eventId],
+  );
+  const totalImages = Number(countRow?.total || 0);
   const results = [];
 
   for (const participant of participants) {
