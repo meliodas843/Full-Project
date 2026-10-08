@@ -31457,6 +31457,7 @@ html[data-user-theme="dark"] .rgProfileCompleteIcon {
   border-radius: 16px;
   box-shadow: 0 2px 5px rgba(16, 24, 40, 0.05);
   box-sizing: border-box;
+  margin-top: -20px;
 }
 
 .uep-rightHeader {
