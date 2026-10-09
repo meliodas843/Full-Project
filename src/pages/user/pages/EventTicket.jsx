@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
-import "./EventCheckin.css";
 
 export default function EventTicket() {
   const { eventId } = useParams();
