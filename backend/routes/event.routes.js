@@ -12,7 +12,6 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-
 const DEFAULT_EVENT_COVERS = [
   "/registra-default-images/event-covers/event-cover-data.svg",
   "/registra-default-images/event-covers/event-cover-general.svg",
@@ -27,7 +26,6 @@ function randomDefaultEventCover() {
     Math.floor(Math.random() * DEFAULT_EVENT_COVERS.length)
   ];
 }
-
 
 const UPLOAD_DIR = path.join(process.cwd(), "uploads", "events");
 
@@ -540,18 +538,26 @@ function buildSpeakerPayload(req, speakerValue, avatarFiles) {
   return finalSpeakers;
 }
 
-router.get("/:id", async (req, res, next) => {
-  try {
-    const eventId = Number(req.params.id);
-
-    if (!Number.isSafeInteger(eventId) || eventId <= 0) {
-      return res.status(400).json({
-        message: "Эвентийн ID буруу байна."
-      });
+router.get(
+  "/:id",
+  (req, res, next) => {
+    if (!/^\d+$/.test(req.params.id)) {
+      return next("route");
     }
+    next();
+  },
+  async (req, res, next) => {
+    try {
+      const eventId = Number(req.params.id);
 
-    const [rows] = await pool.query(
-      `
+      if (!Number.isSafeInteger(eventId) || eventId <= 0) {
+        return res.status(400).json({
+          message: "Эвентийн ID буруу байна.",
+        });
+      }
+
+      const [rows] = await pool.query(
+        `
       SELECT
         id,
         title,
@@ -572,20 +578,21 @@ router.get("/:id", async (req, res, next) => {
         AND visibility = 'public'
       LIMIT 1
       `,
-      [eventId]
-    );
+        [eventId],
+      );
 
-    if (!rows.length) {
-      return res.status(404).json({
-        message: "Эвент олдсонгүй."
-      });
+      if (!rows.length) {
+        return res.status(404).json({
+          message: "Эвент олдсонгүй.",
+        });
+      }
+
+      return res.json(rows[0]);
+    } catch (error) {
+      next(error);
     }
-
-    return res.json(rows[0]);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 router.get("/", async (req, res) => {
   try {
@@ -753,7 +760,9 @@ router.put("/:id", authMiddleware, (req, res) => {
 
       const finalImageUrl = imageFile
         ? `/uploads/events/${imageFile.filename}`
-        : String(image_url || "").trim() || event.image_url || randomDefaultEventCover();;
+        : String(image_url || "").trim() ||
+          event.image_url ||
+          randomDefaultEventCover();
 
       const finalAgenda = sanitizeAgenda(safeJsonParse(agenda, []));
 
@@ -907,7 +916,8 @@ router.post("/", authMiddleware, (req, res) => {
         ? files.speaker_avatars
         : [];
 
-      let finalImageUrl = String(image_url || "").trim() || randomDefaultEventCover();
+      let finalImageUrl =
+        String(image_url || "").trim() || randomDefaultEventCover();
 
       if (imageFile) {
         finalImageUrl = `/uploads/events/${imageFile.filename}`;
@@ -2443,7 +2453,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
        FROM events
        WHERE id = ?
        LIMIT 1`,
-      [eventId]
+      [eventId],
     );
 
     if (!rows.length) {
@@ -2467,7 +2477,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
        SET archived = 1,
            archived_at = NOW()
        WHERE id = ?`,
-      [eventId]
+      [eventId],
     );
 
     return res.json({

@@ -38590,6 +38590,7 @@ html[data-user-theme="light"] .myEventSearch input,
 html:not([data-user-theme="dark"]) .myEventSearch input {
   background: transparent;
   color: #2a3040;
+  margin-top: 12px;
 }
 
 html[data-user-theme="light"] .myEventTools select,
