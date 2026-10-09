@@ -1,60 +1,112 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
+import {
+  ArrowLeft,
+  Camera,
+  Check,
+  CheckCircle2,
+  Clock3,
+  Download,
+  LockKeyhole,
+  RefreshCw,
+  Search,
+  ScanLine,
+  Users,
+  X
+} from "lucide-react";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
+import "./EventCheckin.css";
 
 const api = (path) => `${API_BASE}/api/checkin${path}`;
+
+function getToken() {
+  return localStorage.getItem("token") || localStorage.getItem("adminToken") || "";
+}
+
+function formatTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("mn-MN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+}
+
+function getName(person) {
+  const name = [person.last_name, person.first_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return name || person.name || person.email || "Оролцогч";
+}
+
+function getInitials(person) {
+  const first = String(person.first_name || "").trim();
+  const last = String(person.last_name || "").trim();
+
+  if (first || last) {
+    return `${last.charAt(0)}${first.charAt(0)}`.toUpperCase();
+  }
+
+  return String(person.email || "?").slice(0, 2).toUpperCase();
+}
+
+function getCode(person) {
+  return person.ticket_code || person.code || "—";
+}
 
 export default function EventCheckin() {
   const { eventId } = useParams();
   const navigate = useNavigate();
+
+  const scannerRef = useRef(null);
+  const busyRef = useRef(false);
+  const lastScanRef = useRef("");
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const scannerRef = useRef(null);
-  const lastScanRef = useRef("");
-  const busyRef = useRef(false);
-
-  const token = localStorage.getItem("token");
-
   const loadAttendance = useCallback(async () => {
     try {
-      const response = await fetch(
-        api(`/${eventId}/attendance`),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+      const response = await fetch(api(`/${eventId}/attendance`), {
+        headers: {
+          Authorization: `Bearer ${getToken()}`
         }
-      );
+      });
 
-      const json = await response.json();
+      const json = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(json.message);
+        throw new Error(json.message || "Ирцийн мэдээлэл ачаалж чадсангүй.");
       }
 
       setData(json);
       setError("");
     } catch (err) {
-      setError(err.message || "Ирц ачаалж чадсангүй.");
+      setError(err.message || "Сүлжээний алдаа гарлаа.");
     } finally {
       setLoading(false);
     }
-  }, [eventId, token]);
+  }, [eventId]);
 
   useEffect(() => {
     loadAttendance();
+
     const timer = setInterval(loadAttendance, 10000);
+
     return () => clearInterval(timer);
   }, [loadAttendance]);
 
@@ -83,32 +135,34 @@ export default function EventCheckin() {
 
       busyRef.current = true;
       setBusy(true);
+      setResult(null);
 
       try {
-        const response = await fetch(
-          api(`/${eventId}/scan`),
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              ticket_code: code
-            })
-          }
-        );
+        const response = await fetch(api(`/${eventId}/scan`), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ticket_code: code })
+        });
 
-        const json = await response.json();
+        const json = await response.json().catch(() => ({}));
 
         setResult({
-          status: json.status || "invalid",
-          message: json.message,
+          status: json.status || (response.ok ? "success" : "invalid"),
+          message: json.message || (
+            response.ok
+              ? "Ирц амжилттай бүртгэгдлээ."
+              : "QR кодыг шалгаж чадсангүй."
+          ),
           participant: json.participant
         });
 
-        setManualCode("");
-        await loadAttendance();
+        if (response.ok) {
+          setManualCode("");
+          await loadAttendance();
+        }
       } catch {
         setResult({
           status: "invalid",
@@ -119,19 +173,20 @@ export default function EventCheckin() {
         setBusy(false);
       }
     },
-    [eventId, token, loadAttendance]
+    [eventId, loadAttendance]
   );
 
   useEffect(() => {
     if (!scanning) return;
 
     let cancelled = false;
+    let scanner;
 
-    const start = async () => {
-      const scanner = new Html5Qrcode("registra-qr-reader");
-      scannerRef.current = scanner;
-
+    async function start() {
       try {
+        scanner = new Html5Qrcode("registra-qr-reader");
+        scannerRef.current = scanner;
+
         await scanner.start(
           { facingMode: "environment" },
           {
@@ -151,229 +206,399 @@ export default function EventCheckin() {
             }
 
             lastScanRef.current = decodedText;
-
             await stopScanner();
             await verifyCode(decodedText);
           },
           () => {}
         );
-      } catch (err) {
-        setError(
-          "Камер нээж чадсангүй. Камерын зөвшөөрөл болон HTTPS холболтыг шалгана уу."
-        );
-        await stopScanner();
+      } catch {
+        if (!cancelled) {
+          setError("Камер нээж чадсангүй. HTTPS болон камерын зөвшөөрлийг шалгана уу.");
+          await stopScanner();
+        }
       }
-    };
+    }
 
     start();
 
     return () => {
       cancelled = true;
-      const scanner = scannerRef.current;
-      scannerRef.current = null;
+
+      if (scannerRef.current === scanner) {
+        scannerRef.current = null;
+      }
 
       if (scanner) {
-        scanner.stop().catch(() => {}).finally(() => {
-          try {
-            scanner.clear();
-          } catch {}
-        });
+        scanner.stop()
+          .catch(() => {})
+          .finally(() => {
+            try {
+              scanner.clear();
+            } catch {}
+          });
       }
     };
   }, [scanning, stopScanner, verifyCode]);
 
-  const participants = (data?.participants || []).filter((person) => {
+  const allParticipants = data?.participants || [];
+
+  const checkedIn = allParticipants.filter(
+    (person) => Boolean(person.checked_in_at)
+  ).length;
+
+  const total = Number(data?.total ?? allParticipants.length);
+  const arrived = Number(data?.checked_in ?? checkedIn);
+  const remaining = Number(data?.remaining ?? Math.max(total - arrived, 0));
+  const attendanceRate = total ? Math.round((arrived / total) * 100) : 0;
+
+  const participants = allParticipants.filter((person) => {
     const text = [
       person.first_name,
       person.last_name,
-      person.email
-    ].join(" ").toLowerCase();
+      person.name,
+      person.email,
+      person.ticket_code
+    ].filter(Boolean).join(" ").toLowerCase();
 
-    return text.includes(search.toLowerCase());
+    const matchesSearch = text.includes(search.toLowerCase().trim());
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "present" && Boolean(person.checked_in_at)) ||
+      (filter === "pending" && !person.checked_in_at);
+
+    return matchesSearch && matchesFilter;
   });
+
+  function exportCSV() {
+    const rows = [
+      ["Нэр", "Имэйл", "Тасалбарын код", "Төлөв", "Ирсэн цаг"],
+      ...participants.map((person) => [
+        getName(person),
+        person.email || "",
+        getCode(person),
+        person.checked_in_at ? "Ирсэн" : "Ирээгүй",
+        formatTime(person.checked_in_at)
+      ])
+    ];
+
+    const csv = "\uFEFF" + rows.map((row) =>
+      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")
+    ).join("\r\n");
+
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" })
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `registra-checkin-${eventId}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <UserShell title="QR Check-in">
-      <div className="checkinPage">
-        <div className="checkinTop">
-          <button onClick={() => navigate("/user/history")}>
-            ← Буцах
-          </button>
+      <main className="rci-page">
+        <header className="rci-heading">
           <div>
+            <div className="rci-breadcrumb">
+              Миний эвентүүд / {data?.event?.title || "Эвент"} / Check-in
+            </div>
             <h1>Ирц бүртгэл · QR Check-in</h1>
-            <p>{data?.event?.title || "Эвент"}</p>
           </div>
-        </div>
 
-        {error && <div className="checkinError">{error}</div>}
+          <button
+            className="rci-back"
+            type="button"
+            onClick={() => navigate("/user/history")}
+          >
+            <ArrowLeft size={16} />
+            Буцах
+          </button>
+        </header>
 
-        <div className="checkinStats">
-          <div>
-            <span>Ирсэн</span>
-            <strong>{data?.checked_in ?? 0}</strong>
-            <small>Бүртгэгдсэн оролцогч</small>
+        {error && (
+          <div className="rci-error">
+            {error}
+            <button type="button" onClick={() => setError("")}>
+              <X size={16} />
+            </button>
           </div>
-          <div>
-            <span>Хүлээгдэж буй</span>
-            <strong>{data?.remaining ?? 0}</strong>
-            <small>Ирээгүй оролцогч</small>
-          </div>
-          <div>
-            <span>Нийт бүртгэл</span>
-            <strong>{data?.total ?? 0}</strong>
-            <small>Эвентэд нэгдсэн</small>
-          </div>
-          <div>
-            <span>Ирцийн хувь</span>
-            <strong>
-              {data?.total
-                ? Math.round(data.checked_in / data.total * 100)
-                : 0}%
-            </strong>
-            <small>Баталгаажсан ирц</small>
-          </div>
-        </div>
+        )}
 
-        <div className="checkinColumns">
-          <section className="checkinPanel">
-            <h2>QR уншуулах</h2>
-            <p>Оролцогчийн тасалбарын QR кодыг уншуулна уу.</p>
+        <section className="rci-stats">
+          <div className="rci-stat rci-stat-main">
+            <div className="rci-stat-label">Ирсэн</div>
+            <div className="rci-stat-row">
+              <strong>{arrived} <small>/ {total}</small></strong>
+              <span>{attendanceRate}%</span>
+            </div>
+            <div className="rci-progress">
+              <span style={{ width: `${Math.min(attendanceRate, 100)}%` }} />
+            </div>
+          </div>
 
-            <div className="checkinCamera">
+          <div className="rci-stat">
+            <div className="rci-stat-label">Хүлээгдэж буй</div>
+            <div className="rci-stat-value">{remaining}</div>
+            <div className="rci-stat-foot">Ирээгүй оролцогч</div>
+          </div>
+
+          <div className="rci-stat">
+            <div className="rci-stat-label">Сүүлийн 15 минутанд</div>
+            <div className="rci-stat-value rci-positive">
+              +{allParticipants.filter((person) => {
+                if (!person.checked_in_at) return false;
+                const time = new Date(person.checked_in_at).getTime();
+                return Number.isFinite(time) &&
+                  time <= Date.now() &&
+                  Date.now() - time <= 15 * 60 * 1000;
+              }).length}
+            </div>
+            <div className="rci-stat-foot">Шинээр ирсэн</div>
+          </div>
+
+          <div className="rci-stat">
+            <div className="rci-stat-label">Бүртгэлийн ширээ</div>
+            <div className="rci-stat-value">—</div>
+            <div className="rci-stat-foot">Тохируулаагүй</div>
+          </div>
+        </section>
+
+        <div className="rci-columns">
+          <section className="rci-panel rci-scannerPanel">
+            <div className="rci-panelHeading">
+              <h2>QR уншуулах</h2>
+              <span className="rci-cameraBadge">
+                <span />
+                Камер {scanning ? "идэвхтэй" : "идэвхгүй"}
+              </span>
+            </div>
+
+            <div className="rci-camera">
               {scanning ? (
                 <div id="registra-qr-reader" />
               ) : (
-                <div className="checkinCameraPlaceholder">
-                  <div className="checkinScanCorners">
-                    <span>▦</span>
+                <div className="rci-cameraPlaceholder">
+                  <div className="rci-scanCorners">
+                    <ScanLine size={90} strokeWidth={1.2} />
                   </div>
-                  <p>Камер идэвхгүй байна</p>
+                  <div className="rci-scanBeam" />
+                  <span>Тасалбарын QR кодыг уншуулна уу</span>
                 </div>
               )}
             </div>
 
-            <button
-              className="checkinPrimary"
-              onClick={() => {
-                if (scanning) {
-                  stopScanner();
-                } else {
-                  lastScanRef.current = "";
-                  setResult(null);
-                  setScanning(true);
-                }
-              }}
-            >
-              {scanning ? "Камер хаах" : "▣ QR уншуулах"}
-            </button>
+            <div className="rci-demoLabel">QR УНШУУЛАХ</div>
 
-            <div className="checkinDivider">ЭСВЭЛ</div>
+            <div className="rci-scanActions">
+              <button
+                type="button"
+                onClick={() => {
+                  if (scanning) {
+                    stopScanner();
+                  } else {
+                    lastScanRef.current = "";
+                    setResult(null);
+                    setScanning(true);
+                  }
+                }}
+              >
+                <Camera size={15} />
+                {scanning ? "Камер хаах" : "Камер нээх"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setResult(null);
+                  lastScanRef.current = "";
+                  if (!scanning) setScanning(true);
+                }}
+              >
+                <RefreshCw size={15} />
+                Дахин
+              </button>
+            </div>
 
             <form
+              className="rci-manualForm"
               onSubmit={(event) => {
                 event.preventDefault();
                 verifyCode(manualCode);
               }}
             >
-              <label>Тасалбарын код</label>
               <input
                 value={manualCode}
-                onChange={(event) =>
-                  setManualCode(event.target.value)
-                }
-                placeholder="RGS-..."
+                onChange={(event) => setManualCode(event.target.value)}
+                placeholder="Тасалбарын код оруулах"
+                aria-label="Тасалбарын код"
               />
-              <button
-                className="checkinSecondary"
-                disabled={busy || !manualCode.trim()}
-              >
-                {busy ? "Шалгаж байна..." : "Кодоор бүртгэх"}
+              <button disabled={busy || !manualCode.trim()} type="submit">
+                {busy ? "Шалгаж байна..." : "Бүртгэх"}
               </button>
             </form>
 
             {result && (
-              <div className={`checkinResult ${result.status}`}>
-                <strong>
-                  {result.status === "success"
-                    ? "✓ "
-                    : result.status === "duplicate"
-                      ? "⚠ "
-                      : "✕ "}
-                  {result.message}
-                </strong>
-                {result.participant && (
-                  <p>
-                    {result.participant.first_name}{" "}
-                    {result.participant.last_name}
-                  </p>
+              <div className={`rci-result ${result.status}`}>
+                {result.status === "success" ? (
+                  <CheckCircle2 size={18} />
+                ) : (
+                  <X size={18} />
                 )}
+                <div>
+                  <strong>{result.message}</strong>
+                  {result.participant && (
+                    <p>{getName(result.participant)}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="rci-panel rci-attendancePanel">
+            <div className="rci-toolbar">
+              <div className="rci-search">
+                <Search size={16} />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Нэр, байгууллага эсвэл тасалбар"
+                />
+              </div>
+
+              <div className="rci-filters">
                 <button
-                  onClick={() => {
-                    setResult(null);
-                    lastScanRef.current = "";
-                    setScanning(true);
-                  }}
+                  type="button"
+                  className={filter === "all" ? "active" : ""}
+                  onClick={() => setFilter("all")}
                 >
-                  Дараагийн QR уншуулах
+                  Бүгд
+                </button>
+                <button
+                  type="button"
+                  className={filter === "present" ? "active" : ""}
+                  onClick={() => setFilter("present")}
+                >
+                  Ирсэн
+                </button>
+                <button
+                  type="button"
+                  className={filter === "pending" ? "active" : ""}
+                  onClick={() => setFilter("pending")}
+                >
+                  Ирэээгүй
                 </button>
               </div>
-            )}
-          </section>
 
-          <section className="checkinPanel">
-            <div className="checkinListHeader">
-              <div>
-                <h2>Оролцогчид</h2>
-                <p>Ирцийн мэдээлэл автоматаар шинэчлэгдэнэ.</p>
-              </div>
-              <button onClick={loadAttendance}>↻</button>
+              <button
+                type="button"
+                className="rci-csvButton"
+                onClick={exportCSV}
+                title="CSV татах"
+              >
+                <Download size={15} />
+                CSV
+              </button>
             </div>
 
-            <input
-              className="checkinSearch"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Нэр, имэйлээр хайх..."
-            />
+            <div className="rci-tableWrap">
+              <table className="rci-table">
+                <thead>
+                  <tr>
+                    <th>ОРОЛЦОГЧ</th>
+                    <th>КОД</th>
+                    <th>ТӨЛӨВ</th>
+                    <th>ҮЙЛДЭЛ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="rci-empty">
+                        Мэдээлэл ачаалж байна...
+                      </td>
+                    </tr>
+                  ) : participants.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="rci-empty">
+                        <Users size={24} />
+                        Оролцогч олдсонгүй.
+                      </td>
+                    </tr>
+                  ) : (
+                    participants.map((person, index) => {
+                      const isPresent = Boolean(person.checked_in_at);
 
-            {loading ? (
-              <p>Уншиж байна...</p>
-            ) : participants.length === 0 ? (
-              <p>Оролцогч олдсонгүй.</p>
-            ) : (
-              <div className="checkinParticipantList">
-                {participants.map((person) => (
-                  <div
-                    className="checkinPerson"
-                    key={person.user_id}
-                  >
-                    <div className="checkinAvatar">
-                      {(person.first_name || "?")[0]}
-                    </div>
-                    <div className="checkinPersonInfo">
-                      <strong>
-                        {person.first_name} {person.last_name}
-                      </strong>
-                      <small>{person.email}</small>
-                    </div>
-                    <span
-                      className={
-                        person.checked_in_at
-                          ? "checkinPresent"
-                          : "checkinPending"
-                      }
-                    >
-                      {person.checked_in_at
-                        ? "✓ Ирсэн"
-                        : "Хүлээгдэж буй"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+                      return (
+                        <tr key={person.user_id || person.email || index}>
+                          <td>
+                            <div className="rci-person">
+                              <div className={`rci-avatar rci-avatar-${index % 5}`}>
+                                {getInitials(person)}
+                              </div>
+                              <div>
+                                <strong>{getName(person)}</strong>
+                                <small>{person.organization || person.email || "—"}</small>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td>
+                            <span className="rci-code">{getCode(person)}</span>
+                          </td>
+
+                          <td>
+                            <span className={`rci-status ${isPresent ? "present" : "pending"}`}>
+                              {isPresent ? (
+                                <>
+                                  Ирсэн
+                                  {formatTime(person.checked_in_at) &&
+                                    ` · ${formatTime(person.checked_in_at)}`}
+                                </>
+                              ) : (
+                                "Ирээгүй"
+                              )}
+                            </span>
+                          </td>
+
+                          <td>
+                            {isPresent ? (
+                              <span className="rci-doneButton">
+                                <Check size={14} />
+                                Бүртгэсэн
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="rci-checkinButton"
+                                disabled={busy || getCode(person) === "—"}
+                                onClick={() => verifyCode(getCode(person))}
+                              >
+                                Check-in
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="rci-tableFooter">
+              <span>Нийт {participants.length} оролцогч</span>
+              <button type="button" onClick={loadAttendance}>
+                <RefreshCw size={14} />
+                Шинэчлэх
+              </button>
+            </div>
           </section>
         </div>
-      </div>
+      </main>
     </UserShell>
   );
 }
