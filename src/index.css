@@ -15226,21 +15226,25 @@ html[data-user-theme="dark"] .eventWizardPanel {
 }
 
 .riNavLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--ri-text);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
   padding: 10px 17px;
   border-radius: 9px;
-  transition: 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .riNavLink:hover {
-  color: #7f70ff;
+  background: #5245ea12;
+  color: #7464ff;
 }
 
 .riNavLink.active {
-  background: rgba(82, 69, 234, 0.13);
+  background: #5245ea21;
   color: #7464ff;
 }
 

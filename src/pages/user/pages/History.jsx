@@ -1928,7 +1928,7 @@ export default function History() {
                               type="button"
                               onClick={() => openView(event)}
                             >
-                              View
+                              Харах
                             </button>
 
                             <div className="endedEventMenuWrap">
@@ -2015,7 +2015,7 @@ export default function History() {
                                       >
                                         <FiImage size={17} />
 
-                                        <span>Add img</span>
+                                        <span>Зураг оруулах</span>
                                       </button>
 
                                       <button
@@ -2034,8 +2034,8 @@ export default function History() {
 
                                         <span>
                                           {deletingId === event.id
-                                            ? "Deleting..."
-                                            : "Delete"}
+                                            ? "Устгаж байна..."
+                                            : "Устгах"}
                                         </span>
                                       </button>
                                     </div>,

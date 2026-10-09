@@ -1,3 +1,4 @@
+import { formatMonthMN, formatWeekdayMN } from "@/utils/mongolianDate";
 import { useEffect, useMemo, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -455,15 +456,7 @@ export default function Calendar() {
 
   const selectedMeetings = byDay[selectedKey] || [];
 
-  const title = viewDate.toLocaleDateString(
-    "mn-MN",
-
-    {
-      year: "numeric",
-
-      month: "long",
-    },
-  );
+  const title = formatMonthMN(viewDate);
 
   async function respondToMeeting(meeting, status) {
     if (!meeting?.id || respondingId) return;
@@ -738,13 +731,7 @@ export default function Calendar() {
 
   const selectedEvents = eventsByDay[selectedKey] || [];
 
-  const selectedDateLabel = selectedDate.toLocaleDateString("mn-MN", {
-    month: "long",
-
-    day: "numeric",
-
-    weekday: "long",
-  });
+  const selectedDateLabel = formatWeekdayMN(selectedDate);
 
   function goToday() {
     const today = new Date();

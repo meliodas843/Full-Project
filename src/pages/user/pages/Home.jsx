@@ -7,6 +7,7 @@ import {
 } from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
+import { formatMonthMN, formatDateMN } from "@/utils/mongolianDate";
 
 function resolveUrl(url) {
   const value = String(url || "").trim();
@@ -52,22 +53,19 @@ function formatEventDate(value) {
     return "";
   }
 
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("mn-MN", {
     timeZone: "Asia/Ulaanbaatar",
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true,
+    hour12: false,
   });
 }
 
 function monthTitle(date) {
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  return formatMonthMN(date);
 }
 
 function toKey(date) {
@@ -579,14 +577,7 @@ export default function Home() {
 
               <div className="rgSelectedDay">
                 <strong>
-                  {selectedDate.toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    },
-                  )}
+                  {formatDateMN(selectedDate)}
                 </strong>
 
                 {selectedItems.length ===
