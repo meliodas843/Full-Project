@@ -126,8 +126,8 @@ function resolveImage(value) {
   }
 
   if (
-    image.startsWith("http\://") ||
-    image.startsWith("https\://") ||
+    image.startsWith("http\\://") ||
+    image.startsWith("https\\://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -260,6 +260,13 @@ export default function OrganizationProfile() {
 
   const [organization, setOrganization] = useState(null);
 
+  const totalEvents = formatNumber(organization?.event_count);
+  const totalParticipants = formatNumber(organization?.participant_count);
+  const followers = formatNumber(organization?.follower_count);
+  const averageRating = Number.isFinite(organization?.rating)
+    ? organization.rating.toFixed(1)
+    : "0.0";
+
   const [form, setForm] = useState(createForm());
 
   const [loading, setLoading] = useState(true);
@@ -267,6 +274,7 @@ export default function OrganizationProfile() {
   const [saving, setSaving] = useState(false);
 
   const [error, setError] = useState("");
+
   const [fieldErrors, setFieldErrors] = useState({});
 
   const [success, setSuccess] = useState("");
@@ -434,6 +442,7 @@ export default function OrganizationProfile() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+
     setFieldErrors((current) => ({ ...current, [name]: undefined }));
 
     setForm((current) => ({
@@ -536,29 +545,47 @@ export default function OrganizationProfile() {
 
     const labels = {
       name: "Байгууллагын нэр",
+
       registration_number: "Регистрийн дугаар",
+
       industry: "Салбар",
+
       employee_count: "Ажилтны тоо",
+
       description: "Товч танилцуулга",
+
       email: "Албан и-мэйл",
+
       phone: "Утас",
+
       address: "Хаяг",
     };
+
     const missing = Object.fromEntries(
       Object.entries(required)
+
         .filter(([, value]) => !value)
+
         .map(([key]) => [key, `${labels[key]} талбарыг бөглөнө үү.`]),
     );
+
     setFieldErrors(missing);
+
     if (Object.keys(missing).length) {
       setError(
         `Дутуу талбар: ${Object.keys(missing)
+
           .map((key) => labels[key])
+
           .join(", ")}`,
       );
+
       document
+
         .querySelector(`[name="${Object.keys(missing)[0]}"]`)
+
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
       return;
     }
 
@@ -644,6 +671,7 @@ export default function OrganizationProfile() {
       setOrganization(normalized);
 
       setForm(createForm(normalized));
+
       setFieldErrors({});
 
       setLogoFile(null);
@@ -803,21 +831,25 @@ export default function OrganizationProfile() {
             <div className="orgStats">
               <div className="orgStat">
                 <strong>{totalEvents}</strong>
+
                 <span>Эвент зохион байгуулсан</span>
               </div>
 
               <div className="orgStat">
                 <strong>{totalParticipants}</strong>
+
                 <span>Нийт оролцогч</span>
               </div>
 
               <div className="orgStat">
                 <strong>{followers}</strong>
+
                 <span>Дагагч</span>
               </div>
 
               <div className="orgStat">
                 <strong>{averageRating}</strong>
+
                 <span>Дундаж үнэлгээ</span>
               </div>
             </div>
