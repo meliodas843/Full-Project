@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import UserShell from "../components/UserShell";
+import "./EventCheckin.animation.css";
 import { API_BASE } from "@/lib/config";
 const api = (path) => `${API_BASE}/api/checkin${path}`;
 function getToken() {
@@ -49,7 +50,14 @@ function getInitials(person) {
     .toUpperCase();
 }
 function getCode(person) {
-  return person.short_ticket_code || person.display_code || person.ticket_short_code || person.ticket_code || person.code || "—";
+  return (
+    person.short_ticket_code ||
+    person.display_code ||
+    person.ticket_short_code ||
+    person.ticket_code ||
+    person.code ||
+    "—"
+  );
 }
 
 function getScanCode(person) {
@@ -130,9 +138,12 @@ export default function EventCheckin() {
     async (rawCode) => {
       const inputCode = String(rawCode || "").trim();
       const matchingParticipant = participantsRef.current.find(
-        (person) => formatTicketCode(person).toLowerCase() === inputCode.toLowerCase(),
+        (person) =>
+          formatTicketCode(person).toLowerCase() === inputCode.toLowerCase(),
       );
-      const code = matchingParticipant ? getScanCode(matchingParticipant) : inputCode;
+      const code = matchingParticipant
+        ? getScanCode(matchingParticipant)
+        : inputCode;
       if (!code || busyRef.current) return;
       busyRef.current = true;
       setBusy(true);
@@ -152,24 +163,27 @@ export default function EventCheckin() {
           successTimerRef.current = null;
         }
         if (response.ok) {
-        const participant = json.participant || participantsRef.current.find(
-          (person) => getScanCode(person) === code || getCode(person) === code,
-        );
-        setResult({
-          status: "success",
-          message: "Амжилттай бүртгэгдлээ.",
-          participant,
-        });
-        successTimerRef.current = setTimeout(() => {
-          setResult(null);
-          successTimerRef.current = null;
-        }, 5000);
-      } else {
-        setResult({
-          status: json.status || "invalid",
-          message: json.message || "QR кодыг шалгаж чадсангүй.",
-          participant: json.participant,
-        });
+          const participant =
+            json.participant ||
+            participantsRef.current.find(
+              (person) =>
+                getScanCode(person) === code || getCode(person) === code,
+            );
+          setResult({
+            status: "success",
+            message: "Амжилттай бүртгэгдлээ.",
+            participant,
+          });
+          successTimerRef.current = setTimeout(() => {
+            setResult(null);
+            successTimerRef.current = null;
+          }, 5000);
+        } else {
+          setResult({
+            status: json.status || "invalid",
+            message: json.message || "QR кодыг шалгаж чадсангүй.",
+            participant: json.participant,
+          });
         }
         if (response.ok) {
           setManualCode("");
@@ -293,7 +307,7 @@ export default function EventCheckin() {
       person.name,
       person.email,
       person.ticket_code,
-    formatTicketCode(person),
+      formatTicketCode(person),
     ]
       .filter(Boolean)
       .join(" ")
@@ -346,13 +360,8 @@ export default function EventCheckin() {
             </div>
             <h1>Ирц бүртгэл · QR Check-in</h1>
           </div>
-          <button
-            className="rci-back"
-            type="button"
-            onClick={() => navigate("/user/history")}
-          >
-            <ArrowLeft size={16} />
-            Буцах
+          <button className="rci-back rci-back-right" type="button" onClick={() => navigate("/user/history")}>
+            <ArrowLeft size={16} /> Буцах
           </button>
         </header>
         {error && (
@@ -381,24 +390,6 @@ export default function EventCheckin() {
             <div className="rci-stat-value">{remaining}</div>
             <div className="rci-stat-foot">Ирээгүй оролцогч</div>
           </div>
-          <div className="rci-stat">
-            <div className="rci-stat-label">Сүүлийн 15 минутанд</div>
-            <div className="rci-stat-value rci-positive">
-              \+
-              {
-                allParticipants.filter((person) => {
-                  if (!person.checked_in_at) return false;
-                  const time = new Date(person.checked_in_at).getTime();
-                  return (
-                    Number.isFinite(time) &&
-                    time <= Date.now() &&
-                    Date.now() - time <= 15 * 60 * 1000
-                  );
-                }).length
-              }
-            </div>
-            <div className="rci-stat-foot">Шинээр ирсэн</div>
-          </div>
         </section>
         <div className="rci-columns">
           <section className="rci-panel rci-scannerPanel">
@@ -411,13 +402,16 @@ export default function EventCheckin() {
             </div>
             <div className="rci-camera">
               {scanning ? (
+                <div className="rci-liveCamera">
                 <div id="registra-qr-reader" />
+                <div className="rci-scanBeam rci-scanBeam-animated rci-liveBeam" aria-hidden="true" />
+              </div>
               ) : (
-                <div className="rci-cameraPlaceholder">
+                <div className="rci-cameraPlaceholder rci-cameraPlaceholder-animated">
                   <div className="rci-scanCorners">
                     <ScanLine size={90} strokeWidth={1.2} />
                   </div>
-                  <div className="rci-scanBeam" />
+                  <div className="rci-scanBeam rci-scanBeam-animated" />
                   <span>Тасалбарын QR кодыг уншуулна уу</span>
                 </div>
               )}
@@ -571,7 +565,9 @@ export default function EventCheckin() {
                             </div>
                           </td>
                           <td>
-                            <span className="rci-code">{formatTicketCode(person)}</span>
+                            <span className="rci-code">
+                              {formatTicketCode(person)}
+                            </span>
                           </td>
                           <td>
                             <span

@@ -33663,7 +33663,6 @@ rgResetCodeWrap .rgOtpStage.rgOtp-invalid,
   line-height: 1.45;
 }
 
-
 .rgOtpStage.rgOtp-valid + .rgResetCodeHint,
 .rgOtpStage.rgOtp-invalid + .rgResetCodeHint {
   opacity: 0.65;
@@ -45765,7 +45764,6 @@ svg {
   }
 }
 
-
 .checkinPage {
   padding: 26px;
   color: #191d32;
@@ -46123,7 +46121,6 @@ svg {
     padding: 12px;
   }
 }
-
 
 .rci-page {
   min-height: 100vh;
@@ -46782,6 +46779,82 @@ svg {
   }
 }
 
+/* Additive styles: keep the existing EventCheckin CSS in place. */
+.rci-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.rci-back-right {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin: 0;
+}
+.rci-cameraPlaceholder-animated,
+.rci-liveCamera {
+  position: relative;
+  overflow: hidden;
+}
+.rci-liveCamera {
+  width: 100%;
+  min-height: 260px;
+}
+.rci-liveCamera #registra-qr-reader {
+  width: 100%;
+}
+.rci-scanBeam-animated {
+  position: absolute;
+  z-index: 5;
+  left: 12%;
+  right: 12%;
+  top: 16%;
+  width: auto;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #14f1cf 16%,
+    #24f5d3 50%,
+    #14f1cf 84%,
+    transparent
+  );
+  box-shadow:
+    0 0 8px rgba(20, 241, 207, 0.8),
+    0 0 18px rgba(20, 241, 207, 0.45);
+  pointer-events: none;
+  animation: registra-scan-vertical 2.5s ease-in-out infinite alternate;
+}
+.rci-liveBeam {
+  top: 10%;
+}
+@keyframes registra-scan-vertical {
+  from {
+    top: 15%;
+    opacity: 0.65;
+  }
+  to {
+    top: 82%;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rci-scanBeam-animated {
+    animation: none;
+    top: 50%;
+  }
+}
+@media (max-width: 600px) {
+  .rci-heading {
+    align-items: center;
+  }
+  .rci-back-right {
+    white-space: nowrap;
+  }
+}
 
 .rgt-page {
   width: 100%;
@@ -47144,7 +47217,6 @@ svg {
   font-size: 12px;
 }
 
-
 .rgt-headingRow {
   display: flex;
   align-items: center;
@@ -47342,7 +47414,6 @@ svg {
   color: #fff;
 }
 
-
 .rgt-helpPanel .rgt-helpContent {
   display: flex;
   align-items: center;
@@ -47414,7 +47485,6 @@ svg {
     font-size: 21px;
   }
 }
-
 
 @media (max-width: 1050px) {
   .rgt-layout {
