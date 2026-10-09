@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FaCalendarDays, FaUsers } from "react-icons/fa6";
 
 import UserShell from "../components/UserShell";
 
@@ -2263,10 +2264,26 @@ export default function Event() {
                             <h3>{ev.title || "Нэргүй эвэнт"}</h3>
 
                             <div className="myEventCardMeta">
-                              <span>▣ {formatDateTime(ev.start_time)}</span>
+                              <span
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                }}
+                              >
+                                <FaCalendarDays size={13} aria-hidden="true" />
+                                {formatDateTime(ev.start_time)}
+                              </span>
 
-                              <span>
-                                ♙ {registered}
+                              <span
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                }}
+                              >
+                                <FaUsers size={13} aria-hidden="true" />
+                                {registered}
                                 {max > 0 ? ` / ${max}` : ""} оролцогч
                               </span>
                             </div>
