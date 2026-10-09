@@ -38583,6 +38583,7 @@ html[data-user-theme="light"] .myEventSearch,
 html:not([data-user-theme="dark"]) .myEventSearch {
   background: #ffffff;
   border-color: #e0e3eb;
+  margin-top: 12px;
 }
 
 html[data-user-theme="light"] .myEventSearch input,
@@ -42334,6 +42335,7 @@ svg {
     width: 100%;
     overflow: visible;
     margin-left: 0;
+    margin-top: -10px;
   }
 
   .myEventsHeader {

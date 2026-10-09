@@ -1719,14 +1719,6 @@ export default function Event() {
                       <>
                         <button
                           type="button"
-                          className="eventDetailManageBtn"
-                          onClick={() => openEdit(selectedEvent)}
-                        >
-                          Эвент удирдах
-                        </button>
-
-                        <button
-                          type="button"
                           className="eventDetailEditBtn"
                           onClick={() => openEdit(selectedEvent)}
                         >
