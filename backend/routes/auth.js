@@ -258,13 +258,23 @@ router.post(
       const [existingUsers] = await connection.query(
         `
 
+
+
           SELECT id
+
+
 
           FROM users
 
+
+
           WHERE LOWER(email) = ?
 
+
+
           LIMIT 1
+
+
 
           `,
 
@@ -292,61 +302,119 @@ router.post(
       const [userResult] = await connection.query(
         `
 
+
+
           INSERT INTO users
 
+
+
           (
+
+
 
             company_name,
 
+
+
             job_title,
+
+
 
             interests,
 
+
+
             email,
+
+
 
             password,
 
+
+
             role,
+
+
 
             phone,
 
+
+
             first_name,
+
+
 
             last_name,
 
+
+
             gender,
+
+
 
             account_type
 
+
+
           )
+
+
 
           VALUES
 
+
+
           (
 
-            ?,
+
 
             ?,
 
-            ?,
+
 
             ?,
 
+
+
             ?,
+
+
+
+            ?,
+
+
+
+            ?,
+
+
 
             'user',
 
-            ?,
+
 
             ?,
 
-            ?,
+
 
             ?,
+
+
+
+            ?,
+
+
+
+            ?,
+
+
 
             ?
 
+
+
           )
+
+
 
           `,
 
@@ -417,65 +485,127 @@ router.post(
         const [organizationResult] = await connection.query(
           `
 
+
+
             INSERT INTO organizations
 
+
+
             (
+
+
 
               user_id,
 
+
+
               name,
+
+
 
               registration_number,
 
+
+
               established_year,
+
+
 
               categories,
 
+
+
               description,
+
+
 
               website,
 
+
+
               phone,
+
+
 
               address,
 
+
+
               logo_url,
+
+
 
               cover_url,
 
+
+
               is_verified
 
+
+
             )
+
+
 
             VALUES
 
+
+
             (
 
-              ?,
+
 
               ?,
 
-              ?,
+
 
               ?,
 
-              ?,
+
 
               ?,
 
-              ?,
+
 
               ?,
 
-              ?,
+
 
               ?,
 
+
+
               ?,
+
+
+
+              ?,
+
+
+
+              ?,
+
+
+
+              ?,
+
+
+
+              ?,
+
+
+
+              ?,
+
+
 
               0
 
+
+
             )
+
+
 
             `,
 
@@ -550,13 +680,23 @@ router.post(
       const [userRows] = await pool.query(
         `
 
+
+
           SELECT *
+
+
 
           FROM users
 
+
+
           WHERE id = ?
 
+
+
           LIMIT 1
+
+
 
           `,
 
@@ -629,13 +769,23 @@ router.post(
       const [rows] = await pool.query(
         `
 
+
+
           SELECT *
+
+
 
           FROM users
 
+
+
           WHERE LOWER(email) = ?
 
+
+
           LIMIT 1
+
+
 
           `,
 
@@ -769,15 +919,27 @@ router.post(
       const [rows] = await pool.query(
         `
 
+
+
           SELECT *
+
+
 
           FROM users
 
+
+
           WHERE google_id = ?
+
+
 
           OR LOWER(email) = ?
 
+
+
           LIMIT 1
+
+
 
           `,
 
@@ -792,43 +954,83 @@ router.post(
         await pool.query(
           `
 
+
+
           UPDATE users
+
+
 
           SET
 
+
+
             google_id = ?,
+
+
 
             first_name =
 
+
+
               COALESCE(
+
+
 
                 first_name,
 
+
+
                 ?
 
+
+
               ),
+
+
 
             last_name =
 
+
+
               COALESCE(
+
+
 
                 last_name,
 
+
+
                 ?
+
+
 
               ),
 
+
+
             avatar_url =
+
+
 
               COALESCE(
 
+
+
                 avatar_url,
+
+
 
                 ?
 
+
+
               )
 
+
+
           WHERE id = ?
+
+
 
           `,
 
@@ -848,13 +1050,23 @@ router.post(
         const [updatedRows] = await pool.query(
           `
 
+
+
             SELECT *
+
+
 
             FROM users
 
+
+
             WHERE id = ?
 
+
+
             LIMIT 1
+
+
 
             `,
 
@@ -866,49 +1078,95 @@ router.post(
         const [result] = await pool.query(
           `
 
+
+
             INSERT INTO users
 
+
+
             (
+
+
 
               email,
 
+
+
               google_id,
+
+
 
               role,
 
+
+
               first_name,
+
+
 
               last_name,
 
+
+
               avatar_url,
+
+
 
               interests,
 
+
+
               account_type
 
+
+
             )
+
+
 
             VALUES
 
+
+
             (
 
-              ?,
+
 
               ?,
+
+
+
+              ?,
+
+
 
               'user',
 
-              ?,
+
 
               ?,
 
-              ?,
+
 
               ?,
+
+
+
+              ?,
+
+
+
+              ?,
+
+
 
               'individual'
 
+
+
             )
+
+
 
             `,
 
@@ -930,13 +1188,23 @@ router.post(
         const [createdRows] = await pool.query(
           `
 
+
+
             SELECT *
+
+
 
             FROM users
 
+
+
             WHERE id = ?
 
+
+
             LIMIT 1
+
+
 
             `,
 

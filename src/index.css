@@ -15235,7 +15235,9 @@ html[data-user-theme="dark"] .eventWizardPanel {
   font-weight: 600;
   padding: 10px 17px;
   border-radius: 9px;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .riNavLink:hover {
@@ -16869,6 +16871,32 @@ html[data-user-theme="dark"] .eventWizardPanel {
   color: #624cff;
   font-weight: 700;
   text-decoration: none;
+}
+
+.orgRequiredStar {
+  color: #e11d48;
+  font-weight: 800;
+}
+.orgField [aria-invalid="true"] {
+  border: 1px solid #e11d48;
+  background: #fff7f8;
+}
+.orgLogoWrap .orgLogo,
+.orgLogo,
+.rgOrgLogo img {
+  object-fit: contain;
+  object-position: center;
+}
+.orgLogoWrap {
+  background: #fff;
+}
+.orgLogoWrap .orgLogo {
+  padding: 8px;
+  box-sizing: border-box;
+}
+.rgOrgLogo img {
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1050px) {

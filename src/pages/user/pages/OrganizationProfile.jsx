@@ -126,8 +126,8 @@ function resolveImage(value) {
   }
 
   if (
-    image.startsWith("http://") ||
-    image.startsWith("https://") ||
+    image.startsWith("http\://") ||
+    image.startsWith("https\://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -267,8 +267,10 @@ export default function OrganizationProfile() {
   const [saving, setSaving] = useState(false);
 
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [success, setSuccess] = useState("");
+
   const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   const [logoPreview, setLogoPreview] = useState("");
@@ -424,7 +426,7 @@ export default function OrganizationProfile() {
         err,
       );
 
-      setError("Байгууллагын мэдээлэл уншихад алдаа гарлаа.");
+      setError(err?.message || "Байгууллагын мэдээлэл уншихад алдаа гарлаа.");
     } finally {
       setLoading(false);
     }
@@ -432,6 +434,7 @@ export default function OrganizationProfile() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+    setFieldErrors((current) => ({ ...current, [name]: undefined }));
 
     setForm((current) => ({
       ...current,
@@ -509,42 +512,87 @@ export default function OrganizationProfile() {
 
     if (!token) {
       navigate("/login", { replace: true });
+
       return;
     }
 
     const required = {
       name: clean(form.name),
+
       registration_number: clean(form.registration_number),
+
       industry: clean(form.industry),
+
       employee_count: clean(form.employee_count),
+
       description: clean(form.description),
+
       email: clean(form.email),
+
       phone: clean(form.phone),
+
       address: clean(form.address),
     };
 
-    if (Object.values(required).some((value) => !value)) {
-      setError("Шаардлагатай бүх талбарыг бөглөнө үү.");
+    const labels = {
+      name: "Байгууллагын нэр",
+      registration_number: "Регистрийн дугаар",
+      industry: "Салбар",
+      employee_count: "Ажилтны тоо",
+      description: "Товч танилцуулга",
+      email: "Албан и-мэйл",
+      phone: "Утас",
+      address: "Хаяг",
+    };
+    const missing = Object.fromEntries(
+      Object.entries(required)
+        .filter(([, value]) => !value)
+        .map(([key]) => [key, `${labels[key]} талбарыг бөглөнө үү.`]),
+    );
+    setFieldErrors(missing);
+    if (Object.keys(missing).length) {
+      setError(
+        `Дутуу талбар: ${Object.keys(missing)
+          .map((key) => labels[key])
+          .join(", ")}`,
+      );
+      document
+        .querySelector(`[name="${Object.keys(missing)[0]}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
     setSaving(true);
+
     setError("");
+
     setSuccess("");
 
     try {
       const body = new FormData();
+
       body.append("name", required.name);
+
       body.append("registration_number", required.registration_number);
+
       body.append("industry", required.industry);
+
       body.append("employee_count", required.employee_count);
+
       body.append("description", required.description);
+
       body.append("website", clean(form.website));
+
       body.append("email", required.email);
+
       body.append("phone", required.phone);
+
       body.append("address", required.address);
+
       body.append("facebook", clean(form.facebook));
+
       body.append("linkedin", clean(form.linkedin));
+
       body.append("contact_person", clean(form.contact_person));
 
       if (logoFile) {
@@ -561,9 +609,11 @@ export default function OrganizationProfile() {
 
       const response = await fetch(`${API_BASE}/api/organizations/me`, {
         method: "PUT",
+
         headers: {
           Authorization: `Bearer ${token}`,
         },
+
         body,
       });
 
@@ -571,11 +621,17 @@ export default function OrganizationProfile() {
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
+
         localStorage.removeItem("adminToken");
+
         localStorage.removeItem("user");
+
         localStorage.removeItem("profileComplete");
+
         localStorage.removeItem("organizationProfileComplete");
+
         navigate("/login", { replace: true });
+
         return;
       }
 
@@ -584,30 +640,42 @@ export default function OrganizationProfile() {
       }
 
       const normalized = normalizeOrganization(data);
+
       setOrganization(normalized);
+
       setForm(createForm(normalized));
+      setFieldErrors({});
+
       setLogoFile(null);
+
       setCoverFile(null);
 
       if (logoPreview && logoPreview.startsWith("blob:")) {
         URL.revokeObjectURL(logoPreview);
       }
+
       if (coverPreview && coverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(coverPreview);
       }
 
       setLogoPreview("");
+
       setCoverPreview("");
 
       localStorage.setItem("organizationProfileComplete", "true");
+
       localStorage.setItem("profileComplete", "true");
+
       localStorage.setItem("accountType", "organization");
+
       localStorage.setItem("account_type", "organization");
 
       window.dispatchEvent(new Event("organization-updated"));
+
       window.dispatchEvent(new Event("profile-updated"));
 
       setSuccess("Байгууллагын мэдээлэл амжилттай хадгалагдлаа.");
+
       setShowCompleteModal(true);
 
       setTimeout(() => {
@@ -615,6 +683,7 @@ export default function OrganizationProfile() {
       }, 900);
     } catch (err) {
       console.error("Save organization error:", err);
+
       setError(
         err?.message || "Байгууллагын мэдээлэл хадгалахад алдаа гарлаа.",
       );
@@ -625,6 +694,7 @@ export default function OrganizationProfile() {
 
   function goToDashboard() {
     setShowCompleteModal(false);
+
     window.location.replace("/user/home");
   }
 
@@ -694,7 +764,7 @@ export default function OrganizationProfile() {
                 style={{
                   display: "block",
 
-                  objectFit: "cover",
+                  objectFit: "contain",
                 }}
               />
 
@@ -857,6 +927,7 @@ export default function OrganizationProfile() {
                         <input
                           type="text"
                           name="name"
+                          aria-invalid={Boolean(fieldErrors.name)}
                           value={form.name}
                           onChange={handleChange}
                           placeholder="IT Insight"
@@ -864,11 +935,17 @@ export default function OrganizationProfile() {
                       </div>
 
                       <div className="orgField">
-                        <label>РЕГИСТРИЙН ДУГААР</label>
+                        <label>
+                          РЕГИСТРИЙН ДУГААР{" "}
+                          <span className="orgRequiredStar">*</span>
+                        </label>
 
                         <input
                           type="text"
                           name="registration_number"
+                          aria-invalid={Boolean(
+                            fieldErrors.registration_number,
+                          )}
                           value={form.registration_number}
                           onChange={handleChange}
                           placeholder="6012345"
@@ -878,10 +955,13 @@ export default function OrganizationProfile() {
 
                     <div className="orgGrid2">
                       <div className="orgField">
-                        <label>САЛБАР</label>
+                        <label>
+                          САЛБАР <span className="orgRequiredStar">*</span>
+                        </label>
 
                         <select
                           name="industry"
+                          aria-invalid={Boolean(fieldErrors.industry)}
                           value={form.industry}
                           onChange={handleChange}
                         >
@@ -896,10 +976,13 @@ export default function OrganizationProfile() {
                       </div>
 
                       <div className="orgField">
-                        <label>АЖИЛТНЫ ТОО</label>
+                        <label>
+                          АЖИЛТНЫ ТОО <span className="orgRequiredStar">*</span>
+                        </label>
 
                         <select
                           name="employee_count"
+                          aria-invalid={Boolean(fieldErrors.employee_count)}
                           value={form.employee_count}
                           onChange={handleChange}
                         >
@@ -915,10 +998,14 @@ export default function OrganizationProfile() {
                     </div>
 
                     <div className="orgField">
-                      <label>ТОВЧ ТАНИЛЦУУЛГА</label>
+                      <label>
+                        ТОВЧ ТАНИЛЦУУЛГА{" "}
+                        <span className="orgRequiredStar">*</span>
+                      </label>
 
                       <textarea
                         name="description"
+                        aria-invalid={Boolean(fieldErrors.description)}
                         value={form.description}
                         onChange={handleChange}
                         rows={5}
@@ -954,7 +1041,10 @@ export default function OrganizationProfile() {
                       </div>
 
                       <div className="orgField">
-                        <label>АЛБАН И-МЭЙЛ</label>
+                        <label>
+                          АЛБАН И-МЭЙЛ{" "}
+                          <span className="orgRequiredStar">*</span>
+                        </label>
 
                         <div className="orgInputIcon">
                           <FiMail />
@@ -962,15 +1052,18 @@ export default function OrganizationProfile() {
                           <input
                             type="email"
                             name="email"
+                            aria-invalid={Boolean(fieldErrors.email)}
                             value={form.email}
                             onChange={handleChange}
-                            placeholder="info@itinsight.mn"
+                            placeholder="info\@itinsight.mn"
                           />
                         </div>
                       </div>
 
                       <div className="orgField">
-                        <label>УТАС</label>
+                        <label>
+                          УТАС <span className="orgRequiredStar">*</span>
+                        </label>
 
                         <div className="orgInputIcon">
                           <FiPhone />
@@ -978,6 +1071,7 @@ export default function OrganizationProfile() {
                           <input
                             type="text"
                             name="phone"
+                            aria-invalid={Boolean(fieldErrors.phone)}
                             value={form.phone}
                             onChange={handleChange}
                             placeholder="7711 2233"
@@ -987,7 +1081,9 @@ export default function OrganizationProfile() {
                     </div>
 
                     <div className="orgField">
-                      <label>ХАЯГ</label>
+                      <label>
+                        ХАЯГ <span className="orgRequiredStar">*</span>
+                      </label>
 
                       <div className="orgInputIcon">
                         <FiMapPin />
@@ -995,6 +1091,7 @@ export default function OrganizationProfile() {
                         <input
                           type="text"
                           name="address"
+                          aria-invalid={Boolean(fieldErrors.address)}
                           value={form.address}
                           onChange={handleChange}
                           placeholder="Улаанбаатар, Сүхбаатар дүүрэг..."
@@ -1144,8 +1241,11 @@ export default function OrganizationProfile() {
           <div className="orgCompleteModalBackdrop">
             <div className="orgCompleteModal">
               <FiCheck />
+
               <h2>Байгууллагын профайл бүрэн боллоо!</h2>
+
               <p>Мэдээлэл, лого болон cover зураг амжилттай хадгалагдлаа.</p>
+
               <button type="button" onClick={goToDashboard}>
                 Нүүр хуудас руу очих
               </button>

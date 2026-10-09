@@ -38,7 +38,7 @@ function resolveUrl(value) {
 
   if (!url) return "";
 
-  if (/^https?:**/i.test(url)) {
+  if (/^https?:\/\//i.test(url)) {
     return url;
   }
 
@@ -407,8 +407,10 @@ export default function Organizations() {
                   }
                   onKeyDown={(event) => {
                     if (event.target !== event.currentTarget) return;
+
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
+
                       navigate(`/user/organizations/${organization.id}`);
                     }
                   }}
@@ -481,6 +483,7 @@ export default function Organizations() {
                       disabled={followBusy === organization.id}
                       onClick={(event) => {
                         event.stopPropagation();
+
                         toggleFollow(organization);
                       }}
                     >

@@ -1,6 +1,9 @@
 import fs from "fs";
+
 import path from "path";
+
 import express from "express";
+
 import multer from "multer";
 
 import pool from "../db.js";
@@ -9,24 +12,34 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-const ORGANIZATION_UPLOAD_DIR = path.join(process.cwd(), "uploads", "organizations");
+const ORGANIZATION_UPLOAD_DIR = path.join(
+  process.cwd(),
+  "uploads",
+  "organizations",
+);
+
 fs.mkdirSync(ORGANIZATION_UPLOAD_DIR, { recursive: true });
 
 const organizationStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, ORGANIZATION_UPLOAD_DIR),
+
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname || "");
+
     cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   },
 });
 
 const organizationUpload = multer({
   storage: organizationStorage,
+
   limits: { fileSize: 8 * 1024 * 1024 },
+
   fileFilter: (req, file, cb) => {
     if (!file.mimetype || !file.mimetype.startsWith("image/")) {
       return cb(new Error("Only image files are allowed"));
     }
+
     cb(null, true);
   },
 });
@@ -163,31 +176,57 @@ router.get(
 
       const [rows] = await pool.query(
         `          SELECT
+
             o.*,
+
             (
+
               SELECT COUNT(*)
+
               FROM organization_followers ofl
+
               WHERE ofl.organization_id = o.id
+
             ) AS followers_count,
+
             (
+
               SELECT COUNT(*)
+
               FROM events e
+
               WHERE e.organization_id = o.id
+
               AND (
+
                 e.end_time IS NULL
+
                 OR e.end_time >= NOW()
+
               )
+
             ) AS active_events_count,
+
             EXISTS(
+
               SELECT 1
+
               FROM organization_followers ofl2
+
               WHERE ofl2.organization_id = o.id
+
               AND ofl2.user_id = ?
+
             ) AS is_following
+
           FROM organizations o
+
           ORDER BY
+
             o.is_verified DESC,
+
             o.created_at DESC
+
           `,
 
         [userId],
@@ -217,31 +256,57 @@ router.get(
 
       const [rows] = await pool.query(
         `          SELECT
+
             o.*,
+
             (
+
               SELECT COUNT(*)
+
               FROM organization_followers ofl
+
               WHERE ofl.organization_id = o.id
+
             ) AS followers_count,
+
             (
+
               SELECT COUNT(*)
+
               FROM events e
+
               WHERE e.organization_id = o.id
+
               AND (
+
                 e.end_time IS NULL
+
                 OR e.end_time >= NOW()
+
               )
+
             ) AS active_events_count,
+
             EXISTS(
+
               SELECT 1
+
               FROM organization_followers ofl2
+
               WHERE ofl2.organization_id = o.id
+
               AND ofl2.user_id = ?
+
             ) AS is_following
+
           FROM organizations o
+
           ORDER BY
+
             o.is_verified DESC,
+
             o.created_at DESC
+
           `,
 
         [userId],
@@ -277,29 +342,53 @@ router.get(
 
       const [rows] = await pool.query(
         `          SELECT
+
             o.*,
+
             (
+
               SELECT COUNT(*)
+
               FROM organization_followers ofl
+
               WHERE ofl.organization_id = o.id
+
             ) AS followers_count,
+
             (
+
               SELECT COUNT(*)
+
               FROM events e
+
               WHERE e.organization_id = o.id
+
             ) AS total_events_count,
+
             (
+
               SELECT COUNT(*)
+
               FROM events e
+
               WHERE e.organization_id = o.id
+
               AND (
+
                 e.end_time IS NULL
+
                 OR e.end_time >= NOW()
+
               )
+
             ) AS active_events_count
+
           FROM organizations o
+
           WHERE o.user_id = ?
+
           LIMIT 1
+
           `,
 
         [userId],
@@ -326,288 +415,374 @@ router.get(
 
 router.put(
   "/me",
+
   authMiddleware,
+
   organizationUpload.fields([
     { name: "logo", maxCount: 1 },
+
     { name: "cover", maxCount: 1 },
   ]),
+
   async (req, res) => {
-  try {
-    const userId = Number(req.user?.id);
+    try {
+      const userId = Number(req.user?.id);
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const body = req.body || {};
+      const body = req.body || {};
 
-    const name = String(
-      body.name ?? body.organizationName ?? body.organization_name ?? "",
-    ).trim();
+      const name = String(
+        body.name ?? body.organizationName ?? body.organization_name ?? "",
+      ).trim();
 
-    if (!name)
-      return res.status(400).json({ message: "Organization name is required" });
+      if (!name)
+        return res
+          .status(400)
+          .json({ message: "Organization name is required" });
 
-    const registrationNumber = String(
-      body.registrationNumber ?? body.registration_number ?? "",
-    ).trim();
+      const registrationNumber = String(
+        body.registrationNumber ?? body.registration_number ?? "",
+      ).trim();
 
-    const yearRaw = body.establishedYear ?? body.established_year ?? null;
+      const yearRaw = body.establishedYear ?? body.established_year ?? null;
 
-    const establishedYear =
-      yearRaw === "" || yearRaw == null ? null : Number(yearRaw);
+      const establishedYear =
+        yearRaw === "" || yearRaw == null ? null : Number(yearRaw);
 
-    if (
-      establishedYear !== null &&
-      (!Number.isInteger(establishedYear) ||
-        establishedYear < 1000 ||
-        establishedYear > 9999)
-    ) {
-      return res.status(400).json({ message: "Invalid established year" });
-    }
+      if (
+        establishedYear !== null &&
+        (!Number.isInteger(establishedYear) ||
+          establishedYear < 1000 ||
+          establishedYear > 9999)
+      ) {
+        return res.status(400).json({ message: "Invalid established year" });
+      }
 
-    let categories = body.categories ?? body.category ?? [];
+      let categories = body.categories ?? body.category ?? [];
 
-    if (!Array.isArray(categories))
-      categories = String(categories || "")
-        .split(",")
+      if (!Array.isArray(categories))
+        categories = String(categories || "")
+          .split(",")
 
-        .map((v) => v.trim())
+          .map((v) => v.trim())
 
-        .filter(Boolean);
+          .filter(Boolean);
 
-    categories = categories.map((v) => String(v).trim()).filter(Boolean);
+      categories = categories.map((v) => String(v).trim()).filter(Boolean);
 
-    const description = String(body.description ?? "").trim();
+      const description = String(body.description ?? "").trim();
 
-    const website = String(body.website ?? "").trim();
+      const website = String(body.website ?? "").trim();
 
-    const email = String(body.email ?? "").trim();
+      const email = String(body.email ?? "").trim();
 
-    const phone = String(body.phone ?? "").trim();
+      const phone = String(body.phone ?? "").trim();
 
-    const address = String(body.address ?? "").trim();
+      const address = String(body.address ?? "").trim();
 
-    const facebook = String(body.facebook ?? "").trim();
+      const facebook = String(body.facebook ?? "").trim();
 
-    const linkedin = String(body.linkedin ?? "").trim();
+      const linkedin = String(body.linkedin ?? "").trim();
 
-    const contactPerson = String(
-      body.contact_person ?? body.contactPerson ?? "",
-    ).trim();
+      const contactPerson = String(
+        body.contact_person ?? body.contactPerson ?? "",
+      ).trim();
 
-    const industry = String(body.industry ?? "").trim();
+      const industry = String(body.industry ?? "").trim();
 
-    const employeeCount = String(
-      body.employee_count ?? body.employeeCount ?? "",
-    ).trim();
+      const employeeCount = String(
+        body.employee_count ?? body.employeeCount ?? "",
+      ).trim();
 
-    const uploadedLogo = req.files?.logo?.[0];
-    const uploadedCover = req.files?.cover?.[0];
+      const uploadedLogo = req.files?.logo?.[0];
 
-    const logoUrl = uploadedLogo
-      ? `/uploads/organizations/${uploadedLogo.filename}`
-      : String(body.logo_url ?? body.logoUrl ?? "").trim();
+      const uploadedCover = req.files?.cover?.[0];
 
-    const coverUrl = uploadedCover
-      ? `/uploads/organizations/${uploadedCover.filename}`
-      : String(body.cover_url ?? body.coverUrl ?? "").trim();
+      const logoUrl = uploadedLogo
+        ? `/uploads/organizations/${uploadedLogo.filename}`
+        : String(body.logo_url ?? body.logoUrl ?? "").trim();
 
-    const [existing] = await pool.query(
-      "SELECT id FROM organizations WHERE user_id=? LIMIT 1",
+      const coverUrl = uploadedCover
+        ? `/uploads/organizations/${uploadedCover.filename}`
+        : String(body.cover_url ?? body.coverUrl ?? "").trim();
 
-      [userId],
-    );
+      const [existing] = await pool.query(
+        "SELECT id FROM organizations WHERE user_id=? LIMIT 1",
 
-    let organizationId;
+        [userId],
+      );
 
-    if (existing.length) {
-      organizationId = existing[0].id;
+      let organizationId;
 
-      await pool.query(
-        `UPDATE organizations SET
+      if (existing.length) {
+        organizationId = existing[0].id;
+
+        await pool.query(
+          `UPDATE organizations SET
+
+
 
     name=?,
 
+
+
     registration_number=?,
+
+
 
     established_year=?,
 
+
+
     categories=?,
+
+
 
     description=?,
 
+
+
     website=?,
+
+
 
     email=?,
 
+
+
     phone=?,
+
+
 
     address=?,
 
+
+
     facebook=?,
+
+
 
     linkedin=?,
 
+
+
     contact_person=?,
+
+
 
     industry=?,
 
+
+
     employee_count=?,
 
-    logo_url=?,
 
-    cover_url=?
+
+    logo_url=COALESCE(NULLIF(?, ''), logo_url),
+
+
+
+    cover_url=COALESCE(NULLIF(?, ''), cover_url)
+
+
 
    WHERE id=? AND user_id=?`,
 
-        [
-          name,
+          [
+            name,
 
-          registrationNumber || null,
+            registrationNumber || null,
 
-          establishedYear,
+            establishedYear,
 
-          JSON.stringify(categories),
+            JSON.stringify(categories),
 
-          description || null,
+            description || null,
 
-          website || null,
+            website || null,
 
-          email || null,
+            email || null,
 
-          phone || null,
+            phone || null,
 
-          address || null,
+            address || null,
 
-          facebook || null,
+            facebook || null,
 
-          linkedin || null,
+            linkedin || null,
 
-          contactPerson || null,
+            contactPerson || null,
 
-          industry || null,
+            industry || null,
 
-          employeeCount || null,
+            employeeCount || null,
 
-          logoUrl || null,
+            logoUrl || null,
 
-          coverUrl || null,
+            coverUrl || null,
 
-          organizationId,
+            organizationId,
 
-          userId,
-        ],
-      );
-    } else {
-      const [result] = await pool.query(
-        `INSERT INTO organizations
+            userId,
+          ],
+        );
+      } else {
+        const [result] = await pool.query(
+          `INSERT INTO organizations
+
+
 
    (
 
+
+
      user_id,
+
+
 
      name,
 
+
+
      registration_number,
+
+
 
      established_year,
 
+
+
      categories,
+
+
 
      description,
 
+
+
      website,
+
+
 
      email,
 
+
+
      phone,
+
+
 
      address,
 
+
+
      facebook,
+
+
 
      linkedin,
 
+
+
      contact_person,
+
+
 
      industry,
 
+
+
      employee_count,
+
+
 
      logo_url,
 
+
+
      cover_url
+
+
 
    )
 
+
+
    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 
-        [
-          userId,
+          [
+            userId,
 
-          name,
+            name,
 
-          registrationNumber || null,
+            registrationNumber || null,
 
-          establishedYear,
+            establishedYear,
 
-          JSON.stringify(categories),
+            JSON.stringify(categories),
 
-          description || null,
+            description || null,
 
-          website || null,
+            website || null,
 
-          email || null,
+            email || null,
 
-          phone || null,
+            phone || null,
 
-          address || null,
+            address || null,
 
-          facebook || null,
+            facebook || null,
 
-          linkedin || null,
+            linkedin || null,
 
-          contactPerson || null,
+            contactPerson || null,
 
-          industry || null,
+            industry || null,
 
-          employeeCount || null,
+            employeeCount || null,
 
-          logoUrl || null,
+            logoUrl || null,
 
-          coverUrl || null,
-        ],
-      );
+            coverUrl || null,
+          ],
+        );
 
-      organizationId = result.insertId;
-    }
+        organizationId = result.insertId;
+      }
 
-    const [rows] = await pool.query(
-      `SELECT o.*,
+      const [rows] = await pool.query(
+        `SELECT o.*,
+
        (SELECT COUNT(*) FROM organization_followers f WHERE f.organization_id=o.id) followers_count,
+
        (SELECT COUNT(*) FROM events e WHERE e.organization_id=o.id) total_events_count,
+
        (SELECT COUNT(*) FROM events e WHERE e.organization_id=o.id AND (e.end_time IS NULL OR e.end_time>=NOW())) active_events_count
+
        FROM organizations o WHERE o.id=? AND o.user_id=? LIMIT 1`,
 
-      [organizationId, userId],
-    );
+        [organizationId, userId],
+      );
 
-    return res.json({
-      message: existing.length
-        ? "Organization updated"
-        : "Organization created",
+      return res.json({
+        message: existing.length
+          ? "Organization updated"
+          : "Organization created",
 
-      organization: normalizeOrganization(rows[0]),
-    });
-  } catch (err) {
-    console.error("SAVE MY ORGANIZATION ERROR:", err);
+        organization: normalizeOrganization(rows[0]),
+      });
+    } catch (err) {
+      console.error("SAVE MY ORGANIZATION ERROR:", err);
 
-    return res
+      return res
 
-      .status(500)
+        .status(500)
 
-      .json({ message: err.message || "Failed to save organization" });
-  }
-});
+        .json({ message: err.message || "Failed to save organization" });
+    }
+  },
+);
 
 router.get(
   "/:id",
@@ -628,35 +803,65 @@ router.get(
 
       const [rows] = await pool.query(
         `          SELECT
+
             o.*,
+
             (
+
               SELECT COUNT(*)
+
               FROM organization_followers ofl
+
               WHERE ofl.organization_id = o.id
+
             ) AS followers_count,
+
             (
+
               SELECT COUNT(*)
+
               FROM events e
+
               WHERE e.organization_id = o.id
+
             ) AS total_events_count,
+
             (
+
               SELECT COUNT(*)
+
               FROM events e
+
               WHERE e.organization_id = o.id
+
               AND (
+
                 e.end_time IS NULL
+
                 OR e.end_time >= NOW()
+
               )
+
             ) AS active_events_count,
+
             EXISTS(
+
               SELECT 1
+
               FROM organization_followers ofl2
+
               WHERE ofl2.organization_id = o.id
+
               AND ofl2.user_id = ?
+
             ) AS is_following
+
           FROM organizations o
+
           WHERE o.id = ?
+
           LIMIT 1
+
           `,
 
         [userId, organizationId],
@@ -700,9 +905,13 @@ router.get(
 
       const [organizationRows] = await pool.query(
         `          SELECT id
+
           FROM organizations
+
           WHERE id = ?
+
           LIMIT 1
+
           `,
 
         [organizationId],
@@ -716,9 +925,13 @@ router.get(
 
       const [events] = await pool.query(
         `          SELECT *
+
           FROM events
+
           WHERE organization_id = ?
+
           ORDER BY start_time DESC
+
           `,
 
         [organizationId],
@@ -762,9 +975,13 @@ router.post(
 
       const [organizations] = await pool.query(
         `          SELECT id
+
           FROM organizations
+
           WHERE id = ?
+
           LIMIT 1
+
           `,
 
         [organizationId],
@@ -778,11 +995,17 @@ router.post(
 
       await pool.query(
         `        INSERT IGNORE INTO organization_followers
+
         (
+
           organization_id,
+
           user_id
+
         )
+
         VALUES (?, ?)
+
         `,
 
         [organizationId, userId],
@@ -790,9 +1013,13 @@ router.post(
 
       const [countRows] = await pool.query(
         `          SELECT
+
             COUNT(*) AS total
+
           FROM organization_followers
+
           WHERE organization_id = ?
+
           `,
 
         [organizationId],
@@ -840,9 +1067,13 @@ router.delete(
 
       await pool.query(
         `        DELETE
+
         FROM organization_followers
+
         WHERE organization_id = ?
+
         AND user_id = ?
+
         `,
 
         [organizationId, userId],
@@ -850,9 +1081,13 @@ router.delete(
 
       const [countRows] = await pool.query(
         `          SELECT
+
             COUNT(*) AS total
+
           FROM organization_followers
+
           WHERE organization_id = ?
+
           `,
 
         [organizationId],
