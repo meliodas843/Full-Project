@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
-import "./EventTicket.css";
 
 function formatDate(value) {
   if (!value) return "—";
