@@ -464,6 +464,7 @@ function isValidInviteEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
     String(value || "")
       .trim()
+
       .toLowerCase(),
   );
 }
@@ -596,7 +597,7 @@ export default function History() {
       }
 
       const response = await fetch(
-        `${API_BASE}/api/events/my-joined?includeFinished=1`,
+        `${API_BASE}/api/events/my-events`,
 
         {
           headers: {
@@ -619,7 +620,11 @@ export default function History() {
         return;
       }
 
-      const list = Array.isArray(data) ? data : [];
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.events)
+          ? data.events
+          : [];
 
       setEvents(list);
     } catch (err) {

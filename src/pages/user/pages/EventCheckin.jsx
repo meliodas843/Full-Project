@@ -6,9 +6,7 @@ import {
   Camera,
   Check,
   CheckCircle2,
-  Clock3,
   Download,
-  LockKeyhole,
   RefreshCw,
   Search,
   ScanLine,
@@ -17,15 +15,12 @@ import {
 } from "lucide-react";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
-
 const api = (path) => `${API_BASE}/api/checkin${path}`;
-
 function getToken() {
   return (
     localStorage.getItem("token") || localStorage.getItem("adminToken") || ""
   );
 }
-
 function formatTime(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -36,41 +31,45 @@ function formatTime(value) {
     hour12: false,
   });
 }
-
 function getName(person) {
   const name = [person.last_name, person.first_name]
     .filter(Boolean)
     .join(" ")
     .trim();
-
   return name || person.name || person.email || "Оролцогч";
 }
-
 function getInitials(person) {
   const first = String(person.first_name || "").trim();
   const last = String(person.last_name || "").trim();
-
   if (first || last) {
     return `${last.charAt(0)}${first.charAt(0)}`.toUpperCase();
   }
-
   return String(person.email || "?")
     .slice(0, 2)
     .toUpperCase();
 }
-
 function getCode(person) {
-  return person.ticket_code || person.code || "—";
+  return person.short_ticket_code || person.display_code || person.ticket_short_code || person.ticket_code || person.code || "—";
 }
 
+function getScanCode(person) {
+  return person.ticket_code || person.code || "";
+}
+
+function formatTicketCode(person) {
+  const code = String(getCode(person));
+  if (/^HTL-[A-Z0-9]{3}-[A-Z0-9]{3}$/i.test(code)) return code.toUpperCase();
+  // Keep the original identifier if the backend has not supplied a short code.
+  return code;
+}
 export default function EventCheckin() {
   const { eventId } = useParams();
   const navigate = useNavigate();
-
   const scannerRef = useRef(null);
   const busyRef = useRef(false);
   const lastScanRef = useRef("");
-
+  const successTimerRef = useRef(null);
+  const participantsRef = useRef([]);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -80,7 +79,6 @@ export default function EventCheckin() {
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-
   const loadAttendance = useCallback(async () => {
     try {
       const response = await fetch(api(`/${eventId}/attendance`), {
@@ -88,14 +86,12 @@ export default function EventCheckin() {
           Authorization: `Bearer ${getToken()}`,
         },
       });
-
       const json = await response.json().catch(() => ({}));
-
       if (!response.ok) {
         throw new Error(json.message || "Ирцийн мэдээлэл ачаалж чадсангүй.");
       }
-
       setData(json);
+      participantsRef.current = json.participants || [];
       setError("");
     } catch (err) {
       setError(err.message || "Сүлжээний алдаа гарлаа.");
@@ -103,54 +99,44 @@ export default function EventCheckin() {
       setLoading(false);
     }
   }, [eventId]);
-
   useEffect(() => {
     loadAttendance();
-
     const timer = setInterval(loadAttendance, 10000);
-
     return () => clearInterval(timer);
   }, [loadAttendance]);
-
   const stopScanner = useCallback(async () => {
     const scanner = scannerRef.current;
-
     scannerRef.current = null;
-
     if (!scanner) {
       setScanning(false);
       return;
     }
-
     try {
       const state = scanner.getState();
-
       if (state === 2 || state === 3) {
         await scanner.stop();
       }
     } catch (err) {
       console.warn("Scanner stop skipped:", err.message);
     }
-
     try {
       scanner.clear();
     } catch (err) {
       console.warn("Scanner clear skipped:", err.message);
     }
-
     setScanning(false);
   }, []);
-
   const verifyCode = useCallback(
     async (rawCode) => {
-      const code = String(rawCode || "").trim();
-
+      const inputCode = String(rawCode || "").trim();
+      const matchingParticipant = participantsRef.current.find(
+        (person) => formatTicketCode(person).toLowerCase() === inputCode.toLowerCase(),
+      );
+      const code = matchingParticipant ? getScanCode(matchingParticipant) : inputCode;
       if (!code || busyRef.current) return;
-
       busyRef.current = true;
       setBusy(true);
       setResult(null);
-
       try {
         const response = await fetch(api(`/${eventId}/scan`), {
           method: "POST",
@@ -160,19 +146,31 @@ export default function EventCheckin() {
           },
           body: JSON.stringify({ ticket_code: code }),
         });
-
         const json = await response.json().catch(() => ({}));
-
+        if (successTimerRef.current) {
+          clearTimeout(successTimerRef.current);
+          successTimerRef.current = null;
+        }
+        if (response.ok) {
+        const participant = json.participant || participantsRef.current.find(
+          (person) => getScanCode(person) === code || getCode(person) === code,
+        );
         setResult({
-          status: json.status || (response.ok ? "success" : "invalid"),
-          message:
-            json.message ||
-            (response.ok
-              ? "Ирц амжилттай бүртгэгдлээ."
-              : "QR кодыг шалгаж чадсангүй."),
+          status: "success",
+          message: "Амжилттай бүртгэгдлээ.",
+          participant,
+        });
+        successTimerRef.current = setTimeout(() => {
+          setResult(null);
+          successTimerRef.current = null;
+        }, 5000);
+      } else {
+        setResult({
+          status: json.status || "invalid",
+          message: json.message || "QR кодыг шалгаж чадсангүй.",
           participant: json.participant,
         });
-
+        }
         if (response.ok) {
           setManualCode("");
           await loadAttendance();
@@ -189,54 +187,42 @@ export default function EventCheckin() {
     },
     [eventId, loadAttendance],
   );
-
   useEffect(() => {
     if (!scanning) return;
-
     let cancelled = false;
     let scanner = null;
     let startPromise = null;
     let cleanupPromise = null;
-
     const cleanupScanner = async () => {
       if (cleanupPromise) return cleanupPromise;
-
       cleanupPromise = (async () => {
         if (startPromise) {
           try {
             await startPromise;
           } catch {}
         }
-
         if (!scanner) return;
-
         try {
           const state = scanner.getState();
-
           if (state === 2 || state === 3) {
             await scanner.stop();
           }
         } catch (err) {
           console.warn("Scanner cleanup:", err.message);
         }
-
         try {
           scanner.clear();
         } catch {}
-
         if (scannerRef.current === scanner) {
           scannerRef.current = null;
         }
       })();
-
       return cleanupPromise;
     };
-
     const startScanner = async () => {
       try {
         scanner = new Html5Qrcode("registra-qr-reader");
         scannerRef.current = scanner;
-
         startPromise = scanner.start(
           { facingMode: "environment" },
           {
@@ -257,58 +243,49 @@ export default function EventCheckin() {
             ) {
               return;
             }
-
             lastScanRef.current = decodedText;
-
             cancelled = true;
-
             await cleanupScanner();
             setScanning(false);
-
             await verifyCode(decodedText);
           },
           () => {},
         );
-
         await startPromise;
-
         if (cancelled) {
           await cleanupScanner();
         }
       } catch (err) {
         if (!cancelled) {
           console.error("QR scanner error:", err);
-
           setError(
             "Камер нээж чадсангүй. HTTPS болон камерын зөвшөөрлийг шалгана уу.",
           );
-
           setScanning(false);
         }
-
         await cleanupScanner();
       }
     };
-
     startScanner();
-
     return () => {
       cancelled = true;
       void cleanupScanner();
     };
   }, [scanning, verifyCode]);
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
 
   const allParticipants = data?.participants || [];
-
   const checkedIn = allParticipants.filter((person) =>
     Boolean(person.checked_in_at),
   ).length;
-
   const total = Number(data?.total ?? allParticipants.length);
   const arrived = Number(data?.checked_in ?? checkedIn);
   const remaining = Number(data?.remaining ?? Math.max(total - arrived, 0));
   const attendanceRate = total ? Math.round((arrived / total) * 100) : 0;
-
   const participants = allParticipants.filter((person) => {
     const text = [
       person.first_name,
@@ -316,20 +293,18 @@ export default function EventCheckin() {
       person.name,
       person.email,
       person.ticket_code,
+    formatTicketCode(person),
     ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
-
     const matchesSearch = text.includes(search.toLowerCase().trim());
     const matchesFilter =
       filter === "all" ||
       (filter === "present" && Boolean(person.checked_in_at)) ||
       (filter === "pending" && !person.checked_in_at);
-
     return matchesSearch && matchesFilter;
   });
-
   function exportCSV() {
     const rows = [
       ["Нэр", "Имэйл", "Тасалбарын код", "Төлөв", "Ирсэн цаг"],
@@ -341,7 +316,6 @@ export default function EventCheckin() {
         formatTime(person.checked_in_at),
       ]),
     ];
-
     const csv =
       "\uFEFF" +
       rows
@@ -351,11 +325,9 @@ export default function EventCheckin() {
             .join(","),
         )
         .join("\r\n");
-
     const url = URL.createObjectURL(
       new Blob([csv], { type: "text/csv;charset=utf-8" }),
     );
-
     const link = document.createElement("a");
     link.href = url;
     link.download = `registra-checkin-${eventId}.csv`;
@@ -364,7 +336,6 @@ export default function EventCheckin() {
     link.remove();
     URL.revokeObjectURL(url);
   }
-
   return (
     <UserShell title="QR Check-in">
       <main className="rci-page">
@@ -375,7 +346,6 @@ export default function EventCheckin() {
             </div>
             <h1>Ирц бүртгэл · QR Check-in</h1>
           </div>
-
           <button
             className="rci-back"
             type="button"
@@ -385,7 +355,6 @@ export default function EventCheckin() {
             Буцах
           </button>
         </header>
-
         {error && (
           <div className="rci-error">
             {error}
@@ -394,7 +363,6 @@ export default function EventCheckin() {
             </button>
           </div>
         )}
-
         <section className="rci-stats">
           <div className="rci-stat rci-stat-main">
             <div className="rci-stat-label">Ирсэн</div>
@@ -408,17 +376,15 @@ export default function EventCheckin() {
               <span style={{ width: `${Math.min(attendanceRate, 100)}%` }} />
             </div>
           </div>
-
           <div className="rci-stat">
             <div className="rci-stat-label">Хүлээгдэж буй</div>
             <div className="rci-stat-value">{remaining}</div>
             <div className="rci-stat-foot">Ирээгүй оролцогч</div>
           </div>
-
           <div className="rci-stat">
             <div className="rci-stat-label">Сүүлийн 15 минутанд</div>
             <div className="rci-stat-value rci-positive">
-              +
+              \+
               {
                 allParticipants.filter((person) => {
                   if (!person.checked_in_at) return false;
@@ -434,7 +400,6 @@ export default function EventCheckin() {
             <div className="rci-stat-foot">Шинээр ирсэн</div>
           </div>
         </section>
-
         <div className="rci-columns">
           <section className="rci-panel rci-scannerPanel">
             <div className="rci-panelHeading">
@@ -444,7 +409,6 @@ export default function EventCheckin() {
                 Камер {scanning ? "идэвхтэй" : "идэвхгүй"}
               </span>
             </div>
-
             <div className="rci-camera">
               {scanning ? (
                 <div id="registra-qr-reader" />
@@ -458,9 +422,7 @@ export default function EventCheckin() {
                 </div>
               )}
             </div>
-
             <div className="rci-demoLabel">QR УНШУУЛАХ</div>
-
             <div className="rci-scanActions">
               <button
                 type="button"
@@ -478,7 +440,6 @@ export default function EventCheckin() {
                 <Camera size={15} />
                 {scanning ? "Камер хаах" : "Камер нээх"}
               </button>
-
               <button
                 type="button"
                 onClick={() => {
@@ -491,7 +452,6 @@ export default function EventCheckin() {
                 Дахин
               </button>
             </div>
-
             <form
               className="rci-manualForm"
               onSubmit={(event) => {
@@ -509,7 +469,6 @@ export default function EventCheckin() {
                 {busy ? "Шалгаж байна..." : "Бүртгэх"}
               </button>
             </form>
-
             {result && (
               <div className={`rci-result ${result.status}`}>
                 {result.status === "success" ? (
@@ -524,7 +483,6 @@ export default function EventCheckin() {
               </div>
             )}
           </section>
-
           <section className="rci-panel rci-attendancePanel">
             <div className="rci-toolbar">
               <div className="rci-search">
@@ -535,7 +493,6 @@ export default function EventCheckin() {
                   placeholder="Нэр, байгууллага эсвэл тасалбар"
                 />
               </div>
-
               <div className="rci-filters">
                 <button
                   type="button"
@@ -559,7 +516,6 @@ export default function EventCheckin() {
                   Ирэээгүй
                 </button>
               </div>
-
               <button
                 type="button"
                 className="rci-csvButton"
@@ -570,7 +526,6 @@ export default function EventCheckin() {
                 CSV
               </button>
             </div>
-
             <div className="rci-tableWrap">
               <table className="rci-table">
                 <thead>
@@ -598,7 +553,6 @@ export default function EventCheckin() {
                   ) : (
                     participants.map((person, index) => {
                       const isPresent = Boolean(person.checked_in_at);
-
                       return (
                         <tr key={person.user_id || person.email || index}>
                           <td>
@@ -616,11 +570,9 @@ export default function EventCheckin() {
                               </div>
                             </div>
                           </td>
-
                           <td>
-                            <span className="rci-code">{getCode(person)}</span>
+                            <span className="rci-code">{formatTicketCode(person)}</span>
                           </td>
-
                           <td>
                             <span
                               className={`rci-status ${isPresent ? "present" : "pending"}`}
@@ -636,7 +588,6 @@ export default function EventCheckin() {
                               )}
                             </span>
                           </td>
-
                           <td>
                             {isPresent ? (
                               <span className="rci-doneButton">
@@ -647,8 +598,8 @@ export default function EventCheckin() {
                               <button
                                 type="button"
                                 className="rci-checkinButton"
-                                disabled={busy || getCode(person) === "—"}
-                                onClick={() => verifyCode(getCode(person))}
+                                disabled={busy || !getScanCode(person)}
+                                onClick={() => verifyCode(getScanCode(person))}
                               >
                                 Check-in
                               </button>
@@ -661,7 +612,6 @@ export default function EventCheckin() {
                 </tbody>
               </table>
             </div>
-
             <div className="rci-tableFooter">
               <span>Нийт {participants.length} оролцогч</span>
               <button type="button" onClick={loadAttendance}>
