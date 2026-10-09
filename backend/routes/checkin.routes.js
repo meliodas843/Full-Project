@@ -24,8 +24,10 @@ async function findEvent(eventId) {
     SELECT
       e.id,
       e.title,
+      e.created_by,
+      e.created_by_email,
       e.organization_id,
-      o.user_id AS user_id
+      o.user_id AS organization_owner_id
     FROM events e
     LEFT JOIN organizations o
       ON o.id = e.organization_id
@@ -57,7 +59,49 @@ async function requireOrganizer(req, res, next) {
       });
     }
 
-    if (Number(event.user_id) !== userId) {
+    const [users] = await pool.query(
+      `
+      SELECT id, email
+      FROM users
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [userId]
+    );
+
+    if (!users.length) {
+      return res.status(403).json({
+        message: "Хэрэглэгч олдсонгүй."
+      });
+    }
+
+    const loggedInEmail = String(
+      users[0].email || ""
+    ).trim().toLowerCase();
+
+    const creatorEmail = String(
+      event.created_by_email || ""
+    ).trim().toLowerCase();
+
+    const isCreatorById =
+      event.created_by != null &&
+      Number(event.created_by) === userId;
+
+    const isCreatorByEmail =
+      event.created_by == null &&
+      Boolean(loggedInEmail) &&
+      loggedInEmail === creatorEmail;
+
+    const isOrganizationOwner =
+      event.organization_id != null &&
+      event.organization_owner_id != null &&
+      Number(event.organization_owner_id) === userId;
+
+    if (
+      !isCreatorById &&
+      !isCreatorByEmail &&
+      !isOrganizationOwner
+    ) {
       return res.status(403).json({
         message:
           "Зөвхөн эвент зохион байгуулагч нэвтрэх эрхтэй."
