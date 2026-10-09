@@ -47,7 +47,7 @@ const getPasswordRules = (password) => ({
 
 export default function Signup() {
   const navigate = useNavigate();
-
+  const profileImageInputRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const [accountType, setAccountType] = useState("individual");
@@ -499,20 +499,52 @@ export default function Signup() {
               <div className="rgSignupBox">
                 <div className="rgSignupBoxTitle">ХУВИЙН МЭДЭЭЛЭЛ</div>
 
-                <div className="rgProfileUpload">
-                  <div className="rgProfileCircle">
-                    <FiUser />
+                <div className="signupProfileUpload">
+                  <input
+                    ref={profileImageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ display: "none" }}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
 
-                    <span>Зураг</span>
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert("Зургийн хэмжээ 5MB-аас ихгүй байх ёстой.");
+                        event.target.value = "";
+                        return;
+                      }
+
+                      setProfileImage(file);
+                      setProfileImagePreview(URL.createObjectURL(file));
+                    }}
+                  />
+
+                  <div
+                    className="signupProfilePreview"
+                    onClick={() => profileImageInputRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        profileImageInputRef.current?.click();
+                      }
+                    }}
+                  >
+                    {profileImagePreview ? (
+                      <img src={profileImagePreview} alt="Профайл зураг" />
+                    ) : (
+                      <span>Зураг</span>
+                    )}
                   </div>
 
-                  <div>
-                    <strong>Профайл зураг</strong>
-
-                    <p>JPG, PNG · 5MB хүртэл · дөрвөлжин зураг</p>
-
-                    <button type="button">Зураг сонгох</button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => profileImageInputRef.current?.click()}
+                  >
+                    Зураг сонгох
+                  </button>
                 </div>
 
                 <div className="rgFormGrid">
@@ -799,7 +831,7 @@ export default function Signup() {
                           {passwordRules.length ? <FiCheck /> : "•"}
                         </span>
 
-                        <span>10-аас дээш тэмдэгт</span>
+                        <span>8-аас дээш тэмдэгт</span>
                       </div>
 
                       <div className={passwordRules.uppercase ? "passed" : ""}>
