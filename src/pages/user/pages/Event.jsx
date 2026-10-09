@@ -1466,40 +1466,57 @@ export default function Event() {
 
   const managedEvents = useMemo(() => {
     const query = eventSearch.trim().toLowerCase();
-    return allMyEvents
+
+    return visibleEvents
       .filter((ev) => {
         const finished =
           isEventFinished(ev) ||
           ["finished", "completed", "ended"].includes(
             String(ev.status || "").toLowerCase(),
           );
+
         const draft = isDraftEvent(ev);
-        if (eventTab === "draft" && (!draft || !canEditEvent(ev))) return false;
-        if (eventTab === "published" && (draft || finished)) return false;
-        if (eventTab === "finished" && !finished) return false;
+
+        if (eventTab === "draft") {
+          return draft && canEditEvent(ev);
+        }
+
+        if (eventTab === "published" && (draft || finished)) {
+          return false;
+        }
+
+        if (eventTab === "finished" && !finished) {
+          return false;
+        }
+
         if (
           query &&
           ![ev.title, ev.description, ev.category]
             .join(" ")
             .toLowerCase()
             .includes(query)
-        )
+        ) {
           return false;
+        }
+
         return true;
       })
       .sort((a, b) => {
         const aTime = parseEventDateTime(a.start_time);
         const bTime = parseEventDateTime(b.start_time);
+
         return eventSort === "oldest" ? aTime - bTime : bTime - aTime;
       });
-  }, [allMyEvents, eventSearch, eventTab, eventSort, now]);
+  }, [visibleEvents, eventSearch, eventTab, eventSort, now]);
 
   const managedCounts = useMemo(
     () => ({
-      all: allMyEvents.length,
-      draft: allMyEvents.filter((ev) => isDraftEvent(ev) && canEditEvent(ev))
+      all: visibleEvents.length,
+
+      draft: visibleEvents.filter((ev) => isDraftEvent(ev) && canEditEvent(ev))
         .length,
-      published: allMyEvents.filter(
+
+      published: visibleEvents.filter(
         (ev) =>
           !isDraftEvent(ev) &&
           !isEventFinished(ev) &&
@@ -1507,7 +1524,8 @@ export default function Event() {
             String(ev.status || "").toLowerCase(),
           ),
       ).length,
-      finished: allMyEvents.filter(
+
+      finished: visibleEvents.filter(
         (ev) =>
           isEventFinished(ev) ||
           ["finished", "completed", "ended"].includes(
@@ -1515,7 +1533,7 @@ export default function Event() {
           ),
       ).length,
     }),
-    [allMyEvents, now],
+    [visibleEvents, now],
   );
 
   return (
@@ -2120,8 +2138,7 @@ export default function Event() {
                 <div
                   className="myEventsPageHeading"
                   style={{ marginBottom: 18 }}
-                >
-                </div>
+                ></div>
 
                 <div className="myEventsToolbar">
                   <div className="myEventTabs">

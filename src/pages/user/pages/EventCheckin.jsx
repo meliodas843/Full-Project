@@ -200,7 +200,6 @@ export default function EventCheckin() {
             ← Буцах
           </button>
           <div>
-            <small>Миний эвентүүд / Check-in</small>
             <h1>Ирц бүртгэл · QR Check-in</h1>
             <p>{data?.event?.title || "Эвент"}</p>
           </div>
