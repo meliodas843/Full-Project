@@ -20,6 +20,7 @@ import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import EventInvite from "./pages/public/EventInvite";
 import EventCheckin from "./pages/user/pages/EventCheckin";
+import EventTicket from "./pages/user/pages/EventTicket";
 import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
@@ -119,6 +120,8 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/user/event-ticket/:eventId" element={<EventTicket />} />
 
         <Route
           path="/user/history"

@@ -38583,14 +38583,12 @@ html[data-user-theme="light"] .myEventSearch,
 html:not([data-user-theme="dark"]) .myEventSearch {
   background: #ffffff;
   border-color: #e0e3eb;
-  margin-top: 12px;
 }
 
 html[data-user-theme="light"] .myEventSearch input,
 html:not([data-user-theme="dark"]) .myEventSearch input {
   background: transparent;
   color: #2a3040;
-  margin-top: 12px;
 }
 
 html[data-user-theme="light"] .myEventTools select,
