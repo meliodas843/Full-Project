@@ -467,7 +467,6 @@ export default function Organization() {
                         to={`/user/organizations/${organization.id}`}
                         className="publicOrganizationProfileButton"
                         onClick={(event) => event.stopPropagation()}
-                        onClick={(event) => event.stopPropagation()}
                       >
                         Профайл үзэх
                       </Link>
