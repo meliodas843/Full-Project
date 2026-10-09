@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+
 import { useParams, useNavigate } from "react-router-dom";
+
 import QRCode from "react-qr-code";
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -8,6 +11,7 @@ import {
   Download,
   FileDown,
   LockKeyhole,
+  LockKeyholeOpen,
   MapPin,
   ShieldCheck,
   Ticket,
@@ -15,17 +19,32 @@ import {
   ArrowRightLeft,
   AlertTriangle,
 } from "lucide-react";
+
 import UserShell from "../components/UserShell";
+
 import { API_BASE } from "@/lib/config";
 
 function formatDate(value) {
   if (!value) return "—";
 
-  const raw = String(value).trim().replace("T", " ").replace(/Z$/, "");
+  const raw = String(value).trim();
 
-  const [date, time = ""] = raw.split(" ");
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
 
-  return `${date.replace(/-/g, ".")}${time ? ` · ${time.slice(0, 5)}` : ""}`;
+  if (!match) return "—";
+
+  const [, year, month, day, hour, minute] = match;
+
+  return `${year}.${month}.${day}${
+    hour && minute ? ` · ${hour}:${minute}` : ""
+  }`;
+}
+
+function eventEndTimestamp(value) {
+  if (!value) return NaN;
+  const normalized = String(value).trim().replace(" ", "T");
+  const parsed = new Date(normalized).getTime();
+  return Number.isFinite(parsed) ? parsed : NaN;
 }
 
 function isCheckedIn(value) {
@@ -39,8 +58,6 @@ function isCheckedIn(value) {
   );
 }
 
-// A short, deterministic display identifier.
-// The original ticket_code is still used in the QR code.
 function shortTicketCode(ticketCode) {
   if (!ticketCode) return "—";
 
@@ -50,13 +67,18 @@ function shortTicketCode(ticketCode) {
 
   for (let i = 0; i < raw.length; i++) {
     hash ^= raw.charCodeAt(i);
+
     hash = Math.imul(hash, 16777619);
   }
 
   const chars = (hash >>> 0)
+
     .toString(36)
+
     .toUpperCase()
+
     .padStart(6, "0")
+
     .slice(-6);
 
   return `HTL-${chars.slice(0, 3)}-${chars.slice(3)}`;
@@ -64,41 +86,56 @@ function shortTicketCode(ticketCode) {
 
 export default function EventTicket() {
   const { eventId } = useParams();
+
   const navigate = useNavigate();
+
   const qrRef = useRef(null);
 
   const [ticket, setTicket] = useState(null);
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
+
   const [actionError, setActionError] = useState("");
+
   const [downloading, setDownloading] = useState(false);
 
   const [cancelOpen, setCancelOpen] = useState(false);
+
   const [transferOpen, setTransferOpen] = useState(false);
+
   const [transferEmail, setTransferEmail] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
+
     const token = localStorage.getItem("token");
 
     async function loadTicket() {
       setLoading(true);
+
       setError("");
+
       setTicket(null);
 
       if (!token) {
         setError("Тасалбараа харахын тулд нэвтэрнэ үү.");
+
         setLoading(false);
+
         return;
       }
 
       try {
         const response = await fetch(
           `${API_BASE}/api/checkin/${encodeURIComponent(eventId)}/my-ticket`,
+
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+
             signal: controller.signal,
           },
         );
@@ -132,7 +169,30 @@ export default function EventTicket() {
     return () => controller.abort();
   }, [eventId]);
 
-  const checkedIn = isCheckedIn(ticket?.checked_in_at);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkedIn = isCheckedIn(
+    ticket?.checked_in_at ?? ticket?.checked_in ?? ticket?.is_checked_in,
+  );
+  const eventStart =
+    ticket?.start_time ??
+    ticket?.event?.start_time ??
+    ticket?.event_start_time ??
+    ticket?.event?.startDate;
+  const eventEnd =
+    ticket?.end_time ??
+    ticket?.event?.end_time ??
+    ticket?.event_end_time ??
+    ticket?.event?.endDate;
+  const endTimestamp = eventEndTimestamp(eventEnd);
+  const eventFinished =
+    Number.isFinite(endTimestamp) && currentTime >= endTimestamp;
+
   const displayCode = shortTicketCode(ticket?.ticket_code);
 
   const attendeeName =
@@ -162,13 +222,17 @@ export default function EventTicket() {
     });
 
     const url = URL.createObjectURL(blob);
+
     const anchor = document.createElement("a");
 
     anchor.href = url;
+
     anchor.download = `registra-ticket-${eventId}.svg`;
 
     document.body.appendChild(anchor);
+
     anchor.click();
+
     anchor.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -178,10 +242,12 @@ export default function EventTicket() {
     if (!ticket || downloading) return;
 
     setDownloading(true);
+
     setActionError("");
 
     try {
       const { default: jsPDF } = await import("jspdf");
+
       const svg = qrRef.current?.querySelector("svg");
 
       if (!svg) throw new Error("QR код олдсонгүй.");
@@ -203,12 +269,16 @@ export default function EventTicket() {
 
         await new Promise((resolve, reject) => {
           image.onload = resolve;
+
           image.onerror = reject;
+
           image.src = svgUrl;
         });
 
         const canvas = document.createElement("canvas");
+
         canvas.width = 700;
+
         canvas.height = 700;
 
         const context = canvas.getContext("2d");
@@ -218,32 +288,43 @@ export default function EventTicket() {
         }
 
         context.fillStyle = "#ffffff";
+
         context.fillRect(0, 0, 700, 700);
+
         context.drawImage(image, 0, 0, 700, 700);
 
         const qrImage = canvas.toDataURL("image/png");
 
         const pdf = new jsPDF({
           orientation: "portrait",
+
           unit: "mm",
+
           format: "a5",
         });
 
         pdf.setFillColor(30, 25, 68);
+
         pdf.rect(0, 0, 148, 42, "F");
 
         pdf.setTextColor(255, 255, 255);
+
         pdf.setFont("helvetica", "bold");
+
         pdf.setFontSize(18);
+
         pdf.text("REGISTRA", 14, 20);
 
         pdf.setFontSize(10);
+
         pdf.text("EVENT TICKET", 14, 29);
 
         pdf.addImage(qrImage, "PNG", 34, 53, 80, 80);
 
         pdf.setTextColor(35, 35, 50);
+
         pdf.setFontSize(12);
+
         pdf.setFont("helvetica", "bold");
 
         pdf.text(displayCode, 74, 147, {
@@ -251,6 +332,7 @@ export default function EventTicket() {
         });
 
         pdf.setFontSize(11);
+
         pdf.text(checkedIn ? "CHECKED IN" : "REGISTERED", 74, 172, {
           align: "center",
         });
@@ -261,6 +343,7 @@ export default function EventTicket() {
       }
     } catch (err) {
       console.error(err);
+
       setActionError("PDF татах үед алдаа гарлаа.");
     } finally {
       setDownloading(false);
@@ -269,6 +352,7 @@ export default function EventTicket() {
 
   function handleCancel() {
     setCancelOpen(false);
+
     setActionError(
       "Тасалбар цуцлах серверийн үйлдэл хараахан холбогдоогүй байна.",
     );
@@ -277,15 +361,18 @@ export default function EventTicket() {
   function handleTransfer() {
     if (!transferEmail.trim()) {
       setActionError("Шилжүүлэх хэрэглэгчийн имэйл оруулна уу.");
+
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(transferEmail.trim())) {
       setActionError("Зөв имэйл хаяг оруулна уу.");
+
       return;
     }
 
     setTransferOpen(false);
+
     setActionError(
       "Тасалбар шилжүүлэх серверийн үйлдэл хараахан холбогдоогүй байна.",
     );
@@ -293,7 +380,9 @@ export default function EventTicket() {
 
   const features = [
     "Эвентийн зургийн цомог",
+
     "1:1 Zoom уулзалт товлох",
+
     "Санал асуулга бөглөх",
   ];
 
@@ -324,6 +413,7 @@ export default function EventTicket() {
         ) : error && !ticket ? (
           <div className="rgt-state rgt-error">
             <strong>Тасалбар харуулах боломжгүй</strong>
+
             <p>{error}</p>
 
             <button type="button" onClick={handleBack}>
@@ -337,6 +427,7 @@ export default function EventTicket() {
                 <div className="rgt-ticketHero">
                   <div className="rgt-brand">
                     <LockKeyhole size={15} />
+
                     <span>REGISTRA</span>
                   </div>
 
@@ -349,12 +440,15 @@ export default function EventTicket() {
                   <div className="rgt-heroMeta">
                     <span>
                       <CalendarDays size={13} />
-                      {formatDate(ticket.start_time)}
+
+                      {formatDate(eventStart)}
+                      {eventEnd && ` — ${formatDate(eventEnd)}`}
                     </span>
 
                     {ticket.location && (
                       <span>
                         <MapPin size={13} />
+
                         {ticket.location}
                       </span>
                     )}
@@ -379,16 +473,19 @@ export default function EventTicket() {
                   <div className="rgt-ticketInfo">
                     <div>
                       <span>Оролцогч</span>
+
                       <strong>{attendeeName}</strong>
                     </div>
 
                     <div>
                       <span>Тасалбар</span>
+
                       <strong>Ерөнхий</strong>
                     </div>
 
                     <div>
                       <span>Ирцийн төлөв</span>
+
                       <strong>
                         {checkedIn ? "Ирсэн" : "Ирц бүртгэгдээгүй"}
                       </strong>
@@ -414,12 +511,14 @@ export default function EventTicket() {
                   disabled={downloading}
                 >
                   <FileDown size={15} />
+
                   {downloading ? "Бэлтгэж байна..." : "PDF татах"}
                 </button>
               </div>
 
               <div className="rgt-notice">
                 <ShieldCheck size={17} />
+
                 <span>
                   Үүдэнд энэ QR кодыг үзүүлж, зохион байгуулагчид уншуулна уу.
                 </span>
@@ -437,24 +536,30 @@ export default function EventTicket() {
                 <div className="rgt-steps">
                   <div className="rgt-step">
                     <span className="rgt-stepNumber">1</span>
+
                     <div>
                       <strong>QR-аа бэлдэх</strong>
+
                       <p>Эвентэд ирэхээсээ өмнө QR кодоо нээж бэлдээрэй.</p>
                     </div>
                   </div>
 
                   <div className="rgt-step">
                     <span className="rgt-stepNumber">2</span>
+
                     <div>
                       <strong>Бүртгэлийн ширээнд очих</strong>
+
                       <p>Зохион байгуулагчид тасалбараа үзүүлнэ.</p>
                     </div>
                   </div>
 
                   <div className="rgt-step">
                     <span className="rgt-stepNumber">3</span>
+
                     <div>
                       <strong>Ирцээ баталгаажуулах</strong>
+
                       <p>QR кодоо уншуулсны дараа ирцийн төлөв шинэчлэгдэнэ.</p>
                     </div>
                   </div>
@@ -463,19 +568,25 @@ export default function EventTicket() {
 
               <section className="rgt-panel">
                 <div className="rgt-panelTitle">
-                  <h3>Ирсэнд нээгдэх боломжууд</h3>
-                  <span>Check-in хийсний дараа</span>
+                  <h3>Эвент дууссаны дараа нээгдэх боломжууд</h3>
+
+                  <span>Эвент дууссаны дараа</span>
                 </div>
 
                 {features.map((feature) => (
                   <div className="rgt-feature" key={feature}>
                     <span className="rgt-lock">
-                      <LockKeyhole size={17} />
+                      {eventFinished ? (
+                        <LockKeyholeOpen size={17} />
+                      ) : (
+                        <LockKeyhole size={17} />
+                      )}
                     </span>
 
                     <div>
                       <strong>{feature}</strong>
-                      <small>Түгжээтэй</small>
+
+                      <small>{eventFinished ? "Нээгдсэн" : "Түгжээтэй"}</small>
                     </div>
                   </div>
                 ))}
@@ -495,6 +606,7 @@ export default function EventTicket() {
                 <div className="rgt-helpContent">
                   <div className="rgt-helpText">
                     <h3>Ирж боломжгүй болсон уу?</h3>
+
                     <p>
                       Эвентэд оролцох боломжгүй болсон бол тасалбараа цуцлах
                       эсвэл өөр хэрэглэгчид шилжүүлэх хүсэлт гаргаж болно.
@@ -507,6 +619,7 @@ export default function EventTicket() {
                       className="rgt-transferBtn"
                       onClick={() => {
                         setActionError("");
+
                         setTransferOpen(true);
                       }}
                     >
@@ -519,6 +632,7 @@ export default function EventTicket() {
                       className="rgt-cancelBtn"
                       onClick={() => {
                         setActionError("");
+
                         setCancelOpen(true);
                       }}
                     >
