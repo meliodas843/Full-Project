@@ -540,6 +540,53 @@ function buildSpeakerPayload(req, speakerValue, avatarFiles) {
   return finalSpeakers;
 }
 
+router.get("/:id", async (req, res, next) => {
+  try {
+    const eventId = Number(req.params.id);
+
+    if (!Number.isSafeInteger(eventId) || eventId <= 0) {
+      return res.status(400).json({
+        message: "Эвентийн ID буруу байна."
+      });
+    }
+
+    const [rows] = await pool.query(
+      `
+      SELECT
+        id,
+        title,
+        description,
+        category,
+        image_url,
+        start_time,
+        end_time,
+        created_by_email,
+        max_participants,
+        visibility,
+        archived,
+        speaker,
+        agenda
+      FROM events
+      WHERE id = ?
+        AND archived = 0
+        AND visibility = 'public'
+      LIMIT 1
+      `,
+      [eventId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        message: "Эвент олдсонгүй."
+      });
+    }
+
+    return res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -2368,6 +2415,70 @@ router.get("/finished", authMiddleware, async (req, res) => {
       message: "Server error",
 
       error: err.message,
+    });
+  }
+});
+
+router.delete("/:id", authMiddleware, async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const userEmail = String(req.user?.email || "")
+      .trim()
+      .toLowerCase();
+
+    if (!Number.isSafeInteger(eventId) || eventId <= 0) {
+      return res.status(400).json({
+        message: "Invalid event ID",
+      });
+    }
+
+    if (!userEmail) {
+      return res.status(401).json({
+        message: "Нэвтрэх шаардлагатай.",
+      });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT id, created_by_email
+       FROM events
+       WHERE id = ?
+       LIMIT 1`,
+      [eventId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        message: "Эвент олдсонгүй.",
+      });
+    }
+
+    if (
+      String(rows[0].created_by_email || "")
+        .trim()
+        .toLowerCase() !== userEmail
+    ) {
+      return res.status(403).json({
+        message: "Та зөвхөн өөрийн эвентийг устгах боломжтой.",
+      });
+    }
+
+    await pool.query(
+      `UPDATE events
+       SET archived = 1,
+           archived_at = NOW()
+       WHERE id = ?`,
+      [eventId]
+    );
+
+    return res.json({
+      success: true,
+      message: "Эвент амжилттай устгагдлаа.",
+      id: eventId,
+    });
+  } catch (error) {
+    console.error("DELETE EVENT ERROR:", error);
+    return res.status(500).json({
+      message: "Эвент устгахад алдаа гарлаа.",
     });
   }
 });
