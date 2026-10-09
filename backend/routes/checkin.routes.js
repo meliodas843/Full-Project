@@ -20,10 +20,18 @@ function newTicketCode() {
 
 async function findEvent(eventId) {
   const [rows] = await pool.query(
-    `SELECT id, title, user_id
-     FROM events
-     WHERE id = ?
-     LIMIT 1`,
+    `
+    SELECT
+      e.id,
+      e.title,
+      e.organization_id,
+      o.user_id AS user_id
+    FROM events e
+    LEFT JOIN organizations o
+      ON o.id = e.organization_id
+    WHERE e.id = ?
+    LIMIT 1
+    `,
     [eventId]
   );
 
