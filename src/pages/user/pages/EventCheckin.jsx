@@ -14,8 +14,9 @@ import {
   X,
 } from "lucide-react";
 import UserShell from "../components/UserShell";
-import "./EventCheckin.animation.css";
+
 import { API_BASE } from "@/lib/config";
+
 const api = (path) => `${API_BASE}/api/checkin${path}`;
 function getToken() {
   return (
