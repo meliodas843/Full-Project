@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
-import "./EventCheckin.css";
 
 const api = (path) => `${API_BASE}/api/checkin${path}`;
 
