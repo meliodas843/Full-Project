@@ -4,7 +4,7 @@ import UserShell from "../components/UserShell";
 
 import { API_BASE, defaultEventCover, getImageSrc } from "@/lib/config";
 
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import EventCreateWizard from "../components/EventCreateWizard";
 
@@ -240,6 +240,8 @@ function normalizeDateTimeLocalValue(value) {
 
 export default function Event() {
   const rightTopRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const fileInputRef = useRef(null);
 
@@ -1754,11 +1756,16 @@ export default function Event() {
                       <button
                         type="button"
                         className="eventDetailManageBtn"
-                        onClick={() => handleBook(selectedEvent)}
-                        disabled={bookedIds.includes(Number(selectedEvent.id))}
+                        onClick={() => {
+                          if (bookedIds.includes(Number(selectedEvent.id))) {
+                            navigate(`/user/event-ticket/${selectedEvent.id}`);
+                          } else {
+                            handleBook(selectedEvent);
+                          }
+                        }}
                       >
                         {bookedIds.includes(Number(selectedEvent.id))
-                          ? "Бүртгэгдсэн"
+                          ? "QR код харах"
                           : "Бүртгүүлэх"}
                       </button>
                     )}
