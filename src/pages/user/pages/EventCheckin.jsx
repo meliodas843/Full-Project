@@ -14,8 +14,8 @@ import {
   X,
 } from "lucide-react";
 import UserShell from "../components/UserShell";
+import "./EventCheckin.animation.css";
 import { API_BASE } from "@/lib/config";
-
 const api = (path) => `${API_BASE}/api/checkin${path}`;
 function getToken() {
   return (
@@ -353,16 +353,16 @@ export default function EventCheckin() {
   return (
     <UserShell title="QR Check-in">
       <main className="rci-page">
-        <header className="rci-heading">
+        <header className="rci-heading rci-heading-back-left">
+          <button className="rci-back rci-back-left" type="button" onClick={() => navigate("/user/history")}>
+            <ArrowLeft size={16} /> Буцах
+          </button>
           <div>
             <div className="rci-breadcrumb">
               Миний эвентүүд / {data?.event?.title || "Эвент"} / Check-in
             </div>
             <h1>Ирц бүртгэл · QR Check-in</h1>
           </div>
-          <button className="rci-back rci-back-right" type="button" onClick={() => navigate("/user/history")}>
-            <ArrowLeft size={16} /> Буцах
-          </button>
         </header>
         {error && (
           <div className="rci-error">
