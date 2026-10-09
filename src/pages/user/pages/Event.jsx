@@ -1144,7 +1144,6 @@ export default function Event() {
 
   async function handleBook(ev) {
     setErrMsg("");
-
     setSuccessMsg("");
 
     try {
@@ -1152,45 +1151,53 @@ export default function Event() {
 
       if (!token) {
         setErrMsg("Эхлээд нэвтэрнэ үү.");
-
         return;
       }
 
-      const res = await fetch(
-        `${API_BASE}/api/events/${ev.id}/join-request`,
+      if (!ev?.id) {
+        setErrMsg("Эвентийн мэдээлэл олдсонгүй.");
+        return;
+      }
 
-        {
-          method: "POST",
+      const isPublic = String(ev.visibility || "").toLowerCase() === "public";
 
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const endpoint = isPublic
+        ? `${API_BASE}/api/events/${ev.id}/book`
+        : `${API_BASE}/api/events/${ev.id}/join-request`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
-      const data = await res
-
-        .json()
-
-        .catch(() => ({}));
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setErrMsg(data?.message || "Хүсэлт илгээж чадсангүй.");
-
+        setErrMsg(
+          data?.message ||
+            (isPublic
+              ? "Эвентэд бүртгүүлж чадсангүй."
+              : "Хүсэлт илгээж чадсангүй."),
+        );
         return;
       }
 
       await Promise.all([fetchEvents(), fetchMyBookedIds(), fetchMyEvents()]);
 
-      setSuccessMsg("Хүсэлт амжилттай илгээгдлээ ✅");
+      setSuccessMsg(
+        isPublic
+          ? "Эвентэд амжилттай бүртгүүллээ ✅"
+          : "Хүсэлт амжилттай илгээгдлээ ✅",
+      );
 
       setTimeout(() => {
         setSuccessMsg("");
       }, 2000);
-    } catch (e) {
-      console.error(e);
-
-      setErrMsg("Хүсэлт илгээх үед сүлжээний алдаа гарлаа.");
+    } catch (error) {
+      console.error(error);
+      setErrMsg("Эвентэд бүртгүүлэх үед сүлжээний алдаа гарлаа.");
     }
   }
 
@@ -1752,7 +1759,7 @@ export default function Event() {
                       >
                         {bookedIds.includes(Number(selectedEvent.id))
                           ? "Бүртгэгдсэн"
-                          : "Register"}
+                          : "Бүртгүүлэх"}
                       </button>
                     )}
                   </section>
