@@ -22,6 +22,8 @@ async function findEvent(eventId) {
     SELECT
       e.id,
       e.title,
+      e.start_time,
+      e.end_time,
       e.created_by,
       e.created_by_email,
       e.organization_id,

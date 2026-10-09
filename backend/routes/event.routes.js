@@ -3,7 +3,8 @@ import fs from "fs";
 import path from "path";
 
 import express from "express";
-
+import crypto from "node:crypto";
+import { sendEventTicketEmail } from "../utils/eventTicketEmail.js";
 import multer from "multer";
 
 import pool from "../db.js";
@@ -1478,87 +1479,149 @@ router.get("/my-bookings", authMiddleware, async (req, res) => {
 router.post("/:id/book", authMiddleware, async (req, res) => {
   try {
     const eventId = Number(req.params.id);
-
     const userId = await getAuthUserId(req);
 
-    if (!Number.isFinite(eventId)) {
+    if (!Number.isSafeInteger(eventId) || eventId <= 0) {
       return res.status(400).json({ message: "Invalid event id" });
     }
 
-    if (!Number.isFinite(userId)) {
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
       return res.status(401).json({ message: "Invalid token user" });
     }
 
-    const [[ev]] = await pool.query(
-      `
-
-      SELECT
-
-        id,
-
-        max_participants,
-
-        archived,
-
-        (
-
-          SELECT COUNT(*)
-
-          FROM event_bookings eb
-
-          WHERE eb.event_id = events.id
-
-        ) AS booked_count
-
-      FROM events
-
-      WHERE id = ?
-
-      LIMIT 1
-
-      `,
-
+    const [[event]] = await pool.query(
+      `SELECT
+         id,
+         title,
+         start_time,
+         end_time,
+         max_participants,
+         archived,
+         visibility,
+         (SELECT COUNT(*)
+          FROM event_bookings
+          WHERE event_id = events.id) AS booked_count
+       FROM events
+       WHERE id = ?
+       LIMIT 1`,
       [eventId],
     );
 
-    if (!ev) {
+    if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (Number(ev.archived) === 1) {
+    const [[existing]] = await pool.query(
+      `SELECT user_id
+       FROM event_bookings
+       WHERE event_id = ? AND user_id = ?
+       LIMIT 1`,
+      [eventId, userId],
+    );
+
+    if (existing) {
+      return res.json({
+        message: "Already booked",
+        already_booked: true,
+      });
+    }
+
+    if (Number(event.archived) === 1) {
       return res.status(400).json({ message: "Event is archived" });
     }
 
-    const maxParticipants = Number(ev.max_participants || 0);
+    if (event.visibility !== "public") {
+      return res.status(403).json({
+        message: "This event requires an invitation",
+      });
+    }
 
-    const bookedCount = Number(ev.booked_count || 0);
+    if (event.end_time && new Date(event.end_time).getTime() <= Date.now()) {
+      return res.status(400).json({
+        message: "Эвент дууссан байна.",
+      });
+    }
+
+    const maxParticipants = Number(event.max_participants || 0);
+    const bookedCount = Number(event.booked_count || 0);
 
     if (maxParticipants > 0 && bookedCount >= maxParticipants) {
       return res.status(400).json({ message: "Event is full" });
     }
 
-    await pool.query(
-      `
-
-      INSERT IGNORE INTO event_bookings (event_id, user_id)
-
-      VALUES (?, ?)
-
-      `,
-
+    const [bookingResult] = await pool.query(
+      `INSERT IGNORE INTO event_bookings (event_id, user_id)
+       VALUES (?, ?)`,
       [eventId, userId],
     );
 
-    return res.status(201).json({ message: "Booked ✅" });
-  } catch (err) {
-    console.error("POST /api/events/:id/book error:", err);
+    if (bookingResult.affectedRows === 0) {
+      return res.json({
+        message: "Already booked",
+        already_booked: true,
+      });
+    }
+
+    let emailSent = false;
+
+    try {
+      const [[user]] = await pool.query(
+        `SELECT email, first_name
+         FROM users
+         WHERE id = ?
+         LIMIT 1`,
+        [userId],
+      );
+
+      const ticketCode = `RGS-${crypto.randomBytes(24).toString("hex")}`;
+
+      await pool.query(
+        `INSERT INTO event_checkins
+           (event_id, user_id, ticket_code)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE id = id`,
+        [eventId, userId, ticketCode],
+      );
+
+      const [[ticket]] = await pool.query(
+        `SELECT ticket_code
+         FROM event_checkins
+         WHERE event_id = ? AND user_id = ?
+         LIMIT 1`,
+        [eventId, userId],
+      );
+
+      if (!ticket?.ticket_code) {
+        throw new Error("Ticket code not found");
+      }
+
+      if (user?.email) {
+        await sendEventTicketEmail({
+          to: user.email,
+          firstName: user.first_name,
+          eventId,
+          eventTitle: event.title,
+          startTime: event.start_time,
+          endTime: event.end_time,
+          ticketCode: ticket.ticket_code,
+        });
+
+        emailSent = true;
+      }
+    } catch (emailError) {
+      console.error("EVENT TICKET EMAIL ERROR:", emailError);
+    }
+
+    return res.status(201).json({
+      message: "Booked",
+      already_booked: false,
+      email_sent: emailSent,
+    });
+  } catch (error) {
+    console.error("EVENT BOOKING ERROR:", error);
 
     return res.status(500).json({
       message: "Server error",
-
-      error: err.message,
-
-      sql: err.sqlMessage || null,
     });
   }
 });
