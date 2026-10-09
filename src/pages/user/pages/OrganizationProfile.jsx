@@ -801,44 +801,24 @@ export default function OrganizationProfile() {
             </div>
 
             <div className="orgStats">
-              <div>
-                <strong>{formatNumber(organization?.event_count)}</strong>
-
-                <span>
-                  Эвент зохион
-                  <br />
-                  байгуулсан
-                </span>
+              <div className="orgStat">
+                <strong>{totalEvents}</strong>
+                <span>Эвент зохион байгуулсан</span>
               </div>
 
-              <div>
-                <strong>{formatNumber(organization?.participant_count)}</strong>
-
-                <span>
-                  Нийт
-                  <br />
-                  оролцогч
-                </span>
+              <div className="orgStat">
+                <strong>{totalParticipants}</strong>
+                <span>Нийт оролцогч</span>
               </div>
 
-              <div>
-                <strong>{formatNumber(organization?.follower_count)}</strong>
-
+              <div className="orgStat">
+                <strong>{followers}</strong>
                 <span>Дагагч</span>
               </div>
 
-              <div>
-                <strong>
-                  {organization?.rating
-                    ? Number(organization.rating).toFixed(1)
-                    : "0.0"}
-                </strong>
-
-                <span>
-                  Дундаж
-                  <br />
-                  үнэлгээ
-                </span>
+              <div className="orgStat">
+                <strong>{averageRating}</strong>
+                <span>Дундаж үнэлгээ</span>
               </div>
             </div>
           </div>
