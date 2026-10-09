@@ -46123,3 +46123,401 @@ svg {
     padding: 12px;
   }
 }
+
+.rgt-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  background: #f7f8fc;
+  color: #1d2336;
+}
+
+.rgt-heading {
+  margin-bottom: 24px;
+}
+
+.rgt-breadcrumb {
+  color: #9299ab;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.rgt-heading h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.rgt-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
+.rgt-left,
+.rgt-right {
+  min-width: 0;
+}
+
+.rgt-ticket {
+  overflow: hidden;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #e8eaf2;
+  box-shadow: 0 5px 24px rgba(23, 28, 50, 0.05);
+}
+
+.rgt-ticketHero {
+  position: relative;
+  min-height: 170px;
+  padding: 22px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 90% 0%, #40317f 0 25%, transparent 26%),
+    linear-gradient(135deg, #11152e, #241957 75%);
+}
+
+.rgt-brand {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.95;
+}
+
+.rgt-brandIcon {
+  color: #8c6bff;
+  font-size: 18px;
+  margin-right: 5px;
+}
+
+.rgt-heroBadge {
+  position: absolute;
+  right: 16px;
+  top: 18px;
+  padding: 6px 10px;
+  border-radius: 30px;
+  color: #6842e8;
+  background: #ede7ff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.rgt-ticketHero h2 {
+  margin: 28px 0 12px;
+  max-width: 280px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.rgt-heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: #aee3ff;
+}
+
+.rgt-ticketContent {
+  padding: 26px 22px 22px;
+  text-align: center;
+}
+
+.rgt-qr {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #eceef4;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.rgt-qr svg {
+  display: block;
+  max-width: 100%;
+}
+
+.rgt-ticketCode {
+  margin: 14px 0 22px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  overflow-wrap: anywhere;
+}
+
+.rgt-dashedLine {
+  border-top: 1px dashed #dfe3ed;
+  margin-bottom: 20px;
+}
+
+.rgt-ticketInfo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  text-align: left;
+}
+
+.rgt-ticketInfo div {
+  min-width: 0;
+}
+
+.rgt-ticketInfo span {
+  display: block;
+  color: #969bad;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.rgt-ticketInfo strong {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.rgt-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.rgt-buttons button {
+  min-height: 43px;
+  border-radius: 9px;
+  border: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rgt-primaryBtn {
+  color: #fff;
+  background: #6945f5;
+}
+
+.rgt-secondaryBtn {
+  color: #33394b;
+  background: #fff;
+  border: 1px solid #e6e8f0 !important;
+}
+
+.rgt-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rgt-notice {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #e9eaf4;
+  border-radius: 10px;
+  background: #fff;
+  color: #747d92;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.rgt-right {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rgt-panel {
+  padding: 22px;
+  border: 1px solid #e9ebf2;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.rgt-panel h3 {
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.rgt-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rgt-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f7f8fc;
+}
+
+.rgt-stepNumber {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #eee9ff;
+  color: #6842e8;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rgt-step strong {
+  font-size: 13px;
+}
+
+.rgt-step p {
+  margin: 8px 0 0;
+  color: #858b9c;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.rgt-panelTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rgt-panelTitle span {
+  font-size: 11px;
+  color: #969bad;
+}
+
+.rgt-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #e9ebf1;
+  border-radius: 11px;
+  margin-bottom: 10px;
+}
+
+.rgt-lock {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f3f4f8;
+  color: #a0a5b4;
+}
+
+.rgt-feature div {
+  flex: 1;
+}
+
+.rgt-feature strong {
+  display: block;
+  font-size: 12px;
+}
+
+.rgt-feature small {
+  display: block;
+  margin-top: 4px;
+  color: #a0a5b4;
+}
+
+.rgt-status {
+  margin-top: 12px;
+  color: #777f91;
+  font-size: 12px;
+}
+
+.rgt-statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #9ca3b6;
+}
+
+.rgt-helpPanel p {
+  color: #7f879a;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.rgt-helpPanel button {
+  padding: 10px 18px;
+  border: 1px solid #e5e7ef;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.rgt-state {
+  padding: 40px 24px;
+  border-radius: 14px;
+  background: #fff;
+  text-align: center;
+}
+
+.rgt-error {
+  color: #d14343;
+}
+
+.rgt-error button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #6945f5;
+  color: #fff;
+  cursor: pointer;
+}
+
+.rgt-inlineError {
+  margin-top: 12px;
+  color: #d14343;
+  font-size: 12px;
+}
+
+@media (max-width: 1050px) {
+  .rgt-layout {
+    grid-template-columns: 340px minmax(0, 1fr);
+  }
+
+  .rgt-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .rgt-page {
+    padding: 14px;
+  }
+
+  .rgt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .rgt-left {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  .rgt-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .rgt-ticketHero h2 {
+    font-size: 21px;
+  }
+
+  .rgt-panel {
+    padding: 17px;
+  }
+}
