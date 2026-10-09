@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
@@ -22,25 +21,22 @@ import { API_BASE } from "@/lib/config";
 function formatDate(value) {
   if (!value) return "—";
 
-  const raw = String(value)
-    .trim()
-    .replace("T", " ")
-    .replace(/Z$/, "");
+  const raw = String(value).trim().replace("T", " ").replace(/Z$/, "");
 
   const [date, time = ""] = raw.split(" ");
 
-  return `${date.replace(/-/g, ".")}${
-    time ? ` · ${time.slice(0, 5)}` : ""
-  }`;
+  return `${date.replace(/-/g, ".")}${time ? ` · ${time.slice(0, 5)}` : ""}`;
 }
 
 function isCheckedIn(value) {
-  return value !== null &&
+  return (
+    value !== null &&
     value !== undefined &&
     value !== false &&
     value !== 0 &&
     value !== "0" &&
-    value !== "";
+    value !== ""
+  );
 }
 
 // A short, deterministic display identifier.
@@ -98,23 +94,20 @@ export default function EventTicket() {
 
       try {
         const response = await fetch(
-          `${API_BASE}/api/checkin/${encodeURIComponent(
-            eventId
-          )}/my-ticket`,
+          `${API_BASE}/api/checkin/${encodeURIComponent(eventId)}/my-ticket`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
             signal: controller.signal,
-          }
+          },
         );
 
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
           throw new Error(
-            data?.message ||
-              "Тасалбарын мэдээллийг авч чадсангүй."
+            data?.message || "Тасалбарын мэдээллийг авч чадсангүй.",
           );
         }
 
@@ -160,14 +153,9 @@ export default function EventTicket() {
 
     const clonedSvg = svg.cloneNode(true);
 
-    clonedSvg.setAttribute(
-      "xmlns",
-      "http://www.w3.org/2000/svg"
-    );
+    clonedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
 
-    const serialized = new XMLSerializer().serializeToString(
-      clonedSvg
-    );
+    const serialized = new XMLSerializer().serializeToString(clonedSvg);
 
     const blob = new Blob([serialized], {
       type: "image/svg+xml;charset=utf-8",
@@ -200,14 +188,9 @@ export default function EventTicket() {
 
       const clonedSvg = svg.cloneNode(true);
 
-      clonedSvg.setAttribute(
-        "xmlns",
-        "http://www.w3.org/2000/svg"
-      );
+      clonedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
 
-      const svgString = new XMLSerializer().serializeToString(
-        clonedSvg
-      );
+      const svgString = new XMLSerializer().serializeToString(clonedSvg);
 
       const blob = new Blob([svgString], {
         type: "image/svg+xml;charset=utf-8",
@@ -268,12 +251,9 @@ export default function EventTicket() {
         });
 
         pdf.setFontSize(11);
-        pdf.text(
-          checkedIn ? "CHECKED IN" : "REGISTERED",
-          74,
-          172,
-          { align: "center" }
-        );
+        pdf.text(checkedIn ? "CHECKED IN" : "REGISTERED", 74, 172, {
+          align: "center",
+        });
 
         pdf.save(`registra-ticket-${eventId}.pdf`);
       } finally {
@@ -290,7 +270,7 @@ export default function EventTicket() {
   function handleCancel() {
     setCancelOpen(false);
     setActionError(
-      "Тасалбар цуцлах серверийн үйлдэл хараахан холбогдоогүй байна."
+      "Тасалбар цуцлах серверийн үйлдэл хараахан холбогдоогүй байна.",
     );
   }
 
@@ -307,7 +287,7 @@ export default function EventTicket() {
 
     setTransferOpen(false);
     setActionError(
-      "Тасалбар шилжүүлэх серверийн үйлдэл хараахан холбогдоогүй байна."
+      "Тасалбар шилжүүлэх серверийн үйлдэл хараахан холбогдоогүй байна.",
     );
   }
 
@@ -322,9 +302,7 @@ export default function EventTicket() {
       <div className="rgt-page">
         <div className="rgt-heading">
           <div>
-            <div className="rgt-breadcrumb">
-              Нүүр / Миний тасалбарууд
-            </div>
+            <div className="rgt-breadcrumb">Нүүр / Миний тасалбарууд</div>
 
             <div className="rgt-headingRow">
               <button
@@ -342,9 +320,7 @@ export default function EventTicket() {
         </div>
 
         {loading ? (
-          <div className="rgt-state">
-            Тасалбарын мэдээллийг ачаалж байна...
-          </div>
+          <div className="rgt-state">Тасалбарын мэдээллийг ачаалж байна...</div>
         ) : error && !ticket ? (
           <div className="rgt-state rgt-error">
             <strong>Тасалбар харуулах боломжгүй</strong>
@@ -365,9 +341,7 @@ export default function EventTicket() {
                   </div>
 
                   <span className="rgt-heroBadge">
-                    {checkedIn
-                      ? "Ирц бүртгэгдсэн"
-                      : "Хүчинтэй тасалбар"}
+                    {checkedIn ? "Ирц бүртгэгдсэн" : "Хүчинтэй тасалбар"}
                   </span>
 
                   <h2>{ticket.event_title || "Эвент"}</h2>
@@ -398,9 +372,7 @@ export default function EventTicket() {
                     />
                   </div>
 
-                  <div className="rgt-ticketCode">
-                    {displayCode}
-                  </div>
+                  <div className="rgt-ticketCode">{displayCode}</div>
 
                   <div className="rgt-dashedLine" />
 
@@ -418,9 +390,7 @@ export default function EventTicket() {
                     <div>
                       <span>Ирцийн төлөв</span>
                       <strong>
-                        {checkedIn
-                          ? "Ирсэн"
-                          : "Ирц бүртгэгдээгүй"}
+                        {checkedIn ? "Ирсэн" : "Ирц бүртгэгдээгүй"}
                       </strong>
                     </div>
                   </div>
@@ -444,24 +414,19 @@ export default function EventTicket() {
                   disabled={downloading}
                 >
                   <FileDown size={15} />
-                  {downloading
-                    ? "Бэлтгэж байна..."
-                    : "PDF татах"}
+                  {downloading ? "Бэлтгэж байна..." : "PDF татах"}
                 </button>
               </div>
 
               <div className="rgt-notice">
                 <ShieldCheck size={17} />
                 <span>
-                  Үүдэнд энэ QR кодыг үзүүлж, зохион
-                  байгуулагчид уншуулна уу.
+                  Үүдэнд энэ QR кодыг үзүүлж, зохион байгуулагчид уншуулна уу.
                 </span>
               </div>
 
               {actionError && (
-                <div className="rgt-inlineError">
-                  {actionError}
-                </div>
+                <div className="rgt-inlineError">{actionError}</div>
               )}
             </div>
 
@@ -474,10 +439,7 @@ export default function EventTicket() {
                     <span className="rgt-stepNumber">1</span>
                     <div>
                       <strong>QR-аа бэлдэх</strong>
-                      <p>
-                        Эвентэд ирэхээсээ өмнө QR кодоо
-                        нээж бэлдээрэй.
-                      </p>
+                      <p>Эвентэд ирэхээсээ өмнө QR кодоо нээж бэлдээрэй.</p>
                     </div>
                   </div>
 
@@ -485,10 +447,7 @@ export default function EventTicket() {
                     <span className="rgt-stepNumber">2</span>
                     <div>
                       <strong>Бүртгэлийн ширээнд очих</strong>
-                      <p>
-                        Зохион байгуулагчид тасалбараа
-                        үзүүлнэ.
-                      </p>
+                      <p>Зохион байгуулагчид тасалбараа үзүүлнэ.</p>
                     </div>
                   </div>
 
@@ -496,10 +455,7 @@ export default function EventTicket() {
                     <span className="rgt-stepNumber">3</span>
                     <div>
                       <strong>Ирцээ баталгаажуулах</strong>
-                      <p>
-                        QR кодоо уншуулсны дараа ирцийн
-                        төлөв шинэчлэгдэнэ.
-                      </p>
+                      <p>QR кодоо уншуулсны дараа ирцийн төлөв шинэчлэгдэнэ.</p>
                     </div>
                   </div>
                 </div>
@@ -531,45 +487,45 @@ export default function EventTicket() {
                     <LockKeyhole size={15} />
                   )}
 
-                  {checkedIn
-                    ? "Ирц баталгаажсан"
-                    : "Check-in хийгдээгүй байна"}
+                  {checkedIn ? "Ирц баталгаажсан" : "Check-in хийгдээгүй байна"}
                 </div>
               </section>
 
               <section className="rgt-panel rgt-helpPanel">
-                <h3>Ирж боломжгүй болсон уу?</h3>
+                <div className="rgt-helpContent">
+                  <div className="rgt-helpText">
+                    <h3>Ирж боломжгүй болсон уу?</h3>
+                    <p>
+                      Эвентэд оролцох боломжгүй болсон бол тасалбараа цуцлах
+                      эсвэл өөр хэрэглэгчид шилжүүлэх хүсэлт гаргаж болно.
+                    </p>
+                  </div>
 
-                <p>
-                  Эвентэд оролцох боломжгүй болсон бол
-                  тасалбараа цуцлах эсвэл өөр хэрэглэгчид
-                  шилжүүлэх хүсэлт гаргаж болно.
-                </p>
+                  <div className="rgt-helpActions">
+                    <button
+                      type="button"
+                      className="rgt-transferBtn"
+                      onClick={() => {
+                        setActionError("");
+                        setTransferOpen(true);
+                      }}
+                    >
+                      <ArrowRightLeft size={15} />
+                      Шилжүүлэх
+                    </button>
 
-                <div className="rgt-helpActions">
-                  <button
-                    type="button"
-                    className="rgt-transferBtn"
-                    onClick={() => {
-                      setActionError("");
-                      setTransferOpen(true);
-                    }}
-                  >
-                    <ArrowRightLeft size={15} />
-                    Шилжүүлэх
-                  </button>
-
-                  <button
-                    type="button"
-                    className="rgt-cancelBtn"
-                    onClick={() => {
-                      setActionError("");
-                      setCancelOpen(true);
-                    }}
-                  >
-                    <X size={15} />
-                    Цуцлах
-                  </button>
+                    <button
+                      type="button"
+                      className="rgt-cancelBtn"
+                      onClick={() => {
+                        setActionError("");
+                        setCancelOpen(true);
+                      }}
+                    >
+                      <X size={15} />
+                      Цуцлах
+                    </button>
+                  </div>
                 </div>
               </section>
             </div>
@@ -577,10 +533,7 @@ export default function EventTicket() {
         ) : null}
 
         {cancelOpen && (
-          <div
-            className="rgt-modalOverlay"
-            role="presentation"
-          >
+          <div className="rgt-modalOverlay" role="presentation">
             <div
               className="rgt-modal"
               role="dialog"
@@ -591,28 +544,16 @@ export default function EventTicket() {
                 <AlertTriangle size={24} />
               </div>
 
-              <h3 id="rgt-cancel-title">
-                Тасалбар цуцлах уу?
-              </h3>
+              <h3 id="rgt-cancel-title">Тасалбар цуцлах уу?</h3>
 
-              <p>
-                Та энэ эвентийн бүртгэлээ цуцлахыг
-                хүсэж байна уу?
-              </p>
+              <p>Та энэ эвентийн бүртгэлээ цуцлахыг хүсэж байна уу?</p>
 
               <div className="rgt-modalActions">
-                <button
-                  type="button"
-                  onClick={() => setCancelOpen(false)}
-                >
+                <button type="button" onClick={() => setCancelOpen(false)}>
                   Болих
                 </button>
 
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={handleCancel}
-                >
+                <button type="button" className="danger" onClick={handleCancel}>
                   Цуцлах
                 </button>
               </div>
@@ -621,10 +562,7 @@ export default function EventTicket() {
         )}
 
         {transferOpen && (
-          <div
-            className="rgt-modalOverlay"
-            role="presentation"
-          >
+          <div className="rgt-modalOverlay" role="presentation">
             <div
               className="rgt-modal"
               role="dialog"
@@ -635,29 +573,19 @@ export default function EventTicket() {
                 <Ticket size={24} />
               </div>
 
-              <h3 id="rgt-transfer-title">
-                Тасалбар шилжүүлэх
-              </h3>
+              <h3 id="rgt-transfer-title">Тасалбар шилжүүлэх</h3>
 
-              <p>
-                Тасалбар шилжүүлэх хэрэглэгчийн
-                имэйл хаягийг оруулна уу.
-              </p>
+              <p>Тасалбар шилжүүлэх хэрэглэгчийн имэйл хаягийг оруулна уу.</p>
 
               <input
                 type="email"
                 value={transferEmail}
-                onChange={(e) =>
-                  setTransferEmail(e.target.value)
-                }
+                onChange={(e) => setTransferEmail(e.target.value)}
                 placeholder="example@gmail.com"
               />
 
               <div className="rgt-modalActions">
-                <button
-                  type="button"
-                  onClick={() => setTransferOpen(false)}
-                >
+                <button type="button" onClick={() => setTransferOpen(false)}>
                   Болих
                 </button>
 

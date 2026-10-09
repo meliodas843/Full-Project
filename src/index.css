@@ -46130,6 +46130,7 @@ svg {
   padding: 24px;
   background: #f7f8fc;
   color: #1d2336;
+  margin-top: -30px;
 }
 
 .rgt-heading {
@@ -46301,7 +46302,7 @@ svg {
 .rgt-secondaryBtn {
   color: #33394b;
   background: #fff;
-  border: 1px solid #e6e8f0 !important;
+  border: 1px solid #e6e8f0;
 }
 
 .rgt-buttons button:disabled {
@@ -46590,8 +46591,8 @@ svg {
 }
 
 .rgt-cancelBtn {
-  background: #fff1f1 !important;
-  border: 1px solid #ffd6d6 !important;
+  background: #fff1f1;
+  border: 1px solid #ffd6d6;
   color: #dc4242;
 }
 
@@ -46680,6 +46681,65 @@ svg {
   background: #6945f5;
   border-color: #6945f5;
   color: #fff;
+}
+
+
+.rgt-helpPanel .rgt-helpContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+
+.rgt-helpPanel .rgt-helpText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rgt-helpPanel .rgt-helpText h3 {
+  margin: 0 0 10px;
+}
+
+.rgt-helpPanel .rgt-helpText p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.rgt-helpPanel .rgt-helpActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  gap: 10px;
+  margin: 0;
+}
+
+.rgt-helpPanel .rgt-helpActions button {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .rgt-helpPanel .rgt-helpContent {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .rgt-helpPanel .rgt-helpActions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .rgt-helpPanel .rgt-helpActions {
+    flex-direction: row;
+  }
+
+  .rgt-helpPanel .rgt-helpActions button {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 480px) {
