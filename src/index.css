@@ -45822,7 +45822,7 @@ svg {
   padding: 26px 30px 40px;
   background: #f7f8fc;
   color: #1d2433;
-  font-family: "Manrope", sans-serif;
+  margin-top: -30px;
 }
 
 .rci-page * {
@@ -46035,10 +46035,11 @@ svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 185px;
+  width: 165px;
   height: 150px;
   border: 2px solid #25d4ee;
   border-radius: 14px;
+  margin-top: 50px;
   color: #5c6489;
   box-shadow: 0 0 30px rgba(37, 212, 238, 0.08);
 }

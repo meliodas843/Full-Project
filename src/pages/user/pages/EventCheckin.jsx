@@ -355,7 +355,7 @@ export default function EventCheckin() {
     <UserShell title="QR Check-in">
       <main className="rci-page">
         <header className="rci-heading rci-heading-back-left">
-          <button className="rci-back rci-back-left" type="button" onClick={() => navigate("/user/history")}>
+          <button className="rgt-backButton" type="button" onClick={() => navigate("/user/history")}>
             <ArrowLeft size={16} /> Буцах
           </button>
           <div>
