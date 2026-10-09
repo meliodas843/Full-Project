@@ -2227,9 +2227,10 @@ export default function Event() {
 
                       const registered =
                         Number(
-                          ev.participants_count ||
-                            ev.registered_count ||
-                            ev.bookings_count ||
+                          ev.booked_count ??
+                            ev.participants_count ??
+                            ev.registered_count ??
+                            ev.bookings_count ??
                             0,
                         ) || 0;
 
