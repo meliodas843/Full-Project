@@ -26,7 +26,7 @@ const WEEKDAYS = [
 export function formatMonthMN(value) {
   const date = new Date(value);
 
-  return `${date.getFullYear()} оны ${date.getMonth() + 1}-р сар`;
+  return `${date.getFullYear()} оны ${date.getMonth() + 1} сар`;
 }
 
 export function formatDateMN(value) {
@@ -40,7 +40,7 @@ export function formatDateMN(value) {
 export function formatWeekdayMN(value) {
   const date = new Date(value);
 
-  return `${date.getMonth() + 1}-р сарын ${
+  return `${date.getMonth() + 1} сарын ${
     date.getDate()
   }, ${WEEKDAYS[date.getDay()]} гараг`;
 }
