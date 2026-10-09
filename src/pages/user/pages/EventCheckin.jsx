@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
@@ -14,7 +13,7 @@ import {
   Search,
   ScanLine,
   Users,
-  X
+  X,
 } from "lucide-react";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
@@ -22,7 +21,9 @@ import { API_BASE } from "@/lib/config";
 const api = (path) => `${API_BASE}/api/checkin${path}`;
 
 function getToken() {
-  return localStorage.getItem("token") || localStorage.getItem("adminToken") || "";
+  return (
+    localStorage.getItem("token") || localStorage.getItem("adminToken") || ""
+  );
 }
 
 function formatTime(value) {
@@ -32,7 +33,7 @@ function formatTime(value) {
   return date.toLocaleTimeString("mn-MN", {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false
+    hour12: false,
   });
 }
 
@@ -53,7 +54,9 @@ function getInitials(person) {
     return `${last.charAt(0)}${first.charAt(0)}`.toUpperCase();
   }
 
-  return String(person.email || "?").slice(0, 2).toUpperCase();
+  return String(person.email || "?")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function getCode(person) {
@@ -82,8 +85,8 @@ export default function EventCheckin() {
     try {
       const response = await fetch(api(`/${eventId}/attendance`), {
         headers: {
-          Authorization: `Bearer ${getToken()}`
-        }
+          Authorization: `Bearer ${getToken()}`,
+        },
       });
 
       const json = await response.json().catch(() => ({}));
@@ -111,16 +114,28 @@ export default function EventCheckin() {
 
   const stopScanner = useCallback(async () => {
     const scanner = scannerRef.current;
+
     scannerRef.current = null;
 
-    if (scanner) {
-      try {
-        await scanner.stop();
-      } catch {}
+    if (!scanner) {
+      setScanning(false);
+      return;
+    }
 
-      try {
-        scanner.clear();
-      } catch {}
+    try {
+      const state = scanner.getState();
+
+      if (state === 2 || state === 3) {
+        await scanner.stop();
+      }
+    } catch (err) {
+      console.warn("Scanner stop skipped:", err.message);
+    }
+
+    try {
+      scanner.clear();
+    } catch (err) {
+      console.warn("Scanner clear skipped:", err.message);
     }
 
     setScanning(false);
@@ -141,21 +156,21 @@ export default function EventCheckin() {
           method: "POST",
           headers: {
             Authorization: `Bearer ${getToken()}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ticket_code: code })
+          body: JSON.stringify({ ticket_code: code }),
         });
 
         const json = await response.json().catch(() => ({}));
 
         setResult({
           status: json.status || (response.ok ? "success" : "invalid"),
-          message: json.message || (
-            response.ok
+          message:
+            json.message ||
+            (response.ok
               ? "Ирц амжилттай бүртгэгдлээ."
-              : "QR кодыг шалгаж чадсангүй."
-          ),
-          participant: json.participant
+              : "QR кодыг шалгаж чадсангүй."),
+          participant: json.participant,
         });
 
         if (response.ok) {
@@ -165,35 +180,74 @@ export default function EventCheckin() {
       } catch {
         setResult({
           status: "invalid",
-          message: "Сүлжээний алдаа гарлаа."
+          message: "Сүлжээний алдаа гарлаа.",
         });
       } finally {
         busyRef.current = false;
         setBusy(false);
       }
     },
-    [eventId, loadAttendance]
+    [eventId, loadAttendance],
   );
 
   useEffect(() => {
     if (!scanning) return;
 
     let cancelled = false;
-    let scanner;
+    let scanner = null;
+    let startPromise = null;
+    let cleanupPromise = null;
 
-    async function start() {
+    const cleanupScanner = async () => {
+      if (cleanupPromise) return cleanupPromise;
+
+      cleanupPromise = (async () => {
+        if (startPromise) {
+          try {
+            await startPromise;
+          } catch {}
+        }
+
+        if (!scanner) return;
+
+        try {
+          const state = scanner.getState();
+
+          if (state === 2 || state === 3) {
+            await scanner.stop();
+          }
+        } catch (err) {
+          console.warn("Scanner cleanup:", err.message);
+        }
+
+        try {
+          scanner.clear();
+        } catch {}
+
+        if (scannerRef.current === scanner) {
+          scannerRef.current = null;
+        }
+      })();
+
+      return cleanupPromise;
+    };
+
+    const startScanner = async () => {
       try {
         scanner = new Html5Qrcode("registra-qr-reader");
         scannerRef.current = scanner;
 
-        await scanner.start(
+        startPromise = scanner.start(
           { facingMode: "environment" },
           {
             fps: 10,
             qrbox: (width, height) => {
               const size = Math.min(width, height, 250);
-              return { width: size, height: size };
-            }
+              return {
+                width: size,
+                height: size,
+              };
+            },
           },
           async (decodedText) => {
             if (
@@ -205,44 +259,49 @@ export default function EventCheckin() {
             }
 
             lastScanRef.current = decodedText;
-            await stopScanner();
+
+            cancelled = true;
+
+            await cleanupScanner();
+            setScanning(false);
+
             await verifyCode(decodedText);
           },
-          () => {}
+          () => {},
         );
-      } catch {
-        if (!cancelled) {
-          setError("Камер нээж чадсангүй. HTTPS болон камерын зөвшөөрлийг шалгана уу.");
-          await stopScanner();
-        }
-      }
-    }
 
-    start();
+        await startPromise;
+
+        if (cancelled) {
+          await cleanupScanner();
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("QR scanner error:", err);
+
+          setError(
+            "Камер нээж чадсангүй. HTTPS болон камерын зөвшөөрлийг шалгана уу.",
+          );
+
+          setScanning(false);
+        }
+
+        await cleanupScanner();
+      }
+    };
+
+    startScanner();
 
     return () => {
       cancelled = true;
-
-      if (scannerRef.current === scanner) {
-        scannerRef.current = null;
-      }
-
-      if (scanner) {
-        scanner.stop()
-          .catch(() => {})
-          .finally(() => {
-            try {
-              scanner.clear();
-            } catch {}
-          });
-      }
+      void cleanupScanner();
     };
-  }, [scanning, stopScanner, verifyCode]);
+  }, [scanning, verifyCode]);
 
   const allParticipants = data?.participants || [];
 
-  const checkedIn = allParticipants.filter(
-    (person) => Boolean(person.checked_in_at)
+  const checkedIn = allParticipants.filter((person) =>
+    Boolean(person.checked_in_at),
   ).length;
 
   const total = Number(data?.total ?? allParticipants.length);
@@ -256,8 +315,11 @@ export default function EventCheckin() {
       person.last_name,
       person.name,
       person.email,
-      person.ticket_code
-    ].filter(Boolean).join(" ").toLowerCase();
+      person.ticket_code,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
 
     const matchesSearch = text.includes(search.toLowerCase().trim());
     const matchesFilter =
@@ -276,16 +338,22 @@ export default function EventCheckin() {
         person.email || "",
         getCode(person),
         person.checked_in_at ? "Ирсэн" : "Ирээгүй",
-        formatTime(person.checked_in_at)
-      ])
+        formatTime(person.checked_in_at),
+      ]),
     ];
 
-    const csv = "\uFEFF" + rows.map((row) =>
-      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")
-    ).join("\r\n");
+    const csv =
+      "\uFEFF" +
+      rows
+        .map((row) =>
+          row
+            .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+            .join(","),
+        )
+        .join("\r\n");
 
     const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" })
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
     );
 
     const link = document.createElement("a");
@@ -331,7 +399,9 @@ export default function EventCheckin() {
           <div className="rci-stat rci-stat-main">
             <div className="rci-stat-label">Ирсэн</div>
             <div className="rci-stat-row">
-              <strong>{arrived} <small>/ {total}</small></strong>
+              <strong>
+                {arrived} <small>/ {total}</small>
+              </strong>
               <span>{attendanceRate}%</span>
             </div>
             <div className="rci-progress">
@@ -348,21 +418,20 @@ export default function EventCheckin() {
           <div className="rci-stat">
             <div className="rci-stat-label">Сүүлийн 15 минутанд</div>
             <div className="rci-stat-value rci-positive">
-              +{allParticipants.filter((person) => {
-                if (!person.checked_in_at) return false;
-                const time = new Date(person.checked_in_at).getTime();
-                return Number.isFinite(time) &&
-                  time <= Date.now() &&
-                  Date.now() - time <= 15 * 60 * 1000;
-              }).length}
+              +
+              {
+                allParticipants.filter((person) => {
+                  if (!person.checked_in_at) return false;
+                  const time = new Date(person.checked_in_at).getTime();
+                  return (
+                    Number.isFinite(time) &&
+                    time <= Date.now() &&
+                    Date.now() - time <= 15 * 60 * 1000
+                  );
+                }).length
+              }
             </div>
             <div className="rci-stat-foot">Шинээр ирсэн</div>
-          </div>
-
-          <div className="rci-stat">
-            <div className="rci-stat-label">Бүртгэлийн ширээ</div>
-            <div className="rci-stat-value">—</div>
-            <div className="rci-stat-foot">Тохируулаагүй</div>
           </div>
         </section>
 
@@ -397,10 +466,11 @@ export default function EventCheckin() {
                 type="button"
                 onClick={() => {
                   if (scanning) {
-                    stopScanner();
+                    setScanning(false);
                   } else {
                     lastScanRef.current = "";
                     setResult(null);
+                    setError("");
                     setScanning(true);
                   }
                 }}
@@ -449,9 +519,7 @@ export default function EventCheckin() {
                 )}
                 <div>
                   <strong>{result.message}</strong>
-                  {result.participant && (
-                    <p>{getName(result.participant)}</p>
-                  )}
+                  {result.participant && <p>{getName(result.participant)}</p>}
                 </div>
               </div>
             )}
@@ -535,12 +603,16 @@ export default function EventCheckin() {
                         <tr key={person.user_id || person.email || index}>
                           <td>
                             <div className="rci-person">
-                              <div className={`rci-avatar rci-avatar-${index % 5}`}>
+                              <div
+                                className={`rci-avatar rci-avatar-${index % 5}`}
+                              >
                                 {getInitials(person)}
                               </div>
                               <div>
                                 <strong>{getName(person)}</strong>
-                                <small>{person.organization || person.email || "—"}</small>
+                                <small>
+                                  {person.organization || person.email || "—"}
+                                </small>
                               </div>
                             </div>
                           </td>
@@ -550,7 +622,9 @@ export default function EventCheckin() {
                           </td>
 
                           <td>
-                            <span className={`rci-status ${isPresent ? "present" : "pending"}`}>
+                            <span
+                              className={`rci-status ${isPresent ? "present" : "pending"}`}
+                            >
                               {isPresent ? (
                                 <>
                                   Ирсэн
