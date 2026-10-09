@@ -8,17 +8,13 @@ function formatDate(value) {
   const text = String(value).replace("T", " ");
   const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-  return match
-    ? `${match[1]}.${match[2]}.${match[3]}`
-    : "Товлоогүй";
+  return match ? `${match[1]}.${match[2]}.${match[3]}` : "Товлоогүй";
 }
 
 function formatTime(value) {
   if (!value) return "";
 
-  const match = String(value).match(
-    /(?:T|\s)(\d{2}):(\d{2})/,
-  );
+  const match = String(value).match(/(?:T|\s)(\d{2}):(\d{2})/);
 
   return match ? `${match[1]}:${match[2]}` : "";
 }
@@ -34,7 +30,11 @@ export async function sendEventTicketEmail({
   organizerName = "Registra",
   ticketCode,
 }) {
-  if (!/^RGS-[a-f0-9]{48}$/.test(String(ticketCode || ""))) {
+  if (
+    !/^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{3}$/.test(
+      String(ticketCode || ""),
+    )
+  ) {
     throw new Error("Invalid ticket code");
   }
 

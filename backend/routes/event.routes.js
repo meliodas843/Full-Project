@@ -40,16 +40,24 @@ function normalizeDateTime(dt) {
   return dt.trim().replace("T", " ").slice(0, 19);
 }
 
+function newTicketCode() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const segment = () =>
+    Array.from(
+      { length: 3 },
+      () => alphabet[crypto.randomInt(alphabet.length)]
+    ).join("");
+
+  return `${segment()}-${segment()}-${segment()}`;
+}
+
 function pad2(value) {
   return String(value).padStart(2, "0");
 }
 
 function dbDateTimeToLocalString(value) {
   if (!value) return value;
-
-  // mysql2 can return DATETIME as a JS Date. JSON.stringify would add "Z"
-
-  // and the browser would then add +08:00. Keep the DB wall-clock value instead.
 
   if (value instanceof Date) {
     return `${value.getUTCFullYear()}-${pad2(value.getUTCMonth() + 1)}-${pad2(
@@ -1573,7 +1581,7 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
         [userId],
       );
 
-      const ticketCode = `RGS-${crypto.randomBytes(24).toString("hex")}`;
+      const ticketCode = newTicketCode();
 
       await pool.query(
         `INSERT INTO event_checkins

@@ -13,7 +13,15 @@ const validId = (value) =>
   Number.isSafeInteger(Number(value)) && Number(value) > 0;
 
 function newTicketCode() {
-  return `RGS-${crypto.randomBytes(24).toString("hex")}`;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const segment = () =>
+    Array.from(
+      { length: 3 },
+      () => alphabet[crypto.randomInt(alphabet.length)]
+    ).join("");
+
+  return `${segment()}-${segment()}-${segment()}`;
 }
 
 async function findEvent(eventId) {
@@ -238,9 +246,9 @@ router.post("/:eventId/scan", requireOrganizer, async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    const code = String(req.body?.ticket_code || "").trim();
+    const code = String(req.body?.ticket_code || "").trim().toUpperCase();
 
-    if (!/^RGS-[a-f0-9]{48}$/.test(code)) {
+    if (!/^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{3}$/.test(code)) {
       return res.status(400).json({
         status: "invalid",
         message: "QR код буруу байна.",
