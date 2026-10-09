@@ -1,3 +1,4 @@
+
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FiCalendar,
@@ -58,43 +59,32 @@ export default function Sidebar({
   const accountType = getAccountType();
   const isOrganization = accountType === "organization";
   const profileComplete = getProfileComplete(accountType);
+
   const profilePath = isOrganization
     ? "/user/organization"
     : "/user/profile";
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("profileComplete");
-    localStorage.removeItem("organizationProfileComplete");
-    localStorage.removeItem("accountType");
-    localStorage.removeItem("account_type");
-
-    onNavigate();
-
-    navigate("/login", {
-      replace: true,
-    });
-  };
+  const isCheckinPage =
+    /^\/user\/events\/\d+\/checkin\/?$/.test(pathname);
 
   const isPathActive = (path) => {
+    if (path === "/user/history" && isCheckinPage) {
+      return true;
+    }
+
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  const isProfileSection =
-    pathname === "/user/profile" ||
-    pathname.startsWith("/user/profile/") ||
-    pathname === "/profile" ||
-    pathname.startsWith("/profile/") ||
-    pathname === "/user/organization" ||
-    pathname.startsWith("/user/organization/") ||
-    pathname === "/user/password" ||
-    pathname.startsWith("/user/password/") ||
-    pathname === "/user/company" ||
-    pathname.startsWith("/user/company/") ||
-    pathname === "/user/bill" ||
-    pathname.startsWith("/user/bill/");
+  const isProfileSection = [
+    "/user/profile",
+    "/profile",
+    "/user/organization",
+    "/user/password",
+    "/user/company",
+    "/user/bill",
+  ].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 
   const getLinkClass = (path) => {
     if (!profileComplete) {
@@ -102,12 +92,6 @@ export default function Sidebar({
     }
 
     return isPathActive(path)
-      ? "rgSideLink active"
-      : "rgSideLink";
-  };
-
-  const getProfileLinkClass = () => {
-    return isProfileSection
       ? "rgSideLink active"
       : "rgSideLink";
   };
@@ -124,8 +108,22 @@ export default function Sidebar({
   };
 
   const handleThemeToggle = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    onThemeChange(nextTheme);
+    onThemeChange(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleLogout = () => {
+    [
+      "user",
+      "token",
+      "role",
+      "profileComplete",
+      "organizationProfileComplete",
+      "accountType",
+      "account_type",
+    ].forEach((key) => localStorage.removeItem(key));
+
+    onNavigate();
+    navigate("/login", { replace: true });
   };
 
   const mainLinks = [
@@ -137,12 +135,12 @@ export default function Sidebar({
     {
       to: "/user/history",
       icon: <FiStar />,
-      label: "Миний эвэнтүүд",
+      label: "Миний эвентүүд",
     },
     {
       to: "/user/event",
       icon: <FiGrid />,
-      label: "Эвэнт",
+      label: "Эвент",
     },
     {
       to: "/user/calendar",
@@ -198,7 +196,11 @@ export default function Sidebar({
           <nav className="rgSidebarMenu">
             <NavLink
               to={profilePath}
-              className={getProfileLinkClass()}
+              className={
+                isProfileSection
+                  ? "rgSideLink active"
+                  : "rgSideLink"
+              }
               onClick={onNavigate}
             >
               <FiUser />

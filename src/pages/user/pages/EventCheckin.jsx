@@ -355,8 +355,13 @@ export default function EventCheckin() {
     <UserShell title="QR Check-in">
       <main className="rci-page">
         <header className="rci-heading rci-heading-back-left">
-          <button className="rgt-backButton" type="button" onClick={() => navigate("/user/history")}>
-            <ArrowLeft size={16} /> Буцах
+          <button
+            type="button"
+            className="rgt-backButton"
+            onClick={handleBack}
+            aria-label="Буцах"
+          >
+            <ArrowLeft size={20} />
           </button>
           <div>
             <div className="rci-breadcrumb">
@@ -404,9 +409,12 @@ export default function EventCheckin() {
             <div className="rci-camera">
               {scanning ? (
                 <div className="rci-liveCamera">
-                <div id="registra-qr-reader" />
-                <div className="rci-scanBeam rci-scanBeam-animated rci-liveBeam" aria-hidden="true" />
-              </div>
+                  <div id="registra-qr-reader" />
+                  <div
+                    className="rci-scanBeam rci-scanBeam-animated rci-liveBeam"
+                    aria-hidden="true"
+                  />
+                </div>
               ) : (
                 <div className="rci-cameraPlaceholder rci-cameraPlaceholder-animated">
                   <div className="rci-scanCorners">
