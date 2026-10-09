@@ -26,25 +26,27 @@ import { API_BASE } from "@/lib/config";
 
 function formatDate(value) {
   if (!value) return "—";
-
   const raw = String(value).trim();
-
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
-
   if (!match) return "—";
-
   const [, year, month, day, hour, minute] = match;
-
-  return `${year}.${month}.${day}${
-    hour && minute ? ` · ${hour}:${minute}` : ""
-  }`;
+  return `${year}.${month}.${day}${hour && minute ? ` · ${hour}:${minute}` : ""}`;
 }
 
 function eventEndTimestamp(value) {
   if (!value) return NaN;
-  const normalized = String(value).trim().replace(" ", "T");
-  const parsed = new Date(normalized).getTime();
+  const parsed = new Date(String(value).trim().replace(" ", "T")).getTime();
   return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function unwrapEvent(payload, eventId) {
+  if (Array.isArray(payload))
+    return payload.find((item) => String(item.id) === String(eventId));
+  if (Array.isArray(payload?.events))
+    return payload.events.find((item) => String(item.id) === String(eventId));
+  if (Array.isArray(payload?.data))
+    return payload.data.find((item) => String(item.id) === String(eventId));
+  return payload?.event || payload?.data || payload;
 }
 
 function isCheckedIn(value) {
@@ -92,6 +94,7 @@ export default function EventTicket() {
   const qrRef = useRef(null);
 
   const [ticket, setTicket] = useState(null);
+  const [eventDetails, setEventDetails] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -153,6 +156,30 @@ export default function EventTicket() {
         }
 
         setTicket(data);
+        const endpoints = [
+          `${API_BASE}/api/events/${encodeURIComponent(eventId)}`,
+          `${API_BASE}/api/events/my-events`,
+        ];
+        for (const endpoint of endpoints) {
+          try {
+            const eventResponse = await fetch(endpoint, {
+              headers: { Authorization: `Bearer ${token}` },
+              signal: controller.signal,
+            });
+            if (!eventResponse.ok) continue;
+            const payload = await eventResponse.json();
+            const details = unwrapEvent(payload, eventId);
+            if (
+              details &&
+              (details.start_time || details.end_time || details.startDate)
+            ) {
+              setEventDetails(details);
+              break;
+            }
+          } catch (fetchError) {
+            if (fetchError.name === "AbortError") break;
+          }
+        }
       } catch (err) {
         if (err.name !== "AbortError") {
           setError(err.message || "Сүлжээний алдаа гарлаа.");
@@ -173,23 +200,32 @@ export default function EventTicket() {
 
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(Date.now()), 1000);
+
     return () => clearInterval(interval);
   }, []);
 
   const checkedIn = isCheckedIn(
     ticket?.checked_in_at ?? ticket?.checked_in ?? ticket?.is_checked_in,
   );
+
   const eventStart =
     ticket?.start_time ??
     ticket?.event?.start_time ??
     ticket?.event_start_time ??
-    ticket?.event?.startDate;
+    ticket?.event?.startDate ??
+    eventDetails?.start_time ??
+    eventDetails?.startDate;
+
   const eventEnd =
     ticket?.end_time ??
     ticket?.event?.end_time ??
     ticket?.event_end_time ??
-    ticket?.event?.endDate;
+    ticket?.event?.endDate ??
+    eventDetails?.end_time ??
+    eventDetails?.endDate;
+
   const endTimestamp = eventEndTimestamp(eventEnd);
+
   const eventFinished =
     Number.isFinite(endTimestamp) && currentTime >= endTimestamp;
 
@@ -432,16 +468,23 @@ export default function EventTicket() {
                   </div>
 
                   <span className="rgt-heroBadge">
-                    {checkedIn ? "Ирц бүртгэгдсэн" : "Хүчинтэй тасалбар"}
+                    {eventFinished
+                      ? "Хугацаа дууссан"
+                      : checkedIn
+                        ? "Ирц бүртгэгдсэн"
+                        : "Хүчинтэй тасалбар"}
                   </span>
 
-                  <h2>{ticket.event_title || "Эвент"}</h2>
+                  <h2>
+                    {ticket.event_title || eventDetails?.title || "Эвент"}
+                  </h2>
 
                   <div className="rgt-heroMeta">
                     <span>
                       <CalendarDays size={13} />
 
                       {formatDate(eventStart)}
+
                       {eventEnd && ` — ${formatDate(eventEnd)}`}
                     </span>
 
@@ -456,7 +499,15 @@ export default function EventTicket() {
                 </div>
 
                 <div className="rgt-ticketContent">
-                  <div className="rgt-qr" ref={qrRef}>
+                  <div
+                    className="rgt-qr"
+                    ref={qrRef}
+                    style={
+                      eventFinished
+                        ? { opacity: 0.3, pointerEvents: "none" }
+                        : undefined
+                    }
+                  >
                     <QRCode
                       value={String(ticket.ticket_code)}
                       size={210}
@@ -467,6 +518,11 @@ export default function EventTicket() {
                   </div>
 
                   <div className="rgt-ticketCode">{displayCode}</div>
+                  {eventFinished && (
+                    <div className="rgt-inlineError">
+                      Эвент дууссан. QR тасалбар хүчингүй болсон.
+                    </div>
+                  )}
 
                   <div className="rgt-dashedLine" />
 
@@ -499,6 +555,7 @@ export default function EventTicket() {
                   type="button"
                   className="rgt-primaryBtn"
                   onClick={handleDownloadQR}
+                  disabled={eventFinished}
                 >
                   <Download size={15} />
                   QR татах
@@ -508,7 +565,7 @@ export default function EventTicket() {
                   type="button"
                   className="rgt-secondaryBtn"
                   onClick={handleDownloadPDF}
-                  disabled={downloading}
+                  disabled={downloading || eventFinished}
                 >
                   <FileDown size={15} />
 
@@ -520,7 +577,9 @@ export default function EventTicket() {
                 <ShieldCheck size={17} />
 
                 <span>
-                  Үүдэнд энэ QR кодыг үзүүлж, зохион байгуулагчид уншуулна уу.
+                  {eventFinished
+                    ? "Эвент дууссан тул QR тасалбар ашиглах боломжгүй."
+                    : "Үүдэнд энэ QR кодыг үзүүлж, зохион байгуулагчид уншуулна уу."}
                 </span>
               </div>
 

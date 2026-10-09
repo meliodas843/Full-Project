@@ -1,4 +1,3 @@
-
 import express from "express";
 import crypto from "node:crypto";
 import pool from "../db.js";
@@ -8,8 +7,7 @@ const router = express.Router();
 
 router.use(auth);
 
-const currentUserId = (req) =>
-  Number(req.user?.id || req.user?.user_id);
+const currentUserId = (req) => Number(req.user?.id || req.user?.user_id);
 
 const validId = (value) =>
   Number.isSafeInteger(Number(value)) && Number(value) > 0;
@@ -34,7 +32,7 @@ async function findEvent(eventId) {
     WHERE e.id = ?
     LIMIT 1
     `,
-    [eventId]
+    [eventId],
   );
 
   return rows[0] || null;
@@ -47,7 +45,7 @@ async function requireOrganizer(req, res, next) {
 
     if (!validId(eventId) || !validId(userId)) {
       return res.status(400).json({
-        message: "Буруу хүсэлт."
+        message: "Буруу хүсэлт.",
       });
     }
 
@@ -55,7 +53,7 @@ async function requireOrganizer(req, res, next) {
 
     if (!event) {
       return res.status(404).json({
-        message: "Эвент олдсонгүй."
+        message: "Эвент олдсонгүй.",
       });
     }
 
@@ -66,26 +64,25 @@ async function requireOrganizer(req, res, next) {
       WHERE id = ?
       LIMIT 1
       `,
-      [userId]
+      [userId],
     );
 
     if (!users.length) {
       return res.status(403).json({
-        message: "Хэрэглэгч олдсонгүй."
+        message: "Хэрэглэгч олдсонгүй.",
       });
     }
 
-    const loggedInEmail = String(
-      users[0].email || ""
-    ).trim().toLowerCase();
+    const loggedInEmail = String(users[0].email || "")
+      .trim()
+      .toLowerCase();
 
-    const creatorEmail = String(
-      event.created_by_email || ""
-    ).trim().toLowerCase();
+    const creatorEmail = String(event.created_by_email || "")
+      .trim()
+      .toLowerCase();
 
     const isCreatorById =
-      event.created_by != null &&
-      Number(event.created_by) === userId;
+      event.created_by != null && Number(event.created_by) === userId;
 
     const isCreatorByEmail =
       event.created_by == null &&
@@ -97,14 +94,9 @@ async function requireOrganizer(req, res, next) {
       event.organization_owner_id != null &&
       Number(event.organization_owner_id) === userId;
 
-    if (
-      !isCreatorById &&
-      !isCreatorByEmail &&
-      !isOrganizationOwner
-    ) {
+    if (!isCreatorById && !isCreatorByEmail && !isOrganizationOwner) {
       return res.status(403).json({
-        message:
-          "Зөвхөн эвент зохион байгуулагч нэвтрэх эрхтэй."
+        message: "Зөвхөн эвент зохион байгуулагч нэвтрэх эрхтэй.",
       });
     }
 
@@ -122,13 +114,11 @@ async function ensureTicket(eventId, userId) {
      WHERE event_id = ?
        AND user_id = ?
      LIMIT 1`,
-    [eventId, userId]
+    [eventId, userId],
   );
 
   if (!bookings.length) {
-    const error = new Error(
-      "Та энэ эвентэд бүртгүүлээгүй байна."
-    );
+    const error = new Error("Та энэ эвентэд бүртгүүлээгүй байна.");
     error.status = 403;
     throw error;
   }
@@ -138,7 +128,7 @@ async function ensureTicket(eventId, userId) {
        (event_id, user_id, ticket_code)
      VALUES (?, ?, ?)
      ON DUPLICATE KEY UPDATE id = id`,
-    [eventId, userId, newTicketCode()]
+    [eventId, userId, newTicketCode()],
   );
 
   const [tickets] = await pool.query(
@@ -147,7 +137,7 @@ async function ensureTicket(eventId, userId) {
      WHERE event_id = ?
        AND user_id = ?
      LIMIT 1`,
-    [eventId, userId]
+    [eventId, userId],
   );
 
   if (!tickets.length) {
@@ -157,59 +147,53 @@ async function ensureTicket(eventId, userId) {
   return tickets[0];
 }
 
-router.get(
-  "/:eventId/my-ticket",
-  async (req, res) => {
-    try {
-      const { eventId } = req.params;
-      const userId = currentUserId(req);
+router.get("/:eventId/my-ticket", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const userId = currentUserId(req);
 
-      if (!validId(eventId) || !validId(userId)) {
-        return res.status(400).json({
-          message: "Буруу хүсэлт."
-        });
-      }
-
-      const event = await findEvent(eventId);
-
-      if (!event) {
-        return res.status(404).json({
-          message: "Эвент олдсонгүй."
-        });
-      }
-
-      const ticket = await ensureTicket(
-        eventId,
-        userId
-      );
-
-      return res.json({
-        event_id: Number(eventId),
-        event_title: event.title,
-        ticket_code: ticket.ticket_code,
-        checked_in_at: ticket.checked_in_at
-      });
-    } catch (error) {
-      console.error("MY TICKET ERROR:", error);
-
-      return res.status(error.status || 500).json({
-        message: error.status
-          ? error.message
-          : "QR тасалбар авахад алдаа гарлаа."
+    if (!validId(eventId) || !validId(userId)) {
+      return res.status(400).json({
+        message: "Буруу хүсэлт.",
       });
     }
+
+    const event = await findEvent(eventId);
+
+    if (!event) {
+      return res.status(404).json({
+        message: "Эвент олдсонгүй.",
+      });
+    }
+
+    const ticket = await ensureTicket(eventId, userId);
+
+    return res.json({
+      event_id: Number(eventId),
+      event_title: event.title,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      location: event.location || "",
+      ticket_code: ticket.ticket_code,
+      checked_in_at: ticket.checked_in_at,
+    });
+  } catch (error) {
+    console.error("MY TICKET ERROR:", error);
+
+    return res.status(error.status || 500).json({
+      message: error.status
+        ? error.message
+        : "QR тасалбар авахад алдаа гарлаа.",
+    });
   }
-);
+});
 
-router.get(
-  "/:eventId/attendance",
-  requireOrganizer,
-  async (req, res) => {
-    try {
-      const { eventId } = req.params;
+router.get("/:eventId/attendance", requireOrganizer, async (req, res) => {
+  try {
+    const { eventId } = req.params;
 
-      const [rows] = await pool.query(
-        `SELECT
+    const [rows] = await pool.query(
+      `SELECT
            eb.user_id,
            u.first_name,
            u.last_name,
@@ -227,51 +211,42 @@ router.get(
            (ec.checked_in_at IS NULL) ASC,
            ec.checked_in_at DESC,
            u.first_name ASC`,
-        [eventId]
-      );
+      [eventId],
+    );
 
-      const checkedIn = rows.filter(
-        (row) => row.checked_in_at !== null
-      ).length;
+    const checkedIn = rows.filter((row) => row.checked_in_at !== null).length;
 
-      return res.json({
-        event: req.checkinEvent,
-        total: rows.length,
-        checked_in: checkedIn,
-        remaining: rows.length - checkedIn,
-        participants: rows
-      });
-    } catch (error) {
-      console.error("ATTENDANCE ERROR:", error);
+    return res.json({
+      event: req.checkinEvent,
+      total: rows.length,
+      checked_in: checkedIn,
+      remaining: rows.length - checkedIn,
+      participants: rows,
+    });
+  } catch (error) {
+    console.error("ATTENDANCE ERROR:", error);
 
-      return res.status(500).json({
-        message:
-          "Ирцийн мэдээлэл авахад алдаа гарлаа."
+    return res.status(500).json({
+      message: "Ирцийн мэдээлэл авахад алдаа гарлаа.",
+    });
+  }
+});
+
+router.post("/:eventId/scan", requireOrganizer, async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const code = String(req.body?.ticket_code || "").trim();
+
+    if (!/^RGS-[a-f0-9]{48}$/.test(code)) {
+      return res.status(400).json({
+        status: "invalid",
+        message: "QR код буруу байна.",
       });
     }
-  }
-);
 
-router.post(
-  "/:eventId/scan",
-  requireOrganizer,
-  async (req, res) => {
-    try {
-      const { eventId } = req.params;
-
-      const code = String(
-        req.body?.ticket_code || ""
-      ).trim();
-
-      if (!/^RGS-[a-f0-9]{48}$/.test(code)) {
-        return res.status(400).json({
-          status: "invalid",
-          message: "QR код буруу байна."
-        });
-      }
-
-      const [result] = await pool.query(
-        `UPDATE event_checkins ec
+    const [result] = await pool.query(
+      `UPDATE event_checkins ec
          INNER JOIN event_bookings eb
            ON eb.event_id = ec.event_id
           AND eb.user_id = ec.user_id
@@ -281,11 +256,11 @@ router.post(
          WHERE ec.event_id = ?
            AND ec.ticket_code = ?
            AND ec.checked_in_at IS NULL`,
-        [currentUserId(req), eventId, code]
-      );
+      [currentUserId(req), eventId, code],
+    );
 
-      const [rows] = await pool.query(
-        `SELECT
+    const [rows] = await pool.query(
+      `SELECT
            ec.user_id,
            ec.checked_in_at,
            u.first_name,
@@ -300,41 +275,38 @@ router.post(
          WHERE ec.event_id = ?
            AND ec.ticket_code = ?
          LIMIT 1`,
-        [eventId, code]
-      );
+      [eventId, code],
+    );
 
-      if (!rows.length) {
-        return res.status(404).json({
-          status: "invalid",
-          message:
-            "Энэ эвентийн тасалбар олдсонгүй."
-        });
-      }
-
-      const participant = rows[0];
-
-      if (result.affectedRows === 0) {
-        return res.status(409).json({
-          status: "duplicate",
-          message: "Аль хэдийн бүртгэгдсэн.",
-          participant
-        });
-      }
-
-      return res.json({
-        status: "success",
-        message: "Амжилттай бүртгэгдлээ.",
-        participant
-      });
-    } catch (error) {
-      console.error("CHECKIN SCAN ERROR:", error);
-
-      return res.status(500).json({
-        message:
-          "Бүртгэл хийхэд алдаа гарлаа."
+    if (!rows.length) {
+      return res.status(404).json({
+        status: "invalid",
+        message: "Энэ эвентийн тасалбар олдсонгүй.",
       });
     }
+
+    const participant = rows[0];
+
+    if (result.affectedRows === 0) {
+      return res.status(409).json({
+        status: "duplicate",
+        message: "Аль хэдийн бүртгэгдсэн.",
+        participant,
+      });
+    }
+
+    return res.json({
+      status: "success",
+      message: "Амжилттай бүртгэгдлээ.",
+      participant,
+    });
+  } catch (error) {
+    console.error("CHECKIN SCAN ERROR:", error);
+
+    return res.status(500).json({
+      message: "Бүртгэл хийхэд алдаа гарлаа.",
+    });
   }
-);
+});
 
 export default router;
