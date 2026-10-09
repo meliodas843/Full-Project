@@ -46484,6 +46484,219 @@ svg {
   font-size: 12px;
 }
 
+
+.rgt-headingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rgt-backButton {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7ef;
+  border-radius: 10px;
+  background: #fff;
+  color: #5541dd;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.rgt-backButton:hover {
+  background: #f0edff;
+  border-color: #cfc5ff;
+}
+
+.rgt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rgt-brand svg {
+  color: #aa96ff;
+}
+
+.rgt-heroMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rgt-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rgt-lock svg {
+  color: #9ca3b5;
+}
+
+.rgt-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rgt-status svg {
+  color: #8d94a5;
+}
+
+.rgt-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rgt-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.rgt-notice svg {
+  flex-shrink: 0;
+  color: #7855f5;
+}
+
+.rgt-helpActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.rgt-helpActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 115px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rgt-transferBtn {
+  background: #fff;
+  border: 1px solid #e1e4ed;
+  color: #444c61;
+}
+
+.rgt-cancelBtn {
+  background: #fff1f1 !important;
+  border: 1px solid #ffd6d6 !important;
+  color: #dc4242;
+}
+
+.rgt-modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(12, 16, 35, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.rgt-modal {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
+}
+
+.rgt-modalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: #f0edff;
+  color: #6945f5;
+  margin-bottom: 16px;
+}
+
+.rgt-modal h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.rgt-modal p {
+  margin: 0 0 18px;
+  color: #7b8395;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rgt-modal input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #dfe3ed;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.rgt-modal input:focus {
+  border-color: #6945f5;
+}
+
+.rgt-modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.rgt-modalActions button {
+  min-width: 100px;
+  padding: 11px 16px;
+  border: 1px solid #e1e4ed;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.rgt-modalActions .danger {
+  background: #dc4242;
+  border-color: #dc4242;
+  color: #fff;
+}
+
+.rgt-modalActions .primary {
+  background: #6945f5;
+  border-color: #6945f5;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .rgt-helpActions {
+    flex-direction: column;
+  }
+
+  .rgt-helpActions button {
+    width: 100%;
+  }
+
+  .rgt-headingRow h1 {
+    font-size: 21px;
+  }
+}
+
+
 @media (max-width: 1050px) {
   .rgt-layout {
     grid-template-columns: 340px minmax(0, 1fr);
