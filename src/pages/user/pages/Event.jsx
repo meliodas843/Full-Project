@@ -511,7 +511,7 @@ export default function Event() {
       }
 
       const res = await fetch(
-        `${API_BASE}/api/events/my-joined`,
+        `${API_BASE}/api/events/my-joined?includeFinished=1`,
 
         {
           headers: {
@@ -1477,7 +1477,7 @@ export default function Event() {
   const managedEvents = useMemo(() => {
     const query = eventSearch.trim().toLowerCase();
 
-    return visibleEvents
+    return allMyEvents
       .filter((ev) => {
         const finished =
           isEventFinished(ev) ||
@@ -1517,16 +1517,16 @@ export default function Event() {
 
         return eventSort === "oldest" ? aTime - bTime : bTime - aTime;
       });
-  }, [visibleEvents, eventSearch, eventTab, eventSort, now]);
+  }, [allMyEvents, eventSearch, eventTab, eventSort, now]);
 
   const managedCounts = useMemo(
     () => ({
-      all: visibleEvents.length,
+      all: allMyEvents.length,
 
-      draft: visibleEvents.filter((ev) => isDraftEvent(ev) && canEditEvent(ev))
+      draft: allMyEvents.filter((ev) => isDraftEvent(ev) && canEditEvent(ev))
         .length,
 
-      published: visibleEvents.filter(
+      published: allMyEvents.filter(
         (ev) =>
           !isDraftEvent(ev) &&
           !isEventFinished(ev) &&
@@ -1535,7 +1535,7 @@ export default function Event() {
           ),
       ).length,
 
-      finished: visibleEvents.filter(
+      finished: allMyEvents.filter(
         (ev) =>
           isEventFinished(ev) ||
           ["finished", "completed", "ended"].includes(
@@ -1543,7 +1543,7 @@ export default function Event() {
           ),
       ).length,
     }),
-    [visibleEvents, now],
+    [allMyEvents, now],
   );
 
   return (
@@ -2264,27 +2264,14 @@ export default function Event() {
                             <h3>{ev.title || "Нэргүй эвэнт"}</h3>
 
                             <div className="myEventCardMeta">
-                              <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 6,
-                                }}
-                              >
+                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 <FaCalendarDays size={13} aria-hidden="true" />
                                 {formatDateTime(ev.start_time)}
                               </span>
 
-                              <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 6,
-                                }}
-                              >
+                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 <FaUsers size={13} aria-hidden="true" />
-                                {registered}
-                                {max > 0 ? ` / ${max}` : ""} оролцогч
+                                {registered}{max > 0 ? ` / ${max}` : ""} оролцогч
                               </span>
                             </div>
 

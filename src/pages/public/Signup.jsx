@@ -47,7 +47,9 @@ const getPasswordRules = (password) => ({
 
 export default function Signup() {
   const navigate = useNavigate();
+
   const profileImageInputRef = useRef(null);
+
   const fileInputRef = useRef(null);
 
   const [accountType, setAccountType] = useState("individual");
@@ -87,6 +89,9 @@ export default function Signup() {
   const [categoriesSelected, setCategoriesSelected] = useState([
     "Мэдээллийн технологи",
   ]);
+
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState("");
 
   const [organizationLogo, setOrganizationLogo] = useState(null);
 
@@ -250,31 +255,47 @@ export default function Signup() {
 
       if (accountType === "organization" && organizationLogo) {
         const token = data?.token;
+
         if (!token) {
           setMessage(
             "Бүртгэл үүссэн боловч лого хадгалагдсангүй. Нэвтэрч профайлаас логоо оруулна уу.",
           );
+
           return;
         }
+
         const logoBody = new FormData();
+
         logoBody.append("logo", organizationLogo);
+
         logoBody.append("name", form.organizationName.trim());
+
         logoBody.append("registration_number", form.registrationNumber.trim());
+
         logoBody.append("description", form.description.trim());
+
         logoBody.append("phone", form.organizationPhone.trim());
+
         logoBody.append("address", form.address.trim());
+
         logoBody.append("website", form.website.trim());
+
         const uploadResponse = await fetch(`${API_BASE}/api/organizations/me`, {
           method: "PUT",
+
           headers: { Authorization: `Bearer ${token}` },
+
           body: logoBody,
         });
+
         if (!uploadResponse.ok) {
           const uploadData = await uploadResponse.json().catch(() => ({}));
+
           setMessage(
             uploadData.message ||
               "Бүртгэл үүссэн боловч лого хадгалагдсангүй. Профайл хэсгээс дахин оруулна уу.",
           );
+
           return;
         }
       }
@@ -507,15 +528,19 @@ export default function Signup() {
                     style={{ display: "none" }}
                     onChange={(event) => {
                       const file = event.target.files?.[0];
+
                       if (!file) return;
 
                       if (file.size > 5 * 1024 * 1024) {
                         alert("Зургийн хэмжээ 5MB-аас ихгүй байх ёстой.");
+
                         event.target.value = "";
+
                         return;
                       }
 
                       setProfileImage(file);
+
                       setProfileImagePreview(URL.createObjectURL(file));
                     }}
                   />
@@ -528,6 +553,7 @@ export default function Signup() {
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
+
                         profileImageInputRef.current?.click();
                       }
                     }}
@@ -622,9 +648,13 @@ export default function Signup() {
                         alt=""
                         style={{
                           objectFit: "contain",
+
                           width: "100%",
+
                           height: "100%",
+
                           padding: 8,
+
                           boxSizing: "border-box",
                         }}
                       />
@@ -738,7 +768,7 @@ export default function Signup() {
                         name="website"
                         value={form.website}
                         onChange={handleChange}
-                        placeholder="https\\\\://"
+                        placeholder="https://"
                       />
                     </div>
                   </div>

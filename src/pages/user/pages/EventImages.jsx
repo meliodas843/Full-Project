@@ -814,7 +814,10 @@ export default function EventImages() {
                 <span>
                   <strong>Зөвхөн оролцогчид</strong>
 
-                  <small>Эвентэд ирсэн 41 хүн нэвтэрч харна.</small>
+                  <small>
+                    Эвентэд нэгдсэн {event?.joined_count ?? 0} хүн нэвтэрч
+                    харна.
+                  </small>
                 </span>
               </label>
 
