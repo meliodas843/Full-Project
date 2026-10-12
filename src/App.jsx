@@ -24,7 +24,7 @@ import EventTicket from "./pages/user/pages/EventTicket";
 import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
-
+import PublicOrganizationProfile from "./pages/public/PublicOrganizationProfile";
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
 import Calendar from "./pages/user/pages/Calendar";
@@ -76,7 +76,15 @@ function AppRoutes() {
         <Route path="/events/:id" element={<EventDetail />} />
 
         <Route path="/organization" element={<Organization />} />
-        <Route path="/organization/:id" element={<OrganizationDetail />} />
+        <Route
+          path="/organizations/:id"
+          element={<PublicOrganizationProfile />}
+        />
+
+        <Route
+          path="/organization/:id"
+          element={<PublicOrganizationProfile />}
+        />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
