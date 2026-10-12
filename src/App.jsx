@@ -22,9 +22,10 @@ import EventInvite from "./pages/public/EventInvite";
 import EventCheckin from "./pages/user/pages/EventCheckin";
 import EventTicket from "./pages/user/pages/EventTicket";
 import Organization from "./pages/public/Organization";
+import PublicOrganizationProfile from "./pages/public/PublicOrganizationProfile";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
-import PublicOrganizationProfile from "./pages/public/PublicOrganizationProfile";
+
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
 import Calendar from "./pages/user/pages/Calendar";
@@ -68,14 +69,18 @@ function AppRoutes() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+
         <Route path="/news" element={<News />} />
         <Route path="/news/:id" element={<NewsDetail />} />
+
         <Route path="/events" element={<PublicEvents />} />
         <Route path="/events/:id" element={<EventDetail />} />
 
         <Route path="/organization" element={<Organization />} />
+
         <Route
           path="/organizations/:id"
           element={<PublicOrganizationProfile />}
@@ -87,8 +92,11 @@ function AppRoutes() {
         />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
+
         <Route path="/reset-password" element={<ResetPassword />} />
+
         <Route path="/event/invite/:token" element={<EventInvite />} />
+
         <Route path="/share/event/:id" element={<EventShare />} />
 
         <Route
