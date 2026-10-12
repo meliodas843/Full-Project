@@ -46,6 +46,45 @@
   --rg-shadow: 0 2px 5px rgba(18, 24, 40, 0.07);
 }
 
+:root,
+:root[data-theme="light"] {
+  --reg-bg: #f6f7fc;
+  --reg-surface: #ffffff;
+  --reg-surface-alt: #f1f3fa;
+  --reg-text: #171b32;
+  --reg-muted: #737d96;
+  --reg-border: #dfe3ef;
+  --reg-input: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --reg-bg: #0d1124;
+  --reg-surface: #171c36;
+  --reg-surface-alt: #11162d;
+  --reg-text: #f5f6ff;
+  --reg-muted: #a6aec8;
+  --reg-border: #303853;
+  --reg-input: #11162d;
+}
+
+body {
+  background: var(--reg-bg);
+  color: var(--reg-text);
+}
+
+.organizationDetailPage,
+.publicOrganizationDetailPage {
+  background: var(--reg-bg);
+  color: var(--reg-text);
+}
+
+.organizationDetailPage .organizationDetailCard,
+.publicOrganizationDetailPage .organizationDetailCard {
+  background: var(--reg-surface);
+  color: var(--reg-text);
+  border-color: var(--reg-border);
+}
+
 img {
   max-width: 100%;
   display: block;

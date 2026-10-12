@@ -24,7 +24,7 @@ import EventTicket from "./pages/user/pages/EventTicket";
 import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
-
+import useTheme from "./hooks/useTheme";
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
 import Calendar from "./pages/user/pages/Calendar";
@@ -44,7 +44,7 @@ import NewsCreate from "./pages/super_admin/pages/NewsCreate";
 
 function AppRoutes() {
   const location = useLocation();
-
+  useTheme();
   const isUserArea = location.pathname.startsWith("/user");
   const isSuperAdminArea = location.pathname.startsWith("/super-admin");
 
