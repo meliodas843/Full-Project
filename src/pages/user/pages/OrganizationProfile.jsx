@@ -846,12 +846,6 @@ export default function OrganizationProfile() {
 
                 <span>Дагагч</span>
               </div>
-
-              <div className="orgStat">
-                <strong>{averageRating}</strong>
-
-                <span>Дундаж үнэлгээ</span>
-              </div>
             </div>
           </div>
         </section>

@@ -759,10 +759,6 @@ export default function OrganizationDetail() {
                   <span>Дагагч</span>
                 </div>
 
-                <div className="orgStat">
-                  <strong>{averageRating}</strong>
-                  <span>Дундаж үнэлгээ</span>
-                </div>
               </div>
 
               <div className="orgInfoDivider" />

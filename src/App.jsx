@@ -80,6 +80,7 @@ function AppRoutes() {
 
         <Route path="/organization" element={<Organization />} />
 
+        <Route path="/organizations/:id" element={<OrganizationDetail />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
