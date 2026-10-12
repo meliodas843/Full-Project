@@ -304,12 +304,7 @@ export default function Signup() {
       if (accountType === "individual" && profileImage && data?.token) {
         const avatarBody = new FormData();
         avatarBody.append("avatar", profileImage);
-        avatarBody.append("firstName", form.firstName.trim());
-        avatarBody.append("lastName", form.lastName.trim());
-        avatarBody.append("phone", form.phone.trim());
-        avatarBody.append("company_name", form.companyName.trim());
-        avatarBody.append("job_title", form.position.trim());
-        avatarBody.append("interests", JSON.stringify([]));
+
 
         try {
           const avatarResponse = await fetch(`${API_BASE}/api/profile/me`, {

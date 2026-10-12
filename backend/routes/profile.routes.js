@@ -200,6 +200,30 @@ router.put("/me", authMiddleware, uploadAvatar, async (req, res) => {
       return res.status(401).json({ message: "Invalid token payload" });
     }
 
+    // Allow an avatar-only update immediately after signup. The complete
+    // profile form is validated separately when the user edits their details.
+    const isAvatarOnly = Boolean(req.file) &&
+      !Object.keys(req.body || {}).some((key) => key !== "avatar");
+
+    if (isAvatarOnly) {
+      const existingUser = await getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const avatarUrl = `/uploads/profile/${req.file.filename}`;
+      await pool.query("UPDATE users SET avatar_url = ? WHERE id = ?", [
+        avatarUrl,
+        userId,
+      ]);
+
+      const updatedUser = await getUser(userId);
+      return res.status(200).json({
+        message: "Profile image updated successfully",
+        user: formatUser(updatedUser),
+      });
+    }
+
     const firstName = normalizeText(req.body?.firstName ?? req.body?.first_name);
     const lastName = normalizeText(req.body?.lastName ?? req.body?.last_name);
     const companyName = normalizeText(
