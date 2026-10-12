@@ -394,13 +394,14 @@ export default function Organization() {
                     tabIndex={0}
                     style={{ cursor: "pointer" }}
                     onClick={() =>
-                      navigate(`/user/organizations/${organization.id}`)
+                      navigate(`/organizations/${organization.id}`)
                     }
                     onKeyDown={(event) => {
                       if (event.target !== event.currentTarget) return;
+
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        navigate(`/user/organizations/${organization.id}`);
+                        navigate(`/organizations/${organization.id}`);
                       }
                     }}
                   >
@@ -464,7 +465,7 @@ export default function Organization() {
 
                     <div className="publicOrganizationActions">
                       <Link
-                        to={`/user/organizations/${organization.id}`}
+                        to={`/organizations/${organization.id}`}
                         className="publicOrganizationProfileButton"
                         onClick={(event) => event.stopPropagation()}
                       >
