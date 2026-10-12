@@ -22,7 +22,6 @@ import EventInvite from "./pages/public/EventInvite";
 import EventCheckin from "./pages/user/pages/EventCheckin";
 import EventTicket from "./pages/user/pages/EventTicket";
 import Organization from "./pages/public/Organization";
-import PublicOrganizationProfile from "./pages/public/PublicOrganizationProfile";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
 
@@ -81,15 +80,6 @@ function AppRoutes() {
 
         <Route path="/organization" element={<Organization />} />
 
-        <Route
-          path="/organizations/:id"
-          element={<PublicOrganizationProfile />}
-        />
-
-        <Route
-          path="/organization/:id"
-          element={<PublicOrganizationProfile />}
-        />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
