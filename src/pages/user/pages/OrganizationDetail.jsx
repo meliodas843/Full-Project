@@ -241,6 +241,25 @@ export default function OrganizationDetail() {
   const [followBusy, setFollowBusy] = useState(false);
   const [error, setError] = useState("");
 
+  const totalEvents = Number(
+    organization?.event_count ??
+      organization?.events_count ??
+      organization?.total_events ??
+      events.length,
+  );
+
+  const totalParticipants = Number(
+    organization?.participant_count ??
+      organization?.participants_count ??
+      organization?.total_participants ??
+      events.reduce((sum, event) => sum + (Number(event.participants) || 0), 0),
+  );
+
+  const followers = Number(organization?.followers ?? 0);
+
+  const averageRating =
+    organization?.average_rating ?? organization?.rating ?? "—";
+
   const isUserView = location.pathname.startsWith("/user/");
 
   const isLoggedIn = Boolean(getToken());
