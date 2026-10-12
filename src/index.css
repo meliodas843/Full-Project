@@ -22398,12 +22398,14 @@ html[data-public-theme="dark"] .rgLoginField input:-webkit-autofill:focus {
   font-size: clamp(32px, 4vw, 46px);
   line-height: 1.08;
   font-weight: 800;
+  margin-top: 10px;
   letter-spacing: -0.04em;
 }
 
 .riListingHero > .riContainer > p {
   color: var(--ri-muted);
   font-size: 15px;
+  margin-top: 12px;
   line-height: 1.7;
 }
 

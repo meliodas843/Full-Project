@@ -496,15 +496,9 @@ export default function Events() {
             !error &&
             filtered.length === 0 && (
               <div className="riStatusBox">
-                <h3>
-                  Эвэнт олдсонгүй.
-                </h3>
-
                 <p>
-                  Хайлтын үг эсвэл ангиллаа
-                  өөрчлөөд дахин оролдоно уу.
+                  Эвэнт олдсонгүй. Хайлтын үг эсвэл ангиллаа өөрчлөөд дахин оролдоно уу.
                 </p>
-
                 {(query ||
                   category !== "Бүгд") && (
                   <button
