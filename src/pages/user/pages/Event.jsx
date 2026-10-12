@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+
 import { FaCalendarDays, FaUsers } from "react-icons/fa6";
 
 import UserShell from "../components/UserShell";
@@ -1147,6 +1148,7 @@ export default function Event() {
 
   async function handleBook(ev) {
     setErrMsg("");
+
     setSuccessMsg("");
 
     try {
@@ -1154,11 +1156,13 @@ export default function Event() {
 
       if (!token) {
         setErrMsg("Эхлээд нэвтэрнэ үү.");
+
         return;
       }
 
       if (!ev?.id) {
         setErrMsg("Эвентийн мэдээлэл олдсонгүй.");
+
         return;
       }
 
@@ -1170,6 +1174,7 @@ export default function Event() {
 
       const res = await fetch(endpoint, {
         method: "POST",
+
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1184,6 +1189,7 @@ export default function Event() {
               ? "Эвентэд бүртгүүлж чадсангүй."
               : "Хүсэлт илгээж чадсангүй."),
         );
+
         return;
       }
 
@@ -1200,6 +1206,7 @@ export default function Event() {
       }, 2000);
     } catch (error) {
       console.error(error);
+
       setErrMsg("Эвентэд бүртгүүлэх үед сүлжээний алдаа гарлаа.");
     }
   }
@@ -1445,27 +1452,20 @@ export default function Event() {
 
   const currentLb = imageFiles[lbIndex];
 
-  const visibleEvents = useMemo(() => {
-    return events.filter((ev) => {
-      if (ev.visibility === "private") {
-        return canEditEvent(ev);
-      }
-
-      return true;
-    });
-  }, [events]);
-
   const allMyEvents = useMemo(() => {
     const merged = new Map();
+
     for (const ev of events) {
-      if (canEditEvent(ev)) merged.set(Number(ev.id), ev);
+      const id = Number(ev.id ?? ev.event_id);
+      if (Number.isFinite(id)) merged.set(id, { ...ev, id });
     }
+
     for (const ev of myEvents) {
-      const id = Number(ev.id || ev.event_id);
+      const id = Number(ev.id ?? ev.event_id);
       if (!Number.isFinite(id)) continue;
-      const existing = merged.get(id);
-      merged.set(id, existing ? { ...existing, ...ev, id } : { ...ev, id });
+      merged.set(id, { ...merged.get(id), ...ev, id });
     }
+
     return [...merged.values()];
   }, [events, myEvents]);
 
@@ -1474,30 +1474,48 @@ export default function Event() {
     return status === "draft" || ev.is_draft === 1 || ev.is_draft === true;
   };
 
+  const isRegisteredEvent = (ev) => {
+    const id = Number(ev.id ?? ev.event_id);
+    // The creator must not count as a participant merely for creating an event.
+    if (String(ev.relation_type || "").toLowerCase() === "created")
+      return false;
+    return (
+      ev.is_registered === true ||
+      ev.is_registered === 1 ||
+      ev.relation_type === "joined" ||
+      bookedIds.some((bookedId) => Number(bookedId) === id)
+    );
+  };
+
+  const isFinishedEvent = (ev) =>
+    isEventFinished(ev) ||
+    ev.is_finished === 1 ||
+    ev.is_finished === true ||
+    ["finished", "completed", "ended"].includes(
+      String(ev.status || "").toLowerCase(),
+    );
+
+  const isAllTabEvent = (ev) =>
+    !isDraftEvent(ev) &&
+    (String(ev.visibility || "public").toLowerCase() === "public" ||
+      canEditEvent(ev));
+
   const managedEvents = useMemo(() => {
     const query = eventSearch.trim().toLowerCase();
 
     return allMyEvents
       .filter((ev) => {
-        const finished =
-          isEventFinished(ev) ||
-          ["finished", "completed", "ended"].includes(
-            String(ev.status || "").toLowerCase(),
-          );
-
-        const draft = isDraftEvent(ev);
-
-        if (eventTab === "draft") {
-          return draft && canEditEvent(ev);
-        }
-
-        if (eventTab === "published" && (draft || finished)) {
+        if (eventTab === "all" && !isAllTabEvent(ev)) return false;
+        if (
+          eventTab === "participating" &&
+          (!isRegisteredEvent(ev) || isFinishedEvent(ev))
+        )
           return false;
-        }
-
-        if (eventTab === "finished" && !finished) {
+        if (
+          eventTab === "finished" &&
+          (!isRegisteredEvent(ev) || !isFinishedEvent(ev))
+        )
           return false;
-        }
 
         if (
           query &&
@@ -1505,45 +1523,29 @@ export default function Event() {
             .join(" ")
             .toLowerCase()
             .includes(query)
-        ) {
+        )
           return false;
-        }
 
         return true;
       })
       .sort((a, b) => {
         const aTime = parseEventDateTime(a.start_time);
         const bTime = parseEventDateTime(b.start_time);
-
         return eventSort === "oldest" ? aTime - bTime : bTime - aTime;
       });
-  }, [allMyEvents, eventSearch, eventTab, eventSort, now]);
+  }, [allMyEvents, bookedIds, eventSearch, eventTab, eventSort, now]);
 
   const managedCounts = useMemo(
     () => ({
-      all: allMyEvents.length,
-
-      draft: allMyEvents.filter((ev) => isDraftEvent(ev) && canEditEvent(ev))
-        .length,
-
-      published: allMyEvents.filter(
-        (ev) =>
-          !isDraftEvent(ev) &&
-          !isEventFinished(ev) &&
-          !["finished", "completed", "ended"].includes(
-            String(ev.status || "").toLowerCase(),
-          ),
+      all: allMyEvents.filter(isAllTabEvent).length,
+      participating: allMyEvents.filter(
+        (ev) => isRegisteredEvent(ev) && !isFinishedEvent(ev),
       ).length,
-
       finished: allMyEvents.filter(
-        (ev) =>
-          isEventFinished(ev) ||
-          ["finished", "completed", "ended"].includes(
-            String(ev.status || "").toLowerCase(),
-          ),
+        (ev) => isRegisteredEvent(ev) && isFinishedEvent(ev),
       ).length,
     }),
-    [allMyEvents, now],
+    [allMyEvents, bookedIds, now],
   );
 
   return (
@@ -2155,9 +2157,11 @@ export default function Event() {
                     {[
                       ["all", "Бүгд", managedCounts.all],
 
-                      ["draft", "Draft", managedCounts.draft],
-
-                      ["published", "Нийтлэгдсэн", managedCounts.published],
+                      [
+                        "participating",
+                        "Миний оролцож буй",
+                        managedCounts.participating,
+                      ],
 
                       ["finished", "Дууссан", managedCounts.finished],
                     ].map(([key, label, count]) => (
@@ -2264,14 +2268,28 @@ export default function Event() {
                             <h3>{ev.title || "Нэргүй эвэнт"}</h3>
 
                             <div className="myEventCardMeta">
-                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                }}
+                              >
                                 <FaCalendarDays size={13} aria-hidden="true" />
+
                                 {formatDateTime(ev.start_time)}
                               </span>
 
-                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                }}
+                              >
                                 <FaUsers size={13} aria-hidden="true" />
-                                {registered}{max > 0 ? ` / ${max}` : ""} оролцогч
+                                {registered}
+                                {max > 0 ? ` / ${max}` : ""} оролцогч
                               </span>
                             </div>
 

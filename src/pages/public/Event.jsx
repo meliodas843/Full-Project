@@ -1,70 +1,96 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
-import {
-  FaMagnifyingGlass,
-  FaXmark,
-} from "react-icons/fa6";
+
+import { FaMagnifyingGlass, FaXmark } from "react-icons/fa6";
+
 import EventCard from "../../components/EventCard";
+
 import Footer from "../../components/Footer";
+
 import { API_BASE } from "../../lib/config";
 
 const categories = [
   { value: "Бүгд", label: "Бүгд" },
+
   { value: "Технологи", label: "Технологи" },
+
   { value: "Бизнес", label: "Бизнес" },
+
   { value: "Боловсрол", label: "Боловсрол" },
+
   {
     value: "Хурал, конференц",
+
     label: "Хурал, конференц",
   },
+
   { value: "Сургалт", label: "Сургалт" },
+
   {
     value: "Танилцах, харилцаа холбоо",
+
     label: "Танилцах, харилцаа холбоо",
   },
+
   { value: "Нийгэмлэг", label: "Нийгэмлэг" },
+
   { value: "Спорт", label: "Спорт" },
+
   {
     value: "Энтертайнмент",
+
     label: "Энтертайнмент",
   },
 ];
 
 const CATEGORY_ALIASES = {
   Technology: "Технологи",
+
   Технологи: "Технологи",
 
   Business: "Бизнес",
+
   Бизнес: "Бизнес",
 
   Education: "Боловсрол",
+
   Боловсрол: "Боловсрол",
 
   Conference: "Хурал, конференц",
+
   "Хурал, конференц": "Хурал, конференц",
 
   Workshop: "Сургалт",
+
   Сургалт: "Сургалт",
 
   Networking: "Танилцах, харилцаа холбоо",
-  "Танилцах, харилцаа холбоо":
-    "Танилцах, харилцаа холбоо",
+
+  "Танилцах, харилцаа холбоо": "Танилцах, харилцаа холбоо",
 
   Community: "Нийгэмлэг",
+
   Нийгэмлэг: "Нийгэмлэг",
 
   Sports: "Спорт",
+
   Sport: "Спорт",
+
   Спорт: "Спорт",
 
   Entertainment: "Энтертайнмент",
+
   Энтертайнмент: "Энтертайнмент",
 };
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
+
   if (Array.isArray(data?.items)) return data.items;
+
   if (Array.isArray(data?.events)) return data.events;
+
   if (Array.isArray(data?.data)) return data.data;
 
   return [];
@@ -91,16 +117,14 @@ function normalizeEvent(event) {
 
   return {
     ...event,
+
     category: normalizeCategory(event.category),
   };
 }
 
 function eventEndTime(event) {
   return (
-    event?.end_time ||
-    event?.end_date ||
-    event?.start_time ||
-    event?.start_date
+    event?.end_time || event?.end_date || event?.start_time || event?.start_date
   );
 }
 
@@ -119,9 +143,7 @@ function parseEventDate(value) {
 
   if (!raw) return NaN;
 
-  const normalized = raw.includes("T")
-    ? raw
-    : raw.replace(" ", "T");
+  const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
 
   return new Date(normalized).getTime();
 }
@@ -129,17 +151,18 @@ function parseEventDate(value) {
 function isVisible(event, now) {
   if (!event) return false;
 
+  if (
+    event.is_draft === true ||
+    event.is_draft === 1 ||
+    String(event.status || "").toLowerCase() === "draft"
+  )
+    return false;
+
   const visibility = String(
-    event.visibility ||
-      event.privacy ||
-      event.type ||
-      "public",
+    event.visibility || event.privacy || event.type || "public",
   ).toLowerCase();
 
-  if (
-    visibility === "private" ||
-    visibility === "хувийн"
-  ) {
+  if (visibility === "private" || visibility === "хувийн") {
     return false;
   }
 
@@ -166,11 +189,17 @@ export default function Events() {
   const navigate = useNavigate();
 
   const [events, setEvents] = useState([]);
+
   const [myBookings, setMyBookings] = useState([]);
+
   const [query, setQuery] = useState("");
+
   const [category, setCategory] = useState("Бүгд");
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
+
   const [now, setNow] = useState(Date.now());
 
   async function loadMyBookings() {
@@ -178,12 +207,14 @@ export default function Events() {
 
     if (!token) {
       setMyBookings([]);
+
       return;
     }
 
     try {
       const response = await fetch(
         `${API_BASE}/api/events/my-bookings`,
+
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -193,16 +224,21 @@ export default function Events() {
 
       if (!response.ok) {
         setMyBookings([]);
+
         return;
       }
 
       const data = await response
+
         .json()
+
         .catch(() => []);
 
       const ids = Array.isArray(data)
         ? data
+
             .map((id) => Number(id))
+
             .filter(Number.isFinite)
         : [];
 
@@ -210,6 +246,7 @@ export default function Events() {
     } catch (err) {
       console.error(
         "Failed to load my event bookings:",
+
         err,
       );
 
@@ -220,33 +257,28 @@ export default function Events() {
   async function loadEvents() {
     try {
       setLoading(true);
+
       setError("");
 
-      const response = await fetch(
-        `${API_BASE}/api/events`,
-      );
+      const response = await fetch(`${API_BASE}/api/events`);
 
       const data = await response
+
         .json()
+
         .catch(() => []);
 
       if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            "Эвэнтүүдийг ачаалж чадсангүй.",
-        );
+        throw new Error(data?.message || "Эвэнтүүдийг ачаалж чадсангүй.");
       }
 
-      const loadedEvents =
-        normalizeArray(data).map(normalizeEvent);
+      const loadedEvents = normalizeArray(data).map(normalizeEvent);
 
       setEvents(loadedEvents);
+
       setNow(Date.now());
     } catch (err) {
-      setError(
-        err?.message ||
-          "Сервертэй холбогдож чадсангүй.",
-      );
+      setError(err?.message || "Сервертэй холбогдож чадсангүй.");
 
       setEvents([]);
     } finally {
@@ -255,10 +287,7 @@ export default function Events() {
   }
 
   async function loadPage() {
-    await Promise.all([
-      loadEvents(),
-      loadMyBookings(),
-    ]);
+    await Promise.all([loadEvents(), loadMyBookings()]);
   }
 
   useEffect(() => {
@@ -276,9 +305,7 @@ export default function Events() {
   }, []);
 
   const visibleEvents = useMemo(() => {
-    return events.filter((event) =>
-      isVisible(event, now),
-    );
+    return events.filter((event) => isVisible(event, now));
   }, [events, now]);
 
   const filtered = useMemo(() => {
@@ -287,22 +314,28 @@ export default function Events() {
     return visibleEvents.filter((event) => {
       const searchableText = [
         event?.title,
+
         event?.description,
+
         categoryOf(event),
+
         event?.location,
+
         event?.venue,
+
         event?.address,
       ]
+
         .filter(Boolean)
+
         .join(" ")
+
         .toLowerCase();
 
-      const matchesQuery =
-        !q || searchableText.includes(q);
+      const matchesQuery = !q || searchableText.includes(q);
 
       const matchesCategory =
-        category === "Бүгд" ||
-        categoryOf(event) === category;
+        category === "Бүгд" || categoryOf(event) === category;
 
       return matchesQuery && matchesCategory;
     });
@@ -331,6 +364,7 @@ export default function Events() {
 
     if (!token) {
       navigate("/login");
+
       return;
     }
 
@@ -338,6 +372,7 @@ export default function Events() {
 
     if (!Number.isFinite(eventId)) {
       alert("Эвэнтийн ID олдсонгүй.");
+
       return;
     }
 
@@ -348,8 +383,10 @@ export default function Events() {
     try {
       const response = await fetch(
         `${API_BASE}/api/events/${eventId}/book`,
+
         {
           method: "POST",
+
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -357,14 +394,13 @@ export default function Events() {
       );
 
       const data = await response
+
         .json()
+
         .catch(() => ({}));
 
       if (!response.ok) {
-        alert(
-          data?.message ||
-            "Эвэнтэд бүртгүүлж чадсангүй.",
-        );
+        alert(data?.message || "Эвэнтэд бүртгүүлж чадсангүй.");
 
         return;
       }
@@ -379,9 +415,7 @@ export default function Events() {
 
       setEvents((current) =>
         current.map((item) => {
-          const currentId = Number(
-            getEventId(item),
-          );
+          const currentId = Number(getEventId(item));
 
           if (currentId !== eventId) {
             return item;
@@ -389,22 +423,17 @@ export default function Events() {
 
           return {
             ...item,
-            booked_count:
-              Number(item?.booked_count || 0) + 1,
+
+            booked_count: Number(item?.booked_count || 0) + 1,
           };
         }),
       );
 
-      await Promise.all([
-        loadEvents(),
-        loadMyBookings(),
-      ]);
+      await Promise.all([loadEvents(), loadMyBookings()]);
     } catch (err) {
       console.error("Join event error:", err);
 
-      alert(
-        "Сервертэй холбогдож чадсангүй.",
-      );
+      alert("Сервертэй холбогдож чадсангүй.");
     }
   }
 
@@ -412,17 +441,12 @@ export default function Events() {
     <main className="riPublicPage riEventsPage">
       <section className="riListingHero">
         <div className="riContainer">
-          <div className="riPill">
-            ЭВЭНТҮҮД
-          </div>
+          <div className="riPill">ЭВЭНТҮҮД</div>
 
-          <h1>
-            Удахгүй болох эвэнтүүд
-          </h1>
+          <h1>Удахгүй болох эвэнтүүд</h1>
 
           <p>
-            Сонирхолтой хурал, workshop болон
-            технологийн арга хэмжээнүүдийг олж
+            Сонирхолтой хурал, workshop болон технологийн арга хэмжээнүүдийг олж
             бүртгүүлээрэй.
           </p>
 
@@ -432,9 +456,7 @@ export default function Events() {
             <input
               type="text"
               value={query}
-              onChange={(e) =>
-                setQuery(e.target.value)
-              }
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Эвэнт эсвэл байршлаар хайх..."
             />
 
@@ -453,14 +475,8 @@ export default function Events() {
             {categories.map((item) => (
               <button
                 type="button"
-                className={
-                  category === item.value
-                    ? "active"
-                    : ""
-                }
-                onClick={() =>
-                  setCategory(item.value)
-                }
+                className={category === item.value ? "active" : ""}
+                onClick={() => setCategory(item.value)}
                 key={item.value}
               >
                 {item.label}
@@ -473,9 +489,7 @@ export default function Events() {
       <section className="riEventsContent">
         <div className="riContainer">
           {loading && (
-            <div className="riStatusBox">
-              Эвэнтүүдийг ачаалж байна...
-            </div>
+            <div className="riStatusBox">Эвэнтүүдийг ачаалж байна...</div>
           )}
 
           {!loading && error && (
@@ -492,59 +506,48 @@ export default function Events() {
             </div>
           )}
 
-          {!loading &&
-            !error &&
-            filtered.length === 0 && (
-              <div className="riStatusBox">
-                <p>
-                  Эвэнт олдсонгүй. Хайлтын үг эсвэл ангиллаа өөрчлөөд дахин оролдоно уу.
-                </p>
-                {(query ||
-                  category !== "Бүгд") && (
-                  <button
-                    type="button"
-                    className="riRetryButton"
-                    onClick={() => {
-                      setQuery("");
-                      setCategory("Бүгд");
-                    }}
-                  >
-                    Бүх эвэнтийг харах
-                  </button>
-                )}
-              </div>
-            )}
+          {!loading && !error && filtered.length === 0 && (
+            <div className="riStatusBox">
+              <p>
+                Эвэнт олдсонгүй. Хайлтын үг эсвэл ангиллаа өөрчлөөд дахин
+                оролдоно уу.
+              </p>
 
-          {!loading &&
-            !error &&
-            filtered.length > 0 && (
-              <div className="riEventsGrid">
-                {filtered.map((event) => {
-                  const eventId =
-                    getEventId(event);
+              {(query || category !== "Бүгд") && (
+                <button
+                  type="button"
+                  className="riRetryButton"
+                  onClick={() => {
+                    setQuery("");
 
-                  const joined =
-                    isEventJoined(event);
+                    setCategory("Бүгд");
+                  }}
+                >
+                  Бүх эвэнтийг харах
+                </button>
+              )}
+            </div>
+          )}
 
-                  return (
-                    <EventCard
-                      key={
-                        eventId ??
-                        `${event.title}-${event.start_time}`
-                      }
-                      event={event}
-                      joined={joined}
-                      onOpen={() =>
-                        openEvent(event)
-                      }
-                      onBook={() =>
-                        joinEvent(event)
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="riEventsGrid">
+              {filtered.map((event) => {
+                const eventId = getEventId(event);
+
+                const joined = isEventJoined(event);
+
+                return (
+                  <EventCard
+                    key={eventId ?? `${event.title}-${event.start_time}`}
+                    event={event}
+                    joined={joined}
+                    onOpen={() => openEvent(event)}
+                    onBook={() => joinEvent(event)}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
