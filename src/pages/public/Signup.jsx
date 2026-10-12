@@ -818,7 +818,7 @@ export default function Signup() {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="you\@example.com"
+                  placeholder="you@example.com"
                   autoComplete="email"
                   required
                 />
