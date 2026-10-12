@@ -1,36 +1,98 @@
-
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+
+import { useNavigate } from "react-router-dom";
+
 import {
+  FiCamera,
   FiCheck,
+  FiEdit3,
+  FiEye,
   FiGlobe,
   FiMail,
   FiMapPin,
   FiPhone,
   FiUsers,
-  FiArrowLeft,
-  FiFacebook,
-  FiLinkedin,
 } from "react-icons/fi";
+
+import UserShell from "../components/UserShell";
+
 import { API_BASE } from "@/lib/config";
 
 const DEFAULT_LOGOS = [
   "/registra-default-images/logos/logo-color-1-example.svg",
+
   "/registra-default-images/logos/logo-color-2-example.svg",
+
   "/registra-default-images/logos/logo-color-3-example.svg",
+
   "/registra-default-images/logos/logo-color-4-example.svg",
+
   "/registra-default-images/logos/logo-color-5-example.svg",
+
   "/registra-default-images/logos/logo-color-6-example.svg",
 ];
 
 const DEFAULT_COVERS = [
   "/registra-default-images/org-covers/org-cover-1.svg",
+
   "/registra-default-images/org-covers/org-cover-2.svg",
+
   "/registra-default-images/org-covers/org-cover-3.svg",
+
   "/registra-default-images/org-covers/org-cover-4.svg",
+
   "/registra-default-images/org-covers/org-cover-5.svg",
+
   "/registra-default-images/org-covers/org-cover-6.svg",
 ];
+
+const INDUSTRIES = [
+  "IT / Программ хангамж",
+
+  "Санхүү",
+
+  "Банк",
+
+  "Боловсрол",
+
+  "Маркетинг",
+
+  "Барилга",
+
+  "Худалдаа",
+
+  "Үйлчилгээ",
+
+  "Үйлдвэрлэл",
+
+  "Тээвэр, логистик",
+
+  "Эрүүл мэнд",
+
+  "Бусад",
+];
+
+const EMPLOYEE_COUNTS = [
+  "1-10",
+
+  "11-50",
+
+  "51-100",
+
+  "101-250",
+
+  "251-500",
+
+  "501-1000",
+
+  "1000+",
+];
+
+function getToken() {
+  return (
+    localStorage.getItem("token") || localStorage.getItem("adminToken") || ""
+  );
+}
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -38,6 +100,7 @@ function clean(value) {
 
 function hashString(value) {
   const text = clean(value) || "registra";
+
   let hash = 0;
 
   for (let i = 0; i < text.length; i += 1) {
@@ -48,17 +111,23 @@ function hashString(value) {
 }
 
 function stableDefault(list, key) {
+  if (!Array.isArray(list) || list.length === 0) {
+    return "";
+  }
+
   return list[hashString(key) % list.length];
 }
 
 function resolveImage(value) {
   const image = clean(value);
 
-  if (!image) return "";
+  if (!image) {
+    return "";
+  }
 
   if (
-    image.startsWith("http://") ||
-    image.startsWith("https://") ||
+    image.startsWith("http\\://") ||
+    image.startsWith("https\\://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -81,489 +150,1121 @@ function normalizeOrganization(data) {
     data?.organization || data?.company || data?.data || data || {};
 
   return {
-    id: source.id || source.organization_id || source.company_id,
-    name: clean(
-      source.name || source.organization_name || source.company_name
-    ),
+    id: source.id || source.organization_id || source.company_id || null,
+
+    name: clean(source.name || source.organization_name || source.company_name),
+
     registration_number: clean(
       source.registration_number ||
         source.registrationNumber ||
         source.register_number ||
-        source.reg_number
+        source.registerNumber ||
+        source.reg_number,
     ),
-    industry: clean(
-      source.industry || source.sector || source.category
-    ),
+
+    industry: clean(source.industry || source.sector || source.category),
+
     employee_count: clean(
       source.employee_count ||
         source.employeeCount ||
         source.company_size ||
-        source.size
+        source.size,
     ),
-    description: clean(
-      source.description || source.about || source.bio
-    ),
+
+    description: clean(source.description || source.about || source.bio),
+
     website: clean(source.website),
+
     email: clean(source.email || source.contact_email),
+
     phone: clean(source.phone || source.contact_phone),
+
     address: clean(source.address),
+
     facebook: clean(source.facebook),
+
     linkedin: clean(source.linkedin),
-    contact_person: clean(
-      source.contact_person || source.contactPerson
-    ),
-    logo_url: clean(
-      source.logo_url || source.logoUrl || source.logo
-    ),
-    cover_url: clean(
-      source.cover_url || source.coverUrl || source.cover
-    ),
+
+    contact_person: clean(source.contact_person || source.contactPerson),
+
+    logo_url: clean(source.logo_url || source.logoUrl || source.logo),
+
+    cover_url: clean(source.cover_url || source.coverUrl || source.cover),
+
     event_count: Number(
-      source.event_count ??
-        source.eventCount ??
-        source.events_count ??
-        0
+      source.event_count ?? source.eventCount ?? source.events_count ?? 0,
     ),
+
     participant_count: Number(
       source.participant_count ??
         source.participantCount ??
         source.participants_count ??
-        0
+        0,
     ),
+
     follower_count: Number(
       source.follower_count ??
         source.followerCount ??
         source.followers_count ??
-        0
+        0,
     ),
-    rating: Number(
-      source.rating ?? source.average_rating ?? 0
-    ),
+
+    rating: Number(source.rating ?? source.average_rating ?? 0),
+
     verified: Boolean(
-      source.verified ||
-        source.is_verified ||
-        source.isVerified
+      source.verified || source.is_verified || source.isVerified,
     ),
+  };
+}
+
+function createForm(organization = {}) {
+  return {
+    name: organization.name || "",
+
+    registration_number: organization.registration_number || "",
+
+    industry: organization.industry || "",
+
+    employee_count: organization.employee_count || "",
+
+    description: organization.description || "",
+
+    website: organization.website || "",
+
+    email: organization.email || "",
+
+    phone: organization.phone || "",
+
+    address: organization.address || "",
+
+    facebook: organization.facebook || "",
+
+    linkedin: organization.linkedin || "",
+
+    contact_person: organization.contact_person || "",
   };
 }
 
 function formatNumber(value) {
   const number = Number(value);
-  return Number.isFinite(number)
-    ? number.toLocaleString()
-    : "0";
-}
 
-function externalUrl(value) {
-  const url = clean(value);
-  if (!url) return "";
-
-  if (/^https?:\/\//i.test(url)) {
-    return url;
+  if (!Number.isFinite(number)) {
+    return "0";
   }
 
-  return `https://${url}`;
+  return number.toLocaleString();
 }
 
-function InfoField({ label, value, icon: Icon, href }) {
-  if (!value) return null;
-
-  return (
-    <div className="orgField">
-      <label>{label}</label>
-
-      <div className="orgInputIcon">
-        {Icon && <Icon />}
-
-        {href ? (
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "block",
-              width: "100%",
-              overflowWrap: "anywhere",
-            }}
-          >
-            {value}
-          </a>
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              overflowWrap: "anywhere",
-            }}
-          >
-            {value}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function PublicOrganizationProfile() {
-  const { id } = useParams();
+export default function OrganizationProfile() {
+  const navigate = useNavigate();
 
   const [organization, setOrganization] = useState(null);
+
+  const totalEvents = formatNumber(organization?.event_count);
+  const totalParticipants = formatNumber(organization?.participant_count);
+  const followers = formatNumber(organization?.follower_count);
+  const averageRating = Number.isFinite(organization?.rating)
+    ? organization.rating.toFixed(1)
+    : "0.0";
+
+  const [form, setForm] = useState(createForm());
+
   const [loading, setLoading] = useState(true);
+
+  const [saving, setSaving] = useState(false);
+
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const [fieldErrors, setFieldErrors] = useState({});
 
-    async function loadOrganization() {
-      setLoading(true);
-      setError("");
-      setOrganization(null);
+  const [success, setSuccess] = useState("");
 
-      try {
-        const response = await fetch(
-          `${API_BASE}/api/organizations/public`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-            signal: controller.signal,
-          }
-        );
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
 
-        const data = await response.json().catch(() => ({}));
+  const [logoPreview, setLogoPreview] = useState("");
 
-        if (!response.ok) {
-          throw new Error(
-            data?.message ||
-              "Байгууллагын мэдээлэл авахад алдаа гарлаа."
-          );
-        }
+  const [coverPreview, setCoverPreview] = useState("");
 
-        const items = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.organizations)
-            ? data.organizations
-            : Array.isArray(data?.data)
-              ? data.data
-              : Array.isArray(data?.data?.organizations)
-                ? data.data.organizations
-                : [];
+  const [logoFile, setLogoFile] = useState(null);
 
-        const selected = items.find((item) => {
-          const normalized = normalizeOrganization(item);
-          return String(normalized.id) === String(id);
-        });
+  const [coverFile, setCoverFile] = useState(null);
 
-        if (!selected) {
-          throw new Error("Байгууллага олдсонгүй.");
-        }
+  const [activeSection, setActiveSection] = useState("information");
 
-        if (!controller.signal.aborted) {
-          setOrganization(normalizeOrganization(selected));
-        }
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          setError(
-            err.message ||
-              "Байгууллагын мэдээлэл уншихад алдаа гарлаа."
-          );
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
+  const storedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
     }
+  }, []);
 
-    loadOrganization();
-
-    return () => controller.abort();
-  }, [id]);
+  const organizationIdentityKey =
+    storedUser?.id ||
+    storedUser?.user_id ||
+    storedUser?.email ||
+    organization?.id ||
+    organization?.name ||
+    form.name ||
+    "registra-organization";
 
   const organizationKey =
-    organization?.id || organization?.name || id;
+    organization?.id ||
+    organization?.name ||
+    form.name ||
+    organizationIdentityKey;
 
-  const defaultLogo = useMemo(
-    () =>
-      stableDefault(
-        DEFAULT_LOGOS,
-        `${organizationKey}-organization-logo`
-      ),
-    [organizationKey]
-  );
+  const defaultLogo = useMemo(() => {
+    return stableDefault(
+      DEFAULT_LOGOS,
 
-  const defaultCover = useMemo(
-    () =>
-      stableDefault(
-        DEFAULT_COVERS,
-        `${organizationKey}-cover`
-      ),
-    [organizationKey]
-  );
+      `${organizationIdentityKey}-organization-logo`,
+    );
+  }, [organizationIdentityKey]);
+
+  const defaultCover = useMemo(() => {
+    return stableDefault(DEFAULT_COVERS, `${organizationKey}-cover`);
+  }, [organizationKey]);
 
   const logoSrc =
-    resolveImage(organization?.logo_url) || defaultLogo;
+    logoPreview || resolveImage(organization?.logo_url) || defaultLogo;
 
   const coverSrc =
-    resolveImage(organization?.cover_url) || defaultCover;
+    coverPreview || resolveImage(organization?.cover_url) || defaultCover;
+
+  const completion = useMemo(() => {
+    const values = [
+      form.name,
+
+      form.registration_number,
+
+      form.industry,
+
+      form.employee_count,
+
+      form.description,
+
+      form.website,
+
+      form.email,
+
+      form.phone,
+
+      form.address,
+
+      form.contact_person,
+    ];
+
+    const completed = values.filter((value) => clean(value).length > 0).length;
+
+    if (!values.length) {
+      return 0;
+    }
+
+    return Math.round((completed / values.length) * 100);
+  }, [form]);
+
+  useEffect(() => {
+    loadOrganization();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+
+      if (coverPreview && coverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(coverPreview);
+      }
+    };
+  }, [logoPreview, coverPreview]);
+
+  async function loadOrganization() {
+    const token = getToken();
+
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+      });
+
+      return;
+    }
+
+    setLoading(true);
+
+    setError("");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/organizations/me`, {
+        method: "GET",
+
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("adminToken");
+
+        localStorage.removeItem("user");
+
+        navigate("/login", { replace: true });
+
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Organization endpoint error");
+      }
+
+      const normalized = normalizeOrganization(data);
+
+      setOrganization(normalized);
+
+      setForm(createForm(normalized));
+    } catch (err) {
+      console.error(
+        "Load organization error:",
+
+        err,
+      );
+
+      setError(err?.message || "Байгууллагын мэдээлэл уншихад алдаа гарлаа.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFieldErrors((current) => ({ ...current, [name]: undefined }));
+
+    setForm((current) => ({
+      ...current,
+
+      [name]: value,
+    }));
+
+    setError("");
+
+    setSuccess("");
+  }
+
+  function selectLogo(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Зөвхөн зураг файл сонгоно уу.");
+
+      event.target.value = "";
+
+      return;
+    }
+
+    if (logoPreview && logoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(logoPreview);
+    }
+
+    setLogoFile(file);
+
+    setLogoPreview(URL.createObjectURL(file));
+
+    setError("");
+
+    setSuccess("");
+
+    event.target.value = "";
+  }
+
+  function selectCover(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Зөвхөн зураг файл сонгоно уу.");
+
+      event.target.value = "";
+
+      return;
+    }
+
+    if (coverPreview && coverPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(coverPreview);
+    }
+
+    setCoverFile(file);
+
+    setCoverPreview(URL.createObjectURL(file));
+
+    setError("");
+
+    setSuccess("");
+
+    event.target.value = "";
+  }
+
+  async function saveOrganization() {
+    const token = getToken();
+
+    if (!token) {
+      navigate("/login", { replace: true });
+
+      return;
+    }
+
+    const required = {
+      name: clean(form.name),
+
+      registration_number: clean(form.registration_number),
+
+      industry: clean(form.industry),
+
+      employee_count: clean(form.employee_count),
+
+      description: clean(form.description),
+
+      email: clean(form.email),
+
+      phone: clean(form.phone),
+
+      address: clean(form.address),
+    };
+
+    const labels = {
+      name: "Байгууллагын нэр",
+
+      registration_number: "Регистрийн дугаар",
+
+      industry: "Салбар",
+
+      employee_count: "Ажилтны тоо",
+
+      description: "Товч танилцуулга",
+
+      email: "Албан и-мэйл",
+
+      phone: "Утас",
+
+      address: "Хаяг",
+    };
+
+    const missing = Object.fromEntries(
+      Object.entries(required)
+
+        .filter(([, value]) => !value)
+
+        .map(([key]) => [key, `${labels[key]} талбарыг бөглөнө үү.`]),
+    );
+
+    setFieldErrors(missing);
+
+    if (Object.keys(missing).length) {
+      setError(
+        `Дутуу талбар: ${Object.keys(missing)
+
+          .map((key) => labels[key])
+
+          .join(", ")}`,
+      );
+
+      document
+
+        .querySelector(`[name="${Object.keys(missing)[0]}"]`)
+
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      return;
+    }
+
+    setSaving(true);
+
+    setError("");
+
+    setSuccess("");
+
+    try {
+      const body = new FormData();
+
+      body.append("name", required.name);
+
+      body.append("registration_number", required.registration_number);
+
+      body.append("industry", required.industry);
+
+      body.append("employee_count", required.employee_count);
+
+      body.append("description", required.description);
+
+      body.append("website", clean(form.website));
+
+      body.append("email", required.email);
+
+      body.append("phone", required.phone);
+
+      body.append("address", required.address);
+
+      body.append("facebook", clean(form.facebook));
+
+      body.append("linkedin", clean(form.linkedin));
+
+      body.append("contact_person", clean(form.contact_person));
+
+      if (logoFile) {
+        body.append("logo", logoFile);
+      } else if (organization?.logo_url) {
+        body.append("logo_url", organization.logo_url);
+      }
+
+      if (coverFile) {
+        body.append("cover", coverFile);
+      } else if (organization?.cover_url) {
+        body.append("cover_url", organization.cover_url);
+      }
+
+      const response = await fetch(`${API_BASE}/api/organizations/me`, {
+        method: "PUT",
+
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+
+        body,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("adminToken");
+
+        localStorage.removeItem("user");
+
+        localStorage.removeItem("profileComplete");
+
+        localStorage.removeItem("organizationProfileComplete");
+
+        navigate("/login", { replace: true });
+
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Organization save failed");
+      }
+
+      const normalized = normalizeOrganization(data);
+
+      setOrganization(normalized);
+
+      setForm(createForm(normalized));
+
+      setFieldErrors({});
+
+      setLogoFile(null);
+
+      setCoverFile(null);
+
+      if (logoPreview && logoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+
+      if (coverPreview && coverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(coverPreview);
+      }
+
+      setLogoPreview("");
+
+      setCoverPreview("");
+
+      localStorage.setItem("organizationProfileComplete", "true");
+
+      localStorage.setItem("profileComplete", "true");
+
+      localStorage.setItem("accountType", "organization");
+
+      localStorage.setItem("account_type", "organization");
+
+      window.dispatchEvent(new Event("organization-updated"));
+
+      window.dispatchEvent(new Event("profile-updated"));
+
+      setSuccess("Байгууллагын мэдээлэл амжилттай хадгалагдлаа.");
+
+      setShowCompleteModal(true);
+
+      setTimeout(() => {
+        window.location.replace("/user/home");
+      }, 900);
+    } catch (err) {
+      console.error("Save organization error:", err);
+
+      setError(
+        err?.message || "Байгууллагын мэдээлэл хадгалахад алдаа гарлаа.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function goToDashboard() {
+    setShowCompleteModal(false);
+
+    window.location.replace("/user/home");
+  }
 
   function handleLogoError(event) {
     event.currentTarget.onerror = null;
+
     event.currentTarget.src = defaultLogo;
   }
 
   function handleCoverError(event) {
     event.currentTarget.onerror = null;
+
     event.currentTarget.src = defaultCover;
   }
 
   if (loading) {
     return (
-      <main className="orgProfilePage">
+      <UserShell title="Байгууллагын профайл">
         <div className="orgProfileLoading">
           Байгууллагын мэдээлэл уншиж байна...
         </div>
-      </main>
-    );
-  }
-
-  if (error || !organization) {
-    return (
-      <main className="orgProfilePage">
-        <Link to="/organization" className="orgPublicButton">
-          <FiArrowLeft />
-          Байгууллагууд
-        </Link>
-
-        <div className="orgMessage error" role="alert">
-          {error || "Байгууллага олдсонгүй."}
-        </div>
-      </main>
+      </UserShell>
     );
   }
 
   return (
-    <main className="orgProfilePage">
-      <div className="orgProfileTopbar">
-        <div>
-          <h1>Байгууллагын профайл</h1>
-          <p>
-            Байгууллагын танилцуулга болон холбоо барих мэдээлэл
-          </p>
-        </div>
-
-        <Link to="/organization" className="orgPublicButton">
-          <FiArrowLeft />
-          Байгууллагууд
-        </Link>
-      </div>
-
-      <section className="orgHero">
-        <div className="orgCover">
-          <img
-            src={coverSrc}
-            alt={`${organization.name} cover`}
-            onError={handleCoverError}
-          />
-        </div>
-
-        <div className="orgHeroBottom">
-          <div className="orgLogoWrap">
-            <img
-              className="orgLogo"
-              src={logoSrc}
-              alt={`${organization.name} logo`}
-              onError={handleLogoError}
-              style={{
-                display: "block",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-
-          <div className="orgIdentity">
-            <div className="orgNameRow">
-              <h2>{organization.name || "Байгууллага"}</h2>
-
-              {organization.verified && (
-                <span className="orgVerified">
-                  <FiCheck />
-                  Баталгаажсан
-                </span>
-              )}
-            </div>
+    <UserShell title="Байгууллагын профайл">
+      <main className="orgProfilePage">
+        <div className="orgProfileTopbar">
+          <div>
+            <h1>Байгууллагын профайл</h1>
 
             <p>
-              <span>
-                {organization.industry || "Байгууллага"}
-              </span>
-
-              {organization.address && (
-                <>
-                  <span>•</span>
-                  <span>{organization.address}</span>
-                </>
-              )}
+              Байгууллагын бүртгэл, мэдээлэл, зураг болон холбоо барих
+              мэдээллийг удирдана.
             </p>
           </div>
 
-          <div className="orgStats">
-            <div className="orgStat">
-              <strong>
-                {formatNumber(organization.event_count)}
-              </strong>
-              <span>Эвент зохион байгуулсан</span>
-            </div>
-
-            <div className="orgStat">
-              <strong>
-                {formatNumber(organization.participant_count)}
-              </strong>
-              <span>Нийт оролцогч</span>
-            </div>
-
-            <div className="orgStat">
-              <strong>
-                {formatNumber(organization.follower_count)}
-              </strong>
-              <span>Дагагч</span>
-            </div>
-
-            <div className="orgStat">
-              <strong>
-                {Number.isFinite(organization.rating)
-                  ? organization.rating.toFixed(1)
-                  : "0.0"}
-              </strong>
-              <span>Дундаж үнэлгээ</span>
-            </div>
-          </div>
+          <button type="button" className="orgPublicButton">
+            <FiEye />
+            Нийтийн профайл харах
+          </button>
         </div>
-      </section>
 
-      <div className="orgContent">
-        <aside className="orgSettingsMenu">
-          <div className="active">
-            <FiUsers />
-            Байгууллагын мэдээлэл
+        <section className="orgHero">
+          <div className="orgCover">
+            <img
+              src={coverSrc}
+              alt={form.name ? `${form.name} cover` : "Organization cover"}
+              onError={handleCoverError}
+            />
+
+            <label className="orgCoverButton">
+              <FiCamera />
+              Ковер солих
+              <input type="file" accept="image/*" onChange={selectCover} />
+            </label>
           </div>
-        </aside>
 
-        <section className="orgFormArea">
-          <section className="orgCard">
-            <div className="orgCardHeader">
-              <h3>Байгууллагын мэдээлэл</h3>
+          <div className="orgHeroBottom">
+            <div className="orgLogoWrap">
+              <img
+                className="orgLogo"
+                src={logoSrc}
+                alt={form.name ? `${form.name} logo` : "Organization logo"}
+                onError={handleLogoError}
+                style={{
+                  display: "block",
 
-              <span className="orgComplete">
-                <FiCheck />
-                Нийтэд харагдана
-              </span>
-            </div>
-
-            <div className="orgCardBody">
-              <div className="orgGrid2">
-                <InfoField
-                  label="БАЙГУУЛЛАГЫН НЭР"
-                  value={organization.name}
-                />
-
-                <InfoField
-                  label="САЛБАР"
-                  value={organization.industry}
-                />
-              </div>
-
-              <div className="orgGrid2">
-                <InfoField
-                  label="АЖИЛТНЫ ТОО"
-                  value={organization.employee_count}
-                />
-              </div>
-
-              <div className="orgField">
-                <label>ТОВЧ ТАНИЛЦУУЛГА</label>
-
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                  }}
-                >
-                  {organization.description ||
-                    "Байгууллагын танилцуулга оруулаагүй байна."}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="orgCard">
-            <div className="orgCardHeader">
-              <h3>Холбоо барих</h3>
-            </div>
-
-            <div className="orgCardBody">
-              <div className="orgGrid3">
-                <InfoField
-                  label="ВЭБСАЙТ"
-                  value={organization.website}
-                  icon={FiGlobe}
-                  href={externalUrl(organization.website)}
-                />
-
-                <InfoField
-                  label="АЛБАН И-МЭЙЛ"
-                  value={organization.email}
-                  icon={FiMail}
-                  href={
-                    organization.email
-                      ? `mailto:${organization.email}`
-                      : ""
-                  }
-                />
-
-                <InfoField
-                  label="УТАС"
-                  value={organization.phone}
-                  icon={FiPhone}
-                  href={
-                    organization.phone
-                      ? `tel:${organization.phone.replace(/\s/g, "")}`
-                      : ""
-                  }
-                />
-              </div>
-
-              <InfoField
-                label="ХАЯГ"
-                value={organization.address}
-                icon={FiMapPin}
+                  objectFit: "contain",
+                }}
               />
 
-              <div className="orgGrid3">
-                <InfoField
-                  label="FACEBOOK"
-                  value={organization.facebook}
-                  icon={FiFacebook}
-                  href={externalUrl(organization.facebook)}
-                />
+              <label className="orgLogoEdit">
+                <FiCamera />
 
-                <InfoField
-                  label="LINKEDIN"
-                  value={organization.linkedin}
-                  icon={FiLinkedin}
-                  href={externalUrl(organization.linkedin)}
-                />
+                <input type="file" accept="image/*" onChange={selectLogo} />
+              </label>
+            </div>
 
-                <InfoField
-                  label="ХОЛБОГДОХ АЖИЛТАН"
-                  value={organization.contact_person}
-                  icon={FiUsers}
+            <div className="orgIdentity">
+              <div className="orgNameRow">
+                <h2>{form.name || "Байгууллагын нэр"}</h2>
+
+                {organization?.verified && (
+                  <span className="orgVerified">
+                    <FiCheck />
+                    Баталгаажсан
+                  </span>
+                )}
+              </div>
+
+              <p>
+                <span>{form.industry || "Салбар сонгоогүй"}</span>
+
+                {form.address && (
+                  <>
+                    <span>•</span>
+
+                    <span>{form.address}</span>
+                  </>
+                )}
+              </p>
+            </div>
+
+            <div className="orgStats">
+              <div className="orgStat">
+                <strong>{totalEvents}</strong>
+
+                <span>Эвент зохион байгуулсан</span>
+              </div>
+
+              <div className="orgStat">
+                <strong>{totalParticipants}</strong>
+
+                <span>Нийт оролцогч</span>
+              </div>
+
+              <div className="orgStat">
+                <strong>{followers}</strong>
+
+                <span>Дагагч</span>
+              </div>
+
+              <div className="orgStat">
+                <strong>{averageRating}</strong>
+
+                <span>Дундаж үнэлгээ</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {error && <div className="orgMessage error">{error}</div>}
+
+        {success && <div className="orgMessage success">{success}</div>}
+
+        <div className="orgContent">
+          <aside className="orgSettingsMenu">
+            <button
+              type="button"
+              className={activeSection === "information" ? "active" : ""}
+              onClick={() => setActiveSection("information")}
+            >
+              <FiEdit3 />
+              Байгууллагын мэдээлэл
+            </button>
+
+            <button
+              type="button"
+              className={activeSection === "media" ? "active" : ""}
+              onClick={() => setActiveSection("media")}
+            >
+              <FiCamera />
+              Лого ба ковер
+            </button>
+
+            <button
+              type="button"
+              className={activeSection === "team" ? "active" : ""}
+              onClick={() => setActiveSection("team")}
+            >
+              <FiUsers />
+              Баг ба эрх
+            </button>
+
+            <button
+              type="button"
+              className={activeSection === "verification" ? "active" : ""}
+              onClick={() => setActiveSection("verification")}
+            >
+              <FiCheck />
+              Баталгаажуулалт
+            </button>
+
+            <div className="orgProgressBox">
+              <div className="orgProgressHeader">
+                <span>Профайл бөглөлт</span>
+
+                <strong>{completion}%</strong>
+              </div>
+
+              <div className="orgProgress">
+                <span
+                  style={{
+                    width: `${completion}%`,
+                  }}
                 />
               </div>
             </div>
+          </aside>
+
+          <section className="orgFormArea">
+            {activeSection === "information" && (
+              <>
+                <section className="orgCard">
+                  <div className="orgCardHeader">
+                    <h3>Байгууллагын мэдээлэл</h3>
+
+                    <span className="orgComplete">
+                      <FiCheck />
+                      Нийтэд харагдана
+                    </span>
+                  </div>
+
+                  <div className="orgCardBody">
+                    <div className="orgGrid2">
+                      <div className="orgField">
+                        <label>
+                          БАЙГУУЛЛАГЫН НЭР
+                          <span> *</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          name="name"
+                          aria-invalid={Boolean(fieldErrors.name)}
+                          value={form.name}
+                          onChange={handleChange}
+                          placeholder="IT Insight"
+                        />
+                      </div>
+
+                      <div className="orgField">
+                        <label>
+                          РЕГИСТРИЙН ДУГААР{" "}
+                          <span className="orgRequiredStar">*</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          name="registration_number"
+                          aria-invalid={Boolean(
+                            fieldErrors.registration_number,
+                          )}
+                          value={form.registration_number}
+                          onChange={handleChange}
+                          placeholder="6012345"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="orgGrid2">
+                      <div className="orgField">
+                        <label>
+                          САЛБАР <span className="orgRequiredStar">*</span>
+                        </label>
+
+                        <select
+                          name="industry"
+                          aria-invalid={Boolean(fieldErrors.industry)}
+                          value={form.industry}
+                          onChange={handleChange}
+                        >
+                          <option value="">Сонгоно уу</option>
+
+                          {INDUSTRIES.map((industry) => (
+                            <option key={industry} value={industry}>
+                              {industry}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="orgField">
+                        <label>
+                          АЖИЛТНЫ ТОО <span className="orgRequiredStar">*</span>
+                        </label>
+
+                        <select
+                          name="employee_count"
+                          aria-invalid={Boolean(fieldErrors.employee_count)}
+                          value={form.employee_count}
+                          onChange={handleChange}
+                        >
+                          <option value="">Сонгоно уу</option>
+
+                          {EMPLOYEE_COUNTS.map((count) => (
+                            <option key={count} value={count}>
+                              {count}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="orgField">
+                      <label>
+                        ТОВЧ ТАНИЛЦУУЛГА{" "}
+                        <span className="orgRequiredStar">*</span>
+                      </label>
+
+                      <textarea
+                        name="description"
+                        aria-invalid={Boolean(fieldErrors.description)}
+                        value={form.description}
+                        onChange={handleChange}
+                        rows={5}
+                        placeholder="Байгууллагынхаа тухай товч мэдээлэл оруулна уу..."
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="orgCard">
+                  <div className="orgCardHeader">
+                    <h3>Холбоо барих</h3>
+                  </div>
+
+                  <div className="orgCardBody">
+                    <div className="orgGrid3">
+                      <div className="orgField">
+                        <label>
+                          ВЭБСАЙТ <span>(Сонголттой)</span>
+                        </label>
+
+                        <div className="orgInputIcon">
+                          <FiGlobe />
+
+                          <input
+                            type="text"
+                            name="website"
+                            value={form.website}
+                            onChange={handleChange}
+                            placeholder="itinsight.mn"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="orgField">
+                        <label>
+                          АЛБАН И-МЭЙЛ{" "}
+                          <span className="orgRequiredStar">*</span>
+                        </label>
+
+                        <div className="orgInputIcon">
+                          <FiMail />
+
+                          <input
+                            type="email"
+                            name="email"
+                            aria-invalid={Boolean(fieldErrors.email)}
+                            value={form.email}
+                            onChange={handleChange}
+                            placeholder="info\@itinsight.mn"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="orgField">
+                        <label>
+                          УТАС <span className="orgRequiredStar">*</span>
+                        </label>
+
+                        <div className="orgInputIcon">
+                          <FiPhone />
+
+                          <input
+                            type="text"
+                            name="phone"
+                            aria-invalid={Boolean(fieldErrors.phone)}
+                            value={form.phone}
+                            onChange={handleChange}
+                            placeholder="7711 2233"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="orgField">
+                      <label>
+                        ХАЯГ <span className="orgRequiredStar">*</span>
+                      </label>
+
+                      <div className="orgInputIcon">
+                        <FiMapPin />
+
+                        <input
+                          type="text"
+                          name="address"
+                          aria-invalid={Boolean(fieldErrors.address)}
+                          value={form.address}
+                          onChange={handleChange}
+                          placeholder="Улаанбаатар, Сүхбаатар дүүрэг..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="orgGrid3">
+                      <div className="orgField">
+                        <label>
+                          FACEBOOK <span>(Сонголттой)</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          name="facebook"
+                          value={form.facebook}
+                          onChange={handleChange}
+                          placeholder="fb.com/company"
+                        />
+                      </div>
+
+                      <div className="orgField">
+                        <label>
+                          LINKEDIN <span>(Сонголттой)</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          name="linkedin"
+                          value={form.linkedin}
+                          onChange={handleChange}
+                          placeholder="linkedin.com/company/..."
+                        />
+                      </div>
+
+                      <div className="orgField">
+                        <label>
+                          ХОЛБОГДОХ АЖИЛТАН <span>(Сонголттой)</span>
+                        </label>
+
+                        <input
+                          type="text"
+                          name="contact_person"
+                          value={form.contact_person}
+                          onChange={handleChange}
+                          placeholder="Нэр - Албан тушаал"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {activeSection === "media" && (
+              <section className="orgCard">
+                <div className="orgCardHeader">
+                  <h3>Лого ба ковер</h3>
+                </div>
+
+                <div className="orgCardBody">
+                  <div className="orgMediaGrid">
+                    <div className="orgMediaItem">
+                      <h4>Байгууллагын лого</h4>
+
+                      <div className="orgMediaLogo">
+                        <img
+                          src={logoSrc}
+                          alt={form.name || "Organization logo"}
+                          onError={handleLogoError}
+                        />
+                      </div>
+
+                      <label className="orgUploadButton">
+                        <FiCamera />
+                        Лого солих
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={selectLogo}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="orgMediaItem">
+                      <h4>Профайлын ковер</h4>
+
+                      <div className="orgMediaCover">
+                        <img
+                          src={coverSrc}
+                          alt="Organization cover"
+                          onError={handleCoverError}
+                        />
+                      </div>
+
+                      <label className="orgUploadButton">
+                        <FiCamera />
+                        Ковер солих
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={selectCover}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {activeSection === "team" && (
+              <section className="orgCard">
+                <div className="orgEmptyState">
+                  <FiUsers />
+
+                  <h3>Баг ба эрх</h3>
+
+                  <p>
+                    Байгууллагын гишүүд болон хэрэглэгчийн эрхийг энд удирдана.
+                  </p>
+                </div>
+              </section>
+            )}
+
+            {activeSection === "verification" && (
+              <section className="orgCard">
+                <div className="orgEmptyState">
+                  <FiCheck />
+
+                  <h3>Баталгаажуулалт</h3>
+
+                  <p>Байгууллагын баталгаажуулалтын мэдээлэл энд харагдана.</p>
+                </div>
+              </section>
+            )}
           </section>
-        </section>
-      </div>
-    </main>
+        </div>
+
+        <footer className="orgStickyFooter">
+          <button type="button" onClick={saveOrganization} disabled={saving}>
+            {saving ? "Хадгалж байна..." : "Өөрчлөлт хадгалах"}
+          </button>
+        </footer>
+
+        {showCompleteModal && (
+          <div className="orgCompleteModalBackdrop">
+            <div className="orgCompleteModal">
+              <FiCheck />
+
+              <h2>Байгууллагын профайл бүрэн боллоо!</h2>
+
+              <p>Мэдээлэл, лого болон cover зураг амжилттай хадгалагдлаа.</p>
+
+              <button type="button" onClick={goToDashboard}>
+                Нүүр хуудас руу очих
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+    </UserShell>
   );
 }
