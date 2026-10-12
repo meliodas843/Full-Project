@@ -91,6 +91,7 @@ export default function Signup() {
   ]);
 
   const [profileImage, setProfileImage] = useState(null);
+
   const [profileImagePreview, setProfileImagePreview] = useState("");
 
   const [organizationLogo, setOrganizationLogo] = useState(null);
@@ -297,6 +298,39 @@ export default function Signup() {
           );
 
           return;
+        }
+      }
+
+      if (accountType === "individual" && profileImage && data?.token) {
+        const avatarBody = new FormData();
+        avatarBody.append("avatar", profileImage);
+        avatarBody.append("firstName", form.firstName.trim());
+        avatarBody.append("lastName", form.lastName.trim());
+        avatarBody.append("phone", form.phone.trim());
+        avatarBody.append("company_name", form.companyName.trim());
+        avatarBody.append("job_title", form.position.trim());
+        avatarBody.append("interests", JSON.stringify([]));
+
+        try {
+          const avatarResponse = await fetch(`${API_BASE}/api/profile/me`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${data.token}` },
+            body: avatarBody,
+          });
+          const avatarData = await avatarResponse.json().catch(() => ({}));
+          if (!avatarResponse.ok) {
+            throw new Error(
+              avatarData?.message || "Профайл зураг хадгалахад алдаа гарлаа.",
+            );
+          }
+          if (avatarData?.user) {
+            data.user = { ...(data.user || {}), ...avatarData.user };
+          }
+        } catch (uploadError) {
+          console.error("Signup avatar upload error:", uploadError);
+          window.alert(
+            `Бүртгэл амжилттай үүслээ. Харин зураг хадгалагдсангүй: ${uploadError.message}. Профайл хэсгээс зургаа дахин оруулна уу.`,
+          );
         }
       }
 
@@ -528,15 +562,19 @@ export default function Signup() {
                     style={{ display: "none" }}
                     onChange={(event) => {
                       const file = event.target.files?.[0];
+
                       if (!file) return;
 
                       if (file.size > 5 * 1024 * 1024) {
                         alert("Зургийн хэмжээ 5MB-аас ихгүй байх ёстой.");
+
                         event.target.value = "";
+
                         return;
                       }
 
                       setProfileImage(file);
+
                       setProfileImagePreview(URL.createObjectURL(file));
                     }}
                   />
@@ -549,6 +587,7 @@ export default function Signup() {
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
+
                         profileImageInputRef.current?.click();
                       }
                     }}
@@ -562,7 +601,9 @@ export default function Signup() {
 
                   <div className="rgProfileUploadDetails">
                     <strong>Профайл зураг</strong>
+
                     <p>PNG, JPG, WEBP · 5MB хүртэл</p>
+
                     <button
                       type="button"
                       className="rgSmallOutlineButton"
@@ -768,7 +809,7 @@ export default function Signup() {
                         name="website"
                         value={form.website}
                         onChange={handleChange}
-                        placeholder="https://"
+                        placeholder="https\://"
                       />
                     </div>
                   </div>
@@ -818,7 +859,7 @@ export default function Signup() {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="you@example.com"
+                  placeholder="you\@example.com"
                   autoComplete="email"
                   required
                 />
