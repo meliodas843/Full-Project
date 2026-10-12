@@ -47318,3 +47318,90 @@ svg {
     padding: 17px;
   }
 }
+/* Append to the END of src/index.css */
+.rgSplitSignupForm .signupProfileUpload {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-bottom: 17px;
+  min-width: 0;
+}
+
+.rgSplitSignupForm .signupProfilePreview {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  padding: 0;
+  border: 1px solid #dfe2ea;
+  border-radius: 9px;
+  background: #fafbfc;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #838c9f;
+  cursor: pointer;
+}
+
+.rgSplitSignupForm .signupProfilePreview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rgSplitSignupForm .signupProfilePreview > span {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.rgSplitSignupForm .signupProfileUpload > button {
+  min-height: 31px;
+  padding: 0 13px;
+  border: 1px solid #dfe2e9;
+  border-radius: 8px;
+  background: #fff;
+  color: #353b4b;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.rgSplitSignupForm .signupProfileUpload > button:hover {
+  border-color: #6247ef;
+  color: #6247ef;
+}
+
+.signupProfileUpload .rgProfileUploadDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.signupProfileUpload .rgProfileUploadDetails strong {
+  font-size: 12px;
+  color: #252a3a;
+}
+
+.signupProfileUpload .rgProfileUploadDetails p {
+  margin: 0 0 3px;
+  font-size: 9px;
+  color: #969cac;
+}
+
+.rgSplitSignupForm .signupProfilePreview:focus-visible,
+.rgSplitSignupForm .signupProfileUpload > button:focus-visible {
+  outline: 2px solid #6247ef;
+  outline-offset: 3px;
+}
+
+@media (max-width: 420px) {
+  .rgSplitSignupForm .signupProfileUpload { gap: 12px; }
+  .rgSplitSignupForm .signupProfilePreview {
+    width: 76px;
+    height: 76px;
+    flex-basis: 76px;
+  }
+}

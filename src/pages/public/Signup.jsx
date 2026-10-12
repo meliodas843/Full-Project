@@ -528,32 +528,27 @@ export default function Signup() {
                     style={{ display: "none" }}
                     onChange={(event) => {
                       const file = event.target.files?.[0];
-
                       if (!file) return;
 
                       if (file.size > 5 * 1024 * 1024) {
                         alert("Зургийн хэмжээ 5MB-аас ихгүй байх ёстой.");
-
                         event.target.value = "";
-
                         return;
                       }
 
                       setProfileImage(file);
-
                       setProfileImagePreview(URL.createObjectURL(file));
                     }}
                   />
 
                   <div
                     className="signupProfilePreview"
-                    onClick={() => profileImageInputRef.current?.click()}
                     role="button"
                     tabIndex={0}
+                    onClick={() => profileImageInputRef.current?.click()}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-
                         profileImageInputRef.current?.click();
                       }
                     }}
@@ -561,16 +556,21 @@ export default function Signup() {
                     {profileImagePreview ? (
                       <img src={profileImagePreview} alt="Профайл зураг" />
                     ) : (
-                      <span>Зураг</span>
+                      <FiUser size={24} />
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => profileImageInputRef.current?.click()}
-                  >
-                    Зураг сонгох
-                  </button>
+                  <div className="rgProfileUploadDetails">
+                    <strong>Профайл зураг</strong>
+                    <p>PNG, JPG, WEBP · 5MB хүртэл</p>
+                    <button
+                      type="button"
+                      className="rgSmallOutlineButton"
+                      onClick={() => profileImageInputRef.current?.click()}
+                    >
+                      Зураг оруулах
+                    </button>
+                  </div>
                 </div>
 
                 <div className="rgFormGrid">
