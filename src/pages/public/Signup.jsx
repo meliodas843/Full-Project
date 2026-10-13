@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   FiArrowLeft,
@@ -48,11 +48,26 @@ const getPasswordRules = (password) => ({
 export default function Signup() {
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+
+  const initialAccountType =
+    searchParams.get("accountType") === "organization"
+      ? "organization"
+      : "individual";
+
+  const [accountType, setAccountType] = useState(initialAccountType);
+
   const profileImageInputRef = useRef(null);
 
   const fileInputRef = useRef(null);
 
-  const [accountType, setAccountType] = useState("individual");
+  useEffect(() => {
+    setAccountType(
+      searchParams.get("accountType") === "organization"
+        ? "organization"
+        : "individual",
+    );
+  }, [searchParams]);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -303,26 +318,32 @@ export default function Signup() {
 
       if (accountType === "individual" && profileImage && data?.token) {
         const avatarBody = new FormData();
-        avatarBody.append("avatar", profileImage);
 
+        avatarBody.append("avatar", profileImage);
 
         try {
           const avatarResponse = await fetch(`${API_BASE}/api/profile/me`, {
             method: "PUT",
+
             headers: { Authorization: `Bearer ${data.token}` },
+
             body: avatarBody,
           });
+
           const avatarData = await avatarResponse.json().catch(() => ({}));
+
           if (!avatarResponse.ok) {
             throw new Error(
               avatarData?.message || "Профайл зураг хадгалахад алдаа гарлаа.",
             );
           }
+
           if (avatarData?.user) {
             data.user = { ...(data.user || {}), ...avatarData.user };
           }
         } catch (uploadError) {
           console.error("Signup avatar upload error:", uploadError);
+
           window.alert(
             `Бүртгэл амжилттай үүслээ. Харин зураг хадгалагдсангүй: ${uploadError.message}. Профайл хэсгээс зургаа дахин оруулна уу.`,
           );
@@ -804,7 +825,7 @@ export default function Signup() {
                         name="website"
                         value={form.website}
                         onChange={handleChange}
-                        placeholder="https\://"
+                        placeholder="https://"
                       />
                     </div>
                   </div>
@@ -854,7 +875,7 @@ export default function Signup() {
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="you\@example.com"
+                  placeholder="you@example.com"
                   autoComplete="email"
                   required
                 />
