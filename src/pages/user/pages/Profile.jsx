@@ -419,10 +419,18 @@ export default function Profile() {
         avatar: avatarValue,
         profile_image: avatarValue,
         profile_image_url: avatarValue,
-        firstName: serverUser?.firstName || serverUser?.first_name || form.firstName.trim(),
-        first_name: serverUser?.first_name || serverUser?.firstName || form.firstName.trim(),
-        lastName: serverUser?.lastName || serverUser?.last_name || form.lastName.trim(),
-        last_name: serverUser?.last_name || serverUser?.lastName || form.lastName.trim(),
+        firstName:
+          serverUser?.firstName ||
+          serverUser?.first_name ||
+          form.firstName.trim(),
+        first_name:
+          serverUser?.first_name ||
+          serverUser?.firstName ||
+          form.firstName.trim(),
+        lastName:
+          serverUser?.lastName || serverUser?.last_name || form.lastName.trim(),
+        last_name:
+          serverUser?.last_name || serverUser?.lastName || form.lastName.trim(),
         company_name: serverUser?.company_name || form.company_name.trim(),
         company: serverUser?.company_name || form.company_name.trim(),
         organization: serverUser?.company_name || form.company_name.trim(),
@@ -675,14 +683,24 @@ export default function Profile() {
               <header className="rpCardHead">
                 <h3>Мэргэжлийн сонирхол</h3>
 
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#777" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "var(--rp-muted)",
+                  }}
+                >
                   {form.interests.length} сонгосон
                 </span>
               </header>
 
               <div className="rpCardBody">
                 <p
-                  style={{ margin: "0 0 12px", fontSize: 14, color: "#8b8c97" }}
+                  style={{
+                    margin: "0 0 12px",
+                    fontSize: 14,
+                    color: "var(--rp-muted)",
+                  }}
                 >
                   Танд тохирох эвент, уулзалтын санал болголтод ашиглана
                 </p>

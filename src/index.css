@@ -67,26 +67,34 @@
   --reg-input: #11162d;
 }
 
-:root {
-  --event-photo-bg: #f7f8fc;
-  --event-photo-card: #ffffff;
-  --event-photo-surface: #f9faff;
-  --event-photo-text: #1d2433;
-  --event-photo-muted: #81899d;
-  --event-photo-border: #e3e7f0;
-  --event-photo-input: #ffffff;
+:root,
+:root[data-theme="light"] {
+  --rp-bg: #f7f8fc;
+  --rp-card: #ffffff;
+  --rp-surface: #f4f6fb;
+  --rp-input: #ffffff;
+  --rp-text: #1d2433;
+  --rp-muted: #81899d;
+  --rp-border: #e3e7f0;
+  --rp-hover: #f0ebff;
+  --rp-shadow: 0 4px 18px rgba(20, 27, 50, 0.04);
+  --rp-accent: #6848f5;
+  --rp-accent-soft: #eee9ff;
 }
 
 :root[data-theme="dark"] {
-  --event-photo-bg: #0f1224;
-  --event-photo-card: #191d35;
-  --event-photo-surface: #20263e;
-  --event-photo-text: #f5f6ff;
-  --event-photo-muted: #a8b2cd;
-  --event-photo-border: #343b58;
-  --event-photo-input: #11162d;
+  --rp-bg: #0d1124;
+  --rp-card: #191e36;
+  --rp-surface: #222840;
+  --rp-input: #11162b;
+  --rp-text: #f5f6ff;
+  --rp-muted: #a6afca;
+  --rp-border: #343b57;
+  --rp-hover: #302a58;
+  --rp-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  --rp-accent: #8668ff;
+  --rp-accent-soft: #302858;
 }
-
 
 body {
   background: var(--reg-bg);
@@ -43020,18 +43028,205 @@ svg {
 
 .rpPage {
   min-height: 100%;
-  background: #f7f8fc;
-  padding: 22px 26px 70px;
-  color: #252536;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  margin-top: -20px;
+  background: var(--rp-bg);
+  color: var(--rp-text);
+  transition: background-color 0.25s, color 0.25s;
 }
+
+.rpHeading h1,
+.rpProfileCard h2,
+.rpCardHead h3,
+.rpProgressTitle,
+.rpContent,
+.rpSidebar {
+  color: var(--rp-text);
+}
+
+.rpHeading p,
+.rpProfileCard p,
+.rpCardBody > p {
+  color: var(--rp-muted);
+}
+
+.rpProfileCard,
+.rpNav,
+.rpCard {
+  background: var(--rp-card);
+  color: var(--rp-text);
+  border: 1px solid var(--rp-border);
+  box-shadow: var(--rp-shadow);
+}
+
+.rpCardHead {
+  background: var(--rp-card);
+  border-bottom: 1px solid var(--rp-border);
+  color: var(--rp-text);
+}
+
+.rpCardBody {
+  background: var(--rp-card);
+  color: var(--rp-text);
+}
+
+.rpField label {
+  color: var(--rp-muted);
+}
+
+.rpField input,
+.rpField select,
+.rpField textarea,
+.rpReadonly input {
+  background: var(--rp-input);
+  color: var(--rp-text);
+  border: 1px solid var(--rp-border);
+  caret-color: var(--rp-accent);
+}
+
+.rpField input::placeholder,
+.rpField textarea::placeholder {
+  color: var(--rp-muted);
+  opacity: 0.8;
+}
+
+.rpField input:focus,
+.rpField select:focus,
+.rpField textarea:focus {
+  outline: none;
+  border-color: var(--rp-accent);
+  box-shadow: 0 0 0 3px rgba(104, 72, 245, 0.12);
+}
+
+.rpField input:read-only {
+  background: var(--rp-surface);
+}
+
+.rpVerified {
+  color: var(--rp-muted);
+}
+
+.rpNav a {
+  color: var(--rp-muted);
+}
+
+.rpNav a:hover {
+  background: var(--rp-hover);
+  color: var(--rp-accent);
+}
+
+.rpNav a.active {
+  background: var(--rp-accent-soft);
+  color: var(--rp-accent);
+}
+
+.rpInterest {
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  color: var(--rp-text);
+}
+
+.rpInterest:hover {
+  background: var(--rp-hover);
+  border-color: var(--rp-accent);
+}
+
+.rpInterest.selected {
+  background: var(--rp-accent-soft);
+  border-color: var(--rp-accent);
+  color: var(--rp-accent);
+}
+
+.rpProgress {
+  background: var(--rp-surface);
+}
+
+.rpProgress > span {
+  background: var(--rp-accent);
+}
+
+.rpProgressTitle b {
+  color: var(--rp-accent);
+}
+
+.rpAvatar {
+  background: var(--rp-accent);
+  color: #ffffff;
+}
+
+.rpAvatar.hasImage {
+  background: transparent;
+}
+
+.rpAvatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+
+.rpCamera {
+  background: var(--rp-card);
+  color: var(--rp-muted);
+  border: 1px solid var(--rp-border);
+}
+
+.rpCamera:hover {
+  color: var(--rp-accent);
+  background: var(--rp-hover);
+}
+
+.rpComplete {
+  background: rgba(34, 160, 107, 0.12);
+  color: #22a06b;
+}
+
+.rpError {
+  background: rgba(255, 77, 79, 0.1);
+  color: #f06b75;
+  border: 1px solid rgba(255, 77, 79, 0.25);
+}
+
+.rpLoading {
+  background: var(--rp-bg);
+  color: var(--rp-muted);
+}
+
+.rpPage button,
+.rpPage input,
+.rpPage select,
+.rpPage textarea,
+.rpPage a {
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.rpPage button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .rpPage {
+    min-width: 0;
+  }
+
+  .rpSidebar,
+  .rpContent,
+  .rpCard {
+    min-width: 0;
+  }
+
+  .rpField input,
+  .rpField select,
+  .rpField textarea {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 
 .rpHeading {
   margin: 0 auto 18px;
