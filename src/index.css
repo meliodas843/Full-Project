@@ -17279,7 +17279,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   width: 100%;
   padding: 26px 24px 60px;
   box-sizing: border-box;
-  margin-top: -20px;
+  margin-top: -10px;
 }
 
 .orgDetailTopRow {
@@ -35805,7 +35805,7 @@ html[data-user-theme="dark"] .rgMeetingMessage.success {
 
 .publicOrganizationLogo {
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid #edf0f5;
   background: #f9fafb;
 }
