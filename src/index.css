@@ -48224,6 +48224,193 @@ svg {
   pointer-events: none;
 }
 
+
+.radialShareLayer .radialShareMenu {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  background: transparent;
+  pointer-events: none;
+}
+
+.radialShareLayer .radialShareItem {
+  position: absolute;
+  left: var(--x, 0px);
+  top: var(--y, 0px);
+  box-sizing: border-box;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  min-height: 52px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: radialShareAppear 0.35s ease-out both;
+}
+
+.radialShareLayer .radialShareItem svg {
+  display: block;
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+}
+
+.radialShareLayer .radialShareItem.whatsapp {
+  --x: 0px;
+  --y: -125px;
+  color: #18a058;
+  animation-delay: 0.04s;
+}
+
+.radialShareLayer .radialShareItem.linkedin {
+  --x: -115px;
+  --y: -75px;
+  color: #0a66c2;
+  animation-delay: 0.08s;
+}
+
+.radialShareLayer .radialShareItem.email {
+  --x: 115px;
+  --y: -75px;
+  color: #df4565;
+  animation-delay: 0.12s;
+}
+
+.radialShareLayer .radialShareItem.twitter {
+  --x: -120px;
+  --y: 40px;
+  color: #111827;
+  animation-delay: 0.16s;
+}
+
+.radialShareLayer .radialShareItem.copy {
+  --x: 120px;
+  --y: 40px;
+  color: #526078;
+  animation-delay: 0.2s;
+}
+
+.radialShareLayer .radialShareItem:hover {
+  background: #f5f3ff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.radialShareLayer .radialShareCenter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: #6847f5;
+  color: white;
+  font-size: 23px;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 8px 22px rgba(104, 71, 245, 0.25);
+}
+
+.radialShareLayer .radialShareCenter svg {
+  width: 23px;
+  height: 23px;
+}
+
+.radialShareLayer .radialShareLabel {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: var(--reg-text, #1d2433);
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+@keyframes radialShareAppear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .radialShareLayer .radialShareItem {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .radialShareLayer .radialShareItem.whatsapp {
+    --x: 0px;
+    --y: -100px;
+  }
+
+  .radialShareLayer .radialShareItem.linkedin {
+    --x: -85px;
+    --y: -60px;
+  }
+
+  .radialShareLayer .radialShareItem.email {
+    --x: 85px;
+    --y: -60px;
+  }
+
+  .radialShareLayer .radialShareItem.twitter {
+    --x: -90px;
+    --y: 35px;
+  }
+
+  .radialShareLayer .radialShareItem.copy {
+    --x: 90px;
+    --y: 35px;
+  }
+
+  .radialShareLayer .radialShareLabel {
+    top: 66px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radialShareLayer .radialShareItem {
+    animation: none;
+  }
+}
+
+
 @keyframes radialSharePop {
   from {
     opacity: 0;
