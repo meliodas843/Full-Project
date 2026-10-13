@@ -41964,6 +41964,11 @@ svg {
     font-size: 18px;
   }
 
+  .identityCompanyLogo>img {
+    width: 48px;
+    height: 48px;
+  }
+
   .orgDetailActions {
     grid-template-columns: minmax(0, 1fr);
   }
