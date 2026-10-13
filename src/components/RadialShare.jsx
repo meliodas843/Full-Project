@@ -1,106 +1,200 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FiShare2, FiX, FiLink, FiMail, FiCheck } from "react-icons/fi";
+import {
+  FiShare2,
+  FiX,
+  FiLink,
+  FiMail,
+  FiCheck,
+} from "react-icons/fi";
 import { FaWhatsapp, FaLinkedinIn } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
-export default function RadialShare({ title = "Байгууллага", url }) {
-  const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+const ICONS = {
+  whatsapp: FaWhatsapp,
+  linkedin: FaLinkedinIn,
+  email: FiMail,
+  twitter: FaXTwitter,
+  copy: FiLink,
+};
+
+export default function RadialShare({
+  title = "Байгууллага",
+  url,
+}) {
+  const [phase, setPhase] = useState("closed");
+  const [selected, setSelected] = useState(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+
   const buttonRef = useRef(null);
-  const timerRef = useRef(null);
+  const timersRef = useRef([]);
+
+  const isOpen = phase !== "closed";
 
   const shareUrl =
-    url || (typeof window !== "undefined" ? window.location.href : "");
+    url || (typeof window !== "undefined"
+      ? window.location.href
+      : "");
 
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
+
+  const clearTimers = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  };
+
+  const schedule = (callback, delay) => {
+    const timer = setTimeout(callback, delay);
+    timersRef.current.push(timer);
+  };
 
   const updatePosition = () => {
     if (!buttonRef.current) return;
 
     const rect = buttonRef.current.getBoundingClientRect();
-
-    const radius = window.innerWidth <= 600 ? 115 : 145;
+    const margin = window.innerWidth <= 600 ? 100 : 115;
 
     setPosition({
       x: Math.max(
-        radius,
-        Math.min(window.innerWidth - radius, rect.left + rect.width / 2)
+        margin,
+        Math.min(
+          window.innerWidth - margin,
+          rect.left + rect.width / 2
+        )
       ),
       y: Math.max(
-        radius + 10,
-        Math.min(window.innerHeight - radius, rect.top + rect.height / 2)
+        margin,
+        Math.min(
+          window.innerHeight - margin,
+          rect.top + rect.height / 2
+        )
       ),
     });
   };
 
-  useEffect(() => {
-    if (!open) return;
-
-    updatePosition();
-
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    const onResize = () => updatePosition();
-    const onScroll = () => updatePosition();
-
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", onScroll, true);
-
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onScroll, true);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    return () => clearTimeout(timerRef.current);
-  }, []);
-
-  const toggleShare = () => {
-    clearTimeout(timerRef.current);
-    setCopied(false);
-    if (!open) updatePosition();
-    setOpen((previous) => !previous);
+  const close = () => {
+    clearTimers();
+    setPhase("closed");
+    setSelected(null);
   };
 
-  const openShare = (link) => {
-    window.open(link, "_blank", "noopener,noreferrer");
-    setOpen(false);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") close();
+    };
+
+    const handleMove = () => updatePosition();
+
+    window.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleMove);
+    window.addEventListener("scroll", handleMove, true);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleMove);
+      window.removeEventListener("scroll", handleMove, true);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    return () => clearTimers();
+  }, []);
+
+  const toggle = () => {
+    if (isOpen) {
+      close();
+      return;
+    }
+
+    clearTimers();
+    setSelected(null);
+    updatePosition();
+    setPhase("opening");
+
+    schedule(() => setPhase("open"), 420);
   };
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      return true;
     } catch {
-      const input = document.createElement("textarea");
-      input.value = shareUrl;
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
+      try {
+        const input = document.createElement("textarea");
+        input.value = shareUrl;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
 
-      const success = document.execCommand("copy");
-      input.remove();
+        const success = document.execCommand("copy");
+        input.remove();
+        return success;
+      } catch {
+        return false;
+      }
+    }
+  };
 
-      if (!success) return;
+  const share = async (channel) => {
+    if (phase !== "open") return;
+
+    setSelected(channel);
+    setPhase("collapsing");
+
+    let success = true;
+
+    if (channel === "copy") {
+      success = await copyLink();
+    } else {
+      let link = "";
+
+      if (channel === "whatsapp") {
+        link = `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`;
+      }
+
+      if (channel === "linkedin") {
+        link =
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+      }
+
+      if (channel === "twitter") {
+        link =
+          `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+      }
+
+      if (channel === "email") {
+        link = `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
+      }
+
+      if (channel === "email") {
+        window.location.href = link;
+      } else if (link) {
+        const popup = window.open(
+          link,
+          "_blank",
+          "noopener,noreferrer"
+        );
+        success = Boolean(popup);
+      }
     }
 
-    setCopied(true);
-    clearTimeout(timerRef.current);
+    schedule(() => {
+      setPhase(success ? "selected" : "failed");
+    }, 420);
 
-    timerRef.current = setTimeout(() => {
-      setOpen(false);
-      setCopied(false);
-    }, 1200);
+    schedule(() => {
+      setPhase(success ? "success" : "failed");
+    }, 850);
+
+    schedule(close, 1750);
   };
+
+  const SelectedIcon = selected ? ICONS[selected] : null;
 
   return (
     <div className="radialShare">
@@ -108,24 +202,27 @@ export default function RadialShare({ title = "Байгууллага", url }) {
         ref={buttonRef}
         type="button"
         className="orgShareButton"
-        aria-expanded={open}
         aria-label="Хуваалцах"
-        onClick={toggleShare}
+        aria-expanded={isOpen}
+        onClick={toggle}
+        style={{
+          visibility: isOpen ? "hidden" : "visible",
+        }}
       >
         <FiShare2 />
         Хуваалцах
       </button>
 
-      {open &&
+      {isOpen &&
         createPortal(
           <div className="radialShareLayer">
             <div
               className="radialShareOutside"
-              onClick={() => setOpen(false)}
+              onClick={close}
             />
 
             <div
-              className="radialShareMenu"
+              className={`radialShareMenu phase-${phase}`}
               style={{
                 left: position.x,
                 top: position.y,
@@ -134,13 +231,9 @@ export default function RadialShare({ title = "Байгууллага", url }) {
               <button
                 type="button"
                 className="radialShareItem whatsapp"
-                title="WhatsApp"
-                aria-label="Share on WhatsApp"
-                onClick={() =>
-                  openShare(
-                    `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`
-                  )
-                }
+                aria-label="WhatsApp"
+                disabled={phase !== "open"}
+                onClick={() => share("whatsapp")}
               >
                 <FaWhatsapp />
               </button>
@@ -148,13 +241,9 @@ export default function RadialShare({ title = "Байгууллага", url }) {
               <button
                 type="button"
                 className="radialShareItem linkedin"
-                title="LinkedIn"
-                aria-label="Share on LinkedIn"
-                onClick={() =>
-                  openShare(
-                    `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
-                  )
-                }
+                aria-label="LinkedIn"
+                disabled={phase !== "open"}
+                onClick={() => share("linkedin")}
               >
                 <FaLinkedinIn />
               </button>
@@ -162,13 +251,9 @@ export default function RadialShare({ title = "Байгууллага", url }) {
               <button
                 type="button"
                 className="radialShareItem email"
-                title="Email"
-                aria-label="Share by email"
-                onClick={() => {
-                  window.location.href =
-                    `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
-                  setOpen(false);
-                }}
+                aria-label="Email"
+                disabled={phase !== "open"}
+                onClick={() => share("email")}
               >
                 <FiMail />
               </button>
@@ -176,13 +261,9 @@ export default function RadialShare({ title = "Байгууллага", url }) {
               <button
                 type="button"
                 className="radialShareItem twitter"
-                title="X"
-                aria-label="Share on X"
-                onClick={() =>
-                  openShare(
-                    `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`
-                  )
-                }
+                aria-label="X"
+                disabled={phase !== "open"}
+                onClick={() => share("twitter")}
               >
                 <FaXTwitter />
               </button>
@@ -190,24 +271,39 @@ export default function RadialShare({ title = "Байгууллага", url }) {
               <button
                 type="button"
                 className="radialShareItem copy"
-                title="Copy link"
                 aria-label="Copy link"
-                onClick={copyLink}
+                disabled={phase !== "open"}
+                onClick={() => share("copy")}
               >
-                {copied ? <FiCheck /> : <FiLink />}
+                <FiLink />
               </button>
 
               <button
                 type="button"
                 className="radialShareCenter"
-                onClick={() => setOpen(false)}
-                aria-label="Close share menu"
+                aria-label="Close sharing"
+                onClick={close}
               >
-                {copied ? <FiCheck /> : <FiX />}
+                {phase === "success" ? (
+                  <FiCheck />
+                ) : phase === "failed" ? (
+                  <FiX />
+                ) : selected && SelectedIcon ? (
+                  <SelectedIcon />
+                ) : (
+                  <FiX />
+                )}
               </button>
 
               <span className="radialShareLabel">
-                {copied ? "Link copied!" : "Pick a channel"}
+                {phase === "success"
+                  ? "Амжилттай!"
+                  : phase === "failed"
+                    ? "Үйлдэл амжилтгүй"
+                    : phase === "collapsing" ||
+                        phase === "selected"
+                      ? "Сонгогдлоо"
+                      : "Pick a channel"}
               </span>
             </div>
           </div>,
