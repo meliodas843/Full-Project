@@ -48012,13 +48012,49 @@ svg {
   min-width: 0;
   overflow: visible;
 }
+
 .orgInfoCard .orgStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: 100%;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  margin: 0;
+  width: 100%;
+  min-width: 0;
+  height: auto;
 }
+
+.orgInfoCard .orgStats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  height: auto;
+  padding: 12px;
+  border-radius: 9px;
+  background: #f7f8fc;
+}
+
+.orgInfoCard .orgStats > div strong {
+  display: block;
+  font-size: 23px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.orgInfoCard .orgStats > div span {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #8a91a2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .orgInfoCard .orgStat {
   display: flex;
   flex-direction: column;
