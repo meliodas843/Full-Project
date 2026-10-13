@@ -514,7 +514,10 @@ export default function Organization() {
               </p>
             </div>
 
-            <Link to="/signup" className="publicOrganizationCtaButton">
+            <Link
+              to="/signup?accountType=organization"
+              className="publicOrganizationCtaButton"
+            >
               Байгууллагаар бүртгүүлэх
               <FaArrowRight />
             </Link>
