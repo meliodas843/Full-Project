@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import { useTheme } from "../../../theme/ThemeProvider";
 import logo from "../../../assets/registra-logo-def.png";
 import { API_BASE } from "@/lib/config";
 
@@ -103,24 +104,12 @@ function isOrganizationComplete(data) {
   );
 }
 
-function getInitialTheme() {
-  const saved = localStorage.getItem("registra-theme");
-  return saved === "dark" ? "dark" : "light";
-}
-
 export default function UserShell({ title = "Registra", children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
-  const [theme, setTheme] = useState(getInitialTheme);
-
-  useEffect(() => {
-    document.documentElement.dataset.userTheme = theme;
-    document.documentElement.setAttribute("data-theme", theme);
-    document.body.dataset.userTheme = theme;
-    localStorage.setItem("registra-theme", theme);
-  }, [theme]);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";

@@ -9,6 +9,8 @@ import {
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import ThemeToggle from "./components/ThemeToggle";
+import { useTheme } from "./theme/ThemeProvider";
 
 import EventShare from "./pages/public/EventShare";
 import Home from "./pages/public/Home";
@@ -64,6 +66,12 @@ function AppRoutes() {
       <ScrollToTop />
 
       {showPublicNavbar && <Navbar />}
+
+      {isAuthPage && (
+        <div className="regFloatingThemeToggle">
+          <ThemeToggle />
+        </div>
+      )}
 
       <Routes>
         <Route path="/" element={<Home />} />

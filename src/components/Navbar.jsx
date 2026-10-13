@@ -2,83 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FaMoon, FaSun, FaBars, FaXmark } from "react-icons/fa6";
 import logo from "../assets/registra-logo-def.png";
-
-const THEME_KEY = "registra-theme";
-
-function getInitialTheme() {
-  const savedTheme = localStorage.getItem(THEME_KEY);
-
-  if (savedTheme === "light" || savedTheme === "dark") {
-    return savedTheme;
-  }
-
-  const oldPublicTheme = localStorage.getItem("public-theme");
-
-  if (oldPublicTheme === "light" || oldPublicTheme === "dark") {
-    localStorage.setItem(THEME_KEY, oldPublicTheme);
-
-    return oldPublicTheme;
-  }
-
-  return "light";
-}
-
-function applyTheme(theme) {
-  document.documentElement.dataset.publicTheme = theme;
-
-  document.documentElement.dataset.userTheme = theme;
-
-  document.documentElement.dataset.theme = theme;
-
-  document.documentElement.style.colorScheme = theme;
-
-  localStorage.setItem(THEME_KEY, theme);
-
-  localStorage.removeItem("public-theme");
-}
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
-  const [theme, setTheme] = useState(getInitialTheme);
-
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  useEffect(() => {
-    const handleThemeChange = (event) => {
-      const nextTheme = event.detail?.theme;
-
-      if (nextTheme === "light" || nextTheme === "dark") {
-        setTheme(nextTheme);
-      }
-    };
-
-    window.addEventListener("registra-theme-change", handleThemeChange);
-
-    return () => {
-      window.removeEventListener("registra-theme-change", handleThemeChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key !== THEME_KEY) {
-        return;
-      }
-
-      if (event.newValue === "light" || event.newValue === "dark") {
-        setTheme(event.newValue);
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, []);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -101,24 +30,6 @@ export default function Navbar() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
-
-  const toggleTheme = () => {
-    setTheme((current) => {
-      const nextTheme = current === "dark" ? "light" : "dark";
-
-      applyTheme(nextTheme);
-
-      window.dispatchEvent(
-        new CustomEvent("registra-theme-change", {
-          detail: {
-            theme: nextTheme,
-          },
-        }),
-      );
-
-      return nextTheme;
-    });
-  };
 
   const navClass = ({ isActive }) =>
     isActive ? "riNavLink active" : "riNavLink";

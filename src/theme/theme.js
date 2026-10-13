@@ -15,8 +15,18 @@ export function getTheme() {
 export function applyTheme(theme) {
   const next = theme === "dark" ? "dark" : "light";
 
-  document.documentElement.setAttribute("data-theme", next);
-  document.documentElement.style.colorScheme = next;
+  const root = document.documentElement;
+
+  // index.css keys its dark rules off all three attributes (and some off
+  // body[data-user-theme]); keep them in sync from one place.
+  root.setAttribute("data-theme", next);
+  root.setAttribute("data-user-theme", next);
+  root.setAttribute("data-public-theme", next);
+  root.style.colorScheme = next;
+
+  if (document.body) {
+    document.body.setAttribute("data-user-theme", next);
+  }
 
   try {
     localStorage.setItem(THEME_KEY, next);

@@ -39,7 +39,10 @@
           theme = "light";
         }
 
-        document.documentElement.setAttribute("data-theme", theme);
+        const root = document.documentElement;
+        root.setAttribute("data-theme", theme);
+        root.setAttribute("data-user-theme", theme);
+        root.setAttribute("data-public-theme", theme);
 
         document.documentElement.style.colorScheme = theme;
 

@@ -10,6 +10,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "./theme/ThemeProvider";
 
 import "./theme/theme.css";
+import "./theme/dark-auto.css";
 
 const CLIENT_ID =
   "152036236977-p18kan1qinpmielm4h7475hcdp3vafo8.apps.googleusercontent.com";

@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 
-import { applyTheme, getTheme } from "./theme";
+import { THEME_KEY, applyTheme, getTheme } from "./theme";
 
 const ThemeContext = createContext(null);
 
@@ -33,6 +33,23 @@ export function ThemeProvider({ children }) {
         "registra-theme-change",
         handleThemeChange
       );
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (
+        event.key === THEME_KEY &&
+        (event.newValue === "dark" || event.newValue === "light")
+      ) {
+        setTheme(event.newValue);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
 

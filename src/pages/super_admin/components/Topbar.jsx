@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "@/lib/config";
+import ThemeToggle from "../../../components/ThemeToggle";
 
 function formatDateTime(dt) {
   if (!dt) return "";
@@ -109,6 +110,8 @@ export default function Topbar({ className = "", onNavigate = () => {} } = {}) {
       <div className="app-topbar-left" />
 
       <div className="app-topbar-right">
+        <ThemeToggle />
+
         {/* Notifications */}
         <div className="tb-pop">
           <button
