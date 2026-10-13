@@ -14995,6 +14995,138 @@ textarea {
   backdrop-filter: blur(18px);
 }
 
+
+/* PROFILE DARK MODE — FINAL OVERRIDES */
+
+:root[data-theme="dark"] .rpPage {
+  background: #0d1124;
+  color: #f5f6ff;
+}
+
+/* Sidebar profile and navigation cards */
+:root[data-theme="dark"] .rpPage .rpProfileCard,
+:root[data-theme="dark"] .rpPage .rpNav,
+:root[data-theme="dark"] .rpPage .rpCard {
+  background: #191e36;
+  color: #f5f6ff;
+  border-color: #303853;
+  box-shadow: none;
+}
+
+/* All card sections */
+:root[data-theme="dark"] .rpPage .rpCardHead,
+:root[data-theme="dark"] .rpPage .rpCardBody {
+  background: #191e36;
+  color: #f5f6ff;
+  border-color: #303853;
+}
+
+/* Titles and descriptions */
+:root[data-theme="dark"] .rpPage h1,
+:root[data-theme="dark"] .rpPage h2,
+:root[data-theme="dark"] .rpPage h3,
+:root[data-theme="dark"] .rpPage .rpProgressTitle,
+:root[data-theme="dark"] .rpPage .rpProfileCard p {
+  color: #f5f6ff;
+}
+
+:root[data-theme="dark"] .rpPage .rpHeading p,
+:root[data-theme="dark"] .rpPage .rpCardBody p,
+:root[data-theme="dark"] .rpPage .rpField label,
+:root[data-theme="dark"] .rpPage .rpVerified {
+  color: #a6afca;
+}
+
+/* Profile navigation */
+:root[data-theme="dark"] .rpPage .rpNav a {
+  background: transparent;
+  color: #b3bbd3;
+}
+
+:root[data-theme="dark"] .rpPage .rpNav a.active {
+  background: #302858;
+  color: #b9a7ff;
+}
+
+:root[data-theme="dark"] .rpPage .rpNav a:hover {
+  background: #282d49;
+  color: #ffffff;
+}
+
+/* Interests: remove white backgrounds */
+:root[data-theme="dark"] .rpPage .rpInterest {
+  background: #252b44;
+  color: #e5e8f7;
+  border: 1px solid #3a4261;
+}
+
+:root[data-theme="dark"] .rpPage .rpInterest:hover {
+  background: #323858;
+  border-color: #8668ff;
+}
+
+:root[data-theme="dark"] .rpPage .rpInterest.selected {
+  background: #392c6c;
+  color: #c7baff;
+  border-color: #8668ff;
+}
+
+/* Form controls, including meeting and Zoom fields */
+:root[data-theme="dark"] .rpPage input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] .rpPage select,
+:root[data-theme="dark"] .rpPage textarea,
+:root[data-theme="dark"] .rpPage .rpReadonly input {
+  background: #11162b;
+  color: #f5f6ff;
+  border-color: #343b57;
+}
+
+:root[data-theme="dark"] .rpPage input::placeholder,
+:root[data-theme="dark"] .rpPage textarea::placeholder {
+  color: #8994b4;
+}
+
+:root[data-theme="dark"] .rpPage input:focus,
+:root[data-theme="dark"] .rpPage select:focus,
+:root[data-theme="dark"] .rpPage textarea:focus {
+  border-color: #8668ff;
+  outline: none;
+}
+
+:root[data-theme="dark"] .rpPage .rpCardBody > div {
+  border-color: #343b57;
+}
+
+:root[data-theme="dark"] .rpPage .rpProgress {
+  background: #303650;
+}
+
+:root[data-theme="dark"] .rpPage .rpProgressTitle span {
+  color: #e4e7f5;
+}
+
+:root[data-theme="dark"] .rpPage .rpCamera {
+  background: #252b44;
+  color: #d5dcf5;
+  border-color: #3a4261;
+}
+
+:root[data-theme="dark"] .rpPage .rpCard,
+:root[data-theme="dark"] .rpPage .rpProfileCard,
+:root[data-theme="dark"] .rpPage .rpNav {
+  border: 1px solid #303853;
+}
+
+.rpAvatar.hasImage,
+.rpAvatar.hasImage img {
+  background: transparent;
+}
+
+.rpAvatar img {
+  filter: none;
+}
+
+
 html[data-public-theme="dark"] .rgAuthPage {
   background: #0b0f19;
 }
