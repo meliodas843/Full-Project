@@ -48042,7 +48042,7 @@ svg {
   display: block;
   width: 100%;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.1;
   font-weight: 600;
   white-space: normal;
   overflow-wrap: break-word;
@@ -48084,5 +48084,237 @@ svg {
   }
   .orgInfoCard .orgStat {
     min-height: 65px;
+  }
+}
+
+
+.radialShareOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(9, 12, 25, 0.55);
+  backdrop-filter: blur(5px);
+  animation: radialOverlayIn 0.25s ease both;
+}
+
+.radialSharePanel {
+  width: min(100%, 500px);
+  height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #d2ccba;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+}
+
+.radialShareMenu {
+  position: relative;
+  width: 340px;
+  height: 340px;
+  flex-shrink: 0;
+}
+
+.radialShareChannel,
+.radialShareCenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.radialShareChannel {
+  z-index: 2;
+  background: #fff;
+  color: #202437;
+  font-size: 32px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.13);
+  opacity: 0;
+  animation: radialChannelIn 0.5s
+    cubic-bezier(0.2, 1.5, 0.3, 1)
+    forwards;
+  animation-delay: calc(var(--index) * 65ms);
+  transition: box-shadow 0.2s ease;
+}
+
+.radialShareChannel:hover {
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+.radialShareChannel.whatsapp {
+  --x: 0px;
+  --y: -135px;
+  color: #128c57;
+}
+
+.radialShareChannel.linkedin {
+  --x: -120px;
+  --y: -85px;
+  color: #0a66c2;
+}
+
+.radialShareChannel.email {
+  --x: 120px;
+  --y: -85px;
+  color: #cf405a;
+}
+
+.radialShareChannel.twitter {
+  --x: -145px;
+  --y: 65px;
+  color: #111827;
+}
+
+.radialShareChannel.copy {
+  --x: 145px;
+  --y: 65px;
+  color: #586477;
+}
+
+.radialShareCenter {
+  z-index: 3;
+  background: rgba(95, 88, 74, 0.13);
+  color: #171923;
+  font-size: 32px;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.radialShareCenter:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  background: rgba(95, 88, 74, 0.2);
+}
+
+.radialShareCenter.isCopied {
+  background: #fff;
+  color: #16a36b;
+}
+
+.radialShareLabel {
+  position: absolute;
+  top: calc(50% + 51px);
+  left: 0;
+  width: 100%;
+  color: #3f4755;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+}
+
+@keyframes radialChannelIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+
+  65% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + var(--x)),
+        calc(-50% + var(--y))
+      )
+      scale(1);
+  }
+}
+
+@keyframes radialOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .radialShareOverlay {
+    padding: 12px;
+  }
+
+  .radialSharePanel {
+    height: 370px;
+    border-radius: 20px;
+  }
+
+  .radialShareMenu {
+    width: 280px;
+    height: 280px;
+  }
+
+  .radialShareChannel {
+    width: 62px;
+    height: 62px;
+    font-size: 26px;
+  }
+
+  .radialShareCenter {
+    width: 72px;
+    height: 72px;
+    font-size: 28px;
+  }
+
+  .radialShareChannel.whatsapp {
+    --x: 0px;
+    --y: -110px;
+  }
+
+  .radialShareChannel.linkedin {
+    --x: -100px;
+    --y: -70px;
+  }
+
+  .radialShareChannel.email {
+    --x: 100px;
+    --y: -70px;
+  }
+
+  .radialShareChannel.twitter {
+    --x: -115px;
+    --y: 55px;
+  }
+
+  .radialShareChannel.copy {
+    --x: 115px;
+    --y: 55px;
+  }
+
+  .radialShareLabel {
+    top: calc(50% + 46px);
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radialShareOverlay,
+  .radialShareChannel {
+    animation: none;
+  }
+
+  .radialShareChannel {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + var(--x)),
+        calc(-50% + var(--y))
+      );
   }
 }

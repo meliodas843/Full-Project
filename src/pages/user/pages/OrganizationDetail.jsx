@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-
+import RadialShare from "../components/RadialShare";
 import { CompanyCover, CompanyLogo } from "../components/IdentityImage";
 
 import {
@@ -570,14 +570,10 @@ export default function OrganizationDetail() {
                     : "+ Дагах"}
               </button>
 
-              <button
-                type="button"
-                className="orgShareButton"
-                onClick={handleShare}
-              >
-                <FiShare2 />
-                Хуваалцах
-              </button>
+              <RadialShare
+                title={organization?.name || "Байгууллага"}
+                url={window.location.href}
+              />
             </div>
           </div>
         </section>
@@ -758,7 +754,6 @@ export default function OrganizationDetail() {
                   <strong>{followers}</strong>
                   <span>Дагагч</span>
                 </div>
-
               </div>
 
               <div className="orgInfoDivider" />
