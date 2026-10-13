@@ -24,7 +24,6 @@ import EventTicket from "./pages/user/pages/EventTicket";
 import Organization from "./pages/public/Organization";
 import NewsDetail from "./pages/public/NewsDetail";
 import EventDetail from "./pages/public/EventDetail";
-import useTheme from "./hooks/useTheme";
 import UserHome from "./pages/user/pages/Home";
 import Profile from "./pages/user/pages/Profile";
 import Calendar from "./pages/user/pages/Calendar";
