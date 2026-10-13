@@ -43339,7 +43339,7 @@ svg {
 }
 
 .rpMeetingIntro {
-  font-size: 12px;
+  font-size: 14px;
   color: #8a8b96;
   margin: -8px 0 14px;
 }
@@ -43353,14 +43353,14 @@ svg {
 
 .rpMeetingToggleRow strong {
   display: block;
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 4px;
 }
 
 .rpMeetingToggleRow span {
   display: block;
   color: #91929d;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .rpSwitch {

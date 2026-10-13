@@ -682,7 +682,7 @@ export default function Profile() {
 
               <div className="rpCardBody">
                 <p
-                  style={{ margin: "0 0 12px", fontSize: 12, color: "#8b8c97" }}
+                  style={{ margin: "0 0 12px", fontSize: 14, color: "#8b8c97" }}
                 >
                   Танд тохирох эвент, уулзалтын санал болголтод ашиглана
                 </p>
