@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import RadialShare from "../components/RadialShare";
+import RadialShare from "../../../components/RadialShare";
 import { CompanyCover, CompanyLogo } from "../components/IdentityImage";
 
 import {

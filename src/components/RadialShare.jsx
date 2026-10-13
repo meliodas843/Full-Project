@@ -1,34 +1,50 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  FaWhatsapp,
-  FaLinkedinIn,
-  FaXTwitter,
-} from "react-icons/fa6";
-import { FiMail, FiLink, FiShare2, FiX } from "react-icons/fi";
+  FiShare2,
+  FiX,
+  FiLink,
+  FiMail,
+  FiCheck,
+} from "react-icons/fi";
+import { FaWhatsapp, FaLinkedinIn } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
-export default function RadialShare({
-  title = "Байгууллага",
-  url,
-}) {
+export default function RadialShare({ title = "Байгууллага", url }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const timerRef = useRef(null);
+  const rootRef = useRef(null);
 
-  const shareUrl = url || window.location.href;
+  const shareUrl =
+    url || (typeof window !== "undefined" ? window.location.href : "");
+
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
 
   useEffect(() => {
-    return () => clearTimeout(timerRef.current);
-  }, []);
+    if (!open) return;
+
+    const closeOutside = (event) => {
+      if (!rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    const closeEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeEscape);
+    };
+  }, [open]);
 
   const openShare = (link) => {
-    window.open(
-      link,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    window.open(link, "_blank", "noopener,noreferrer");
     setOpen(false);
   };
 
@@ -36,125 +52,106 @@ export default function RadialShare({
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      clearTimeout(timerRef.current);
-
-      timerRef.current = setTimeout(() => {
+      setTimeout(() => {
         setCopied(false);
         setOpen(false);
-      }, 1400);
+      }, 1200);
     } catch {
-      setCopied(false);
+      const input = document.createElement("textarea");
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        setOpen(false);
+      }, 1200);
     }
   };
 
-  const channels = [
-    {
-      name: "WhatsApp",
-      icon: <FaWhatsapp />,
-      className: "whatsapp",
-      action: () =>
-        openShare(
-          `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`
-        ),
-    },
-    {
-      name: "LinkedIn",
-      icon: <FaLinkedinIn />,
-      className: "linkedin",
-      action: () =>
-        openShare(
-          `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
-        ),
-    },
-    {
-      name: "Email",
-      icon: <FiMail />,
-      className: "email",
-      action: () => {
-        window.location.href =
-          `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
-        setOpen(false);
-      },
-    },
-    {
-      name: "X",
-      icon: <FaXTwitter />,
-      className: "twitter",
-      action: () =>
-        openShare(
-          `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`
-        ),
-    },
-    {
-      name: "Copy link",
-      icon: <FiLink />,
-      className: "copy",
-      action: copyLink,
-    },
-  ];
-
   return (
-    <>
+    <div className="radialShare" ref={rootRef}>
       <button
         type="button"
         className="orgShareButton"
-        onClick={() => setOpen(true)}
+        aria-expanded={open}
+        aria-label="Хуваалцах"
+        onClick={() => setOpen((prev) => !prev)}
       >
-        <FiShare2 />
+        {open ? <FiX /> : <FiShare2 />}
         Хуваалцах
       </button>
 
       {open && (
-        <div
-          className="radialShareOverlay"
-          onClick={() => {
-            if (!copied) setOpen(false);
-          }}
-        >
-          <div
-            className="radialSharePanel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Байгууллага хуваалцах"
-            onClick={(e) => e.stopPropagation()}
+        <div className="radialShareMenu">
+          <button
+            type="button"
+            className="radialShareItem whatsapp"
+            title="WhatsApp"
+            onClick={() =>
+              openShare(
+                `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`
+              )
+            }
           >
-            <div className="radialShareMenu">
-              {channels.map((channel, index) => (
-                <button
-                  key={channel.name}
-                  type="button"
-                  aria-label={channel.name}
-                  className={`radialShareChannel ${channel.className}`}
-                  style={{
-                    "--index": index,
-                  }}
-                  onClick={channel.action}
-                  disabled={copied}
-                >
-                  {channel.icon}
-                </button>
-              ))}
+            <FaWhatsapp />
+          </button>
 
-              <button
-                type="button"
-                className={`radialShareCenter ${
-                  copied ? "isCopied" : ""
-                }`}
-                onClick={() => {
-                  if (!copied) setOpen(false);
-                }}
-                aria-label="Close share menu"
-              >
-                {copied ? <FiLink /> : <FiX />}
-              </button>
+          <button
+            type="button"
+            className="radialShareItem linkedin"
+            title="LinkedIn"
+            onClick={() =>
+              openShare(
+                `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
+              )
+            }
+          >
+            <FaLinkedinIn />
+          </button>
 
-              <div className="radialShareLabel">
-                {copied ? "Link copied" : "Pick a channel"}
-              </div>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="radialShareItem email"
+            title="Email"
+            onClick={() => {
+              window.location.href =
+                `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
+              setOpen(false);
+            }}
+          >
+            <FiMail />
+          </button>
+
+          <button
+            type="button"
+            className="radialShareItem twitter"
+            title="X"
+            onClick={() =>
+              openShare(
+                `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`
+              )
+            }
+          >
+            <FaXTwitter />
+          </button>
+
+          <button
+            type="button"
+            className="radialShareItem copy"
+            title="Copy link"
+            onClick={copyLink}
+          >
+            {copied ? <FiCheck /> : <FiLink />}
+          </button>
+
+          <span className="radialShareLabel">
+            {copied ? "Link copied!" : "Pick a channel"}
+          </span>
         </div>
       )}
-    </>
+    </div>
   );
 }
