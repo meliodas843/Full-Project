@@ -17317,51 +17317,25 @@ html[data-user-theme="dark"] .eventWizardPanel {
 .orgDetailCover {
   position: relative;
   width: 100%;
-  height: 175px;
+  height: auto;
+  aspect-ratio: 4 / 1;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 75% 15%,
-      rgba(105, 71, 245, 0.35),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 30% 70%,
-      rgba(34, 199, 220, 0.1),
-      transparent 30%
-    ),
-    linear-gradient(120deg, #0f1529 0%, #11192d 55%, #21194b 100%);
-}
-
-.orgDetailCover::after {
-  content: "";
-  position: absolute;
-  left: 8%;
-  top: 56%;
-  width: 84%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    #1bbbd2,
-    #6549f5,
-    transparent
-  );
-  transform: rotate(-4deg);
+  background: transparent;
 }
 
 .orgDetailCover img {
+  display: block;
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
 }
 
 .orgDetailCoverOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(9, 13, 28, 0.08));
+  display: none;
 }
 
 .orgDetailIdentity {
@@ -17814,7 +17788,8 @@ html[data-user-theme="dark"] .eventWizardPanel {
   }
 
   .orgDetailCover {
-    height: 140px;
+    height: auto;
+    aspect-ratio: 3 / 1;
   }
 
   .orgDetailIdentity {
@@ -41087,7 +41062,8 @@ svg {
   }
 
   .orgDetailCover {
-    height: 130px;
+    height: auto;
+    aspect-ratio: 3 / 1;
   }
 
   .orgDetailIdentity {
@@ -47396,7 +47372,7 @@ svg {
     padding: 17px;
   }
 }
-/* Signup profile image â€” prevent overflow */
+/* Signup profile image Ã¢â‚¬â€ prevent overflow */
 
 .rgSplitSignupForm .signupProfileUpload {
   display: flex;
