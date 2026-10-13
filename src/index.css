@@ -48055,6 +48055,30 @@ svg {
   overflow-wrap: anywhere;
 }
 
+[data-theme="dark"] .orgInfoCard .orgStats > div,
+.dark .orgInfoCard .orgStats > div {
+  background: #252a43;
+  border: 1px solid #343b58;
+}
+
+[data-theme="dark"] .orgInfoCard .orgStats > div strong,
+.dark .orgInfoCard .orgStats > div strong {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .orgInfoCard .orgStats > div span,
+.dark .orgInfoCard .orgStats > div span {
+  color: #aeb7d0;
+}
+
+@media (max-width: 1200px) {
+  .orgInfoCard .orgStats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
 .orgInfoCard .orgStat {
   display: flex;
   flex-direction: column;
