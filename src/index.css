@@ -47648,7 +47648,7 @@ svg {
     padding: 17px;
   }
 }
-/* Signup profile image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â prevent overflow */
+/* Signup profile image ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â prevent overflow */
 
 .rgSplitSignupForm .signupProfileUpload {
   display: flex;
@@ -47995,5 +47995,94 @@ svg {
   }
   .rgTopUserText {
     min-width: 0;
+  }
+}
+
+/* Organization detail statistics: responsive final rules */
+.orgDetailLayout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+}
+.orgDetailSidebar {
+  width: 100%;
+  max-width: 340px;
+  min-width: 0;
+}
+.orgInfoCard {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+.orgInfoCard .orgStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  gap: 8px;
+  margin: 0;
+}
+.orgInfoCard .orgStat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 95px;
+  height: auto;
+  padding: 12px 9px;
+  overflow: visible;
+}
+.orgInfoCard .orgStat strong {
+  display: block;
+  width: 100%;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.orgInfoCard .orgStat span {
+  display: block;
+  width: 100%;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  text-overflow: clip;
+}
+@media (min-width: 769px) and (max-width: 1200px) {
+  .orgDetailLayout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+  .orgDetailSidebar {
+    max-width: 280px;
+  }
+  .orgInfoCard .orgStats {
+    grid-template-columns: 1fr;
+  }
+  .orgInfoCard .orgStat {
+    min-height: 65px;
+  }
+  .orgInfoCard .orgStat span {
+    font-size: 13px;
+  }
+}
+@media (max-width: 768px) {
+  .orgDetailLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .orgDetailSidebar {
+    max-width: 100%;
+    justify-self: stretch;
+  }
+  .orgInfoCard .orgStats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 380px) {
+  .orgInfoCard .orgStats {
+    grid-template-columns: 1fr;
+  }
+  .orgInfoCard .orgStat {
+    min-height: 65px;
   }
 }
