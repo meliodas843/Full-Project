@@ -24047,95 +24047,25 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
 
 .identityCompanyLogo {
   position: relative;
-  width: 100px;
-  height: 100px;
-  min-width: 100px;
-  flex: 0 0 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex;
+  flex: 0 0 auto;
   overflow: hidden;
-  border-radius: 14px;
-  background: #fff;
+  border: 1px solid #e8eaf2;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow:
+    0 6px 18px rgba(15, 23, 42, 0.08),
+    0 0 0 4px rgba(255, 255, 255, 0.8);
 }
 
 .identityCompanyLogo > img {
-  display: block;
   width: 100%;
   height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
   object-fit: contain;
-  object-position: center;
-  background: transparent;
-  border: 0;
-}
-
-@media (max-width: 900px) {
-  .identityCompanyLogo {
-    width: 80px;
-    height: 80px;
-    min-width: 80px;
-    flex-basis: 80px;
-    border-radius: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .orgDetailIdentity {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-  }
-
-  .identityCompanyLogo {
-    position: relative;
-    width: 72px;
-    height: 72px;
-    min-width: 72px;
-    flex: 0 0 72px;
-    margin: 0;
-    border-radius: 12px;
-  }
-
-  .identityCompanyLogo > img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center;
-  }
-
-  .orgDetailIdentityText {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .orgDetailActions {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .orgDetailActions > button {
-    width: 100%;
-  }
-}
-
-@media (max-width: 360px) {
-  .identityCompanyLogo {
-    width: 60px;
-    height: 60px;
-    min-width: 60px;
-    flex-basis: 60px;
-  }
-
-  .orgDetailIdentity {
-    gap: 10px;
-    padding: 12px;
-  }
+  padding: 7px;
+  box-sizing: border-box;
+  background: #ffffff;
 }
 
 .identityCompanyLogoFallback {
