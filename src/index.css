@@ -48092,11 +48092,14 @@ svg {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   isolation: isolate;
   z-index: 20;
 }
 
 .radialShare .orgShareButton {
+  position: relative;
+  z-index: 22;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -48106,126 +48109,158 @@ svg {
 
 .radialShareMenu {
   position: absolute;
-  bottom: calc(100% + 12px);
-  right: 0;
-  width: 270px;
-  height: 235px;
-  border-radius: 22px;
-  background: #d3cdbb;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.16);
-  z-index: 100;
-  animation: radialMenuIn 0.25s ease both;
+  z-index: 21;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: visible;
+  pointer-events: none;
 }
 
 .radialShareItem {
   position: absolute;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0;
+  left: 0;
+  width: 54px;
+  height: 54px;
+  padding: 0;
   border: 0;
   border-radius: 50%;
   background: #fff;
-  font-size: 23px;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
   cursor: pointer;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: radialItemIn 0.3s ease both;
+  pointer-events: auto;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.25);
+  animation: radialPop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1)
+    forwards;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .radialShareItem:hover {
-  transform: scale(1.12);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background: #f4f4f8;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
 
 .radialShareItem.whatsapp {
-  top: 22px;
-  left: 111px;
-  color: #128c48;
+  --x: 0px;
+  --y: -125px;
+  color: #128c52;
+  animation-delay: 0.04s;
 }
 
 .radialShareItem.linkedin {
-  top: 72px;
-  left: 37px;
+  --x: -115px;
+  --y: -75px;
   color: #0a66c2;
+  animation-delay: 0.08s;
 }
 
 .radialShareItem.email {
-  top: 72px;
-  right: 37px;
-  color: #d73c58;
+  --x: 115px;
+  --y: -75px;
+  color: #d83c59;
+  animation-delay: 0.12s;
 }
 
 .radialShareItem.twitter {
-  top: 140px;
-  left: 25px;
+  --x: -125px;
+  --y: 35px;
   color: #111827;
+  animation-delay: 0.16s;
 }
 
 .radialShareItem.copy {
-  top: 140px;
-  right: 25px;
-  color: #536179;
+  --x: 125px;
+  --y: 35px;
+  color: #526078;
+  animation-delay: 0.2s;
 }
 
 .radialShareLabel {
   position: absolute;
-  bottom: 16px;
-  left: 0;
-  width: 100%;
-  text-align: center;
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font-size: 13px;
-  font-weight: 700;
-  color: #394253;
+  font-weight: 600;
+  color: #526078;
+  pointer-events: none;
 }
 
-@keyframes radialMenuIn {
+@keyframes radialPop {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.9);
+    transform: translate(-50%, -50%) scale(0.25);
   }
+
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform:
+      translate(
+        calc(-50% + var(--x)),
+        calc(-50% + var(--y))
+      )
+      scale(1);
   }
 }
 
-@keyframes radialItemIn {
-  from {
-    opacity: 0;
-    scale: 0.5;
-  }
-  to {
-    opacity: 1;
-    scale: 1;
-  }
-}
-
-@media (max-width: 480px) {
-  .radialShareMenu {
-    width: 240px;
-    height: 220px;
-    right: 0;
+@media (max-width: 600px) {
+  .radialShareItem {
+    width: 46px;
+    height: 46px;
+    font-size: 21px;
   }
 
   .radialShareItem.whatsapp {
-    left: 96px;
+    --x: 0px;
+    --y: -105px;
   }
 
   .radialShareItem.linkedin {
-    left: 25px;
+    --x: -85px;
+    --y: -65px;
   }
 
   .radialShareItem.email {
-    right: 25px;
+    --x: 85px;
+    --y: -65px;
   }
 
   .radialShareItem.twitter {
-    left: 18px;
+    --x: -90px;
+    --y: 25px;
   }
 
   .radialShareItem.copy {
-    right: 18px;
+    --x: 90px;
+    --y: 25px;
+  }
+
+  .radialShareLabel {
+    top: 65px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radialShareItem {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
   }
 }
