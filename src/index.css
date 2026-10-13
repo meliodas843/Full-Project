@@ -41352,13 +41352,6 @@ svg {
     padding: 0 12px 14px;
   }
 
-  .orgDetailLogo {
-    width: 66px;
-    height: 66px;
-    flex: 0 0 66px;
-    margin-top: -24px;
-  }
-
   .orgDetailIdentityText {
     flex: 1 1 calc(100% - 80px);
     padding-top: 10px;
