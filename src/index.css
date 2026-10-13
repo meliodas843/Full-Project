@@ -15105,6 +15105,87 @@ textarea {
   color: #e4e7f5;
 }
 
+
+/* ==================================
+   RP CONNECT - LIGHT MODE
+================================== */
+
+.rpPage .rpConnect {
+  background: #ffffff;
+  color: #1d2433;
+  border: 1px solid #e3e7f0;
+  border-radius: 12px;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.rpPage .rpConnect h3,
+.rpPage .rpConnect h4,
+.rpPage .rpConnect strong {
+  color: #1d2433;
+}
+
+.rpPage .rpConnect p,
+.rpPage .rpConnect span,
+.rpPage .rpConnect small,
+.rpPage .rpConnect label {
+  color: #81899d;
+}
+
+.rpPage .rpConnect input,
+.rpPage .rpConnect select,
+.rpPage .rpConnect textarea {
+  background: #ffffff;
+  color: #1d2433;
+  border: 1px solid #e3e7f0;
+}
+
+/* ==================================
+   RP CONNECT - DARK MODE
+================================== */
+
+:root[data-theme="dark"] .rpPage .rpConnect {
+  background: #191e36;
+  color: #f5f6ff;
+  border-color: #303853;
+}
+
+:root[data-theme="dark"] .rpPage .rpConnect h3,
+:root[data-theme="dark"] .rpPage .rpConnect h4,
+:root[data-theme="dark"] .rpPage .rpConnect strong {
+  color: #f5f6ff;
+}
+
+:root[data-theme="dark"] .rpPage .rpConnect p,
+:root[data-theme="dark"] .rpPage .rpConnect span,
+:root[data-theme="dark"] .rpPage .rpConnect small,
+:root[data-theme="dark"] .rpPage .rpConnect label {
+  color: #a6afca;
+}
+
+:root[data-theme="dark"] .rpPage .rpConnect input,
+:root[data-theme="dark"] .rpPage .rpConnect select,
+:root[data-theme="dark"] .rpPage .rpConnect textarea {
+  background: #11162b;
+  color: #f5f6ff;
+  border-color: #343b57;
+}
+
+:root[data-theme="dark"] .rpPage .rpConnect input::placeholder,
+:root[data-theme="dark"] .rpPage .rpConnect textarea::placeholder {
+  color: #8994b4;
+}
+
+:root[data-theme="dark"] .rpPage .rpConnect input:focus,
+:root[data-theme="dark"] .rpPage .rpConnect select:focus,
+:root[data-theme="dark"] .rpPage .rpConnect textarea:focus {
+  border-color: #8668ff;
+  outline: none;
+}
+
+
 :root[data-theme="dark"] .rpPage .rpCamera {
   background: #252b44;
   color: #d5dcf5;
