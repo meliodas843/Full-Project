@@ -21750,7 +21750,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   background: #ffffff;
   color: #656d80;
   font-family: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -21924,7 +21924,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   justify-content: center;
   padding: 0 9px;
   border-radius: 999px;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 800;
 }
@@ -48063,7 +48063,7 @@ svg {
     min-height: 65px;
   }
   .orgInfoCard .orgStat span {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 @media (max-width: 768px) {

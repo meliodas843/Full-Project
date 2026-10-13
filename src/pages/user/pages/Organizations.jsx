@@ -517,7 +517,23 @@ export default function Organizations() {
               </p>
             </div>
 
-            <button type="button" onClick={() => navigate("/user/profile")}>
+            <button
+              type="button"
+              onClick={() => {
+                [
+                  "token",
+                  "accessToken",
+                  "authToken",
+                  "adminToken",
+                  "user",
+                ].forEach((key) => {
+                  localStorage.removeItem(key);
+                  sessionStorage.removeItem(key);
+                });
+
+                window.location.replace("/signup?accountType=organization");
+              }}
+            >
               Байгууллагаар бүртгүүлэх
             </button>
           </section>
