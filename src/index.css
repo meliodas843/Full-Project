@@ -17279,7 +17279,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   width: 100%;
   padding: 26px 24px 60px;
   box-sizing: border-box;
-  margin-top: 10px;
+  margin-top: -20px;
 }
 
 .orgDetailTopRow {
@@ -17416,7 +17416,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   flex-wrap: wrap;
   gap: 7px;
   color: #7b8396;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -17444,7 +17444,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   padding: 0 15px;
   border-radius: 9px;
   font-family: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
   transition: 0.2s ease;
@@ -17521,7 +17521,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   max-width: 850px;
   margin: 0;
   color: #626a7d;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
   font-weight: 500;
   margin-left: 10px;
@@ -17555,7 +17555,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   border-radius: 8px;
   background: #ffffff;
   color: #747c8e;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -17686,13 +17686,13 @@ html[data-user-theme="dark"] .eventWizardPanel {
 .orgEmptyEvents strong {
   margin-bottom: 4px;
   color: #4b5265;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .orgEmptyEvents > span {
   color: #9298a8;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .orgInfoDivider {
@@ -39579,7 +39579,7 @@ html[data-public-theme="dark"] .riMobileMenu {
   align-items: flex-start;
   gap: 9px;
   color: #666e80;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
   font-weight: 600;
   text-decoration: none;
