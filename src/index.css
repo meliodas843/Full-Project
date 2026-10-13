@@ -67,6 +67,27 @@
   --reg-input: #11162d;
 }
 
+:root {
+  --event-photo-bg: #f7f8fc;
+  --event-photo-card: #ffffff;
+  --event-photo-surface: #f9faff;
+  --event-photo-text: #1d2433;
+  --event-photo-muted: #81899d;
+  --event-photo-border: #e3e7f0;
+  --event-photo-input: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --event-photo-bg: #0f1224;
+  --event-photo-card: #191d35;
+  --event-photo-surface: #20263e;
+  --event-photo-text: #f5f6ff;
+  --event-photo-muted: #a8b2cd;
+  --event-photo-border: #343b58;
+  --event-photo-input: #11162d;
+}
+
+
 body {
   background: var(--reg-bg);
   color: var(--reg-text);
