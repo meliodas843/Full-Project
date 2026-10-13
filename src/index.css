@@ -17709,6 +17709,288 @@ html[data-user-theme="dark"] .eventWizardPanel {
   color: #6947f5;
 }
 
+
+/* Organization Detail Responsive */
+
+.orgDetailPage,
+.orgDetailContent,
+.orgDetailHero,
+.orgDetailLayout,
+.orgDetailMain,
+.orgDetailSidebar {
+  min-width: 0;
+}
+
+.orgDetailContent {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.orgDetailHero {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.orgDetailCover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 1;
+  height: auto;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+}
+
+.orgDetailCover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+}
+
+.orgDetailCover::before,
+.orgDetailCover::after,
+.orgDetailCoverOverlay {
+  content: none;
+  display: none;
+}
+
+.orgDetailIdentity {
+  min-width: 0;
+}
+
+.orgDetailIdentityText {
+  min-width: 0;
+}
+
+.orgDetailNameRow h1 {
+  overflow-wrap: anywhere;
+}
+
+.orgDetailActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.orgStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.orgStat {
+  min-width: 0;
+}
+
+.orgStat strong,
+.orgStat span {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.orgStat span {
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .orgDetailContent {
+    width: 100%;
+    padding-inline: 16px;
+  }
+
+  .orgDetailLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .orgDetailMain,
+  .orgDetailSidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .orgDetailCover {
+    aspect-ratio: 3 / 1;
+    height: auto;
+  }
+
+  .orgDetailIdentity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .orgDetailActions {
+    width: 100%;
+  }
+
+  .orgStats {
+    gap: 8px;
+  }
+
+  .orgStat span {
+    font-size: 9px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 480px) {
+  .orgDetailPage {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .orgDetailContent {
+    width: 100%;
+    padding-inline: 10px;
+  }
+
+  .orgDetailHero {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .orgDetailCover {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2.5 / 1;
+    background: transparent;
+  }
+
+  .orgDetailCover img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .orgDetailIdentity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .orgDetailLogo {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 60px;
+    object-fit: contain;
+  }
+
+  .orgDetailIdentityText {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .orgDetailNameRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .orgDetailNameRow h1 {
+    font-size: 16px;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .orgDetailCategory {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .orgDetailActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .orgFollowButton,
+  .orgShareButton {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  .orgDetailLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .orgDetailMain,
+  .orgDetailSidebar,
+  .orgInfoCard {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .orgStats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .orgStat {
+    min-width: 0;
+    padding: 9px 7px;
+  }
+
+  .orgStat strong {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .orgStat span {
+    font-size: 8px;
+    line-height: 1.35;
+    font-weight: 600;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .orgEventsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .orgEventsHeading {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+
 .orgDetailState {
   min-height: calc(100vh - 150px);
   display: flex;
