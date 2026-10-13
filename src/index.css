@@ -19958,6 +19958,47 @@ html[data-user-theme="dark"] .eventWizardPanel {
   margin-bottom: 18px;
 }
 
+/* Topbar profile */
+.topbarProfile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.topbarProfile img {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.topbarProfileName {
+  min-width: 0;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .topbarProfile {
+    gap: 7px;
+    max-width: 150px;
+  }
+
+  .topbarProfile img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .topbarProfileName {
+    max-width: 105px;
+  }
+}
+
 .egBackButton {
   width: 36px;
   height: 36px;
@@ -39515,7 +39556,7 @@ html[data-public-theme="dark"] .riMobileMenu {
 .orgInfoCard > h3 {
   margin: 0 0 14px;
   color: #6d7486;
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.4;
   font-weight: 800;
 }
@@ -40565,21 +40606,21 @@ svg {
   display: block;
   width: 100%;
   min-width: 0;
+}
+
+.orgStat strong {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .orgStat span {
-  display: block;
-  width: 100%;
-  min-width: 0;
   color: #8a91a2;
   font-size: 8px;
   line-height: 1.35;
   font-weight: 600;
   overflow: visible;
   text-overflow: clip;
-  word-break: normal;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -47359,7 +47400,7 @@ svg {
     padding: 17px;
   }
 }
-/* Signup profile image — prevent overflow */
+/* Signup profile image â€” prevent overflow */
 
 .rgSplitSignupForm .signupProfileUpload {
   display: flex;

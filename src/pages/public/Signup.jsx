@@ -34,7 +34,7 @@ const categories = [
 ];
 
 const getPasswordRules = (password) => ({
-  length: password.length >= 10,
+  length: password.length >= 8,
 
   uppercase: /[A-Z]/.test(password),
 
