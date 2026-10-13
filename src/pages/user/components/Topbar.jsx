@@ -959,7 +959,7 @@ export default function Topbar({
 
                 display: "block",
 
-                objectFit: "cover",
+                objectFit: "contain",
 
                 borderRadius: 10,
               }}

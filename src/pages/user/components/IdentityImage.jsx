@@ -121,6 +121,7 @@ export function UserAvatar({
         <img
           src={imageUrl}
           alt={identity}
+          style={{ objectFit: "contain", objectPosition: "center" }}
           onError={(event) => {
             event.currentTarget.style.display = "none";
 

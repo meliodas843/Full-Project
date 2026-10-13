@@ -498,7 +498,7 @@ export default function Profile() {
                         width: "100%",
                         height: "100%",
                         display: "block",
-                        objectFit: "cover",
+                        objectFit: "contain",
                         borderRadius: "50%",
                         background: "transparent",
                       }}
