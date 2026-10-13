@@ -303,7 +303,7 @@ export default function RadialShare({
                     : phase === "collapsing" ||
                         phase === "selected"
                       ? "Сонгогдлоо"
-                      : "Pick a channel"}
+                      : "Хуваалцах"}
               </span>
             </div>
           </div>,
