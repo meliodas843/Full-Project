@@ -1,0 +1,277 @@
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --reg-bg: #f6f7fc;
+  --reg-surface: #ffffff;
+  --reg-surface-alt: #f1f3fa;
+  --reg-text: #171b32;
+  --reg-muted: #737d96;
+  --reg-border: #dfe3ef;
+  --reg-input: #ffffff;
+
+  --bg: #f6f7fc;
+  --surface: #ffffff;
+  --surface-2: #fafbfe;
+  --surface-3: #f1f3fa;
+  --text: #171b32;
+  --text-2: #4b5565;
+  --muted: #737d96;
+  --muted-2: #9aa2b1;
+  --border: #dfe3ef;
+  --border-2: #dce1ea;
+
+  --rg-bg: #f6f7fc;
+  --rg-panel: #ffffff;
+  --rg-panel-soft: #fafbfe;
+  --rg-text: #171b32;
+  --rg-muted: #737d96;
+  --rg-border: #dfe3ef;
+
+  --theme-shadow: 0 8px 24px rgba(20, 30, 60, .07);
+  --theme-hover: #f0edff;
+  --theme-overlay: rgba(255, 255, 255, .92);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --reg-bg: #0d1124;
+  --reg-surface: #171c36;
+  --reg-surface-alt: #11162d;
+  --reg-text: #f5f6ff;
+  --reg-muted: #a6aec8;
+  --reg-border: #303853;
+  --reg-input: #11162d;
+
+  --bg: #0d1124;
+  --surface: #171c36;
+  --surface-2: #1b2240;
+  --surface-3: #11162d;
+  --text: #f5f6ff;
+  --text-2: #c4cbe0;
+  --muted: #a6aec8;
+  --muted-2: #8d98b6;
+  --border: #303853;
+  --border-2: #394361;
+
+  --rg-bg: #0d1124;
+  --rg-panel: #171c36;
+  --rg-panel-soft: #11162d;
+  --rg-text: #f5f6ff;
+  --rg-muted: #a6aec8;
+  --rg-border: #303853;
+
+  --theme-shadow: 0 8px 30px rgba(0, 0, 0, .24);
+  --theme-hover: #25204d;
+  --theme-overlay: rgba(17, 22, 45, .94);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--reg-bg);
+  color: var(--reg-text);
+}
+
+body {
+  margin: 0;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.regThemeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--reg-surface-alt);
+  border: 1px solid var(--reg-border);
+  color: var(--reg-text);
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+
+.regThemeToggle:hover {
+  background: var(--theme-hover);
+}
+
+.regThemeToggle:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 3px;
+}
+
+input,
+textarea,
+select {
+  background-color: var(--reg-input);
+  color: var(--reg-text);
+  border-color: var(--reg-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--reg-muted);
+}
+
+option {
+  background: var(--reg-surface);
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] {
+  scrollbar-color: #394361 #11162d;
+}
+
+:root[data-theme="dark"] .orgDetailPage {
+  background: var(--reg-bg);
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] .orgDetailHero,
+:root[data-theme="dark"] .orgDetailIdentity,
+:root[data-theme="dark"] .orgEventCard,
+:root[data-theme="dark"] .orgEmptyEvents,
+:root[data-theme="dark"] .orgDetailState {
+  background: var(--reg-surface);
+  color: var(--reg-text);
+  border-color: var(--reg-border);
+}
+
+:root[data-theme="dark"] .orgDetailSection,
+:root[data-theme="dark"] .orgDetailMain,
+:root[data-theme="dark"] .orgDetailContent {
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] .orgDetailPage h1,
+:root[data-theme="dark"] .orgDetailPage h2,
+:root[data-theme="dark"] .orgDetailPage h3,
+:root[data-theme="dark"] .orgDetailPage strong {
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] .orgDetailDescription,
+:root[data-theme="dark"] .orgDetailCategory,
+:root[data-theme="dark"] .orgEventMeta,
+:root[data-theme="dark"] .orgEmptyEvents span {
+  color: var(--reg-muted);
+}
+
+:root[data-theme="dark"] .orgEventCounters span,
+:root[data-theme="dark"] .orgShareButton,
+:root[data-theme="dark"] .orgEventDetailButton {
+  background: var(--reg-surface-alt);
+  color: var(--reg-text);
+  border-color: var(--reg-border);
+}
+
+:root[data-theme="dark"] .orgDetailIdentity {
+  border-top-color: var(--reg-border);
+}
+
+:root[data-theme="dark"] .orgDetailLogo {
+  background: #ffffff;
+}
+
+:root[data-theme="dark"] .orgDetailPage a:not([class*="Button"]) {
+  color: #a594ff;
+}
+
+/* Public pages */
+
+:root[data-theme="dark"] .publicHome {
+  background: var(--reg-bg);
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] .publicHero {
+  background:
+    radial-gradient(
+      circle at 70% 20%,
+      rgba(108, 77, 246, .16),
+      transparent 55%
+    ),
+    var(--reg-bg);
+}
+
+:root[data-theme="dark"] .publicValue {
+  background: linear-gradient(
+    180deg,
+    #0d1124,
+    #151a34
+  );
+}
+
+:root[data-theme="dark"] .publicDemo {
+  background: linear-gradient(
+    180deg,
+    #151a34,
+    #0d1124
+  );
+}
+
+:root[data-theme="dark"] .publicSectionTitle,
+:root[data-theme="dark"] .publicValue .publicSectionTitle,
+:root[data-theme="dark"] .publicValue .publicIconCard h3,
+:root[data-theme="dark"] .publicValue .publicIconCard p {
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] .publicHero__sub {
+  color: var(--reg-muted);
+}
+
+:root[data-theme="dark"] .publicValue .publicIcon {
+  border-color: var(--reg-border);
+  color: var(--reg-text);
+}
+
+/* Dashboard and reusable surfaces */
+
+:root[data-theme="dark"] .rg-card,
+:root[data-theme="dark"] .rg-panel,
+:root[data-theme="dark"] .riCard,
+:root[data-theme="dark"] .riPanel,
+:root[data-theme="dark"] .riPriceCard {
+  background-color: var(--reg-surface);
+  color: var(--reg-text);
+  border-color: var(--reg-border);
+}
+
+:root[data-theme="dark"] table {
+  color: var(--reg-text);
+}
+
+:root[data-theme="dark"] thead {
+  background: var(--reg-surface-alt);
+}
+
+:root[data-theme="dark"] th,
+:root[data-theme="dark"] td {
+  border-color: var(--reg-border);
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background: var(--reg-input);
+  color: var(--reg-text);
+  border-color: var(--reg-border);
+}
+
+:root[data-theme="dark"] input:disabled,
+:root[data-theme="dark"] textarea:disabled,
+:root[data-theme="dark"] select:disabled {
+  opacity: .55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .regThemeToggle,
+  body {
+    transition: none;
+  }
+}

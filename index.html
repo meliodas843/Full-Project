@@ -2,17 +2,70 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <link rel="icon" type="image/png" href="/assets/logo.png" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <meta property="og:type" content="website" />
     <meta property="og:title" content="IT Insight Event" />
     <meta property="og:description" content="Event details" />
     <meta property="og:image" content="/share-default.jpg" />
     <meta property="og:url" content="http://localhost:5173" />
+
+    <meta name="theme-color" content="#f6f7fc" id="theme-color-meta" />
+
     <title>Registra</title>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = "registra-theme";
+
+        let theme = "light";
+
+        try {
+          const savedTheme = localStorage.getItem(STORAGE_KEY);
+
+          if (savedTheme === "dark" || savedTheme === "light") {
+            theme = savedTheme;
+          } else {
+            const prefersDark = window.matchMedia(
+              "(prefers-color-scheme: dark)",
+            ).matches;
+
+            theme = prefersDark ? "dark" : "light";
+          }
+        } catch (error) {
+          theme = "light";
+        }
+
+        document.documentElement.setAttribute("data-theme", theme);
+
+        document.documentElement.style.colorScheme = theme;
+
+        function updateThemeColor(currentTheme) {
+          const meta = document.getElementById("theme-color-meta");
+
+          if (meta) {
+            meta.setAttribute(
+              "content",
+              currentTheme === "dark" ? "#0d1124" : "#f6f7fc",
+            );
+          }
+        }
+
+        updateThemeColor(theme);
+
+        window.addEventListener("registra-theme-change", function (event) {
+          updateThemeColor(event.detail.theme);
+        });
+      })();
+    </script>
   </head>
+
   <body>
     <div id="root"></div>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
