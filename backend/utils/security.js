@@ -41,6 +41,8 @@ export const resetEmailLimiter = limiter(15, 5, TOO_MANY);
 
 export const resetCodeLimiter = limiter(15, 20, TOO_MANY);
 
+export const lookupLimiter = limiter(15, 60, TOO_MANY);
+
 // 5xx responses used to include err.message (SQL errors, file paths). Keep
 // logging them server-side but don't send them to the browser.
 export function hideServerErrors(req, res, next) {

@@ -1,4 +1,5 @@
 import fs from "fs";
+import { getEventAccess } from "../utils/eventAccess.js";
 import path from "path";
 import express from "express";
 import multer from "multer";
@@ -806,6 +807,27 @@ router.get(
             message:
               "Invalid event id",
           });
+      }
+
+
+      // Files are for the creator and people who joined the event only.
+      const access =
+        await getEventAccess(
+          pool,
+          eventId,
+          req.user
+        );
+
+      if (!access.exists) {
+        return res
+          .status(404)
+          .json({ message: "Event not found" });
+      }
+
+      if (!access.isMember) {
+        return res
+          .status(403)
+          .json({ message: "Forbidden" });
       }
 
       const [

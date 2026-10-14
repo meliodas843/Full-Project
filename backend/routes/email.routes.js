@@ -175,10 +175,6 @@ router.get("/user-lookup", authMiddleware, async (req, res) => {
 
         last_name: user.last_name,
 
-        company_name: user.company_name,
-
-        phone: user.phone,
-
         registered: true,
       },
     });
@@ -1776,9 +1772,13 @@ router.post("/password-code", async (req, res) => {
 
     const user = await getUserByEmail(email);
 
+    // Same answer whether or not the email has an account, so this endpoint
+    // can't be used to find out who is registered.
     if (!user) {
-      return res.status(404).json({
-        message: "This email is not registered.",
+      return res.json({
+        message: "Reset code sent to your email.",
+
+        email,
       });
     }
 
@@ -1917,106 +1917,6 @@ router.post("/password-code", async (req, res) => {
 
     return res.status(500).json({
       message: "Server error",
-
-      error: String(err.message || err),
-    });
-  }
-});
-
-router.post("/test", authMiddleware, async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body?.email);
-
-    if (!email || !validEmail(email)) {
-      return res.status(400).json({
-        message: "Valid email is required",
-      });
-    }
-
-    await sendMail({
-      to: email,
-
-      subject: "Registra email test",
-
-      text: "Registra email system is working.",
-
-      html: `
-
-          <div
-
-            style="
-
-              max-width:600px;
-
-              margin:0 auto;
-
-              padding:40px;
-
-              font-family:Arial,sans-serif;
-
-            "
-
-          >
-
-            <img
-
-            src="cid:registra-logo"
-
-            alt="REGISTRA"
-
-            width="145"
-
-            style="
-
-                display:block;
-
-                width:145px;
-
-                max-width:145px;
-
-                height:auto;
-
-                margin:0 0 16px;
-
-                border:0;
-
-                outline:none;
-
-                text-decoration:none;
-
-            "
-
-            />
-
-            <h2>
-
-              Email system ажиллаж байна
-
-            </h2>
-
-            <p>
-
-              Энэ бол Registra backend-ээс
-
-              илгээсэн тест имэйл.
-
-            </p>
-
-          </div>
-
-        `,
-    });
-
-    return res.json({
-      message: "Test email sent",
-
-      email,
-    });
-  } catch (err) {
-    console.error("POST /api/email/test error:", err);
-
-    return res.status(500).json({
-      message: "Email could not be sent",
 
       error: String(err.message || err),
     });

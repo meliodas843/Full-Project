@@ -7,6 +7,7 @@ import {
   authLimiter,
   corsMiddleware,
   hideServerErrors,
+  lookupLimiter,
   resetCodeLimiter,
   resetEmailLimiter,
 } from "./utils/security.js";
@@ -44,6 +45,7 @@ app.use(hideServerErrors);
 app.use("/api", apiLimiter);
 app.use(["/api/auth/login", "/api/auth/register", "/api/auth/google"], authLimiter);
 app.use("/api/email/password-code", resetEmailLimiter);
+app.use("/api/email/user-lookup", lookupLimiter);
 app.use(["/api/password/verify-code", "/api/password/reset-with-code"], resetCodeLimiter);
 
 app.use(

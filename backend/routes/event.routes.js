@@ -1,4 +1,5 @@
 import fs from "fs";
+import { getEventAccess } from "../utils/eventAccess.js";
 import { imageExtension } from "../utils/uploadSafety.js";
 
 import path from "path";
@@ -645,8 +646,6 @@ router.get("/", async (req, res) => {
         max_participants,
 
         visibility,
-
-        invite_token,
 
         archived,
 
@@ -1801,6 +1800,20 @@ router.get("/:id/participants", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invalid event id" });
     }
 
+    // Names and emails are only for the creator and people who joined.
+    // Others browsing a public event still get the count.
+    const access = await getEventAccess(pool, eventId, req.user);
+
+    if (!access.exists) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (!access.isMember && !access.isPublic) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const visible = (list) => (access.isMember ? list : []);
+
     const [rows] = await pool.query(
       `
 
@@ -1845,7 +1858,7 @@ router.get("/:id/participants", authMiddleware, async (req, res) => {
 
     if (rows.length) {
       return res.json({
-        participants: rows,
+        participants: visible(rows),
 
         total_count: rows.length,
       });
@@ -1884,7 +1897,7 @@ router.get("/:id/participants", authMiddleware, async (req, res) => {
     );
 
     return res.json({
-      participants: archivedRows,
+      participants: visible(archivedRows),
 
       total_count: archivedRows.length,
     });
@@ -2290,6 +2303,16 @@ router.get("/:id/files", authMiddleware, async (req, res) => {
 
     if (!Number.isFinite(eventId)) {
       return res.status(400).json({ message: "Invalid event id" });
+    }
+
+    const access = await getEventAccess(pool, eventId, req.user);
+
+    if (!access.exists) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (!access.isMember) {
+      return res.status(403).json({ message: "Forbidden" });
     }
 
     const [rows] = await pool.query(
