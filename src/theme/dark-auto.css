@@ -4462,6 +4462,17 @@
 :where(:root[data-theme="dark"]) .myEventImageButton {
     background: #243042
 }
+:where(:root[data-theme="dark"]) .myEventStatusBadge {
+    background: #181c37;
+    color: #babdd3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.38)
+}
+:where(:root[data-theme="dark"]) .myEventStatusBadge.published {
+    color: #907cf4
+}
+:where(:root[data-theme="dark"]) .myEventStatusBadge.ended {
+    color: #9da1c0
+}
 :where(:root[data-theme="dark"]) .myEventStatus {
     background: rgba(67, 34, 117, 0.88)
 }

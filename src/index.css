@@ -33276,6 +33276,41 @@ html[data-user-theme="dark"] .uep-wrap.is-detail .uep-right {
   cursor: pointer;
 }
 
+.myEventStatusBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #5b6175;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(18, 24, 40, 0.12);
+  pointer-events: none;
+}
+
+.myEventStatusBadge.published {
+  color: #6247ef;
+}
+
+.myEventStatusBadge.published::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.myEventStatusBadge.ended {
+  color: #8a91a2;
+}
+
 .myEventImage,
 .myEventImageButton img {
   display: block;

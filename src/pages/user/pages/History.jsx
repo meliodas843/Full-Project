@@ -216,6 +216,14 @@ function getEventStatus(event) {
   return "published";
 }
 
+const EVENT_STATUS_LABELS = {
+  published: "Нийтлэгдсэн",
+
+  draft: "Ноорог",
+
+  ended: "Дууссан",
+};
+
 function makeSpeaker() {
   return {
     name: "",
@@ -1842,11 +1850,11 @@ export default function History() {
                 {[
                   ["all", "Бүгд"],
 
-                  ["draft", "Draft"],
+                  ["draft", EVENT_STATUS_LABELS.draft],
 
-                  ["published", "Нийтлэгдсэн"],
+                  ["published", EVENT_STATUS_LABELS.published],
 
-                  ["ended", "Дууссан"],
+                  ["ended", EVENT_STATUS_LABELS.ended],
                 ].map(([value, label]) => (
                   <button
                     type="button"
@@ -1904,6 +1912,12 @@ export default function History() {
                       onClick={() => openView(event)}
                     >
                       <img src={getEventImage(event)} alt={event.title} />
+
+                      <span
+                        className={`myEventStatusBadge ${getEventStatus(event)}`}
+                      >
+                        {EVENT_STATUS_LABELS[getEventStatus(event)]}
+                      </span>
                     </button>
 
                     <div className="myEventBody">
