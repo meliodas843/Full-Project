@@ -312,39 +312,23 @@ async function archiveExpiredEvents(conn = pool) {
       eventIds,
     );
 
+    // Keep the original rows: finished events are only flagged, never
+    // deleted, so their bookings and every column stay in the database.
     await connection.query(
-      `DELETE FROM event_bookings WHERE event_id IN (${placeholders})`,
+      `
+
+      UPDATE events
+
+      SET archived = 1,
+
+          archived_at = COALESCE(archived_at, NOW())
+
+      WHERE id IN (${placeholders})
+
+      `,
 
       eventIds,
     );
-
-    try {
-      await connection.query(
-        `DELETE FROM events WHERE id IN (${placeholders})`,
-
-        eventIds,
-      );
-    } catch (deleteError) {
-      if (deleteError?.code !== "ER_ROW_IS_REFERENCED_2") {
-        throw deleteError;
-      }
-
-      await connection.query(
-        `
-
-        UPDATE events
-
-        SET archived = 1,
-
-            archived_at = COALESCE(archived_at, NOW())
-
-        WHERE id IN (${placeholders})
-
-        `,
-
-        eventIds,
-      );
-    }
 
     await connection.commit();
   } catch (error) {
@@ -1264,11 +1248,49 @@ router.delete("/requests/:id", authMiddleware, async (req, res) => {
   }
 });
 
+let finishedEventDeletedColumnReady = false;
+
+// finished_event has no deleted flag of its own; add one on first use so a
+// creator can hide a finished event without removing its row.
+async function ensureFinishedEventDeletedColumn(conn = pool) {
+  if (finishedEventDeletedColumnReady) return;
+
+  const [[column]] = await conn.query(
+    `
+
+    SELECT COUNT(*) AS total
+
+    FROM information_schema.COLUMNS
+
+    WHERE TABLE_SCHEMA = DATABASE()
+
+      AND TABLE_NAME = 'finished_event'
+
+      AND COLUMN_NAME = 'deleted_at'
+
+    `,
+  );
+
+  if (!Number(column?.total)) {
+    try {
+      await conn.query(
+        `ALTER TABLE finished_event ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL`,
+      );
+    } catch (error) {
+      if (error?.code !== "ER_DUP_FIELDNAME") throw error;
+    }
+  }
+
+  finishedEventDeletedColumnReady = true;
+}
+
 async function getArchivedEventsForUser(
   userId,
   userEmail,
   onlyCreated = false,
 ) {
+  await ensureFinishedEventDeletedColumn(pool);
+
   const [rows] = await pool.query(
     `
 
@@ -1292,7 +1314,9 @@ async function getArchivedEventsForUser(
 
     FROM finished_event f
 
-    WHERE LOWER(f.created_by_email) = ?
+    WHERE f.deleted_at IS NULL
+
+      AND (LOWER(f.created_by_email) = ?
 
        ${
          onlyCreated
@@ -1304,7 +1328,7 @@ async function getArchivedEventsForUser(
           WHERE fp.original_event_id = f.original_event_id AND fp.user_id = ?
 
        )`
-       }
+       })
 
     ORDER BY f.end_time DESC
 
@@ -2652,7 +2676,11 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       });
     }
 
-    const [rows] = await pool.query(
+    // Deleting never removes rows: a live event is flagged archived, and a
+    // finished event (copied to finished_event) is flagged deleted_at.
+    await ensureFinishedEventDeletedColumn(pool);
+
+    const [[activeEvent]] = await pool.query(
       `SELECT id, created_by_email
 
        FROM events
@@ -2664,34 +2692,62 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       [eventId],
     );
 
-    if (!rows.length) {
+    const [[finishedEvent]] = await pool.query(
+      `SELECT original_event_id, created_by_email
+
+       FROM finished_event
+
+       WHERE original_event_id = ?
+
+       LIMIT 1`,
+
+      [eventId],
+    );
+
+    const ownerEmail = String(
+      activeEvent?.created_by_email || finishedEvent?.created_by_email || "",
+    )
+      .trim()
+
+      .toLowerCase();
+
+    if (!activeEvent && !finishedEvent) {
       return res.status(404).json({
         message: "Эвент олдсонгүй.",
       });
     }
 
-    if (
-      String(rows[0].created_by_email || "")
-        .trim()
-
-        .toLowerCase() !== userEmail
-    ) {
+    if (ownerEmail !== userEmail) {
       return res.status(403).json({
         message: "Та зөвхөн өөрийн эвентийг устгах боломжтой.",
       });
     }
 
-    await pool.query(
-      `UPDATE events
+    if (activeEvent) {
+      await pool.query(
+        `UPDATE events
 
-       SET archived = 1,
+         SET archived = 1,
 
-           archived_at = NOW()
+             archived_at = COALESCE(archived_at, NOW())
 
-       WHERE id = ?`,
+         WHERE id = ?`,
 
-      [eventId],
-    );
+        [eventId],
+      );
+    }
+
+    if (finishedEvent) {
+      await pool.query(
+        `UPDATE finished_event
+
+         SET deleted_at = COALESCE(deleted_at, NOW())
+
+         WHERE original_event_id = ?`,
+
+        [eventId],
+      );
+    }
 
     return res.json({
       success: true,
