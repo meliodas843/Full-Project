@@ -733,9 +733,17 @@ export default function OrganizationProfile() {
   }
 
   function handleCoverError(event) {
-    event.currentTarget.onerror = null;
+    const img = event.currentTarget;
+    const fallback = img.src.endsWith(defaultCover)
+      ? DEFAULT_COVERS[0]
+      : defaultCover;
 
-    event.currentTarget.src = defaultCover;
+    if (img.src.endsWith(fallback)) {
+      img.onerror = null;
+      return;
+    }
+
+    img.src = fallback;
   }
 
   if (loading) {
