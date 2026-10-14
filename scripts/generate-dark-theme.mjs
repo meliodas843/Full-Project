@@ -271,7 +271,9 @@ for (const file of SOURCES) {
     const bgStaysSaturated =
       bgDecl &&
       !/var\(/.test(bgDecl.value) &&
-      new RegExp(COLOR_RE.source).test(bgDecl.value) &&
+      (bgDecl.value.match(COLOR_RE) || []).some(
+        (c) => (parseColor(c)?.[3] ?? 0) >= 0.5,
+      ) &&
       !mapValue(bgDecl.value, "bg");
 
     const mapped = [];

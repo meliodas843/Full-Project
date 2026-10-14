@@ -851,6 +851,15 @@
 :where(:root[data-theme="dark"]) .nt-item-desc {
     color: rgba(234, 235, 241, 0.75)
 }
+:where(:root[data-theme="dark"]) .nt-pill.pending {
+    color: #f9ba89
+}
+:where(:root[data-theme="dark"]) .nt-pill.accepted {
+    color: #a2ebbd
+}
+:where(:root[data-theme="dark"]) .nt-pill.declined {
+    color: #ed9797
+}
 :where(:root[data-theme="dark"]) .nt-cal-title {
     color: #eaebf1
 }
@@ -859,6 +868,9 @@
 }
 :where(:root[data-theme="dark"]) .nt-cal-grid {
     background: #181c37
+}
+:where(:root[data-theme="dark"]) .nt-weekdays {
+    color: rgba(234, 235, 241, 0.7)
 }
 :where(:root[data-theme="dark"]) .nt-weekdays div {
     color: #c4c7d9
@@ -889,12 +901,21 @@
 :where(:root[data-theme="dark"]) .meet-back:hover {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28)
 }
+:where(:root[data-theme="dark"]) .meet-tab {
+    color: rgba(234, 235, 241, 0.7)
+}
 :where(:root[data-theme="dark"]) .meet-input, :where(:root[data-theme="dark"]) .meet-textarea {
     background: #181c37;
     color: #eaebf1
 }
 :where(:root[data-theme="dark"]) .meet-input:focus, :where(:root[data-theme="dark"]) .meet-textarea:focus {
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.28)
+}
+:where(:root[data-theme="dark"]) .meet-hint {
+    color: rgba(234, 235, 241, 0.65)
+}
+:where(:root[data-theme="dark"]) .meet-message {
+    color: #eaebf1
 }
 :where(:root[data-theme="dark"]) .meet-user-list {
     border: 1px solid #30365a;
@@ -3572,6 +3593,12 @@
 :where(:root[data-theme="dark"]) .riTestimonialTrack .riTestimonialCard:hover {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.48)
 }
+:where(:root[data-theme="dark"]) .riCategory.frontend {
+    color: #8ee4c3
+}
+:where(:root[data-theme="dark"]) .riEventDetailCategory.frontend {
+    color: #8ee4c3
+}
 :where(:root[data-theme="dark"]) .riEventScheduleSection {
     background: #181c37;
     border: 1px solid #303758;
@@ -3633,6 +3660,9 @@
 :where(:root[data-theme="dark"]) .riFeaturedNews:hover {
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.53)
 }
+:where(:root[data-theme="dark"]) .riNewsCategory.frontend {
+    color: #8de4c3
+}
 :where(:root[data-theme="dark"]) .riNewsCard:hover {
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.48)
 }
@@ -3675,6 +3705,9 @@
 }
 :where(:root[data-theme="dark"]) .rgRemember {
     color: #aaaec9
+}
+:where(:root[data-theme="dark"]) .rgAuthError {
+    color: #ec8c8c
 }
 :where(:root[data-theme="dark"]) .rgAuthSignup {
     color: #a2a6c3
@@ -3720,8 +3753,20 @@
 :where(:root[data-theme="dark"]) .calVideoButton:hover:not(:disabled) {
     background: #184e53
 }
+:where(:root[data-theme="dark"]) .rgBigCalendarGrid > button.active {
+    color: #8d7df3
+}
 :where(:root[data-theme="dark"]) .rgCalendarLoading {
     background: rgba(24, 28, 55, 0.65)
+}
+:where(:root[data-theme="dark"]) .rgEditProfileButton {
+    color: #8e7ef2
+}
+:where(:root[data-theme="dark"]) .rgProfileAlert.error {
+    color: #f47d7d
+}
+:where(:root[data-theme="dark"]) .rgProfileAlert.success {
+    color: #8bf5d2
 }
 :where(:root[data-theme="dark"]) .profileSettingsPage {
     background: #121729
@@ -3954,8 +3999,17 @@
         border-right: 1px solid #2e3456
     }
 }
+:where(:root[data-theme="dark"]) .rgForgotError {
+    color: #ec8c8c
+}
 :where(:root[data-theme="dark"]) .rgForgotForm input:focus {
     background: #181c37
+}
+:where(:root[data-theme="dark"]) .rgForgotAlert.error {
+    color: #f47d7d
+}
+:where(:root[data-theme="dark"]) .rgForgotSuccess {
+    color: #93f0b5
 }
 :where(:root[data-theme="dark"]) .rgOnboardingPage {
     background: #10152b;
@@ -3993,6 +4047,9 @@
 }
 :where(:root[data-theme="dark"]) .rgOnboardingRequiredText {
     color: #989dbd
+}
+:where(:root[data-theme="dark"]) .rgOnboardingError {
+    color: #ec8c8c
 }
 :where(:root[data-theme="dark"]) .rgOnboardingSection {
     border: 1px solid #31375b;
@@ -5105,6 +5162,9 @@
 :where(:root[data-theme="dark"]) .rgSideLinkLocked {
     color: #8288af
 }
+:where(:root[data-theme="dark"]) .rgSideLinkLocked:hover {
+    color: #8b91b5
+}
 :where(:root[data-theme="dark"]) .rgSideLock {
     color: #7d83ac
 }
@@ -5263,6 +5323,9 @@
 }
 :where(:root[data-theme="dark"]) .passwordProfileField label span {
     color: #947cf4
+}
+:where(:root[data-theme="dark"]) .rpComplete {
+    color: #98e9c7
 }
 :where(:root[data-theme="dark"]) .rpError {
     background: rgba(119, 34, 35, 0.1)
