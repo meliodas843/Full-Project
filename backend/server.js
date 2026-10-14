@@ -2,7 +2,15 @@ import "dotenv/config";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
-import cors from "cors";
+import {
+  apiLimiter,
+  authLimiter,
+  corsMiddleware,
+  hideServerErrors,
+  resetCodeLimiter,
+  resetEmailLimiter,
+} from "./utils/security.js";
+import { setUploadHeaders } from "./utils/uploadSafety.js";
 
 import authRoutes from "./routes/auth.js";
 import newsRoutes from "./routes/news.routes.js";
@@ -26,7 +34,17 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors());
+// nginx sits in front of the app; trust its X-Forwarded-For so rate limits
+// apply per visitor rather than to the proxy as a whole.
+app.set("trust proxy", 1);
+
+app.use(corsMiddleware());
+app.use(hideServerErrors);
+
+app.use("/api", apiLimiter);
+app.use(["/api/auth/login", "/api/auth/register", "/api/auth/google"], authLimiter);
+app.use("/api/email/password-code", resetEmailLimiter);
+app.use(["/api/password/verify-code", "/api/password/reset-with-code"], resetCodeLimiter);
 
 app.use(
   express.json({
@@ -44,7 +62,8 @@ app.use(
 app.use(
   "/uploads",
   express.static(
-    path.join(__dirname, "uploads")
+    path.join(__dirname, "uploads"),
+    { setHeaders: setUploadHeaders }
   )
 );
 

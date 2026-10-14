@@ -1,4 +1,5 @@
 import fs from "fs";
+import { imageExtension, isAllowedImage } from "../utils/uploadSafety.js";
 
 import path from "path";
 
@@ -24,7 +25,7 @@ const organizationStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, ORGANIZATION_UPLOAD_DIR),
 
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
+    const ext = imageExtension(file.mimetype);
 
     cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   },
@@ -36,7 +37,7 @@ const organizationUpload = multer({
   limits: { fileSize: 8 * 1024 * 1024 },
 
   fileFilter: (req, file, cb) => {
-    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+    if (!isAllowedImage(file.mimetype)) {
       return cb(new Error("Only image files are allowed"));
     }
 

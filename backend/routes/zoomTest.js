@@ -1,7 +1,12 @@
 import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import roleMiddleware from "../middleware/roleMiddleware.js";
 import { zoomGetMe, createZoomMeeting } from "../utils/zoom.js";
 
 const router = express.Router();
+
+// Debug endpoints that act on the shared Zoom account: admins only.
+router.use(authMiddleware, roleMiddleware(["admin", "super_admin"]));
 
 /**
  * GET /api/zoom/test

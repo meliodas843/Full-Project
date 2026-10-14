@@ -272,11 +272,6 @@ export default function Login() {
         saveAuth(data);
 
       console.log(
-        "[LOGIN] response:",
-        data
-      );
-
-      console.log(
         "[LOGIN] accountType:",
         accountType
       );

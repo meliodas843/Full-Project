@@ -18,6 +18,7 @@ import {
   getImageSrc,
 } from "../../lib/config";
 import eventFallback from "../../assets/event.png";
+import { sanitizeHtml } from "../../utils/safeHtml";
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
@@ -392,7 +393,7 @@ export default function NewsDetail() {
             <div
               className="riNewsDetailContent"
               dangerouslySetInnerHTML={{
-                __html: body,
+                __html: sanitizeHtml(body),
               }}
             />
 

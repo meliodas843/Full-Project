@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../utils/jwtSecret.js";
 
 export default function optionalAuth(req, _res, next) {
   const header = req.headers.authorization || "";
@@ -10,8 +11,7 @@ export default function optionalAuth(req, _res, next) {
   }
 
   try {
-    const secret = process.env.JWT_SECRET;
-    req.user = jwt.verify(token, secret);
+    req.user = jwt.verify(token, JWT_SECRET);
   } catch {
     req.user = null;
   }

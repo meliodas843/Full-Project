@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import pool from "../db.js";
 
 import { OAuth2Client } from "google-auth-library";
+import { JWT_SECRET } from "../utils/jwtSecret.js";
 
 const router = express.Router();
 
@@ -44,7 +45,6 @@ function randomDefaultOrganizationCover() {
   return randomFrom(DEFAULT_ORGANIZATION_COVERS);
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 

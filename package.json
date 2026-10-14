@@ -16,6 +16,7 @@
     "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "crypto": "^1.0.1",
+    "dompurify": "^3.4.17",
     "express-session": "^1.18.2",
     "html2pdf.js": "^0.14.0",
     "html5-qrcode": "^2.3.8",

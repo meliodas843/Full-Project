@@ -1,4 +1,5 @@
 import fs from "fs";
+import { imageExtension } from "../utils/uploadSafety.js";
 
 import path from "path";
 
@@ -398,7 +399,12 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
 
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "").slice(0, 10);
+    const field = String(file.fieldname || "");
+
+    const ext =
+      field === "image" || field === "speaker_avatars"
+        ? imageExtension(file.mimetype)
+        : path.extname(file.originalname || "").slice(0, 10);
 
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
 

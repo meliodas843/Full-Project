@@ -1,5 +1,7 @@
 // routes/newsBodyImage.routes.js
 import express from "express";
+import { imageExtension, isAllowedImage } from "../utils/uploadSafety.js";
+import roleMiddleware from "../middleware/roleMiddleware.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -13,7 +15,7 @@ fs.mkdirSync(NEWS_UPLOAD_DIR, { recursive: true });
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, NEWS_UPLOAD_DIR),
   filename: (_, file, cb) => {
-    const ext = path.extname(file.originalname || ".jpg");
+    const ext = imageExtension(file.mimetype);
     const name = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     cb(null, name);
   },
@@ -23,7 +25,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (_, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
+    if (!isAllowedImage(file.mimetype)) {
       return cb(new Error("Only images allowed"));
     }
     cb(null, true);
@@ -33,6 +35,7 @@ const upload = multer({
 router.post(
   "/body-image",
   authMiddleware,
+  roleMiddleware(["admin", "super_admin"]),
   upload.single("image"),
   (req, res) => {
     if (!req.file) {

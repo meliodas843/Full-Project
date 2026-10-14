@@ -1,4 +1,6 @@
 import fs from "fs";
+import { imageExtension, isAllowedImage } from "../utils/uploadSafety.js";
+import roleMiddleware from "../middleware/roleMiddleware.js";
 import path from "path";
 import express from "express";
 import multer from "multer";
@@ -16,7 +18,7 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
+    const ext = imageExtension(file.mimetype);
     cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   },
 });
@@ -25,7 +27,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+    if (!isAllowedImage(file.mimetype)) {
       return cb(new Error("Only images allowed"));
     }
     cb(null, true);
@@ -64,6 +66,7 @@ router.get("/", async (req, res) => {
 router.post(
   "/body-image",
   authMiddleware,
+  roleMiddleware(["admin", "super_admin"]),
   upload.single("image"),
   async (req, res) => {
     try {
@@ -91,6 +94,7 @@ router.post(
 router.post(
   "/",
   authMiddleware,
+  roleMiddleware(["admin", "super_admin"]),
   upload.single("cover"),
   async (req, res) => {
     try {
@@ -154,6 +158,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  roleMiddleware(["admin", "super_admin"]),
   upload.single("cover"),
   async (req, res) => {
     try {
@@ -219,7 +224,7 @@ router.put(
 /* =========================
    DELETE NEWS
 ========================= */
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, roleMiddleware(["admin", "super_admin"]), async (req, res) => {
   try {
     const id = req.params.id;
 

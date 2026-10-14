@@ -1,4 +1,6 @@
 import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import roleMiddleware from "../middleware/roleMiddleware.js";
 import db from "../db.js";
 
 const router = express.Router();
@@ -17,7 +19,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, roleMiddleware(["admin", "super_admin"]), async (req, res) => {
   try {
     const { title, description, image } = req.body;
 

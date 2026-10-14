@@ -9,6 +9,7 @@ import {
 import Footer from "../../components/Footer";
 import { API_BASE, getImageSrc } from "../../lib/config";
 import eventFallback from "../../assets/event.png";
+import { sanitizeHtml } from "../../utils/safeHtml";
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
@@ -620,12 +621,11 @@ export default function EventDetail() {
               <div
                 className="riEventDescription"
                 dangerouslySetInnerHTML={{
-                  __html:
-                    String(
-                      description,
-                    ).includes("<")
+                  __html: sanitizeHtml(
+                    String(description).includes("<")
                       ? description
                       : `<p>${description}</p>`,
+                  ),
                 }}
               />
 
