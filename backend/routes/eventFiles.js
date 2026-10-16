@@ -1,4 +1,5 @@
 import fs from "fs";
+import { uploadError } from "../utils/uploadSafety.js";
 import { getEventAccess } from "../utils/eventAccess.js";
 import path from "path";
 import express from "express";
@@ -260,7 +261,7 @@ const upload =
         )
       ) {
         return cb(
-          new Error(
+          uploadError(
             "File type not allowed"
           )
         );

@@ -1,4 +1,5 @@
 import express from "express";
+import { uploadError } from "../utils/uploadSafety.js";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -43,7 +44,7 @@ const upload = multer({
     ];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      return cb(new Error("Only JPG, JPEG, PNG and WEBP images are allowed"));
+      return cb(uploadError("Only JPG, JPEG, PNG and WEBP images are allowed"));
     }
 
     cb(null, true);

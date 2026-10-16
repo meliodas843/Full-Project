@@ -68,16 +68,7 @@ function durationMinutes(m) {
   return Math.max(15, diff || 30);
 }
 
-async function ensureFinishedMeetingTable(conn) {
-  await conn.query(`
-
-    CREATE TABLE IF NOT EXISTS finished_meeting LIKE meetings
-
-  `);
-}
-
 async function cleanupEndedMeetings(conn) {
-  await ensureFinishedMeetingTable(conn);
 
   const [rows] = await conn.query(`
 
@@ -1138,7 +1129,6 @@ router.get("/finished", authMiddleware, async (req, res) => {
 
     await conn.commit();
 
-    await ensureFinishedMeetingTable(conn);
 
     const [rows] = await conn.query(
       `

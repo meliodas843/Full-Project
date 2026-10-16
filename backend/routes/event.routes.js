@@ -1,6 +1,6 @@
 import fs from "fs";
 import { getEventAccess } from "../utils/eventAccess.js";
-import { imageExtension } from "../utils/uploadSafety.js";
+import { imageExtension, uploadError } from "../utils/uploadSafety.js";
 
 import path from "path";
 
@@ -121,42 +121,15 @@ function isFinished(end_time) {
   return Number.isFinite(endMs) && endMs < Date.now();
 }
 
-async function ensureFinishedParticipantTable(conn = pool) {
-  await conn.query(`
-
-    CREATE TABLE IF NOT EXISTS finished_event_participants (
-
-      id BIGINT NOT NULL AUTO_INCREMENT,
-
-      original_event_id BIGINT NOT NULL,
-
-      user_id BIGINT NULL,
-
-      email VARCHAR(255) NULL,
-
-      first_name VARCHAR(255) NULL,
-
-      last_name VARCHAR(255) NULL,
-
-      company_name VARCHAR(255) NULL,
-
-      avatar_url TEXT NULL,
-
-      archived_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-      PRIMARY KEY (id),
-
-      UNIQUE KEY uq_finished_event_participant (original_event_id, user_id),
-
-      KEY idx_finished_event_participant_event (original_event_id)
-
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-
-  `);
-}
+// Runs from a 1-minute timer and from several list endpoints; skip repeat
+// runs within 30 seconds so busy pages don't each start a locking transaction.
+const ARCHIVE_MIN_INTERVAL_MS = 30 * 1000;
+let lastArchiveRun = 0;
 
 async function archiveExpiredEvents(conn = pool) {
-  await ensureFinishedParticipantTable(conn);
+  if (Date.now() - lastArchiveRun < ARCHIVE_MIN_INTERVAL_MS) return;
+
+  lastArchiveRun = Date.now();
 
   const connection = await conn.getConnection();
 
@@ -423,7 +396,7 @@ const upload = multer({
 
     if (field === "image" || field === "speaker_avatars") {
       if (!isAllowedEventCreateMime(file.mimetype)) {
-        return cb(new Error("Only PNG, JPG, JPEG, WEBP images are allowed"));
+        return cb(uploadError("Only PNG, JPG, JPEG, WEBP images are allowed"));
       }
 
       return cb(null, true);
@@ -431,23 +404,15 @@ const upload = multer({
 
     if (field === "files") {
       if (!isAllowedMime(file.mimetype)) {
-        return cb(new Error("File type not allowed"));
+        return cb(uploadError("File type not allowed"));
       }
 
       return cb(null, true);
     }
 
-    return cb(new Error(`Unexpected field: ${field}`));
+    return cb(uploadError(`Unexpected field: ${field}`));
   },
 });
-
-function makePublicUrl(req, storedName) {
-  const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
-
-  const host = req.get("host");
-
-  return `${proto}://${host}/uploads/events/${storedName}`;
-}
 
 function safeJsonParse(value, fallback) {
   try {
@@ -1253,48 +1218,13 @@ router.delete("/requests/:id", authMiddleware, async (req, res) => {
   }
 });
 
-let finishedEventDeletedColumnReady = false;
 
-// finished_event has no deleted flag of its own; add one on first use so a
-// creator can hide a finished event without removing its row.
-async function ensureFinishedEventDeletedColumn(conn = pool) {
-  if (finishedEventDeletedColumnReady) return;
-
-  const [[column]] = await conn.query(
-    `
-
-    SELECT COUNT(*) AS total
-
-    FROM information_schema.COLUMNS
-
-    WHERE TABLE_SCHEMA = DATABASE()
-
-      AND TABLE_NAME = 'finished_event'
-
-      AND COLUMN_NAME = 'deleted_at'
-
-    `,
-  );
-
-  if (!Number(column?.total)) {
-    try {
-      await conn.query(
-        `ALTER TABLE finished_event ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL`,
-      );
-    } catch (error) {
-      if (error?.code !== "ER_DUP_FIELDNAME") throw error;
-    }
-  }
-
-  finishedEventDeletedColumnReady = true;
-}
 
 async function getArchivedEventsForUser(
   userId,
   userEmail,
   onlyCreated = false,
 ) {
-  await ensureFinishedEventDeletedColumn(pool);
 
   const [rows] = await pool.query(
     `
@@ -1864,7 +1794,6 @@ router.get("/:id/participants", authMiddleware, async (req, res) => {
       });
     }
 
-    await ensureFinishedParticipantTable(pool);
 
     const [archivedRows] = await pool.query(
       `
@@ -2297,286 +2226,6 @@ router.patch("/:id/accept", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/:id/files", authMiddleware, async (req, res) => {
-  try {
-    const eventId = Number(req.params.id);
-
-    if (!Number.isFinite(eventId)) {
-      return res.status(400).json({ message: "Invalid event id" });
-    }
-
-    const access = await getEventAccess(pool, eventId, req.user);
-
-    if (!access.exists) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-
-    if (!access.isMember) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    const [rows] = await pool.query(
-      `SELECT id, event_id, uploaded_by_email, original_name, stored_name, mime_type, size_bytes, note, created_at
-
-       FROM event_files
-
-       WHERE event_id = ?
-
-       ORDER BY created_at DESC`,
-
-      [eventId],
-    );
-
-    const files = rows.map((f) => ({
-      ...f,
-
-      url: makePublicUrl(req, f.stored_name),
-    }));
-
-    return res.json(files);
-  } catch (err) {
-    console.error("GET /api/events/:id/files error:", err);
-
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-router.post("/:id/files", authMiddleware, (req, res) => {
-  upload.array("files", 10)(req, res, async (multerErr) => {
-    if (multerErr) {
-      console.error("MULTER ERROR:", multerErr);
-
-      if (multerErr.code === "LIMIT_FILE_SIZE") {
-        return res
-
-          .status(400)
-
-          .json({ message: "File too large (max 20MB each)" });
-      }
-
-      if (multerErr.code === "LIMIT_UNEXPECTED_FILE") {
-        return res
-
-          .status(400)
-
-          .json({ message: "Unexpected field. Use form-data key: files" });
-      }
-
-      return res
-
-        .status(400)
-
-        .json({ message: multerErr.message || "Upload error" });
-    }
-
-    try {
-      const eventId = Number(req.params.id);
-
-      if (!Number.isFinite(eventId)) {
-        return res.status(400).json({ message: "Invalid event id" });
-      }
-
-      const userEmail = req.user?.email;
-
-      const userId = Number(req.user?.id);
-
-      if (!userEmail) {
-        return res.status(401).json({ message: "Invalid token (no email)" });
-      }
-
-      if (!Number.isFinite(userId)) {
-        return res.status(401).json({ message: "Invalid token (no user id)" });
-      }
-
-      const [evRows] = await pool.query(
-        `SELECT id, end_time, created_by_email
-
-         FROM events
-
-         WHERE id = ?
-
-         LIMIT 1`,
-
-        [eventId],
-      );
-
-      if (!evRows.length) {
-        return res.status(404).json({ message: "Event not found" });
-      }
-
-      const ev = evRows[0];
-
-      if (!ev.end_time) {
-        return res.status(400).json({
-          message: "Event has no end_time, cannot upload as 'finished'.",
-        });
-      }
-
-      if (!isFinished(ev.end_time)) {
-        return res.status(400).json({
-          message: "You can upload files only after the event is finished.",
-        });
-      }
-
-      const isCreator =
-        String(ev.created_by_email || "").toLowerCase() ===
-        String(userEmail).toLowerCase();
-
-      const [bookRows] = await pool.query(
-        `SELECT 1 FROM event_bookings WHERE event_id = ? AND user_id = ? LIMIT 1`,
-
-        [eventId, userId],
-      );
-
-      const isBooked = bookRows.length > 0;
-
-      if (!isCreator && !isBooked) {
-        return res.status(403).json({
-          message: "Only event creator or booked users can upload files.",
-        });
-      }
-
-      const files = req.files || [];
-
-      if (!files.length) {
-        return res.status(400).json({ message: "No files uploaded" });
-      }
-
-      const note = String(req.body?.note || "").slice(0, 255) || null;
-
-      const inserted = [];
-
-      for (const f of files) {
-        const { originalname, filename, mimetype, size } = f;
-
-        const [result] = await pool.query(
-          `INSERT INTO event_files
-
-           (event_id, uploaded_by_email, original_name, stored_name, mime_type, size_bytes, note)
-
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-
-          [eventId, userEmail, originalname, filename, mimetype, size, note],
-        );
-
-        inserted.push({
-          id: result.insertId,
-
-          event_id: eventId,
-
-          uploaded_by_email: userEmail,
-
-          original_name: originalname,
-
-          stored_name: filename,
-
-          mime_type: mimetype,
-
-          size_bytes: size,
-
-          note,
-
-          url: makePublicUrl(req, filename),
-        });
-      }
-
-      return res.status(201).json({
-        message: "Files uploaded ✅",
-
-        files: inserted,
-      });
-    } catch (err) {
-      console.error("POST /api/events/:id/files error:", err);
-
-      if (String(err.message || "").includes("File type not allowed")) {
-        return res.status(400).json({ message: "File type not allowed" });
-      }
-
-      return res.status(500).json({ message: "Server error" });
-    }
-  });
-});
-
-router.delete("/:eventId/files/:fileId", authMiddleware, async (req, res) => {
-  try {
-    const eventId = Number(req.params.eventId);
-
-    const fileId = Number(req.params.fileId);
-
-    if (!Number.isFinite(eventId) || !Number.isFinite(fileId)) {
-      return res.status(400).json({ message: "Invalid id" });
-    }
-
-    const userEmail = req.user?.email;
-
-    if (!userEmail) {
-      return res.status(401).json({ message: "Invalid token (no email)" });
-    }
-
-    const [evRows] = await pool.query(
-      `SELECT id, created_by_email FROM events WHERE id = ? LIMIT 1`,
-
-      [eventId],
-    );
-
-    if (!evRows.length) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-
-    const [fileRows] = await pool.query(
-      `SELECT id, event_id, uploaded_by_email, stored_name
-
-       FROM event_files
-
-       WHERE id = ? AND event_id = ?
-
-       LIMIT 1`,
-
-      [fileId, eventId],
-    );
-
-    if (!fileRows.length) {
-      return res.status(404).json({ message: "File not found" });
-    }
-
-    const ev = evRows[0];
-
-    const file = fileRows[0];
-
-    const isCreator =
-      String(ev.created_by_email || "").toLowerCase() ===
-      String(userEmail).toLowerCase();
-
-    const isUploader =
-      String(file.uploaded_by_email || "").toLowerCase() ===
-      String(userEmail).toLowerCase();
-
-    if (!isCreator && !isUploader) {
-      return res
-
-        .status(403)
-
-        .json({ message: "Not allowed to delete this file" });
-    }
-
-    await pool.query(`DELETE FROM event_files WHERE id = ? AND event_id = ?`, [
-      fileId,
-
-      eventId,
-    ]);
-
-    const diskPath = path.join(UPLOAD_DIR, file.stored_name);
-
-    fs.promises.unlink(diskPath).catch(() => {});
-
-    return res.json({ message: "File deleted ✅" });
-  } catch (err) {
-    console.error("DELETE file error:", err);
-
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
 router.get("/finished", authMiddleware, async (req, res) => {
   try {
     await archiveExpiredEvents(pool);
@@ -2707,7 +2356,6 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 
     // Deleting never removes rows: a live event is flagged archived, and a
     // finished event (copied to finished_event) is flagged deleted_at.
-    await ensureFinishedEventDeletedColumn(pool);
 
     const [[activeEvent]] = await pool.query(
       `SELECT id, created_by_email

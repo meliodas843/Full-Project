@@ -1,5 +1,5 @@
 import fs from "fs";
-import { imageExtension } from "../utils/uploadSafety.js";
+import { imageExtension, uploadError } from "../utils/uploadSafety.js";
 import path from "path";
 import express from "express";
 import multer from "multer";
@@ -26,64 +26,11 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowed = ["image/png", "image/jpeg", "image/webp"];
     if (!allowed.includes(file.mimetype)) {
-      return cb(new Error("Only PNG, JPG, JPEG and WEBP images are allowed"));
+      return cb(uploadError("Only PNG, JPG, JPEG and WEBP images are allowed"));
     }
     return cb(null, true);
   },
 });
-
-async function ensureGalleryTables() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS event_gallery_images (
-      id BIGINT NOT NULL AUTO_INCREMENT,
-      event_id BIGINT NOT NULL,
-      image_url TEXT NOT NULL,
-      original_name VARCHAR(255) NULL,
-      uploaded_by_email VARCHAR(255) NULL,
-      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (id),
-      KEY idx_event_gallery_event_id (event_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS event_gallery_settings (
-      event_id BIGINT NOT NULL,
-      visibility ENUM('participants', 'public') NOT NULL DEFAULT 'participants',
-      allow_download TINYINT(1) NOT NULL DEFAULT 1,
-      notify_participants TINYINT(1) NOT NULL DEFAULT 1,
-      watermark TINYINT(1) NOT NULL DEFAULT 0,
-      participant_message VARCHAR(500) NULL,
-      is_published TINYINT(1) NOT NULL DEFAULT 0,
-      published_at DATETIME NULL,
-      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (event_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  `);
-
-  const additions = [
-    [
-      "participant_message",
-      "ALTER TABLE event_gallery_settings ADD COLUMN participant_message VARCHAR(500) NULL AFTER watermark",
-    ],
-    [
-      "is_published",
-      "ALTER TABLE event_gallery_settings ADD COLUMN is_published TINYINT(1) NOT NULL DEFAULT 0 AFTER participant_message",
-    ],
-    [
-      "published_at",
-      "ALTER TABLE event_gallery_settings ADD COLUMN published_at DATETIME NULL AFTER is_published",
-    ],
-  ];
-
-  for (const [column, sql] of additions) {
-    const [rows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'event_gallery_settings' AND COLUMN_NAME = ?`,
-      [column],
-    );
-    if (!Number(rows[0]?.total || 0)) await pool.query(sql);
-  }
-}
 
 async function getEvent(eventId) {
   const [activeRows] = await pool.query(
@@ -166,7 +113,6 @@ async function getImages(eventId) {
 
 router.get("/:eventId", authMiddleware, async (req, res) => {
   try {
-    await ensureGalleryTables();
     const eventId = Number(req.params.eventId);
     if (!Number.isFinite(eventId))
       return res.status(400).json({ message: "Invalid event id" });
@@ -208,7 +154,6 @@ router.get("/:eventId", authMiddleware, async (req, res) => {
 
 router.patch("/:eventId/settings", authMiddleware, async (req, res) => {
   try {
-    await ensureGalleryTables();
     const eventId = Number(req.params.eventId);
     if (!Number.isFinite(eventId))
       return res.status(400).json({ message: "Invalid event id" });
@@ -276,7 +221,6 @@ router.patch("/:eventId/settings", authMiddleware, async (req, res) => {
 
 router.post("/:eventId/publish", authMiddleware, async (req, res) => {
   try {
-    await ensureGalleryTables();
     const eventId = Number(req.params.eventId);
     if (!Number.isFinite(eventId))
       return res.status(400).json({ message: "Invalid event id" });
@@ -324,7 +268,6 @@ router.post(
   upload.array("images", 200),
   async (req, res) => {
     try {
-      await ensureGalleryTables();
       const eventId = Number(req.params.eventId);
       if (!Number.isFinite(eventId))
         return res.status(400).json({ message: "Invalid event id" });
@@ -376,7 +319,6 @@ router.post(
 
 router.delete("/:eventId", authMiddleware, async (req, res) => {
   try {
-    await ensureGalleryTables();
     const eventId = Number(req.params.eventId);
     if (!Number.isFinite(eventId))
       return res.status(400).json({ message: "Invalid event id" });

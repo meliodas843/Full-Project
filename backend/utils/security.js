@@ -59,3 +59,27 @@ export function hideServerErrors(req, res, next) {
 
   next();
 }
+
+// Last-resort error handler. Without it Express prints its own HTML page,
+// including a stack trace with server paths unless NODE_ENV=production.
+// eslint-disable-next-line no-unused-vars
+export function errorHandler(err, req, res, next) {
+  const isMulter = err?.name === "MulterError";
+  const status =
+    isMulter ? 400 : Number(err?.status || err?.statusCode) || 500;
+
+  if (status >= 500) {
+    console.error("UNHANDLED ERROR:", req.method, req.originalUrl, err);
+  }
+
+  if (res.headersSent) return;
+
+  res.status(status).json({
+    message:
+      status < 500 && (err?.expose || isMulter)
+        ? err.message
+        : status < 500
+          ? "Bad request"
+          : "Server error",
+  });
+}

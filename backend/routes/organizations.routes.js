@@ -1,5 +1,5 @@
 import fs from "fs";
-import { imageExtension, isAllowedImage } from "../utils/uploadSafety.js";
+import { imageExtension, isAllowedImage, uploadError } from "../utils/uploadSafety.js";
 
 import path from "path";
 
@@ -38,7 +38,7 @@ const organizationUpload = multer({
 
   fileFilter: (req, file, cb) => {
     if (!isAllowedImage(file.mimetype)) {
-      return cb(new Error("Only image files are allowed"));
+      return cb(uploadError("Only image files are allowed"));
     }
 
     cb(null, true);
@@ -924,15 +924,32 @@ router.get(
         });
       }
 
+            // Public endpoint (no login needed): only public, non-deleted events
+      // and only the fields the organization page shows.
       const [events] = await pool.query(
-        `          SELECT *
-
-          FROM events
-
-          WHERE organization_id = ?
-
-          ORDER BY start_time DESC
-
+        `
+          SELECT
+            e.id,
+            e.title,
+            e.description,
+            e.category,
+            e.image_url,
+            e.start_time,
+            e.end_time,
+            e.max_participants,
+            e.visibility,
+            e.organization_id,
+            e.created_at,
+            (
+              SELECT COUNT(*)
+              FROM event_bookings eb
+              WHERE eb.event_id = e.id
+            ) AS booked_count
+          FROM events e
+          WHERE e.organization_id = ?
+            AND e.archived = 0
+            AND e.visibility = 'public'
+          ORDER BY e.start_time DESC
           `,
 
         [organizationId],

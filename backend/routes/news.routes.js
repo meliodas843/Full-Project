@@ -1,5 +1,5 @@
 import fs from "fs";
-import { imageExtension, isAllowedImage } from "../utils/uploadSafety.js";
+import { imageExtension, isAllowedImage, uploadError } from "../utils/uploadSafety.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
 import path from "path";
 import express from "express";
@@ -28,7 +28,7 @@ const upload = multer({
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!isAllowedImage(file.mimetype)) {
-      return cb(new Error("Only images allowed"));
+      return cb(uploadError("Only images allowed"));
     }
     cb(null, true);
   },

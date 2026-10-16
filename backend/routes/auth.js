@@ -667,10 +667,6 @@ router.post(
 
           address: address || "",
 
-          logo_url: null,
-
-          cover_url: null,
-
           is_verified: false,
         };
       }

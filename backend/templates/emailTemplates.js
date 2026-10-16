@@ -75,20 +75,6 @@ function button(label, href, secondary = false) {
   `;
 }
 
-function photoCell(photo, width = "50%") {
-  if (!photo?.src) return "";
-  return `
-    <td width="${width}" valign="top" style="padding:3px;">
-      <img
-        src="${e(photo.src)}"
-        alt="Event photo"
-        width="270"
-        style="display:block;width:100%;max-width:270px;height:150px;object-fit:cover;border:0;border-radius:9px;"
-      >
-    </td>
-  `;
-}
-
 export function existingParticipantEmail({ firstName, eventName, eventUrl }) {
   return layout(
     `
@@ -136,7 +122,7 @@ export function newParticipantEmail({ firstName, eventName, setupUrl }) {
   );
 }
 
-export function passwordResetCodeEmail({ firstName, code, resetUrl }) {
+export function passwordResetCodeEmail({ firstName, code }) {
   const safeCode = String(code || "")
     .replace(/\D/g, "")
     .slice(0, 6);

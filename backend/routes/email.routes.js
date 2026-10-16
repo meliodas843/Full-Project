@@ -34,10 +34,6 @@ function normalizeEmail(value) {
     .toLowerCase();
 }
 
-function normalizeName(value) {
-  return String(value || "").trim();
-}
-
 function validEmail(value) {
   const email = String(value || "")
     .trim()
@@ -1676,8 +1672,6 @@ router.post("/gallery-published", authMiddleware, async (req, res) => {
       });
     }
 
-    const frontendUrl = getFrontendUrl();
-
     const albumUrl = `http://194.59.165.105/user/history/${eventId}/images`;
 
     const results = [];
@@ -1781,58 +1775,6 @@ router.post("/password-code", async (req, res) => {
         email,
       });
     }
-
-    await pool.query(
-      `
-
-        CREATE TABLE IF NOT EXISTS password_reset_codes
-
-        (
-
-          id BIGINT NOT NULL AUTO_INCREMENT,
-
-          user_id BIGINT NOT NULL,
-
-          code_hash CHAR(64) NOT NULL,
-
-          expires_at DATETIME NOT NULL,
-
-          used TINYINT(1)
-
-            NOT NULL
-
-            DEFAULT 0,
-
-          attempts INT
-
-            NOT NULL
-
-            DEFAULT 0,
-
-          created_at DATETIME
-
-            NOT NULL
-
-            DEFAULT CURRENT_TIMESTAMP,
-
-          PRIMARY KEY (id),
-
-          KEY idx_reset_user
-
-            (user_id),
-
-          KEY idx_reset_code
-
-            (code_hash)
-
-        )
-
-        ENGINE=InnoDB
-
-        DEFAULT CHARSET=utf8mb4
-
-        `,
-    );
 
     await pool.query(
       `

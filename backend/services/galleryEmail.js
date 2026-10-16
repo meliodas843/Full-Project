@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import pool from "../db.js";
-import { getFrontendUrl, sendMail } from "./mailer.js";
+import { sendMail } from "./mailer.js";
 import { galleryPublishedEmail } from "../templates/emailTemplates.js";
 
 function formatEventDate(value) {
@@ -35,7 +35,6 @@ function mimeFromName(name) {
 export async function sendEventGalleryEmails({
   eventId,
   eventName,
-  imageCount,
   excludeUserId = null,
 }) {
   const [participants] = await pool.query(

@@ -44,3 +44,12 @@ export function setUploadHeaders(res, filePath) {
     res.setHeader("Content-Security-Policy", "sandbox");
   }
 }
+
+// A rejected upload is the client's mistake: tag it so the error handler
+// answers 400 with this message instead of a generic 500.
+export function uploadError(message) {
+  const error = new Error(message);
+  error.status = 400;
+  error.expose = true;
+  return error;
+}

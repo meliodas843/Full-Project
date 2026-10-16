@@ -2,20 +2,23 @@ import "dotenv/config";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
+import helmet from "helmet";
 import {
   apiLimiter,
   authLimiter,
   corsMiddleware,
+  errorHandler,
   hideServerErrors,
   lookupLimiter,
   resetCodeLimiter,
   resetEmailLimiter,
 } from "./utils/security.js";
 import { setUploadHeaders } from "./utils/uploadSafety.js";
+import pool from "./db.js";
+import { ensureSchema } from "./db/schema.js";
 
 import authRoutes from "./routes/auth.js";
 import newsRoutes from "./routes/news.routes.js";
-import newsBodyImageRoutes from "./routes/newsBodyImage.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import eventsRoutes from "./routes/event.routes.js";
 import eventGalleryRoutes from "./routes/eventGallery.routes.js";
@@ -39,6 +42,18 @@ const app = express();
 // apply per visitor rather than to the proxy as a whole.
 app.set("trust proxy", 1);
 
+app.use(
+  helmet({
+    // The SPA relies on inline scripts and Google sign-in; a strict CSP would
+    // need a nonce setup, so it stays off for now.
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    // Google sign-in opens a popup that must be able to talk back.
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    // Uploaded images are also shown in emails and shared links.
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(corsMiddleware());
 app.use(hideServerErrors);
 
@@ -81,7 +96,6 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
-app.use("/api/news", newsBodyImageRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/users", userRoutes);
@@ -148,6 +162,15 @@ app.use((req, res) => {
     .status(404)
     .send("Not found");
 });
+
+app.use(errorHandler);
+
+try {
+  await ensureSchema(pool);
+} catch (error) {
+  // Keep serving; the affected features will fail until the database is fixed.
+  console.error("DATABASE SCHEMA SETUP FAILED:", error.message);
+}
 
 const PORT =
   process.env.PORT || 5000;
