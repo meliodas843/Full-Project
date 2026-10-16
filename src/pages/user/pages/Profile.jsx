@@ -152,15 +152,6 @@ function getStoredUser() {
   }
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Зураг уншихад алдаа гарлаа."));
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function Profile() {
   const navigate = useNavigate();
 

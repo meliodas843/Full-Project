@@ -263,9 +263,6 @@ export default function OrganizationProfile() {
   const totalEvents = formatNumber(organization?.event_count);
   const totalParticipants = formatNumber(organization?.participant_count);
   const followers = formatNumber(organization?.follower_count);
-  const averageRating = Number.isFinite(organization?.rating)
-    ? organization.rating.toFixed(1)
-    : "0.0";
 
   const [form, setForm] = useState(createForm());
 

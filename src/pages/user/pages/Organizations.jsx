@@ -33,37 +33,6 @@ function getToken() {
   );
 }
 
-function resolveUrl(value) {
-  const url = String(value || "").trim();
-
-  if (!url) return "";
-
-  if (/^https?:\/\//i.test(url)) {
-    return url;
-  }
-
-  return `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`;
-}
-
-function getInitials(name) {
-  const parts = String(name || "")
-    .trim()
-
-    .split(/\s+/)
-
-    .filter(Boolean);
-
-  if (!parts.length) {
-    return "O";
-  }
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-}
-
 function normalizeOrganization(item) {
   let parsedCategories = [];
 

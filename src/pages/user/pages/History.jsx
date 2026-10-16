@@ -349,27 +349,6 @@ function getParticipantEmail(user) {
   return user.email || user.user_email || user.user?.email || "";
 }
 
-function getParticipantAvatar(user) {
-  if (!user || typeof user === "string") {
-    return "";
-  }
-
-  return (
-    resolveUrl(user.profile_image) ||
-    resolveUrl(user.profile_img) ||
-    resolveUrl(user.avatar) ||
-    resolveUrl(user.avatar_url) ||
-    resolveUrl(user.image_url) ||
-    resolveUrl(user.image) ||
-    resolveUrl(user.photo) ||
-    resolveUrl(user.photo_url) ||
-    resolveUrl(user.user?.profile_image) ||
-    resolveUrl(user.user?.avatar) ||
-    resolveUrl(user.user?.avatar_url) ||
-    ""
-  );
-}
-
 function getParticipantInitials(user) {
   const name = getParticipantName(user).trim();
 
@@ -402,72 +381,6 @@ function getParticipantId(user) {
   return Number.isFinite(number) ? number : null;
 }
 
-function getCurrentUserForHistory() {
-  const keys = ["user", "authUser", "currentUser", "profile"];
-
-  for (const key of keys) {
-    try {
-      const value = JSON.parse(localStorage.getItem(key) || "null");
-
-      if (value) return value;
-    } catch {}
-  }
-
-  const email =
-    localStorage.getItem("email") || localStorage.getItem("userEmail") || "";
-
-  return email ? { email } : null;
-}
-
-function isOwnedEvent(event) {
-  if (!event) return false;
-
-  const user = getCurrentUserForHistory();
-
-  const userId = Number(
-    user?.id || user?.user_id || user?.userId || user?.user?.id,
-  );
-
-  const creatorId = Number(
-    event?.created_by ||
-      event?.created_by_id ||
-      event?.creator_id ||
-      event?.user_id ||
-      event?.organizer_id,
-  );
-
-  const userEmail = String(
-    user?.email ||
-      user?.user?.email ||
-      localStorage.getItem("email") ||
-      localStorage.getItem("userEmail") ||
-      "",
-  )
-    .trim()
-
-    .toLowerCase();
-
-  const creatorEmail = String(
-    event?.created_by_email ||
-      event?.creator_email ||
-      event?.user_email ||
-      event?.organizer_email ||
-      "",
-  )
-    .trim()
-
-    .toLowerCase();
-
-  return (
-    event?.relation_type === "created" ||
-    event?.relation_type === "organizer" ||
-    (Number.isFinite(userId) &&
-      Number.isFinite(creatorId) &&
-      userId === creatorId) ||
-    (userEmail && creatorEmail && userEmail === creatorEmail)
-  );
-}
-
 function isValidInviteEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
     String(value || "")
@@ -490,7 +403,7 @@ export default function History() {
 
   const [loading, setLoading] = useState(true);
 
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
 
   const [deletingId, setDeletingId] = useState(null);
 
@@ -522,7 +435,7 @@ export default function History() {
     };
   }, [openMenuId]);
 
-  const [uploadingImageId, setUploadingImageId] = useState(null);
+  const [, ] = useState(null);
 
   const [showForm, setShowForm] = useState(false);
 
@@ -584,9 +497,9 @@ export default function History() {
 
   const [inviteLookupLoading, setInviteLookupLoading] = useState(false);
 
-  const [peopleResults, setPeopleResults] = useState([]);
+  const [, ] = useState([]);
 
-  const [addingUserId, setAddingUserId] = useState(null);
+  const [, ] = useState(null);
 
   async function load() {
     try {
@@ -902,78 +815,6 @@ export default function History() {
       setAddPeopleError("Урилга илгээх үед сүлжээний алдаа гарлаа.");
     } finally {
       setAddPeopleLoading(false);
-    }
-  }
-
-  async function addPersonToEvent(person) {
-    const eventId = selectedEvent?.id;
-
-    const userId = getParticipantId(person);
-
-    if (!eventId || !userId) {
-      setAddPeopleError("Хэрэглэгчийн мэдээлэл буруу байна.");
-
-      return;
-    }
-
-    try {
-      setAddingUserId(userId);
-
-      setAddPeopleError("");
-
-      setAddPeopleSuccess("");
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setAddPeopleError("Эхлээд нэвтэрнэ үү.");
-
-        return;
-      }
-
-      const response = await fetch(
-        `${API_BASE}/api/events/${eventId}/participants`,
-
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            user_id: userId,
-          }),
-        },
-      );
-
-      const data = await response
-
-        .json()
-
-        .catch(() => ({}));
-
-      if (!response.ok) {
-        setAddPeopleError(data?.message || "Хэрэглэгчийг нэмж чадсангүй.");
-
-        return;
-      }
-
-      setAddPeopleSuccess(`${getParticipantName(person)} амжилттай нэмэгдлээ.`);
-
-      setPeopleResults((current) =>
-        current.filter((item) => getParticipantId(item) !== userId),
-      );
-
-      await loadParticipants(eventId);
-    } catch (err) {
-      console.error(err);
-
-      setAddPeopleError("Хэрэглэгч нэмэх үед сүлжээний алдаа гарлаа.");
-    } finally {
-      setAddingUserId(null);
     }
   }
 
@@ -1486,118 +1327,6 @@ export default function History() {
 
       return current.filter((_, i) => i !== index);
     });
-  }
-
-  async function addEndedEventImage(event, file) {
-    if (!event?.id || !file) return;
-
-    if (isSvgFile(file)) {
-      setError("SVG зураг оруулах боломжгүй.");
-
-      return;
-    }
-
-    if (!String(file.type || "").startsWith("image/")) {
-      setError("Зөвхөн зураг оруулна уу.");
-
-      return;
-    }
-
-    try {
-      setUploadingImageId(event.id);
-
-      setOpenMenuId(null);
-
-      setMenuPosition(null);
-
-      setError("");
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("Эхлээд нэвтэрнэ үү.");
-
-        return;
-      }
-
-      const formData = new FormData();
-
-      formData.append("title", event.title || "");
-
-      formData.append("description", event.description || "");
-
-      formData.append(
-        "category",
-
-        String(event.category || event.badge || "").trim(),
-      );
-
-      formData.append(
-        "speaker",
-
-        typeof event.speaker === "string"
-          ? event.speaker
-          : JSON.stringify(event.speaker || []),
-      );
-
-      formData.append(
-        "agenda",
-
-        typeof event.agenda === "string"
-          ? event.agenda
-          : JSON.stringify(event.agenda || []),
-      );
-
-      formData.append(
-        "start_time",
-
-        String(event.start_time || "").replace("T", " "),
-      );
-
-      formData.append(
-        "end_time",
-
-        String(event.end_time || "").replace("T", " "),
-      );
-
-      formData.append("image_url", event.image_url || "");
-
-      formData.append(
-        "max_participants",
-
-        event.max_participants ? String(event.max_participants) : "0",
-      );
-
-      formData.append("visibility", event.visibility || "public");
-
-      formData.append("status", event.status || "published");
-
-      formData.append("image", file);
-
-      const response = await fetch(`${API_BASE}/api/events/${event.id}`, {
-        method: "PUT",
-
-        headers: { Authorization: `Bearer ${token}` },
-
-        body: formData,
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setError(data?.message || data?.error || "Зураг нэмж чадсангүй.");
-
-        return;
-      }
-
-      await load();
-    } catch (err) {
-      console.error("ENDED EVENT IMAGE UPLOAD ERROR:", err);
-
-      setError("Зураг нэмэх үед сүлжээний алдаа гарлаа.");
-    } finally {
-      setUploadingImageId(null);
-    }
   }
 
   async function deleteEvent(event) {

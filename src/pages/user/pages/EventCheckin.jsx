@@ -164,36 +164,6 @@ export default function EventCheckin() {
     return () => clearInterval(timer);
   }, [loadAttendance]);
 
-  const stopScanner = useCallback(async () => {
-    const scanner = scannerRef.current;
-
-    scannerRef.current = null;
-
-    if (!scanner) {
-      setScanning(false);
-
-      return;
-    }
-
-    try {
-      const state = scanner.getState();
-
-      if (state === 2 || state === 3) {
-        await scanner.stop();
-      }
-    } catch (err) {
-      console.warn("Scanner stop skipped:", err.message);
-    }
-
-    try {
-      scanner.clear();
-    } catch (err) {
-      console.warn("Scanner clear skipped:", err.message);
-    }
-
-    setScanning(false);
-  }, []);
-
   const verifyCode = useCallback(
     async (rawCode) => {
       const inputCode = String(rawCode || "").trim();

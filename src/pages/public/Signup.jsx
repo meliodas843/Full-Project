@@ -169,9 +169,6 @@ export default function Signup() {
 
   const passwordValid = Object.values(passwordRules).every(Boolean);
 
-  const passwordsMatch =
-    form.confirmPassword.length > 0 && form.password === form.confirmPassword;
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 

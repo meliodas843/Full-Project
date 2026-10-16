@@ -257,9 +257,6 @@ export default function OrganizationDetail() {
 
   const followers = Number(organization?.followers ?? 0);
 
-  const averageRating =
-    organization?.average_rating ?? organization?.rating ?? "—";
-
   const isUserView = location.pathname.startsWith("/user/");
 
   const isLoggedIn = Boolean(getToken());
@@ -432,25 +429,6 @@ export default function OrganizationDetail() {
       setError(err?.message || "Үйлдэл амжилтгүй боллоо.");
     } finally {
       setFollowBusy(false);
-    }
-  }
-
-  async function handleShare() {
-    const shareData = {
-      title: organization?.name || "Registra",
-
-      url: window.location.href,
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-
-      await navigator.clipboard?.writeText(window.location.href);
-    } catch {
-      return;
     }
   }
 

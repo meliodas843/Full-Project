@@ -164,7 +164,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] =
     useState(() => new Date());
 
-  const [viewDate, setViewDate] =
+  const [viewDate, ] =
     useState(() => {
       const today = new Date();
 
@@ -342,28 +342,6 @@ export default function Home() {
     itemsByDate[
       toKey(selectedDate)
     ] || [];
-
-  function prevMonth() {
-    setViewDate(
-      (current) =>
-        new Date(
-          current.getFullYear(),
-          current.getMonth() - 1,
-          1,
-        ),
-    );
-  }
-
-  function nextMonth() {
-    setViewDate(
-      (current) =>
-        new Date(
-          current.getFullYear(),
-          current.getMonth() + 1,
-          1,
-        ),
-    );
-  }
 
   return (
     <UserShell title="Нүүр">

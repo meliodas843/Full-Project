@@ -56,8 +56,8 @@ function resolveOrganizationImage(value) {
   if (!image) return "";
 
   if (
-    image.startsWith("http\://") ||
-    image.startsWith("https\://") ||
+    image.startsWith("http://") ||
+    image.startsWith("https://") ||
     image.startsWith("data:") ||
     image.startsWith("blob:")
   ) {
@@ -73,36 +73,6 @@ function resolveOrganizationImage(value) {
   }
 
   return `${API_BASE}/${image}`;
-}
-
-function initials(value) {
-  const text = String(value || "").trim();
-
-  if (!text) return "U";
-
-  if (text.includes("@")) {
-    return text
-
-      .slice(0, 2)
-
-      .toUpperCase();
-  }
-
-  const words = text
-
-    .split(/\s+/)
-
-    .filter(Boolean);
-
-  if (words.length === 1) {
-    return words[0]
-
-      .slice(0, 2)
-
-      .toUpperCase();
-  }
-
-  return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase();
 }
 
 function formatDateTime(value) {

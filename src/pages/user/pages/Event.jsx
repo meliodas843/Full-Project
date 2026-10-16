@@ -245,8 +245,6 @@ export default function Event() {
 
   const navigate = useNavigate();
 
-  const fileInputRef = useRef(null);
-
   const [searchParams] = useSearchParams();
 
   const [editingEventId, setEditingEventId] = useState(null);
@@ -257,17 +255,17 @@ export default function Event() {
 
   const [eventFiles, setEventFiles] = useState([]);
 
-  const [filesLoading, setFilesLoading] = useState(false);
+  const [, setFilesLoading] = useState(false);
 
-  const [uploadingFile, setUploadingFile] = useState(false);
+  const [, ] = useState(false);
 
-  const [fileNote, setFileNote] = useState("");
+  const [, ] = useState("");
 
   const [participants, setParticipants] = useState([]);
 
   const [participantsCount, setParticipantsCount] = useState(0);
 
-  const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [, setLoadingParticipants] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
 
@@ -295,7 +293,7 @@ export default function Event() {
 
   const [visibility, setVisibility] = useState("public");
 
-  const [inviteLink, setInviteLink] = useState("");
+  const [, setInviteLink] = useState("");
 
   const [events, setEvents] = useState([]);
 
@@ -753,10 +751,6 @@ export default function Event() {
       }));
   }, [eventFiles]);
 
-  const nonImageFiles = useMemo(() => {
-    return eventFiles.filter((f) => !isImageName(f.original_name));
-  }, [eventFiles]);
-
   const minDateTime = normalizeDateTimeLocalValue(new Date());
 
   function handleStartTimeChange(value) {
@@ -1211,100 +1205,6 @@ export default function Event() {
     }
   }
 
-  async function handleUploadFinishedFile() {
-    setErrMsg("");
-
-    setSuccessMsg("");
-
-    if (!selectedEvent?.id) {
-      return;
-    }
-
-    if (!isEventFinished(selectedEvent)) {
-      setErrMsg("Эвент дууссан үед файл оруулах боломжтой.");
-
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setErrMsg("Эхлээд нэвтрэнэ үү.");
-
-      return;
-    }
-
-    const files = Array.from(fileInputRef.current?.files || []);
-
-    if (files.length === 0) {
-      setErrMsg("Файл сонгоогүй байна.");
-
-      return;
-    }
-
-    try {
-      setUploadingFile(true);
-
-      const fd = new FormData();
-
-      files.forEach((f) => {
-        fd.append(
-          "files",
-
-          f,
-        );
-      });
-
-      fd.append(
-        "note",
-
-        fileNote,
-      );
-
-      const res = await fetch(
-        `${API_BASE}/api/events/${selectedEvent.id}/files`,
-
-        {
-          method: "POST",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: fd,
-        },
-      );
-
-      const data = await res
-
-        .json()
-
-        .catch(() => ({}));
-
-      if (!res.ok) {
-        setErrMsg(data?.message || "Файл оруулж чадсангүй.");
-
-        return;
-      }
-
-      setSuccessMsg("Файлууд амжилттай орлоо ✅");
-
-      setFileNote("");
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      await fetchEventFiles(selectedEvent.id);
-    } catch (e) {
-      console.error(e);
-
-      setErrMsg("Оруулж байхдаа сүлжээний алдаа гарлаа");
-    } finally {
-      setUploadingFile(false);
-    }
-  }
-
   async function downloadFile(
     url,
 
@@ -1357,24 +1257,6 @@ export default function Event() {
         block: "start",
       });
     }, 50);
-  }
-
-  function openLightboxAt(index) {
-    const safeIndex = Math.max(
-      0,
-
-      Math.min(
-        index,
-
-        imageFiles.length - 1,
-      ),
-    );
-
-    setLbIndex(safeIndex);
-
-    setLbOpen(true);
-
-    document.body.style.overflow = "hidden";
   }
 
   function closeLightbox() {
@@ -2219,15 +2101,6 @@ export default function Event() {
                 ) : (
                   <div className="myEventCardGrid">
                     {managedEvents.map((ev) => {
-                      const finished = isEventFinished(ev);
-
-                      const status = String(ev.status || "").toLowerCase();
-
-                      const draft =
-                        status === "draft" ||
-                        ev.is_draft === 1 ||
-                        ev.is_draft === true;
-
                       const cover =
                         resolveUrl(ev.image_url) ||
                         fallbackImgSrc(ev?.id || ev?.event_id || 0);

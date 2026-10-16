@@ -107,32 +107,6 @@ function formatTime(value) {
   );
 }
 
-function formatDateTime(value) {
-  const date = parseDate(value);
-
-  if (!date) return "";
-
-  return date.toLocaleString(
-    "mn-MN",
-
-    {
-      timeZone: "Asia/Ulaanbaatar",
-
-      year: "numeric",
-
-      month: "2-digit",
-
-      day: "2-digit",
-
-      hour: "2-digit",
-
-      minute: "2-digit",
-
-      hour12: false,
-    },
-  );
-}
-
 function normalizeArray(data) {
   if (Array.isArray(data)) {
     return data;
@@ -163,22 +137,6 @@ function uniqueMeetings(items) {
   });
 
   return Array.from(map.values());
-}
-
-function statusLabel(value) {
-  const status = String(value || "").toLowerCase();
-
-  if (status === "pending") return "Хүлээгдэж буй";
-
-  if (status === "accepted") return "Зөвшөөрсөн";
-
-  if (status === "declined") return "Татгалзсан";
-
-  if (status === "cancelled") return "Цуцалсан";
-
-  if (status === "completed") return "Дууссан";
-
-  return value || "";
 }
 
 function meetingPersonName(meeting) {
@@ -224,7 +182,7 @@ export default function Calendar() {
 
   const [respondingId, setRespondingId] = useState(null);
 
-  const [events, setEvents] = useState([]);
+  const [events, ] = useState([]);
 
   const [editingMeeting, setEditingMeeting] = useState(null);
 
@@ -383,14 +341,6 @@ export default function Calendar() {
     [inbox],
   );
 
-  const pendingSent = useMemo(
-    () =>
-      sent.filter(
-        (meeting) => String(meeting?.status || "").toLowerCase() === "pending",
-      ),
-
-    [sent],
-  );
   const myMeetings = useMemo(
     () =>
       uniqueMeetings(
@@ -692,24 +642,6 @@ export default function Calendar() {
 
           1,
         ),
-    );
-  }
-
-  function selectMeeting(meeting) {
-    const date = parseDate(meeting?.start_time);
-
-    if (!date) return;
-
-    setSelectedDate(date);
-
-    setViewDate(
-      new Date(
-        date.getFullYear(),
-
-        date.getMonth(),
-
-        1,
-      ),
     );
   }
 

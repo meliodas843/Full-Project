@@ -64,7 +64,7 @@ function imageCategory(image) {
 
 function safeFileName(name) {
   return String(name || "event-image")
-    .replace(/[<>:"/\|?*]+/g, "-")
+    .replace(/[<>:"/|?*]+/g, "-")
 
     .trim();
 }

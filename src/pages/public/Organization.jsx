@@ -259,7 +259,7 @@ export default function Organization() {
             return item;
           }
 
-          const nextFollowing = !Boolean(item.is_following);
+          const nextFollowing = !item.is_following;
 
           const followers = Number(item.followers_count || 0);
 

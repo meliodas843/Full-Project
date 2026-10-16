@@ -65,7 +65,7 @@ export default function ResetPassword() {
 
   }, []);
 
-  const [email, setEmail] = useState(
+  const [email, ] = useState(
 
     emailFromUrl ||
 
