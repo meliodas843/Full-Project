@@ -1,52 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FiArrowLeft,
-  FiBriefcase,
-  FiCalendar,
-  FiCheck,
-  FiClock,
-  FiSearch,
-  FiSend,
-  FiUsers,
-  FiX,
-} from "react-icons/fi";
+import { FiArrowLeft, FiBriefcase, FiCalendar, FiClock, FiSend } from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { API_BASE } from "@/lib/config";
+import { getDisplayName, getToken, normalizeArray } from "./Meeting.helpers";
+import MeetingParticipantPicker from "./MeetingParticipantPicker";
 
-function getToken() {
-  return localStorage.getItem("token");
-}
-
-function getDisplayName(person) {
-  return (
-    String(person?.name || "").trim() ||
-    `${person?.first_name || ""} ${person?.last_name || ""}`.trim() ||
-    String(person?.email || "").trim() ||
-    "Хэрэглэгч"
-  );
-}
-
-function getInitials(person) {
-  const name = getDisplayName(person);
-  const parts = name.split(/\s+/).filter(Boolean);
-
-  if (parts.length >= 2) {
-    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
-  }
-
-  return name.slice(0, 2).toUpperCase();
-}
-
-function normalizeArray(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.data)) return data.data;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.results)) return data.results;
-  if (Array.isArray(data?.participants)) return data.participants;
-  if (Array.isArray(data?.employees)) return data.employees;
-  return [];
-}
 
 export default function Meeting() {
   const navigate = useNavigate();
@@ -736,242 +695,27 @@ export default function Meeting() {
               )}
             </section>
 
-            <section className="rgMeetingSection">
-              <div className="rgMeetingPeopleHeader">
-                <div>
-                  <h3>
-                    <FiUsers />
-                    Оролцогч сонгох
-                  </h3>
-
-                  <p>
-                    {selectedEmails.length}
-                    {" "}хүн сонгогдсон
-                  </p>
-                </div>
-
-                {people.length > 0 && (
-                  <button
-                    type="button"
-                    className="rgMeetingSelectAll"
-                    onClick={
-                      mode === "event"
-                        ? selectAllEventPeople
-                        : selectAllCompanyPeople
-                    }
-                  >
-                    <FiCheck />
-
-                    {selectedAll
-                      ? "Бүгдийг болиулах"
-                      : "Бүгдийг сонгох"}
-                  </button>
-                )}
-              </div>
-
-              {selectedEmails.length >
-                0 && (
-                <div className="rgMeetingSelected">
-                  {selectedEmails.map(
-                    (email) => {
-                      const person =
-                        findSelectedPerson(
-                          email,
-                        );
-
-                      return (
-                        <div
-                          key={email}
-                          className="rgMeetingSelectedChip"
-                        >
-                          <span>
-                            {getInitials(
-                              person || {
-                                email,
-                              },
-                            )}
-                          </span>
-
-                          <div>
-                            <strong>
-                              {getDisplayName(
-                                person || {
-                                  email,
-                                },
-                              )}
-                            </strong>
-
-                            <small>
-                              {email}
-                            </small>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeSelected(
-                                email,
-                              )
-                            }
-                          >
-                            <FiX />
-                          </button>
-                        </div>
-                      );
-                    },
-                  )}
-                </div>
-              )}
-
-              {(mode === "event" &&
-                selectedEventId) ||
-              (mode === "company" &&
-                company) ? (
-                <>
-                  <div className="rgMeetingSearch">
-                    <FiSearch />
-
-                    <input
-                      value={
-                        mode === "event"
-                          ? eventSearch
-                          : companySearch
-                      }
-                      onChange={(event) => {
-                        if (
-                          mode === "event"
-                        ) {
-                          setEventSearch(
-                            event.target.value,
-                          );
-                        } else {
-                          setCompanySearch(
-                            event.target.value,
-                          );
-                        }
-                      }}
-                      placeholder="Нэр эсвэл и-мэйлээр хайх..."
-                    />
-
-                    {(mode === "event"
-                      ? eventSearch
-                      : companySearch) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (
-                            mode ===
-                            "event"
-                          ) {
-                            setEventSearch(
-                              "",
-                            );
-                          } else {
-                            setCompanySearch(
-                              "",
-                            );
-                          }
-                        }}
-                      >
-                        <FiX />
-                      </button>
-                    )}
-                  </div>
-
-                  {loadingPeople ? (
-                    <div className="rgMeetingPeopleEmpty">
-                      Оролцогчдыг
-                      ачаалж байна...
-                    </div>
-                  ) : (
-                    <div className="rgMeetingPeopleGrid">
-                      {(mode === "event"
-                        ? eventPeopleFiltered
-                        : employeesFiltered
-                      ).map((person) => {
-                        const email =
-                          person?.email;
-
-                        const checked =
-                          selectedEmails.includes(
-                            email,
-                          );
-
-                        return (
-                          <button
-                            type="button"
-                            key={
-                              person?.id ||
-                              email
-                            }
-                            className={
-                              checked
-                                ? "rgMeetingPerson active"
-                                : "rgMeetingPerson"
-                            }
-                            onClick={() => {
-                              if (
-                                mode ===
-                                "event"
-                              ) {
-                                toggleEventPerson(
-                                  email,
-                                );
-                              } else {
-                                toggleCompanyPerson(
-                                  email,
-                                );
-                              }
-                            }}
-                          >
-                            <span className="rgMeetingPersonAvatar">
-                              {getInitials(
-                                person,
-                              )}
-                            </span>
-
-                            <span className="rgMeetingPersonInfo">
-                              <strong>
-                                {getDisplayName(
-                                  person,
-                                )}
-                              </strong>
-
-                              <small>
-                                {person.email}
-                              </small>
-                            </span>
-
-                            <span className="rgMeetingPersonCheck">
-                              {checked && (
-                                <FiCheck />
-                              )}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {!loadingPeople &&
-                    (mode === "event"
-                      ? eventPeopleFiltered
-                      : employeesFiltered
-                    ).length === 0 && (
-                      <div className="rgMeetingPeopleEmpty">
-                        Хэрэглэгч
-                        олдсонгүй.
-                      </div>
-                    )}
-                </>
-              ) : (
-                <div className="rgMeetingPeopleEmpty">
-                  {mode === "event"
-                    ? "Эхлээд эвент сонгоно уу."
-                    : "Эхлээд байгууллага сонгоно уу."}
-                </div>
-              )}
-            </section>
+            <MeetingParticipantPicker
+              company={company}
+              companySearch={companySearch}
+              employeesFiltered={employeesFiltered}
+              eventPeopleFiltered={eventPeopleFiltered}
+              eventSearch={eventSearch}
+              findSelectedPerson={findSelectedPerson}
+              loadingPeople={loadingPeople}
+              mode={mode}
+              people={people}
+              removeSelected={removeSelected}
+              selectAllCompanyPeople={selectAllCompanyPeople}
+              selectAllEventPeople={selectAllEventPeople}
+              selectedAll={selectedAll}
+              selectedEmails={selectedEmails}
+              selectedEventId={selectedEventId}
+              setCompanySearch={setCompanySearch}
+              setEventSearch={setEventSearch}
+              toggleCompanyPerson={toggleCompanyPerson}
+              toggleEventPerson={toggleEventPerson}
+            />
 
             <section className="rgMeetingSection">
               <div className="rgMeetingSectionTitle">
