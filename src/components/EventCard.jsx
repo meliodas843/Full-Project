@@ -10,7 +10,7 @@ import {
   FaCircleCheck,
 } from "react-icons/fa6";
 import { getImageSrc } from "../lib/config";
-import eventFallback from "../assets/event.png";
+import eventFallback from "../assets/event.webp";
 
 const CATEGORY_MAP = {
   Технологи: {

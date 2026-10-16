@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,36 +13,38 @@ import ScrollToTop from "./components/ScrollToTop";
 import ThemeToggle from "./components/ThemeToggle";
 import { useTheme } from "./theme/ThemeProvider";
 
-import EventShare from "./pages/public/EventShare";
-import Home from "./pages/public/Home";
-import Login from "./pages/public/Login";
-import Signup from "./pages/public/Signup";
-import News from "./pages/public/News";
-import PublicEvents from "./pages/public/Event";
-import ForgotPassword from "./pages/public/ForgotPassword";
-import ResetPassword from "./pages/public/ResetPassword";
-import EventInvite from "./pages/public/EventInvite";
-import EventCheckin from "./pages/user/pages/EventCheckin";
-import EventTicket from "./pages/user/pages/EventTicket";
-import Organization from "./pages/public/Organization";
-import NewsDetail from "./pages/public/NewsDetail";
-import EventDetail from "./pages/public/EventDetail";
-import UserHome from "./pages/user/pages/Home";
-import Profile from "./pages/user/pages/Profile";
-import Calendar from "./pages/user/pages/Calendar";
-import Meeting from "./pages/user/pages/Meeting";
-import UserEvents from "./pages/user/pages/Event";
-import History from "./pages/user/pages/History";
-import Password from "./pages/user/pages/Password";
-import Bill from "./pages/user/pages/Bill";
-import Organizations from "./pages/user/pages/Organizations";
-import OrganizationDetail from "./pages/user/pages/OrganizationDetail";
-import OrganizationProfile from "./pages/user/pages/OrganizationProfile";
-import EventStatistics from "./pages/user/pages/EventStatistics";
-import EventImages from "./pages/user/pages/EventImages";
+// Pages load on demand, so the first visit only downloads the page it needs.
+const EventShare = lazy(() => import("./pages/public/EventShare"));
+const Home = lazy(() => import("./pages/public/Home"));
+const Login = lazy(() => import("./pages/public/Login"));
+const Signup = lazy(() => import("./pages/public/Signup"));
+const News = lazy(() => import("./pages/public/News"));
+const PublicEvents = lazy(() => import("./pages/public/Event"));
+const ForgotPassword = lazy(() => import("./pages/public/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/public/ResetPassword"));
+const EventInvite = lazy(() => import("./pages/public/EventInvite"));
+const EventCheckin = lazy(() => import("./pages/user/pages/EventCheckin"));
+const EventTicket = lazy(() => import("./pages/user/pages/EventTicket"));
+const Organization = lazy(() => import("./pages/public/Organization"));
+const NewsDetail = lazy(() => import("./pages/public/NewsDetail"));
+const EventDetail = lazy(() => import("./pages/public/EventDetail"));
+const UserHome = lazy(() => import("./pages/user/pages/Home"));
+const Profile = lazy(() => import("./pages/user/pages/Profile"));
+const Calendar = lazy(() => import("./pages/user/pages/Calendar"));
+const Meeting = lazy(() => import("./pages/user/pages/Meeting"));
+const UserEvents = lazy(() => import("./pages/user/pages/Event"));
+const History = lazy(() => import("./pages/user/pages/History"));
+const Password = lazy(() => import("./pages/user/pages/Password"));
+const Bill = lazy(() => import("./pages/user/pages/Bill"));
+const Organizations = lazy(() => import("./pages/user/pages/Organizations"));
+const OrganizationDetail = lazy(() => import("./pages/user/pages/OrganizationDetail"));
+const OrganizationProfile = lazy(() => import("./pages/user/pages/OrganizationProfile"));
+const EventStatistics = lazy(() => import("./pages/user/pages/EventStatistics"));
+const EventImages = lazy(() => import("./pages/user/pages/EventImages"));
+const SuperAdminHome = lazy(() => import("./pages/super_admin/pages/Home"));
+const NewsCreate = lazy(() => import("./pages/super_admin/pages/NewsCreate"));
 
-import SuperAdminHome from "./pages/super_admin/pages/Home";
-import NewsCreate from "./pages/super_admin/pages/NewsCreate";
+
 
 function AppRoutes() {
   const location = useLocation();
@@ -73,6 +76,7 @@ function AppRoutes() {
         </div>
       )}
 
+      <Suspense fallback={<div className="regPageLoading" aria-busy="true" />}>
       <Routes>
         <Route path="/" element={<Home />} />
 
@@ -275,6 +279,7 @@ function AppRoutes() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   );
 }

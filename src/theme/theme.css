@@ -287,3 +287,8 @@ option {
   background: var(--reg-surface);
   box-shadow: var(--theme-shadow);
 }
+
+.regPageLoading {
+  min-height: 100vh;
+  background: var(--reg-bg);
+}

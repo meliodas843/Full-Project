@@ -17,7 +17,7 @@ import {
   API_BASE,
   getImageSrc,
 } from "../../lib/config";
-import eventFallback from "../../assets/event.png";
+import eventFallback from "../../assets/event.webp";
 import { sanitizeHtml } from "../../utils/safeHtml";
 
 function normalizeArray(data) {

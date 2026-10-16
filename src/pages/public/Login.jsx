@@ -36,7 +36,11 @@ export default function Login() {
     useState(false);
 
   const [message, setMessage] =
-    useState("");
+    useState(() =>
+      new URLSearchParams(window.location.search).get("expired")
+        ? "Нэвтрэлтийн хугацаа дууссан. Дахин нэвтэрнэ үү."
+        : "",
+    );
 
   /*
    * ==========================================

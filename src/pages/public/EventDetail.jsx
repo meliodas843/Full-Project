@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa6";
 import Footer from "../../components/Footer";
 import { API_BASE, getImageSrc } from "../../lib/config";
-import eventFallback from "../../assets/event.png";
+import eventFallback from "../../assets/event.webp";
 import { sanitizeHtml } from "../../utils/safeHtml";
 
 function normalizeArray(data) {
