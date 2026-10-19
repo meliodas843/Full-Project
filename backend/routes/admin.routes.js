@@ -273,6 +273,22 @@ router.patch("/news/:id/pin", async (req, res, next) => {
 /* =========================
    AUDIT LOG
 ========================= */
+// A "create" entry whose news or event was deleted later. Matched on the
+// "#id" kept in target_detail and on the action names the routes log
+// (news.routes.js / event.routes.js). The delete entry itself stays.
+const DELETED_LATER = [
+  { created: ["Мэдээ нийтэлсэн", "Мэдээ товлосон", "Мэдээ ноорог хадгалсан"], deleted: "Мэдээ устгасан" },
+  { created: ["Эвэнт үүсгэсэн"], deleted: "Эвэнт устгасан" },
+];
+
+const REMOVED_CREATE_SQL = `(l.type = 'create' AND l.target_detail IS NOT NULL AND EXISTS (
+  SELECT 1 FROM audit_logs d
+  WHERE d.type = 'delete' AND d.target_detail = l.target_detail AND d.id > l.id
+    AND (${DELETED_LATER.map(
+      (pair) => `(l.action IN (${pair.created.map((a) => pool.escape(a)).join(", ")}) AND d.action = ${pool.escape(pair.deleted)})`,
+    ).join(" OR ")})
+))`;
+
 function logFilters(query) {
   const where = [];
   const params = [];
@@ -289,6 +305,8 @@ function logFilters(query) {
   if (AUDIT_TYPES.includes(query.type)) {
     where.push("l.type = ?");
     params.push(query.type);
+    // Things that were created and then deleted drop out of "Үүсгэсэн".
+    if (query.type === "create") where.push(`NOT ${REMOVED_CREATE_SQL}`);
   }
 
   if (["ok", "warn", "error"].includes(query.status)) {
@@ -313,6 +331,7 @@ const LOG_COLUMNS = `
   l.id, l.type, l.status, l.action, l.target, l.target_detail, l.user_id, l.user_email,
   l.user_role, l.ip, l.user_agent, l.request_id, l.details,
   UNIX_TIMESTAMP(l.created_at) AS ts,
+  ${REMOVED_CREATE_SQL} AS removed,
   TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS user_name
 `;
 
@@ -334,7 +353,7 @@ router.get("/logs", async (req, res, next) => {
     const rangeOnly = logFilters({ since: req.query.since, days: req.query.days });
     const [typeRows] = await pool.query(
       `SELECT l.type, COUNT(*) AS total FROM audit_logs l LEFT JOIN users u ON u.id = l.user_id
-       WHERE ${rangeOnly.sql} GROUP BY l.type`,
+       WHERE ${rangeOnly.sql} AND NOT ${REMOVED_CREATE_SQL} GROUP BY l.type`,
       rangeOnly.params,
     );
     const [statusRows] = await pool.query(
@@ -349,7 +368,8 @@ router.get("/logs", async (req, res, next) => {
     return res.json({
       rows,
       counts: {
-        total: Object.values(byType).reduce((a, b) => a + b, 0),
+        // Every entry in range, including created-then-deleted ones.
+        total: Object.values(byStatus).reduce((a, b) => a + b, 0),
         byType,
         errors: byStatus.error || 0,
         warnings: byStatus.warn || 0,
