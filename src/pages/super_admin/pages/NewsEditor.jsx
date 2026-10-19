@@ -12,6 +12,9 @@ import { sanitizeHtml } from "../../../utils/safeHtml";
 import { NEWS_CATEGORIES, NEWS_STATES, fromTs } from "../adminUtils";
 
 const SUMMARY_MAX = 160;
+// Only what the toolbar offers. Anything else in pasted text (colours,
+// highlights, fonts) is dropped so it can't clash with the site theme.
+const QUILL_FORMATS = ["bold", "italic", "header", "list", "blockquote", "link", "image", "code-block"];
 const MODES = [
   { key: "published", label: "Одоо" },
   { key: "scheduled", label: "Товлох" },
@@ -295,6 +298,7 @@ export default function NewsEditor() {
                 value={body}
                 onChange={setBody}
                 modules={modules}
+                formats={QUILL_FORMATS}
                 placeholder="Мэдээний агуулгаа энд бичнэ үү..."
               />
             </section>
