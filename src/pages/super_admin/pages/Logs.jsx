@@ -289,7 +289,10 @@ export default function Logs() {
                             </td>
                             <td>
                               <div className="saCell2">
-                                <strong>{row.action}</strong>
+                                <strong>
+                                  {row.action}
+                                  {Number(row.removed) ? <em className="saRemoved">Устгагдсан</em> : null}
+                                </strong>
                                 <span>{[row.target, row.target_detail].filter(Boolean).join(" · ") || "—"}</span>
                               </div>
                             </td>
@@ -338,6 +341,7 @@ function LogDetail({ row, onClose, onCopy, copied }) {
       </button>
       <span className={`saBadge ${TYPE_BADGE[row.type] || ""}`}>{LOG_TYPE_LABEL[row.type] || row.type}</span>
       <h3>{row.action}</h3>
+      {Number(row.removed) ? <div className="saDetailSub">Энэ зүйл дараа нь устгагдсан тул «Үүсгэсэн» жагсаалтад харагдахгүй.</div> : null}
       <div className="saDetailSub">{[row.target, row.target_detail].filter(Boolean).join(" · ") || "—"}</div>
 
       <div className={`saDetailBanner ${row.status}`}>
