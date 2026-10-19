@@ -133,7 +133,7 @@ function getAuthor(item) {
     item?.author_email ||
     item?.created_by_name ||
     item?.created_by?.name ||
-    "Khural Plus"
+    "Registra"
   );
 }
 
@@ -370,7 +370,7 @@ export default function NewsDetail() {
 
                   <small>
                     {article.author_role ||
-                      "Khural Plus"}
+                      "Registra"}
                   </small>
                 </div>
               </div>

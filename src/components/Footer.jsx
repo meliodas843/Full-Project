@@ -67,7 +67,7 @@ export default function Footer() {
 
         <div className="riFooterBottom">
           <span>
-            © {new Date().getFullYear()} Khural Plus. All rights reserved.
+            © {new Date().getFullYear()} Registra. All rights reserved.
           </span>
 
           <div>
