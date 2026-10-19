@@ -101,6 +101,15 @@ const STATEMENTS = [
     KEY idx_audit_type (type, created_at)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  // Emails collected by the "Долоо хоног бүрийн тойм" form on news pages.
+  `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_newsletter_email (email)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   // Money received; the admin dashboard's profit card sums paid rows.
   `CREATE TABLE IF NOT EXISTS payments (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -136,6 +145,7 @@ const COLUMNS = [
   ["news", "category", "ALTER TABLE news ADD COLUMN category VARCHAR(50) NULL"],
   ["news", "author_name", "ALTER TABLE news ADD COLUMN author_name VARCHAR(255) NULL"],
   ["news", "views", "ALTER TABLE news ADD COLUMN views INT NOT NULL DEFAULT 0"],
+  ["news", "likes", "ALTER TABLE news ADD COLUMN likes INT NOT NULL DEFAULT 0"],
   ["news", "is_featured", "ALTER TABLE news ADD COLUMN is_featured TINYINT(1) NOT NULL DEFAULT 0"],
   ["news", "is_pinned", "ALTER TABLE news ADD COLUMN is_pinned TINYINT(1) NOT NULL DEFAULT 0"],
   ["news", "updated_at", "ALTER TABLE news ADD COLUMN updated_at DATETIME NULL"],
