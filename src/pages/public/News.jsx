@@ -342,17 +342,11 @@ export default function News() {
 
                   <div className="riFeaturedNewsContent">
                     <div className="riNewsMeta">
-                      <span
-                        className={`riNewsCategory ${categoryClass(
-                          getCategory(
-                            featured,
-                          ),
-                        )}`}
-                      >
-                        {getCategory(
-                          featured,
-                        )}
-                      </span>
+                      {getCategory(featured) ? (
+                        <span className={`riNewsCategory ${categoryClass(getCategory(featured))}`}>
+                          {getCategory(featured)}
+                        </span>
+                      ) : null}
 
                       <span className="riNewsReadTime">
                         <FaClock />
@@ -432,17 +426,9 @@ export default function News() {
                               }}
                             />
 
-                            <span
-                              className={categoryClass(
-                                getCategory(
-                                  item,
-                                ),
-                              )}
-                            >
-                              {getCategory(
-                                item,
-                              )}
-                            </span>
+                            {getCategory(item) ? (
+                              <span className={categoryClass(getCategory(item))}>{getCategory(item)}</span>
+                            ) : null}
                           </div>
 
                           <div className="riNewsCardBody">

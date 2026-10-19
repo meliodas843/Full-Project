@@ -16,17 +16,8 @@ export function categoryClass(value) {
   return CATEGORY_CLASS[value] || "other";
 }
 
-// The category chosen in the admin editor wins; old posts without one
-// fall back to a guess from their text.
+// The category chosen in the admin editor, or "" when none was picked.
+// Posts without one show no category badge.
 export function getCategory(item) {
-  if (item?.category) return item.category;
-
-  const text = `${item?.title || ""} ${item?.body || item?.content || item?.description || ""}`.toLowerCase();
-
-  if (/security|cyber|zero[- ]trust|аюулгүй/.test(text)) return "Security";
-  if (/cloud|kubernetes|docker|aws|azure/.test(text)) return "Cloud";
-  if (/\bai\b|llm|machine learning|artificial/.test(text)) return "AI/ML";
-  if (/frontend|react|javascript|typescript/.test(text)) return "Frontend";
-  if (/\bdata\b|analytics|database/.test(text)) return "Data";
-  return "DevOps";
+  return String(item?.category || "").trim();
 }
