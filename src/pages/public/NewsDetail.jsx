@@ -253,8 +253,9 @@ export default function NewsDetail() {
     if (!article) return [];
     const category = getCategory(article);
     const others = allNews.filter((item) => newsId(item) !== articleId);
-    const same = others.filter((item) => getCategory(item) === category);
-    const rest = others.filter((item) => getCategory(item) !== category);
+    const sameCategory = (item) => Boolean(category) && getCategory(item) === category;
+    const same = others.filter(sameCategory);
+    const rest = others.filter((item) => !sameCategory(item));
     return [...same, ...rest].slice(0, RELATED_COUNT);
   }, [article, allNews, articleId]);
 
@@ -390,13 +391,17 @@ export default function NewsDetail() {
             </Link>
             <span className="naCrumbSep" />
             <Link to="/news">Мэдээ</Link>
-            <span>/</span>
-            <span>{category}</span>
+            {category ? (
+              <>
+                <span>/</span>
+                <span>{category}</span>
+              </>
+            ) : null}
           </nav>
 
           <header className="naHeader">
             <div className="naTags">
-              <span className={`naCategory ${categoryClass(category)}`}>{category}</span>
+              {category ? <span className={`naCategory ${categoryClass(category)}`}>{category}</span> : null}
               <span>
                 <FaClock />
                 {readingTime(article.body)} мин унших
@@ -594,7 +599,9 @@ export default function NewsDetail() {
                         />
                       </div>
                       <div className="naCardBody">
-                        <span className={`naCategory ${categoryClass(itemCategory)}`}>{itemCategory}</span>
+                        {itemCategory ? (
+                          <span className={`naCategory ${categoryClass(itemCategory)}`}>{itemCategory}</span>
+                        ) : null}
                         <strong>{item.title}</strong>
                         <small>
                           {formatDate(item.created_at)} · {readingTime(item.body)} мин
