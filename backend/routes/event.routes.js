@@ -1,5 +1,6 @@
 import fs from "fs";
 import { getEventAccess } from "../utils/eventAccess.js";
+import { logAudit } from "../utils/audit.js";
 import { imageExtension, uploadError } from "../utils/uploadSafety.js";
 
 import path from "path";
@@ -306,6 +307,13 @@ async function archiveExpiredEvents(conn = pool) {
     );
 
     await connection.commit();
+
+    logAudit(null, {
+      type: "system",
+      action: "Дууссан эвэнтүүдийг архивласан",
+      target: `${eventIds.length} эвэнт`,
+      details: { event_ids: eventIds.slice(0, 50) },
+    });
   } catch (error) {
     await connection.rollback();
 
@@ -815,6 +823,7 @@ router.put("/:id", authMiddleware, (req, res) => {
         [eventId],
       );
 
+      logAudit(req, { type: "update", action: "Эвэнт зассан", target: updatedRows[0]?.title, targetDetail: `#${eventId}` });
       return res.json({
         message: "Event updated successfully ✅",
 
@@ -1046,6 +1055,7 @@ router.post("/", authMiddleware, (req, res) => {
         [eventId],
       );
 
+      logAudit(req, { type: "create", action: "Эвэнт үүсгэсэн", target: rows[0]?.title, targetDetail: `#${eventId}` });
       return res.status(201).json({
         message: "Event created ✅",
 
@@ -1706,6 +1716,7 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
       console.error("EVENT TICKET EMAIL ERROR:", emailError);
     }
 
+    logAudit(req, { type: "create", action: "Эвэнтэд бүртгүүлсэн", target: event.title, targetDetail: `#${eventId}` });
     return res.status(201).json({
       message: "Booked",
 
@@ -2358,7 +2369,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     // finished event (copied to finished_event) is flagged deleted_at.
 
     const [[activeEvent]] = await pool.query(
-      `SELECT id, created_by_email
+      `SELECT id, title, created_by_email
 
        FROM events
 
@@ -2370,7 +2381,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     );
 
     const [[finishedEvent]] = await pool.query(
-      `SELECT original_event_id, created_by_email
+      `SELECT original_event_id, title, created_by_email
 
        FROM finished_event
 
@@ -2425,6 +2436,13 @@ router.delete("/:id", authMiddleware, async (req, res) => {
         [eventId],
       );
     }
+
+    logAudit(req, {
+      type: "delete",
+      action: "Эвэнт устгасан",
+      target: activeEvent?.title || finishedEvent?.title,
+      targetDetail: `#${eventId}`,
+    });
 
     return res.json({
       success: true,

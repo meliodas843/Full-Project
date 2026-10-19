@@ -6,8 +6,12 @@ import express from "express";
 import multer from "multer";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import { logAudit } from "../utils/audit.js";
+import { readNewsFields, toSqlDateTime } from "../utils/news.js";
 
 const router = express.Router();
+
+const adminOnly = [authMiddleware, roleMiddleware(["admin", "super_admin"])];
 
 /* =========================
    Upload setup
@@ -34,8 +38,14 @@ const upload = multer({
   },
 });
 
+// Visible to the public: published, or scheduled and its time has come.
+export const NEWS_IS_VISIBLE = `
+  n.status IN ('published', 'scheduled')
+  AND (n.publish_at IS NULL OR n.publish_at <= NOW())
+`;
+
 /* =========================
-   GET ALL NEWS
+   GET ALL NEWS (public)
 ========================= */
 router.get("/", async (req, res) => {
   try {
@@ -43,16 +53,23 @@ router.get("/", async (req, res) => {
       SELECT
         n.id,
         n.title,
+        n.slug,
         n.body,
+        n.summary,
+        n.category,
         n.image_url,
+        n.author_name,
+        n.views,
+        n.is_featured,
+        n.is_pinned,
         n.created_by,
-        n.created_at,
+        COALESCE(n.publish_at, n.created_at) AS created_at,
         u.email AS author_email
       FROM news n
       LEFT JOIN users u ON u.id = n.created_by
-      ORDER BY n.created_at DESC
+      WHERE ${NEWS_IS_VISIBLE}
+      ORDER BY n.is_pinned DESC, COALESCE(n.publish_at, n.created_at) DESC
     `);
-
     return res.json(rows);
   } catch (err) {
     console.error("GET NEWS ERROR:", err);
@@ -61,197 +78,164 @@ router.get("/", async (req, res) => {
 });
 
 /* =========================
+   COUNT A VIEW (public)
+========================= */
+router.post("/:id/view", async (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    return res.status(400).json({ message: "Invalid news id" });
+  }
+
+  try {
+    await pool.query(`UPDATE news n SET n.views = n.views + 1 WHERE n.id = ? AND ${NEWS_IS_VISIBLE}`, [id]);
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("NEWS VIEW ERROR:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
    UPLOAD BODY IMAGE
 ========================= */
-router.post(
-  "/body-image",
-  authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
-  upload.single("image"),
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          message: "No image uploaded",
-        });
-      }
-
-      return res.json({
-        url: `/uploads/news/${req.file.filename}`,
-      });
-    } catch (err) {
-      console.error("BODY IMAGE ERROR:", err);
-      return res.status(500).json({
-        message: "Server error",
-      });
-    }
+router.post("/body-image", ...adminOnly, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No image uploaded" });
   }
-);
+
+  return res.json({ url: `/uploads/news/${req.file.filename}` });
+});
 
 /* =========================
    CREATE NEWS
 ========================= */
-router.post(
-  "/",
-  authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
-  upload.single("cover"),
-  async (req, res) => {
-    try {
-      const title = String(req.body.title || "").trim();
-      const body = String(req.body.body || "").trim();
+router.post("/", ...adminOnly, upload.single("cover"), async (req, res) => {
+  try {
+    const fields = readNewsFields(req.body);
 
-      if (!title || !body) {
-        return res.status(400).json({
-          message: "title and body are required",
-        });
-      }
+    if (fields.error) return res.status(400).json({ message: fields.error });
 
-      const creatorId = req.user?.id;
+    const creatorId = Number(req.user?.id);
 
-      if (!creatorId) {
-        return res.status(401).json({
-          message: "Invalid token",
-        });
-      }
-
-      const image_url = req.file
-        ? `/uploads/news/${req.file.filename}`
-        : null;
-
-      const [result] = await pool.query(
-        `
-        INSERT INTO news
-        (
-          title,
-          body,
-          image_url,
-          created_by
-        )
-        VALUES (?, ?, ?, ?)
-        `,
-        [
-          title,
-          body,
-          image_url,
-          creatorId,
-        ]
-      );
-
-      return res.json({
-        message: "News created",
-        id: result.insertId,
-        image_url,
-      });
-    } catch (err) {
-      console.error("CREATE NEWS ERROR:", err);
-      return res.status(500).json({
-        message: "Server error",
-      });
+    if (!Number.isSafeInteger(creatorId)) {
+      return res.status(401).json({ message: "Invalid token" });
     }
+
+    const image_url = req.file ? `/uploads/news/${req.file.filename}` : null;
+
+    const [result] = await pool.query(
+      `
+      INSERT INTO news
+        (title, body, image_url, created_by, status, publish_at, slug, summary,
+         category, author_name, is_featured, is_pinned, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      `,
+      [
+        fields.title,
+        fields.body,
+        image_url,
+        creatorId,
+        fields.status,
+        toSqlDateTime(fields.publishAt),
+        fields.slug,
+        fields.summary,
+        fields.category,
+        fields.authorName,
+        fields.isFeatured,
+        fields.isPinned,
+      ],
+    );
+
+    logAudit(req, {
+      type: "create",
+      action: {
+        draft: "Мэдээ ноорог хадгалсан",
+        scheduled: "Мэдээ товлосон",
+        published: "Мэдээ нийтэлсэн",
+      }[fields.status],
+      target: fields.title,
+      targetDetail: `#${result.insertId}`,
+    });
+
+    return res.json({ message: "News created", id: result.insertId, image_url });
+  } catch (err) {
+    console.error("CREATE NEWS ERROR:", err);
+    return res.status(500).json({ message: "Server error" });
   }
-);
+});
 
 /* =========================
    UPDATE NEWS
 ========================= */
-router.put(
-  "/:id",
-  authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
-  upload.single("cover"),
-  async (req, res) => {
-    try {
-      const id = req.params.id;
+router.put("/:id", ...adminOnly, upload.single("cover"), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const fields = readNewsFields(req.body);
 
-      const title = String(req.body.title || "").trim();
-      const body = String(req.body.body || "").trim();
+    if (fields.error) return res.status(400).json({ message: fields.error });
 
-      if (!title || !body) {
-        return res.status(400).json({
-          message: "title and body are required",
-        });
-      }
+    const [[oldNews]] = await pool.query("SELECT id, image_url FROM news WHERE id = ?", [id]);
 
-      const [rows] = await pool.query(
-        "SELECT * FROM news WHERE id = ?",
-        [id]
-      );
+    if (!oldNews) return res.status(404).json({ message: "News not found" });
 
-      if (rows.length === 0) {
-        return res.status(404).json({
-          message: "News not found",
-        });
-      }
-
-      const oldNews = rows[0];
-
-      const image_url = req.file
-        ? `/uploads/news/${req.file.filename}`
+    const image_url = req.file
+      ? `/uploads/news/${req.file.filename}`
+      : req.body.remove_cover === "1"
+        ? null
         : oldNews.image_url;
 
-      await pool.query(
-        `
-        UPDATE news
-        SET
-          title = ?,
-          body = ?,
-          image_url = ?
-        WHERE id = ?
-        `,
-        [
-          title,
-          body,
-          image_url,
-          id,
-        ]
-      );
-
-      return res.json({
-        message: "News updated successfully",
-        id,
+    await pool.query(
+      `
+      UPDATE news
+      SET title = ?, body = ?, image_url = ?, status = ?, publish_at = ?, slug = ?,
+          summary = ?, category = ?, author_name = ?, is_featured = ?, is_pinned = ?,
+          updated_at = NOW()
+      WHERE id = ?
+      `,
+      [
+        fields.title,
+        fields.body,
         image_url,
-      });
-    } catch (err) {
-      console.error("UPDATE NEWS ERROR:", err);
-      return res.status(500).json({
-        message: "Server error",
-      });
-    }
+        fields.status,
+        toSqlDateTime(fields.publishAt),
+        fields.slug,
+        fields.summary,
+        fields.category,
+        fields.authorName,
+        fields.isFeatured,
+        fields.isPinned,
+        id,
+      ],
+    );
+
+    logAudit(req, { type: "update", action: "Мэдээ зассан", target: fields.title, targetDetail: `#${id}` });
+
+    return res.json({ message: "News updated successfully", id, image_url });
+  } catch (err) {
+    console.error("UPDATE NEWS ERROR:", err);
+    return res.status(500).json({ message: "Server error" });
   }
-);
+});
 
 /* =========================
    DELETE NEWS
 ========================= */
-router.delete("/:id", authMiddleware, roleMiddleware(["admin", "super_admin"]), async (req, res) => {
+router.delete("/:id", ...adminOnly, async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = Number(req.params.id);
+    const [[news]] = await pool.query("SELECT id, title FROM news WHERE id = ?", [id]);
 
-    const [rows] = await pool.query(
-      "SELECT * FROM news WHERE id = ?",
-      [id]
-    );
+    if (!news) return res.status(404).json({ message: "News not found" });
 
-    if (rows.length === 0) {
-      return res.status(404).json({
-        message: "News not found",
-      });
-    }
+    await pool.query("DELETE FROM news WHERE id = ?", [id]);
 
-    await pool.query(
-      "DELETE FROM news WHERE id = ?",
-      [id]
-    );
+    logAudit(req, { type: "delete", action: "Мэдээ устгасан", target: news.title, targetDetail: `#${id}` });
 
-    return res.json({
-      message: "News deleted successfully",
-    });
+    return res.json({ message: "News deleted successfully" });
   } catch (err) {
     console.error("DELETE NEWS ERROR:", err);
-    return res.status(500).json({
-      message: "Server error",
-    });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 

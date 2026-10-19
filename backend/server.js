@@ -16,6 +16,7 @@ import {
 import { setUploadHeaders } from "./utils/uploadSafety.js";
 import pool from "./db.js";
 import { ensureSchema } from "./db/schema.js";
+import { pruneAuditLogs, requestId } from "./utils/audit.js";
 
 import authRoutes from "./routes/auth.js";
 import newsRoutes from "./routes/news.routes.js";
@@ -32,6 +33,7 @@ import passwordRoutes from "./routes/password.routes.js";
 import emailRoutes from "./routes/email.routes.js";
 import checkinRoutes from "./routes/checkin.routes.js";
 import organizationRoutes from "./routes/organizations.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +43,8 @@ const app = express();
 // nginx sits in front of the app; trust its X-Forwarded-For so rate limits
 // apply per visitor rather than to the proxy as a whole.
 app.set("trust proxy", 1);
+
+app.use(requestId);
 
 app.use(
   helmet({
@@ -115,6 +119,7 @@ app.use(
   organizationRoutes
 );
 app.use("/api/zoom", zoomRoutes);
+app.use("/api/admin", adminRoutes);
 
 const frontendPath = path.resolve(
   __dirname,
@@ -171,6 +176,10 @@ try {
   // Keep serving; the affected features will fail until the database is fixed.
   console.error("DATABASE SCHEMA SETUP FAILED:", error.message);
 }
+
+// Keep the admin log register to its retention window.
+pruneAuditLogs();
+setInterval(pruneAuditLogs, 24 * 60 * 60 * 1000).unref();
 
 const PORT =
   process.env.PORT || 5000;

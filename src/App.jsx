@@ -41,8 +41,13 @@ const OrganizationDetail = lazy(() => import("./pages/user/pages/OrganizationDet
 const OrganizationProfile = lazy(() => import("./pages/user/pages/OrganizationProfile"));
 const EventStatistics = lazy(() => import("./pages/user/pages/EventStatistics"));
 const EventImages = lazy(() => import("./pages/user/pages/EventImages"));
-const SuperAdminHome = lazy(() => import("./pages/super_admin/pages/Home"));
-const NewsCreate = lazy(() => import("./pages/super_admin/pages/NewsCreate"));
+const AdminDashboard = lazy(() => import("./pages/super_admin/pages/Dashboard"));
+const AdminNewsList = lazy(() => import("./pages/super_admin/pages/NewsList"));
+const AdminNewsEditor = lazy(() => import("./pages/super_admin/pages/NewsEditor"));
+const AdminLogs = lazy(() => import("./pages/super_admin/pages/Logs"));
+
+const ADMIN_ROLES = ["admin", "super_admin"];
+const adminPage = (page) => <ProtectedRoute roles={ADMIN_ROLES}>{page}</ProtectedRoute>;
 
 
 
@@ -254,28 +259,14 @@ function AppRoutes() {
           }
         />
 
-        <Route
-          path="/super-admin"
-          element={<Navigate to="/super-admin/home" replace />}
-        />
-
-        <Route
-          path="/super-admin/home"
-          element={
-            <ProtectedRoute roles={["super_admin"]}>
-              <SuperAdminHome />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/super-admin/news-create"
-          element={
-            <ProtectedRoute roles={["super_admin"]}>
-              <NewsCreate />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/super-admin" element={<Navigate to="/super-admin/dashboard" replace />} />
+        <Route path="/super-admin/home" element={<Navigate to="/super-admin/dashboard" replace />} />
+        <Route path="/super-admin/news-create" element={<Navigate to="/super-admin/news/new" replace />} />
+        <Route path="/super-admin/dashboard" element={adminPage(<AdminDashboard />)} />
+        <Route path="/super-admin/news" element={adminPage(<AdminNewsList />)} />
+        <Route path="/super-admin/news/new" element={adminPage(<AdminNewsEditor />)} />
+        <Route path="/super-admin/news/:id" element={adminPage(<AdminNewsEditor />)} />
+        <Route path="/super-admin/logs" element={adminPage(<AdminLogs />)} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

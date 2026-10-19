@@ -8,6 +8,7 @@ import pool from "../db.js";
 
 import { OAuth2Client } from "google-auth-library";
 import { JWT_SECRET } from "../utils/jwtSecret.js";
+import { logAudit } from "../utils/audit.js";
 
 const router = express.Router();
 
@@ -701,6 +702,14 @@ router.post(
 
       const user = userRows[0];
 
+      logAudit(req, {
+        type: "create",
+        action: createdOrganization ? "Байгууллага бүртгүүлсэн" : "Хэрэглэгч бүртгүүлсэн",
+        target: createdOrganization?.name || user?.email,
+        targetDetail: user?.email,
+        user,
+      });
+
       return res
 
         .status(201)
@@ -789,6 +798,15 @@ router.post(
       );
 
       if (!rows.length) {
+        logAudit(req, {
+          type: "login",
+          status: "warn",
+          action: "Амжилтгүй нэвтрэлт",
+          target: email,
+          user: { email },
+          details: { reason: "unknown_email" },
+        });
+
         return res
 
           .status(401)
@@ -822,6 +840,15 @@ router.post(
       );
 
       if (!passwordMatches) {
+        logAudit(req, {
+          type: "login",
+          status: "warn",
+          action: "Амжилтгүй нэвтрэлт",
+          target: user.email,
+          user,
+          details: { reason: "wrong_password" },
+        });
+
         return res
 
           .status(401)
@@ -830,6 +857,8 @@ router.post(
             message: "Invalid credentials",
           });
       }
+
+      logAudit(req, { type: "login", action: "Нэвтэрсэн", target: user.email, user });
 
       return res.json({
         user: toClientUser(user),
@@ -1209,6 +1238,8 @@ router.post(
 
         user = createdRows[0];
       }
+
+      logAudit(req, { type: "login", action: "Google-ээр нэвтэрсэн", target: user?.email, user });
 
       return res.json({
         user: toClientUser(user),

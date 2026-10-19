@@ -1,5 +1,6 @@
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import { logAudit } from "./audit.js";
 
 // Browsers may only call the API cross-origin from these sites. The deployed
 // frontend is served from the same origin as the API, which needs no entry.
@@ -70,6 +71,13 @@ export function errorHandler(err, req, res, next) {
 
   if (status >= 500) {
     console.error("UNHANDLED ERROR:", req.method, req.originalUrl, err);
+    logAudit(req, {
+      type: "error",
+      status: "error",
+      action: "Серверийн алдаа",
+      target: `${req.method} ${req.originalUrl}`.slice(0, 255),
+      details: { message: String(err?.message || err).slice(0, 300) },
+    });
   }
 
   if (res.headersSent) return;

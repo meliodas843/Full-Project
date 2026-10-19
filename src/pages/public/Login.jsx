@@ -282,6 +282,18 @@ export default function Login() {
 
       /*
        * ========================================
+       * ADMIN
+       * ========================================
+       */
+
+      if (["admin", "super_admin"].includes(data?.user?.role)) {
+        navigate("/super-admin/dashboard", { replace: true });
+
+        return;
+      }
+
+      /*
+       * ========================================
        * ORGANIZATION
        * ========================================
        */
