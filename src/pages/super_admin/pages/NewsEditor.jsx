@@ -391,35 +391,6 @@ export default function NewsEditor() {
               <input id="sa-author" className="saInput" value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Б. Ганбаатар" />
             </section>
 
-            <section className="saCard saCardPad">
-              <div className="saLabel">Нүүр хуудсанд</div>
-              <div className="saToggleRow">
-                <div>
-                  <strong>Онцлох мэдээ болгох</strong>
-                  <span>Нүүр хуудасны онцлох хэсэгт харагдана</span>
-                </div>
-                <button
-                  type="button"
-                  className={`saSwitch${featured ? " on" : ""}`}
-                  aria-pressed={featured}
-                  aria-label="Онцлох мэдээ болгох"
-                  onClick={() => setFeatured(!featured)}
-                />
-              </div>
-              <div className="saToggleRow">
-                <div>
-                  <strong>Дээр нь бэхлэх</strong>
-                  <span>Мэдээний жагсаалтын хамгийн дээр байна</span>
-                </div>
-                <button
-                  type="button"
-                  className={`saSwitch${pinned ? " on" : ""}`}
-                  aria-pressed={pinned}
-                  aria-label="Дээр нь бэхлэх"
-                  onClick={() => setPinned(!pinned)}
-                />
-              </div>
-            </section>
           </div>
         </div>
       )}
