@@ -110,7 +110,7 @@ function getAuthor(item) {
     item?.author ||
     item?.author_email ||
     item?.created_by_name ||
-    "Khural Plus"
+    "Registra"
   );
 }
 
