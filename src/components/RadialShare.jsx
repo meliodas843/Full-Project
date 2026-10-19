@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { FaWhatsapp, FaLinkedinIn } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { copyText } from "../utils/copyText";
 
 const ICONS = {
   whatsapp: FaWhatsapp,
@@ -118,27 +119,7 @@ export default function RadialShare({
     schedule(() => setPhase("open"), 420);
   };
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      return true;
-    } catch {
-      try {
-        const input = document.createElement("textarea");
-        input.value = shareUrl;
-        input.style.position = "fixed";
-        input.style.opacity = "0";
-        document.body.appendChild(input);
-        input.select();
-
-        const success = document.execCommand("copy");
-        input.remove();
-        return success;
-      } catch {
-        return false;
-      }
-    }
-  };
+  const copyLink = () => copyText(shareUrl);
 
   const share = async (channel) => {
     if (phase !== "open") return;

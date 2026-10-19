@@ -1038,3 +1038,36 @@ html[data-public-theme="dark"] .naCategory.cloud {
     transition: none;
   }
 }
+
+/* "Link copied" confirmation */
+.naCopied {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 1300;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: #12152b;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  transform: translateX(-50%);
+  animation: naCopiedIn 0.2s ease;
+}
+
+.naCopied svg {
+  color: #4fd3a0;
+}
+
+.naCopied.fail {
+  background: #b4233f;
+}
+
+@keyframes naCopiedIn {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
