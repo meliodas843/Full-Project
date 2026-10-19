@@ -7,6 +7,7 @@ import multer from "multer";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { logAudit } from "../utils/audit.js";
+import { reactionLimiter } from "../utils/security.js";
 import { readNewsFields, toSqlDateTime } from "../utils/news.js";
 
 const router = express.Router();
@@ -60,6 +61,7 @@ router.get("/", async (req, res) => {
         n.image_url,
         n.author_name,
         n.views,
+        n.likes,
         n.is_featured,
         n.is_pinned,
         n.created_by,
@@ -80,6 +82,30 @@ router.get("/", async (req, res) => {
 /* =========================
    COUNT A VIEW (public)
 ========================= */
+// Anonymous like / unlike; the browser remembers which posts it liked.
+router.post("/:id/like", reactionLimiter, async (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    return res.status(400).json({ message: "Invalid news id" });
+  }
+
+  const delta = req.body?.liked === false ? -1 : 1;
+
+  try {
+    await pool.query(
+      `UPDATE news n SET n.likes = GREATEST(0, n.likes + ?) WHERE n.id = ? AND ${NEWS_IS_VISIBLE}`,
+      [delta, id],
+    );
+    const [[row]] = await pool.query("SELECT likes FROM news WHERE id = ?", [id]);
+    if (!row) return res.status(404).json({ message: "News not found" });
+    return res.json({ likes: Number(row.likes) });
+  } catch (err) {
+    console.error("NEWS LIKE ERROR:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.post("/:id/view", async (req, res) => {
   const id = Number(req.params.id);
 

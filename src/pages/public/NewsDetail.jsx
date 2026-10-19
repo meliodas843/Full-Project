@@ -5,11 +5,15 @@ import {
   FaArrowRight,
   FaCalendar,
   FaCheck,
+  FaChevronLeft,
   FaClock,
+  FaEnvelope,
   FaEye,
   FaFacebookF,
+  FaHeart,
   FaLink,
-  FaXTwitter,
+  FaLinkedinIn,
+  FaRegHeart,
 } from "react-icons/fa6";
 import Footer from "../../components/Footer";
 import { API_BASE, getImageSrc } from "../../lib/config";
@@ -19,6 +23,9 @@ import { categoryClass, getCategory } from "./newsUtils";
 import "./newsDetail.css";
 
 const RELATED_COUNT = 3;
+const FONT_SIZES = ["sm", "md", "lg"];
+const FONT_KEY = "news-font-size";
+const likedKey = (id) => `news-liked-${id}`;
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
@@ -36,11 +43,22 @@ function htmlToText(value) {
     .trim();
 }
 
+const pad = (n) => String(n).padStart(2, "0");
+
+function toDate(value) {
+  if (!value) return null;
+  const date = new Date(typeof value === "string" ? value.replace(" ", "T") : value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function formatDate(value) {
-  const date = value ? new Date(value) : null;
-  if (!date || Number.isNaN(date.getTime())) return "";
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+  const date = toDate(value);
+  return date ? `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}` : "";
+}
+
+function formatDateTime(value) {
+  const date = toDate(value);
+  return date ? `${formatDate(date)} · ${pad(date.getHours())}:${pad(date.getMinutes())}` : "";
 }
 
 function readingTime(body) {
@@ -52,25 +70,61 @@ function getAuthor(item) {
   return item?.author_name || item?.author || item?.created_by_name || "Registra";
 }
 
-function getInitials(value) {
-  const words = String(value || "").replace(/[.]/g, " ").trim().split(/\s+/).filter(Boolean);
-  if (!words.length) return "R";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+const newsId = (item) => String(item?.id ?? item?._id ?? "");
+
+function readStorage(storage, key) {
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
-const newsId = (item) => String(item?.id ?? item?._id ?? "");
+function writeStorage(storage, key, value) {
+  try {
+    if (value === null) storage.removeItem(key);
+    else storage.setItem(key, value);
+  } catch {
+    // Private mode or blocked storage: the page still works without it.
+  }
+}
+
+// Gives every <h2> an id and returns the list for the table of contents.
+function withSections(html) {
+  const clean = sanitizeHtml(html);
+  if (typeof DOMParser === "undefined") return { html: clean, sections: [] };
+
+  const doc = new DOMParser().parseFromString(`<div>${clean}</div>`, "text/html");
+  const sections = [];
+  doc.querySelectorAll("h2").forEach((heading, index) => {
+    const title = heading.textContent.trim();
+    if (!title) return;
+    heading.id = `section-${index + 1}`;
+    sections.push({ id: heading.id, title });
+  });
+  return { html: doc.body.firstChild.innerHTML, sections };
+}
 
 export default function NewsDetail() {
   const { id } = useParams();
-  const articleRef = useRef(null);
+  const bodyRef = useRef(null);
 
   const [article, setArticle] = useState(null);
   const [allNews, setAllNews] = useState([]);
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState("");
   const [copied, setCopied] = useState(false);
+  const [likes, setLikes] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [fontSize, setFontSize] = useState(() => {
+    const saved = readStorage(localStorage, FONT_KEY);
+    return FONT_SIZES.includes(saved) ? saved : "md";
+  });
+  const [email, setEmail] = useState("");
+  const [subscribe, setSubscribe] = useState({ state: "idle", message: "" });
 
   useEffect(() => {
     let alive = true;
@@ -93,6 +147,8 @@ export default function NewsDetail() {
         if (alive) {
           setAllNews(list);
           setArticle(found || null);
+          setLikes(Number(found?.likes || 0));
+          setLiked(Boolean(found && readStorage(localStorage, likedKey(newsId(found)))));
           if (!found) setError("Мэдээ олдсонгүй.");
         }
       } catch (err) {
@@ -109,6 +165,27 @@ export default function NewsDetail() {
     };
   }, [id]);
 
+  // The next public event with free seats, for the sidebar card.
+  useEffect(() => {
+    let alive = true;
+
+    fetch(`${API_BASE}/api/events`)
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => {
+        if (!alive) return;
+        const now = Date.now();
+        const upcoming = normalizeArray(data)
+          .filter((e) => (toDate(e.start_time)?.getTime() || 0) > now)
+          .sort((a, b) => toDate(a.start_time) - toDate(b.start_time));
+        setEvent(upcoming[0] || null);
+      })
+      .catch(() => {});
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // The public layout scrolls <body>, not the window, so reset both.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -121,27 +198,34 @@ export default function NewsDetail() {
   useEffect(() => {
     if (!articleId) return;
     const key = `news-viewed-${articleId}`;
-    try {
-      if (sessionStorage.getItem(key)) return;
-      sessionStorage.setItem(key, "1");
-    } catch {
-      // Storage blocked; still count the view.
-    }
+    if (readStorage(sessionStorage, key)) return;
+    writeStorage(sessionStorage, key, "1");
     fetch(`${API_BASE}/api/news/${articleId}/view`, { method: "POST" }).catch(() => {});
   }, [articleId]);
 
-  // Reading progress bar across the article body.
+  const content = useMemo(
+    () => withSections(article?.body || article?.content || "<p>Мэдээлэл байхгүй.</p>"),
+    [article],
+  );
+
+  // Reading progress and the current table-of-contents section.
   useEffect(() => {
     if (!articleId) return undefined;
 
     const update = () => {
-      const el = articleRef.current;
+      const el = bodyRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       // 0 when the body enters the screen, 1 once its end is visible.
       const read = (window.innerHeight - rect.top) / Math.max(rect.height, 1);
-      const done = Math.min(1, Math.max(0, read));
-      setProgress(done * 100);
+      setProgress(Math.min(1, Math.max(0, read)) * 100);
+
+      let current = "";
+      for (const section of content.sections) {
+        const heading = document.getElementById(section.id);
+        if (heading && heading.getBoundingClientRect().top < 140) current = section.id;
+      }
+      setActiveSection(current);
     };
 
     // Capture catches scrolling on <body> as well as on the window.
@@ -153,7 +237,7 @@ export default function NewsDetail() {
       document.removeEventListener("scroll", update, options);
       window.removeEventListener("resize", update);
     };
-  }, [articleId]);
+  }, [articleId, content]);
 
   const related = useMemo(() => {
     if (!article) return [];
@@ -171,6 +255,52 @@ export default function NewsDetail() {
       setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+    }
+  }
+
+  async function toggleLike() {
+    const next = !liked;
+    setLiked(next);
+    setLikes((n) => Math.max(0, n + (next ? 1 : -1)));
+    writeStorage(localStorage, likedKey(articleId), next ? "1" : null);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/news/${articleId}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: next }),
+      });
+      const data = await response.json().catch(() => null);
+      if (response.ok && Number.isFinite(data?.likes)) setLikes(data.likes);
+    } catch {
+      // Keep the optimistic count; it corrects itself on the next visit.
+    }
+  }
+
+  function changeFontSize(size) {
+    setFontSize(size);
+    writeStorage(localStorage, FONT_KEY, size);
+  }
+
+  function goToSection(sectionId) {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function submitNewsletter(e) {
+    e.preventDefault();
+    setSubscribe({ state: "busy", message: "" });
+    try {
+      const response = await fetch(`${API_BASE}/api/newsletter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.message || "Бүртгэж чадсангүй.");
+      setEmail("");
+      setSubscribe({ state: "done", message: "Баярлалаа! Та бүртгэгдлээ." });
+    } catch (err) {
+      setSubscribe({ state: "error", message: err.message });
     }
   }
 
@@ -199,10 +329,38 @@ export default function NewsDetail() {
 
   const author = getAuthor(article);
   const category = getCategory(article);
-  const body = article.body || article.content || "<p>Мэдээлэл байхгүй.</p>";
   const views = Number(article.views || 0);
-  const pageUrl = typeof window !== "undefined" ? encodeURIComponent(window.location.href) : "";
-  const shareTitle = encodeURIComponent(article.title || "");
+  const pageUrl = encodeURIComponent(window.location.href);
+  const passedIndex = content.sections.findIndex((s) => s.id === activeSection);
+
+  const shareLinks = (
+    <>
+      <a
+        href={`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Facebook-т хуваалцах"
+        title="Facebook"
+      >
+        <FaFacebookF />
+      </a>
+      <a
+        href={`https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="LinkedIn-д хуваалцах"
+        title="LinkedIn"
+      >
+        <FaLinkedinIn />
+      </a>
+      <button type="button" onClick={copyLink} aria-label="Холбоос хуулах" title={copied ? "Хуулагдлаа" : "Холбоос хуулах"}>
+        {copied ? <FaCheck /> : <FaLink />}
+      </button>
+    </>
+  );
+
+  const seats = Number(event?.max_participants || 0);
+  const booked = Number(event?.booked_count || 0);
 
   return (
     <main className="riPublicPage">
@@ -213,46 +371,45 @@ export default function NewsDetail() {
       <article className="naPage">
         <div className="naContainer">
           <nav className="naCrumbs" aria-label="Breadcrumb">
-            <Link to="/news">
-              <FaArrowLeft />
-              Мэдээ
+            <Link to="/news" className="naBack">
+              <FaChevronLeft />
+              Мэдээ руу буцах
             </Link>
+            <span className="naCrumbSep" />
+            <Link to="/news">Мэдээ</Link>
             <span>/</span>
             <span>{category}</span>
           </nav>
 
           <header className="naHeader">
-            <span className={`naCategory ${categoryClass(category)}`}>{category}</span>
-            <h1>{article.title || "Гарчиггүй"}</h1>
-            {article.summary ? <p className="naLead">{article.summary}</p> : null}
+            <div className="naTags">
+              <span className={`naCategory ${categoryClass(category)}`}>{category}</span>
+              <span>
+                <FaClock />
+                {readingTime(article.body)} мин унших
+              </span>
+              {views > 0 ? (
+                <span>
+                  <FaEye />
+                  {views.toLocaleString("en-US")} үзсэн
+                </span>
+              ) : null}
+            </div>
 
-            <div className="naMeta">
-              <div className="naAuthor">
-                <span className="naAvatar">{getInitials(author)}</span>
-                <div>
+            <h1>{article.title || "Гарчиггүй"}</h1>
+
+            <div className="naLeadRow">
+              <div>
+                {article.summary ? <p className="naLead">{article.summary}</p> : null}
+                <div className="naByline">
                   <strong>{author}</strong>
-                  <small>Нийтлэлч</small>
+                  {formatDate(article.created_at) ? <span>{formatDate(article.created_at)}</span> : null}
                 </div>
               </div>
-
-              <ul className="naFacts">
-                {formatDate(article.created_at) ? (
-                  <li>
-                    <FaCalendar />
-                    {formatDate(article.created_at)}
-                  </li>
-                ) : null}
-                <li>
-                  <FaClock />
-                  {readingTime(body)} мин унших
-                </li>
-                {views > 0 ? (
-                  <li>
-                    <FaEye />
-                    {views.toLocaleString("en-US")} уншсан
-                  </li>
-                ) : null}
-              </ul>
+              <div className="naShareInline">
+                <span>Хуваалцах</span>
+                {shareLinks}
+              </div>
             </div>
           </header>
 
@@ -268,47 +425,134 @@ export default function NewsDetail() {
             </figure>
           ) : null}
 
-          <div className="naBody" ref={articleRef}>
-            <div className="naContent" dangerouslySetInnerHTML={{ __html: sanitizeHtml(body) }} />
+          <div className="naLayout">
+            <aside className="naRail" aria-label="Үйлдэл">
+              <button
+                type="button"
+                className={`naLike${liked ? " on" : ""}`}
+                onClick={toggleLike}
+                aria-pressed={liked}
+                aria-label={liked ? "Таалагдсанаа болих" : "Таалагдлаа"}
+              >
+                {liked ? <FaHeart /> : <FaRegHeart />}
+                <small>{likes}</small>
+              </button>
+              <i />
+              {shareLinks}
+            </aside>
 
-            <div className="naShare">
-              <span>Хуваалцах</span>
-              <div>
-                <button type="button" onClick={copyLink} aria-label="Холбоос хуулах" title="Холбоос хуулах">
-                  {copied ? <FaCheck /> : <FaLink />}
-                </button>
-                <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Facebook-т хуваалцах"
-                  title="Facebook"
-                >
-                  <FaFacebookF />
-                </a>
-                <a
-                  href={`https://twitter.com/intent/tweet?url=${pageUrl}&text=${shareTitle}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="X-д хуваалцах"
-                  title="X"
-                >
-                  <FaXTwitter />
-                </a>
-              </div>
-              {copied ? <em>Холбоос хуулагдлаа</em> : null}
+            <div className="naBody" ref={bodyRef}>
+              <div
+                className={`naContent size-${fontSize}`}
+                dangerouslySetInnerHTML={{ __html: content.html }}
+              />
             </div>
 
-            <section className="naCta">
-              <div>
-                <h3>Холбоотой эвэнтэд оролцох</h3>
-                <p>Энэ сэдэвтэй холбоотой эвэнтүүдтэй танилцаж, өөрийн оролцох арга хэмжээг сонгоорой.</p>
-              </div>
-              <Link to="/events" className="riPrimaryButton">
-                Эвэнтүүд үзэх
-                <FaArrowRight />
-              </Link>
-            </section>
+            <aside className="naSidebar">
+              {content.sections.length ? (
+                <section className="naPanel naToc">
+                  <div className="naPanelHead">
+                    <span>Энэ нийтлэлд</span>
+                    <strong>{Math.round(progress)}%</strong>
+                  </div>
+                  <ol>
+                    {content.sections.map((section, index) => (
+                      <li
+                        key={section.id}
+                        className={`${section.id === activeSection ? "active" : ""}${index < passedIndex ? " passed" : ""}`}
+                      >
+                        <button type="button" onClick={() => goToSection(section.id)}>
+                          <em>{index < passedIndex ? <FaCheck /> : pad(index + 1)}</em>
+                          <span>{section.title}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                  <div className="naFontRow">
+                    <span>Текстийн хэмжээ</span>
+                    <div role="group" aria-label="Текстийн хэмжээ">
+                      {FONT_SIZES.map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          className={`${size}${fontSize === size ? " active" : ""}`}
+                          onClick={() => changeFontSize(size)}
+                          aria-pressed={fontSize === size}
+                        >
+                          A
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+
+              {event ? (
+                <section className="naPanel naEvent">
+                  <div className="naEventImage">
+                    <img
+                      src={event.image_url ? getImageSrc(event.image_url, eventFallback) : eventFallback}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = eventFallback;
+                      }}
+                    />
+                    <span>Удахгүй болох эвэнт</span>
+                  </div>
+                  <div className="naEventBody">
+                    <strong>{event.title}</strong>
+                    <small>
+                      <FaCalendar />
+                      {formatDateTime(event.start_time)}
+                    </small>
+                    {seats ? (
+                      <div className="naSeats">
+                        <div>
+                          <i style={{ width: `${Math.min(100, (booked / seats) * 100)}%` }} />
+                        </div>
+                        <span>
+                          {booked} / {seats}
+                        </span>
+                      </div>
+                    ) : null}
+                    <Link to={`/events/${event.id}`} className="naEventButton">
+                      Эвэнтэд нэгдэх
+                      <FaArrowRight />
+                    </Link>
+                  </div>
+                </section>
+              ) : null}
+
+              <section className="naPanel naNewsletter">
+                <span className="naNewsletterIcon">
+                  <FaEnvelope />
+                </span>
+                <strong>Долоо хоног бүрийн тойм</strong>
+                <p>Шилдэг мэдээ, удахгүй болох эвэнтүүдийг и-мэйлээр аваарай.</p>
+                {subscribe.state === "done" ? (
+                  <div className="naNewsletterDone">
+                    <FaCheck />
+                    {subscribe.message}
+                  </div>
+                ) : (
+                  <form onSubmit={submitNewsletter}>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tani@email.mn"
+                      aria-label="И-мэйл хаяг"
+                    />
+                    <button type="submit" disabled={subscribe.state === "busy"}>
+                      {subscribe.state === "busy" ? "Илгээж байна..." : "Бүртгүүлэх"}
+                    </button>
+                    {subscribe.state === "error" ? <em>{subscribe.message}</em> : null}
+                  </form>
+                )}
+              </section>
+            </aside>
           </div>
 
           {related.length ? (

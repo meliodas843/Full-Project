@@ -17,23 +17,24 @@
 
 .naPage {
   width: 100%;
-  padding: 48px 0 96px;
+  padding: 28px 0 96px;
   background: var(--ri-bg);
   color: var(--ri-text);
 }
 
 .naContainer {
-  width: min(1080px, calc(100% - 48px));
+  width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
 }
 
-/* ---------- header ---------- */
+/* ---------- breadcrumb ---------- */
 
 .naCrumbs {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 36px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 26px;
   color: var(--ri-muted);
   font-size: 13px;
   font-weight: 600;
@@ -42,146 +43,178 @@
 .naCrumbs a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   color: var(--ri-muted);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .naCrumbs a:hover {
-  color: var(--ri-cyan);
+  color: var(--ri-purple);
 }
 
-.naCrumbs svg {
+.naCrumbs .naBack {
+  color: var(--ri-purple);
+  font-weight: 700;
+}
+
+.naCrumbs .naBack svg {
   font-size: 11px;
 }
 
-.naCrumbs span:last-child {
+.naCrumbSep {
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+  background: var(--ri-border);
+}
+
+.naCrumbs > span:last-child {
   color: var(--ri-text);
 }
 
+/* ---------- header ---------- */
+
 .naHeader {
-  max-width: 780px;
-  margin: 0 auto 40px;
-  text-align: center;
+  margin-bottom: 28px;
+}
+
+.naTags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  color: var(--ri-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.naTags > span:not(.naCategory) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.naTags svg {
+  font-size: 11px;
+  opacity: 0.8;
 }
 
 .naCategory {
   display: inline-flex;
   align-items: center;
-  min-height: 26px;
-  padding: 4px 12px;
-  border-radius: 999px;
+  min-height: 24px;
+  padding: 3px 10px;
+  border-radius: 6px;
   background: rgba(88, 71, 238, 0.12);
-  color: #7a6cf5;
+  color: #6a5cf0;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
-.naCategory.cloud { background: rgba(38, 201, 232, 0.13); color: #1fa9c4; }
-.naCategory.security { background: rgba(229, 74, 103, 0.13); color: #e05673; }
-.naCategory.frontend { background: rgba(39, 194, 135, 0.13); color: #23a978; }
-.naCategory.data { background: rgba(231, 160, 52, 0.15); color: #c9852a; }
-.naCategory.ai-ml { background: rgba(134, 86, 238, 0.14); color: #8656ee; }
+.naCategory.cloud { background: rgba(38, 201, 232, 0.14); color: #1798b2; }
+.naCategory.security { background: rgba(38, 201, 232, 0.14); color: #1798b2; }
+.naCategory.frontend { background: rgba(39, 194, 135, 0.14); color: #1f9a6c; }
+.naCategory.data { background: rgba(231, 160, 52, 0.15); color: #b9771f; }
+.naCategory.ai-ml { background: rgba(134, 86, 238, 0.14); color: #7a4fd6; }
 .naCategory.notice { background: rgba(104, 112, 138, 0.14); color: var(--ri-muted); }
 
 .naHeader h1 {
-  margin: 18px 0 18px;
+  max-width: 900px;
+  margin: 16px 0 14px;
   color: var(--ri-heading, var(--ri-text));
-  font-size: clamp(30px, 4vw, 46px);
+  font-size: clamp(30px, 4vw, 48px);
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.12;
   letter-spacing: -0.03em;
   overflow-wrap: break-word;
 }
 
+.naLeadRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
 .naLead {
-  margin: 0 auto 28px;
   max-width: 680px;
+  margin: 0 0 12px;
   color: var(--ri-muted);
-  font-size: 18px;
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.6;
 }
 
-.naMeta {
+.naByline {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 14px 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--ri-border);
+  gap: 10px;
+  color: var(--ri-muted);
+  font-size: 13px;
 }
 
-.naAuthor {
+.naByline strong {
+  color: var(--ri-text);
+}
+
+.naByline span::before {
+  content: "·";
+  margin-right: 10px;
+}
+
+.naShareInline {
   display: flex;
   align-items: center;
-  gap: 12px;
-  text-align: left;
+  flex-shrink: 0;
+  gap: 6px;
 }
 
-.naAvatar {
+.naShareInline > span {
+  margin-right: 6px;
+  color: var(--ri-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.naShareInline a,
+.naShareInline button,
+.naRail a,
+.naRail button {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ri-purple), var(--ri-violet));
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.naAuthor div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.naAuthor strong {
-  color: var(--ri-text);
-  font-size: 14px;
-}
-
-.naAuthor small {
-  color: var(--ri-muted);
-  font-size: 12px;
-}
-
-.naFacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  margin: 0;
+  width: 34px;
+  height: 34px;
   padding: 0;
-  list-style: none;
-  color: var(--ri-muted);
+  border: 1px solid var(--ri-border);
+  border-radius: 9px;
+  background: var(--ri-card);
+  color: var(--ri-text);
   font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.naFacts li {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.naFacts svg {
-  font-size: 12px;
-  opacity: 0.8;
+.naShareInline a:hover,
+.naShareInline button:hover,
+.naRail a:hover,
+.naRail button:hover {
+  border-color: var(--ri-purple);
+  color: var(--ri-purple);
+  transform: translateY(-1px);
 }
 
 /* ---------- hero ---------- */
 
 .naHero {
-  margin: 0 0 56px;
+  margin: 0 0 40px;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 18px;
   background: var(--ri-card);
-  box-shadow: var(--ri-shadow);
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 21 / 9;
 }
 
 .naHero img {
@@ -191,51 +224,138 @@
   object-fit: cover;
 }
 
-/* ---------- body ---------- */
+/* ---------- three-column layout ---------- */
+
+.naLayout {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+.naRail {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.naRail > i {
+  width: 18px;
+  height: 1px;
+  margin: 4px 0;
+  background: var(--ri-border);
+}
+
+.naRail .naLike {
+  height: auto;
+  gap: 2px;
+  padding: 9px 0 7px;
+  border-radius: 12px;
+}
+
+.naLike svg {
+  font-size: 15px;
+}
+
+.naLike small {
+  color: var(--ri-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.naRail .naLike.on {
+  border-color: rgba(229, 74, 103, 0.4);
+  background: rgba(229, 74, 103, 0.08);
+  color: #e54a67;
+}
 
 .naBody {
-  max-width: 720px;
-  margin: 0 auto;
+  min-width: 0;
+  max-width: 700px;
 }
 
+/* ---------- article text ---------- */
+
 .naContent {
+  --na-size: 16px;
+  counter-reset: na-section;
   color: var(--ri-text);
-  font-size: 17px;
-  line-height: 1.85;
+  font-size: var(--na-size);
+  line-height: 1.8;
   overflow-wrap: break-word;
 }
+
+.naContent.size-sm { --na-size: 15px; }
+.naContent.size-lg { --na-size: 18px; }
 
 .naContent * {
   max-width: 100%;
 }
 
 .naContent p {
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   color: var(--ri-text);
-  opacity: 0.88;
+  opacity: 0.86;
 }
 
 .naContent > p:first-child {
   opacity: 1;
-  font-size: 19px;
-  line-height: 1.75;
+  font-size: calc(var(--na-size) + 2px);
+  font-weight: 600;
+  line-height: 1.7;
 }
 
-.naContent h1,
-.naContent h2,
-.naContent h3,
-.naContent h4 {
+.naContent h2 {
+  counter-increment: na-section;
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
   margin: 44px 0 16px;
+  padding-left: 14px;
   color: var(--ri-heading, var(--ri-text));
+  font-size: calc(var(--na-size) + 6px);
   font-weight: 800;
   line-height: 1.3;
   letter-spacing: -0.015em;
+  scroll-margin-top: 96px;
 }
 
-.naContent h1 { font-size: 30px; }
-.naContent h2 { font-size: 26px; }
-.naContent h3 { font-size: 21px; }
-.naContent h4 { font-size: 18px; }
+.naContent h2::before {
+  content: counter(na-section, decimal-leading-zero);
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: var(--ri-purple);
+  font-size: 0.6em;
+  font-weight: 800;
+}
+
+.naContent h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--ri-purple);
+}
+
+.naContent h1,
+.naContent h3,
+.naContent h4 {
+  margin: 32px 0 12px;
+  color: var(--ri-heading, var(--ri-text));
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.naContent h1 { font-size: calc(var(--na-size) + 8px); }
+.naContent h3 { font-size: calc(var(--na-size) + 3px); }
+.naContent h4 { font-size: calc(var(--na-size) + 1px); }
 
 .naContent strong,
 .naContent b {
@@ -252,33 +372,73 @@
 
 .naContent ul,
 .naContent ol {
-  margin: 0 0 26px;
-  padding-left: 24px;
+  margin: 0 0 22px;
+  padding-left: 22px;
+}
+
+.naContent ul {
+  list-style: none;
+  padding-left: 4px;
+}
+
+.naContent ul li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.naContent ul li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.68em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ri-cyan);
+  box-shadow: 0 0 0 3px rgba(38, 201, 232, 0.18);
 }
 
 .naContent li {
   margin-bottom: 10px;
-  padding-left: 4px;
 }
 
-.naContent li::marker {
+.naContent ol li::marker {
   color: var(--ri-purple);
+  font-weight: 700;
 }
 
+/* Quotes become a dark card, as in the design. */
 .naContent blockquote {
-  margin: 36px 0;
-  padding: 6px 0 6px 24px;
-  border-left: 4px solid var(--ri-purple);
-  color: var(--ri-text);
-  font-size: 20px;
-  font-style: italic;
-  line-height: 1.6;
+  position: relative;
+  margin: 32px 0;
+  padding: 26px 28px 24px;
+  border-radius: 16px;
+  background: #12152b;
+  color: #ffffff;
+  font-size: calc(var(--na-size) + 2px);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.naContent blockquote::before {
+  content: "\201C";
+  display: block;
+  margin-bottom: 4px;
+  color: #8c7dff;
+  font-family: Georgia, serif;
+  font-size: 44px;
+  line-height: 0.6;
+}
+
+.naContent blockquote * {
+  color: inherit;
+  opacity: 1;
 }
 
 .naContent img {
   display: block;
   height: auto;
-  margin: 36px auto;
+  margin: 28px auto;
   border-radius: 14px;
 }
 
@@ -291,8 +451,8 @@
 
 .naContent pre,
 .naContent .ql-code-block-container {
-  margin: 0 0 26px;
-  padding: 18px 20px;
+  margin: 0 0 22px;
+  padding: 16px 18px;
   overflow-x: auto;
   border: 1px solid var(--ri-border);
   border-radius: 12px;
@@ -307,7 +467,7 @@
   border-radius: 6px;
   background: var(--ri-card-2, var(--ri-card));
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9em;
+  font-size: 0.88em;
 }
 
 .naContent pre code {
@@ -318,7 +478,7 @@
 .naContent table {
   display: block;
   width: 100%;
-  margin: 0 0 26px;
+  margin: 0 0 22px;
   overflow-x: auto;
   border-collapse: collapse;
 }
@@ -330,107 +490,329 @@
 }
 
 .naContent hr {
-  margin: 40px 0;
+  margin: 36px 0;
   border: 0;
   border-top: 1px solid var(--ri-border);
 }
 
-/* ---------- share + call to action ---------- */
+/* ---------- sidebar ---------- */
 
-.naShare {
+.naSidebar {
+  position: sticky;
+  top: 96px;
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 44px;
-  padding: 20px 0;
-  border-top: 1px solid var(--ri-border);
-  border-bottom: 1px solid var(--ri-border);
+  flex-direction: column;
+  gap: 16px;
 }
 
-.naShare > span {
-  color: var(--ri-muted);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.naShare > div {
-  display: flex;
-  gap: 8px;
-}
-
-.naShare button,
-.naShare a {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
+.naPanel {
+  overflow: hidden;
   border: 1px solid var(--ri-border);
-  border-radius: 50%;
+  border-radius: 14px;
   background: var(--ri-card);
-  color: var(--ri-text);
-  font-size: 14px;
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
 }
 
-.naShare button:hover,
-.naShare a:hover {
-  border-color: var(--ri-purple);
-  color: var(--ri-purple);
-  transform: translateY(-2px);
+.naToc {
+  padding: 16px 14px 12px;
 }
 
-.naShare em {
-  color: var(--ri-cyan);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 700;
-}
-
-.naCta {
+.naPanelHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  margin-top: 36px;
-  padding: 28px 30px;
-  border: 1px solid var(--ri-border);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(38, 201, 232, 0.12), transparent 55%),
-    radial-gradient(circle at 0% 100%, rgba(88, 71, 238, 0.12), transparent 55%),
-    var(--ri-card);
+  margin: 0 4px 10px;
+  color: var(--ri-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.naCta h3 {
-  margin: 0 0 6px;
+.naPanelHead strong {
+  color: var(--ri-purple);
+  font-size: 12px;
+}
+
+.naToc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.naToc li button {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--ri-text);
-  font-size: 18px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.naToc li button:hover {
+  background: var(--ri-card-2, rgba(88, 71, 238, 0.06));
+}
+
+.naToc li em {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  color: var(--ri-muted);
+  font-size: 11px;
+  font-style: normal;
   font-weight: 800;
 }
 
-.naCta p {
-  margin: 0;
-  color: var(--ri-muted);
-  font-size: 14px;
-  line-height: 1.6;
+.naToc li.active button {
+  background: rgba(88, 71, 238, 0.1);
+  color: var(--ri-purple);
 }
 
-.naCta .riPrimaryButton {
-  flex-shrink: 0;
-  min-height: 44px;
-  padding: 0 20px;
+.naToc li.active em,
+.naToc li.passed em {
+  color: var(--ri-purple);
+}
+
+.naToc li.passed button {
+  color: var(--ri-muted);
+}
+
+.naFontRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 4px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ri-border);
+  color: var(--ri-muted);
+  font-size: 12px;
+}
+
+.naFontRow div {
+  display: flex;
+  gap: 4px;
+}
+
+.naFontRow button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ri-text);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.naFontRow button.sm { font-size: 11px; }
+.naFontRow button.md { font-size: 13px; }
+.naFontRow button.lg { font-size: 16px; }
+
+.naFontRow button.active {
+  background: var(--ri-heading, #111827);
+  color: var(--ri-bg);
+}
+
+/* Event card */
+
+.naEventImage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--ri-card-2, var(--ri-card));
+}
+
+.naEventImage img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.naEventImage span {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(18, 21, 43, 0.82);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.naEventBody {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 16px 16px;
+}
+
+.naEventBody strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.naEventBody small {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ri-muted);
+  font-size: 12px;
+}
+
+.naSeats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ri-muted);
+}
+
+.naSeats div {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--ri-border);
+}
+
+.naSeats i {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--ri-cyan), var(--ri-purple));
+}
+
+.naEventButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: var(--ri-purple);
+  color: #ffffff;
   font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: filter 0.2s ease;
+}
+
+.naEventButton:hover {
+  filter: brightness(1.1);
+}
+
+/* Newsletter card */
+
+.naNewsletter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-color: transparent;
+  background: #12152b;
+  color: #ffffff;
+}
+
+.naNewsletterIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  border-radius: 9px;
+  background: rgba(140, 125, 255, 0.2);
+  color: #a99dff;
+}
+
+.naNewsletter strong {
+  font-size: 15px;
+}
+
+.naNewsletter p {
+  margin: 0 0 4px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.naNewsletter form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.naNewsletter input {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.naNewsletter input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.naNewsletter input:focus {
+  border-color: #8c7dff;
+}
+
+.naNewsletter form button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ri-purple);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.naNewsletter form button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.naNewsletter em {
+  color: #ff8fa3;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.naNewsletterDone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(39, 194, 135, 0.15);
+  color: #6ee0b4;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* ---------- related ---------- */
 
 .naRelated {
-  margin-top: 80px;
+  margin-top: 72px;
 }
 
 .naRelatedHead {
@@ -438,13 +820,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .naRelatedHead h2 {
   margin: 0;
   color: var(--ri-heading, var(--ri-text));
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
 }
 
@@ -452,7 +834,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--ri-cyan);
+  color: var(--ri-purple);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -461,7 +843,7 @@
 .naRelatedGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  gap: 20px;
 }
 
 .naCard {
@@ -469,7 +851,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--ri-border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--ri-card);
   color: var(--ri-text);
   text-decoration: none;
@@ -480,7 +862,7 @@
 }
 
 .naCard:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: var(--ri-purple);
   box-shadow: var(--ri-shadow);
 }
@@ -508,20 +890,14 @@
   flex: 1;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  padding: 18px 18px 20px;
-}
-
-.naCardBody .naCategory {
-  min-height: 22px;
-  padding: 3px 10px;
-  font-size: 10px;
+  gap: 9px;
+  padding: 16px 16px 18px;
 }
 
 .naCardBody strong {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.4;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -550,64 +926,116 @@
   color: var(--ri-text);
 }
 
+/* ---------- dark theme tweaks ---------- */
+
+html[data-public-theme="dark"] .naContent blockquote,
+html[data-public-theme="dark"] .naNewsletter {
+  background: #1a2040;
+}
+
+html[data-public-theme="dark"] .naCategory.security,
+html[data-public-theme="dark"] .naCategory.cloud {
+  color: #4fd3ec;
+}
+
 /* ---------- responsive ---------- */
 
-@media (max-width: 900px) {
-  .naRelatedGrid {
+@media (max-width: 1100px) {
+  .naLayout {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  /* The sidebar moves under the article as a two-column row. */
+  .naSidebar {
+    position: static;
+    grid-column: 1 / -1;
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .naToc {
+    display: none;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .naPage {
-    padding: 30px 0 70px;
+    padding: 20px 0 64px;
   }
 
   .naContainer {
     width: calc(100% - 32px);
   }
 
-  .naCrumbs {
-    margin-bottom: 26px;
-  }
-
-  .naHeader {
-    text-align: left;
-  }
-
-  .naLead {
-    font-size: 16px;
-  }
-
-  .naMeta {
-    justify-content: flex-start;
+  .naLeadRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
   }
 
   .naHero {
-    margin-bottom: 36px;
+    margin-bottom: 24px;
     border-radius: 14px;
     aspect-ratio: 16 / 10;
   }
 
-  .naContent {
-    font-size: 16px;
+  .naLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
   }
 
-  .naContent > p:first-child {
-    font-size: 17px;
+  /* Like and share sit in a row above the text. */
+  .naRail {
+    position: static;
+    flex-direction: row;
+    justify-content: flex-start;
   }
 
-  .naCta {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 22px;
+  .naRail > i {
+    width: 1px;
+    height: 18px;
+    margin: 0 4px;
+  }
+
+  .naRail .naLike {
+    display: inline-flex;
+    align-items: center;
+    flex-direction: row;
+    width: auto;
+    height: 34px;
+    gap: 6px;
+    padding: 0 12px;
+  }
+
+  .naShareInline {
+    display: none;
+  }
+
+  .naSidebar,
+  .naRelatedGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .naContent blockquote {
+    padding: 22px 20px 20px;
   }
 
   .naRelated {
-    margin-top: 56px;
+    margin-top: 52px;
   }
+}
 
+@media (min-width: 761px) and (max-width: 1100px) {
   .naRelatedGrid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .naProgress span,
+  .naCard,
+  .naCardImage img {
+    transition: none;
   }
 }
