@@ -1202,37 +1202,168 @@
   .saDetail { position: static; }
 }
 
-@media (max-width: 820px) {
+/* Mobile top bar and drawer: hidden on desktop. */
+.saMobileBar,
+.saBackdrop,
+.saDrawerClose {
+  display: none;
+}
+
+@media (max-width: 960px) {
   .saApp { flex-direction: column; }
 
-  .saSidebar {
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
+  .saMobileBar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
-    height: auto;
-    padding: 12px 16px;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--sa-side-bg);
+    color: var(--sa-side-text);
   }
 
-  .saBrand { padding: 0 8px 0 0; }
-  .saRoleChip,
-  .saNavSection,
-  .saThemeRow span { display: none; }
-  .saNav { flex-direction: row; margin: 0; }
-  .saNavLink { padding: 8px 10px; }
-  .saSidebarFooter { display: flex; align-items: center; gap: 8px; margin: 0 0 0 auto; padding: 0; border: 0; }
-  .saThemeRow { margin: 0; padding: 0; }
-  .saUserText { display: none; }
-  .saHeader { position: static; flex-direction: column; align-items: flex-start; padding: 14px 16px; }
+  .saMobileBar img { height: 20px; }
+  .saMobileBar .saIconButton { width: 38px; height: 38px; font-size: 20px; }
+  .saMobileBar .saAvatar { width: 34px; height: 34px; font-size: 12px; }
+
+  .saSidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: min(280px, 84vw);
+    height: 100dvh;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: none;
+  }
+
+  .saApp.menuOpen .saSidebar {
+    transform: translateX(0);
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
+  }
+
+  .saBrand { justify-content: space-between; }
+  .saDrawerClose { display: grid; }
+
+  .saBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: block;
+    background: rgba(8, 10, 24, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .saApp.menuOpen .saBackdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .saHeader { position: static; }
+}
+
+@media (max-width: 640px) {
+  .saHeader { flex-direction: column; align-items: flex-start; padding: 14px 16px; }
+  .saHeaderActions { flex-wrap: wrap; }
   .saContent { padding: 16px 16px 32px; }
-  .saKpis { grid-template-columns: minmax(0, 1fr); }
+  .saKpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .saKpi { padding: 14px; }
+  .saKpi strong { font-size: 22px; }
   .saSearch { min-width: 0; width: 100%; }
+  .saLogSummary { gap: 8px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saSidebar,
+  .saBackdrop { transition: none; }
 }
 
 /* Inline inputs stay transparent over the site-wide dark input colours. */
 :root[data-theme="dark"] .saApp .saSlug input,
 :root[data-theme="dark"] .saApp .saSearch input {
   background: transparent;
+}
+
+/* ---------- toast ---------- */
+
+.saToast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  overflow: hidden;
+  padding: 14px 14px 16px 16px;
+  border: 1px solid var(--sa-border);
+  border-radius: 12px;
+  background: var(--sa-surface);
+  color: var(--sa-text);
+  box-shadow: 0 16px 40px rgba(16, 22, 46, 0.18);
+  font-size: 13px;
+  font-weight: 600;
+  animation: saToastIn 0.25s ease;
+}
+
+.saToastIcon {
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.saToast.success .saToastIcon { color: var(--sa-green); }
+.saToast.error .saToastIcon { color: var(--sa-red); }
+
+.saToast span {
+  flex: 1;
+  min-width: 0;
+}
+
+.saToast button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sa-muted);
+  cursor: pointer;
+}
+
+.saToast button:hover {
+  background: var(--sa-surface-2);
+}
+
+.saToastBar {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  transform-origin: left;
+  animation: saToastTimer var(--sa-toast-ms, 5000ms) linear forwards;
+}
+
+.saToast.success .saToastBar { background: var(--sa-green); }
+.saToast.error .saToastBar { background: var(--sa-red); }
+
+@keyframes saToastIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes saToastTimer {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+@media (max-width: 640px) {
+  .saToast { top: auto; right: 16px; bottom: 16px; }
 }

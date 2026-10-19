@@ -41,6 +41,22 @@ async function windowCounts(table, days, where = "1=1") {
   return { total: Number(row.total || 0), current, change: change(current, Number(row.previous || 0)) };
 }
 
+// Paid amounts in the last `days` days and in the window before it.
+async function profitWindow(days) {
+  const [[row]] = await pool.query(
+    `SELECT
+       COALESCE(SUM(amount), 0) AS total,
+       COALESCE(SUM(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL ? DAY) THEN amount END), 0) AS current,
+       COALESCE(SUM(CASE WHEN created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+                          AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY) THEN amount END), 0) AS previous
+     FROM payments
+     WHERE status = 'paid'`,
+    [days, days, days * 2],
+  );
+  const current = Number(row.current);
+  return { total: Number(row.total), current, change: change(current, Number(row.previous)) };
+}
+
 /* =========================
    DASHBOARD
 ========================= */
@@ -48,11 +64,12 @@ router.get("/dashboard", async (req, res, next) => {
   try {
     const days = clampDays(req.query.days);
 
-    const [users, bookings, events, organizations] = await Promise.all([
+    const [users, bookings, events, organizations, profit] = await Promise.all([
       windowCounts("users", days, "role NOT IN ('admin', 'super_admin') OR role IS NULL"),
       windowCounts("event_bookings", days),
       windowCounts("events", days),
       windowCounts("organizations", days),
+      profitWindow(days),
     ]);
 
     const activeEvents = await scalar(
@@ -121,6 +138,7 @@ router.get("/dashboard", async (req, res, next) => {
         users,
         bookings,
         events: { ...events, active: activeEvents },
+        profit,
         organizations: {
           ...organizations,
           pending: await scalar(

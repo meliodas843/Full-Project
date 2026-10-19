@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FiEdit2, FiExternalLink, FiMapPin, FiPlus, FiSearch, FiTrash2 } from "react-icons/fi";
 import AdminShell from "../components/AdminShell";
+import Toast from "../components/Toast";
+import useToast from "../hooks/useToast";
 import { apiFetch } from "../../../lib/api";
 import { getImageSrc } from "../../../lib/config";
 import { NEWS_STATES, formatDate, fromTs } from "../adminUtils";
@@ -16,7 +18,15 @@ export default function NewsList() {
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const [notice] = useState(location.state?.notice || "");
+  // A save from the editor arrives as router state; show it once.
+  const handover = location.state?.notice;
+  const { toast, show: showToast, hide: hideToast } = useToast(
+    handover ? { message: handover, type: location.state?.noticeType || "success" } : null,
+  );
+
+  useEffect(() => {
+    if (handover) navigate(location.pathname, { replace: true, state: null });
+  }, [handover, location.pathname, navigate]);
 
   const load = useCallback(async () => {
     try {
@@ -46,8 +56,9 @@ export default function NewsList() {
     try {
       await apiFetch(`/api/admin/news/${row.id}/pin`, { method: "PATCH" });
       await load();
+      showToast(row.is_pinned ? "Бэхэлгээ авлаа." : "Мэдээг дээр нь бэхэллээ.");
     } catch (err) {
-      setError(err.message);
+      showToast(err.message || "Бэхэлж чадсангүй.", "error");
     }
   }
 
@@ -56,8 +67,9 @@ export default function NewsList() {
     try {
       await apiFetch(`/api/news/${row.id}`, { method: "DELETE" });
       await load();
+      showToast("Мэдээ устгагдлаа.");
     } catch (err) {
-      setError(err.message);
+      showToast(err.message || "Мэдээ устгаж чадсангүй.", "error");
     }
   }
 
@@ -79,7 +91,7 @@ export default function NewsList() {
         </>
       }
     >
-      {notice ? <div className="saNotice">{notice}</div> : null}
+      <Toast toast={toast} onClose={hideToast} />
       {error ? <div className="saError">{error}</div> : null}
 
       <div className="saGrid saKpis">

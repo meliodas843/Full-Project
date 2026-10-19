@@ -4,6 +4,8 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { FiArrowLeft, FiClock, FiEye, FiImage, FiTrash2, FiX } from "react-icons/fi";
 import AdminShell from "../components/AdminShell";
+import Toast from "../components/Toast";
+import useToast from "../hooks/useToast";
 import { apiFetch } from "../../../lib/api";
 import { getImageSrc } from "../../../lib/config";
 import { sanitizeHtml } from "../../../utils/safeHtml";
@@ -59,6 +61,8 @@ export default function NewsEditor() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const { toast, show: showToast, hide: hideToast } = useToast();
+  const fail = (message) => showToast(message, "error");
   const [preview, setPreview] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -149,7 +153,7 @@ export default function NewsEditor() {
                 quill.insertEmbed(index, "image", getImageSrc(data.url), "user");
                 quill.setSelection(index + 1);
               } catch (err) {
-                setError(err.message || "Зураг оруулж чадсангүй.");
+                showToast(err.message || "Зураг оруулж чадсангүй.", "error");
               }
             };
             input.click();
@@ -157,18 +161,16 @@ export default function NewsEditor() {
         },
       },
     }),
-    [],
+    [showToast],
   );
 
   async function save(saveMode = mode) {
-    setError("");
-
-    if (!title.trim()) return setError("Гарчиг оруулна уу.");
+    if (!title.trim()) return fail("Гарчиг оруулна уу.");
     if (saveMode !== "draft" && !body.replace(/<[^>]*>/g, "").trim()) {
-      return setError("Мэдээний агуулга хоосон байна.");
+      return fail("Мэдээний агуулга хоосон байна.");
     }
     if (saveMode === "scheduled" && !(scheduledAt.getTime() > Date.now())) {
-      return setError("Товлох огноо, цаг ирээдүйд байх ёстой.");
+      return fail("Товлох огноо, цаг ирээдүйд байх ёстой.");
     }
 
     const fd = new FormData();
@@ -195,7 +197,7 @@ export default function NewsEditor() {
       }[saveMode];
       navigate("/super-admin/news", { state: { notice } });
     } catch (err) {
-      setError(err.message || "Хадгалж чадсангүй.");
+      fail(err.message || "Мэдээ хадгалж чадсангүй.");
     } finally {
       setSaving(false);
     }
@@ -220,6 +222,7 @@ export default function NewsEditor() {
         </button>
       }
     >
+      <Toast toast={toast} onClose={hideToast} />
       {error ? <div className="saError">{error}</div> : null}
 
       {loading ? (

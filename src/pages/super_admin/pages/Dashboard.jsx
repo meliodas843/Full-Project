@@ -16,6 +16,7 @@ import {
 
 const RANGES = [7, 30, 90];
 const number = (n) => Number(n || 0).toLocaleString("en-US");
+const money = (n) => `₮${Math.round(Number(n || 0)).toLocaleString("en-US")}`;
 
 function Change({ value, days }) {
   const v = Number(value || 0);
@@ -69,6 +70,7 @@ export default function Dashboard() {
     const rows = [
       ["Үзүүлэлт", "Нийт", `Сүүлийн ${data.days} хоног`],
       ["Хэрэглэгч", k.users.total, k.users.current],
+      ["Ашиг (₮)", k.profit.total, k.profit.current],
       ["Эвэнтийн бүртгэл", k.bookings.total, k.bookings.current],
       ["Эвэнт", k.events.total, k.events.current],
       ["Идэвхтэй эвэнт", k.events.active, ""],
@@ -106,8 +108,8 @@ export default function Dashboard() {
 
       <div className="saGrid saKpis">
         <div className="saCard saKpi">
-          <span>Нийт хэрэглэгч</span>
-          <strong>{number(k?.users.total)}</strong>
+          <span>Шинэ хэрэглэгч · {days} хоног</span>
+          <strong>{number(k?.users.current)}</strong>
           {k ? <Change value={k.users.change} days={days} /> : null}
         </div>
         <div className="saCard saKpi">
@@ -125,17 +127,9 @@ export default function Dashboard() {
           ) : null}
         </div>
         <div className="saCard saKpi">
-          <span>Байгууллага</span>
-          <strong>{number(k?.organizations.total)}</strong>
-          {k ? (
-            <small>
-              {k.organizations.pending ? (
-                <span className="saDown">{k.organizations.pending} хүлээгдэж буй</span>
-              ) : (
-                "Бүгд хянагдсан"
-              )}
-            </small>
-          ) : null}
+          <span>Ашиг · {days} хоног</span>
+          <strong>{money(k?.profit.current)}</strong>
+          {k ? <Change value={k.profit.change} days={days} /> : null}
         </div>
       </div>
 

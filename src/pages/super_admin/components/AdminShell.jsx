@@ -1,5 +1,6 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { FiFileText, FiGrid, FiList, FiLogOut, FiShield } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { FiFileText, FiGrid, FiList, FiLogOut, FiMenu, FiShield, FiX } from "react-icons/fi";
 import logo from "../../../assets/registra-logo-def.png";
 import ThemeToggle from "../../../components/ThemeToggle";
 import { clearAuth } from "../../../lib/api";
@@ -22,7 +23,24 @@ const SECTIONS = [
 
 export default function AdminShell({ crumb, title, actions, children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = readStoredUser();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // On small screens the sidebar is a drawer: close it after navigating
+  // and on Escape.
+  const [lastPath, setLastPath] = useState(location.pathname);
+  if (lastPath !== location.pathname) {
+    setLastPath(location.pathname);
+    setMenuOpen(false);
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
   const name =
     [user.firstName || user.first_name, user.lastName || user.last_name].filter(Boolean).join(" ") ||
     user.email ||
@@ -34,10 +52,23 @@ export default function AdminShell({ crumb, title, actions, children }) {
   };
 
   return (
-    <div className="saApp">
-      <aside className="saSidebar">
+    <div className={`saApp${menuOpen ? " menuOpen" : ""}`}>
+      <div className="saMobileBar">
+        <button type="button" className="saIconButton" onClick={() => setMenuOpen(true)} aria-label="Цэс нээх">
+          <FiMenu />
+        </button>
+        <img src={logo} alt="Registra" />
+        <div className="saAvatar">{initials(name, "A")}</div>
+      </div>
+
+      <div className="saBackdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+
+      <aside className="saSidebar" aria-label="Админ цэс">
         <div className="saBrand">
           <img src={logo} alt="Registra" />
+          <button type="button" className="saIconButton saDrawerClose" onClick={() => setMenuOpen(false)} aria-label="Цэс хаах">
+            <FiX />
+          </button>
         </div>
 
         <div className="saRoleChip">

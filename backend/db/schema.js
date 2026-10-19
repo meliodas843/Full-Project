@@ -100,6 +100,21 @@ const STATEMENTS = [
     KEY idx_audit_created (created_at),
     KEY idx_audit_type (type, created_at)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  // Money received; the admin dashboard's profit card sums paid rows.
+  `CREATE TABLE IF NOT EXISTS payments (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(14, 2) NOT NULL DEFAULT 0,
+    currency VARCHAR(3) NOT NULL DEFAULT 'MNT',
+    status VARCHAR(20) NOT NULL DEFAULT 'paid',
+    user_id BIGINT NULL,
+    organization_id BIGINT NULL,
+    event_id BIGINT NULL,
+    description VARCHAR(255) NULL,
+    PRIMARY KEY (id),
+    KEY idx_payments_created (status, created_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 ];
 
 // Columns added after their table first shipped: [table, column, ALTER].
