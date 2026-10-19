@@ -1,4 +1,5 @@
 import express from "express";
+import { logAudit } from "../utils/audit.js";
 import pool from "../db.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -495,6 +496,8 @@ router.post(
       );
 
       await connection.commit();
+
+      logAudit(req, { type: "update", action: "Нууц үг сэргээсэн", target: user.email, user });
 
       return res.json({
         success: true,

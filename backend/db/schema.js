@@ -79,6 +79,27 @@ const STATEMENTS = [
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
   `CREATE TABLE IF NOT EXISTS finished_meeting LIKE meetings`,
+
+  // Admin "Лог бүртгэл": who did what, when, from where.
+  `CREATE TABLE IF NOT EXISTS audit_logs (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(20) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'ok',
+    action VARCHAR(255) NOT NULL,
+    target VARCHAR(255) NULL,
+    target_detail VARCHAR(255) NULL,
+    user_id BIGINT NULL,
+    user_email VARCHAR(255) NULL,
+    user_role VARCHAR(50) NULL,
+    ip VARCHAR(64) NULL,
+    user_agent VARCHAR(500) NULL,
+    request_id VARCHAR(40) NULL,
+    details TEXT NULL,
+    PRIMARY KEY (id),
+    KEY idx_audit_created (created_at),
+    KEY idx_audit_type (type, created_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 ];
 
 // Columns added after their table first shipped: [table, column, ALTER].
@@ -87,6 +108,25 @@ const COLUMNS = [
   ["event_gallery_settings", "participant_message", "ALTER TABLE event_gallery_settings ADD COLUMN participant_message VARCHAR(500) NULL AFTER watermark"],
   ["event_gallery_settings", "is_published", "ALTER TABLE event_gallery_settings ADD COLUMN is_published TINYINT(1) NOT NULL DEFAULT 0 AFTER participant_message"],
   ["event_gallery_settings", "published_at", "ALTER TABLE event_gallery_settings ADD COLUMN published_at DATETIME NULL AFTER is_published"],
+
+  // Dashboard charts need to know when accounts and bookings were created.
+  ["users", "created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"],
+  ["event_bookings", "created_at", "ALTER TABLE event_bookings ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"],
+
+  // News publishing workflow (draft / scheduled / published) and admin list.
+  ["news", "status", "ALTER TABLE news ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'"],
+  ["news", "publish_at", "ALTER TABLE news ADD COLUMN publish_at DATETIME NULL"],
+  ["news", "slug", "ALTER TABLE news ADD COLUMN slug VARCHAR(255) NULL"],
+  ["news", "summary", "ALTER TABLE news ADD COLUMN summary VARCHAR(300) NULL"],
+  ["news", "category", "ALTER TABLE news ADD COLUMN category VARCHAR(50) NULL"],
+  ["news", "author_name", "ALTER TABLE news ADD COLUMN author_name VARCHAR(255) NULL"],
+  ["news", "views", "ALTER TABLE news ADD COLUMN views INT NOT NULL DEFAULT 0"],
+  ["news", "is_featured", "ALTER TABLE news ADD COLUMN is_featured TINYINT(1) NOT NULL DEFAULT 0"],
+  ["news", "is_pinned", "ALTER TABLE news ADD COLUMN is_pinned TINYINT(1) NOT NULL DEFAULT 0"],
+  ["news", "updated_at", "ALTER TABLE news ADD COLUMN updated_at DATETIME NULL"],
+
+  // Admin approval of organizations: NULL = waiting, approved / rejected.
+  ["organizations", "review_status", "ALTER TABLE organizations ADD COLUMN review_status VARCHAR(20) NULL"],
 ];
 
 async function columnExists(pool, table, column) {
@@ -100,12 +140,22 @@ async function columnExists(pool, table, column) {
   return Number(row?.total) > 0;
 }
 
+async function tableExists(pool, table) {
+  const [[row]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+    [table],
+  );
+
+  return Number(row?.total) > 0;
+}
+
 export async function ensureSchema(pool) {
   for (const sql of STATEMENTS) {
     await pool.query(sql);
   }
 
   for (const [table, column, sql] of COLUMNS) {
+    if (!(await tableExists(pool, table))) continue;
     if (!(await columnExists(pool, table, column))) {
       try {
         await pool.query(sql);

@@ -11,6 +11,7 @@ import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 import { sendMail, getFrontendUrl } from "../services/mailer.js";
+import { logAudit } from "../utils/audit.js";
 
 import {
   galleryPublishedEmail,
@@ -1848,6 +1849,8 @@ router.post("/password-code", async (req, res) => {
         resetUrl,
       }),
     });
+
+    logAudit(req, { type: "update", action: "Нууц үг сэргээх код хүссэн", target: user.email, user });
 
     return res.json({
       message: "Reset code sent to your email.",

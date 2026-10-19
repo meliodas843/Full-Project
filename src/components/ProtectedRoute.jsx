@@ -154,7 +154,9 @@ export default function ProtectedRoute({ children, roles = [] }) {
     roles.length > 0 &&
     !roles.includes(userRole)
   ) {
-    return <Navigate to="/login" replace />;
+    // Logged in, just not allowed here: send admins to their own area.
+    const isAdmin = ["admin", "super_admin"].includes(userRole);
+    return <Navigate to={isAdmin ? "/super-admin/dashboard" : "/login"} replace />;
   }
 
   const accountType = getAccountType(user);

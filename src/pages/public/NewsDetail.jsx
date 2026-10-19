@@ -271,6 +271,21 @@ export default function NewsDetail() {
     });
   }, [id]);
 
+  // Count one view per article per browser session.
+  const articleId = article?.id || article?._id;
+
+  useEffect(() => {
+    if (!articleId) return;
+    const key = `news-viewed-${articleId}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      // Storage blocked; still count the view.
+    }
+    fetch(`${API_BASE}/api/news/${articleId}/view`, { method: "POST" }).catch(() => {});
+  }, [articleId]);
+
   if (loading) {
     return (
       <main className="riPublicPage">
