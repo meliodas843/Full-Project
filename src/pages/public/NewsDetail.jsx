@@ -1,24 +1,24 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  Link,
-  useParams,
-} from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   FaArrowLeft,
   FaArrowRight,
+  FaCalendar,
+  FaCheck,
   FaClock,
+  FaEye,
+  FaFacebookF,
+  FaLink,
+  FaXTwitter,
 } from "react-icons/fa6";
 import Footer from "../../components/Footer";
-import {
-  API_BASE,
-  getImageSrc,
-} from "../../lib/config";
+import { API_BASE, getImageSrc } from "../../lib/config";
 import eventFallback from "../../assets/event.webp";
 import { sanitizeHtml } from "../../utils/safeHtml";
+import { categoryClass, getCategory } from "./newsUtils";
+import "./newsDetail.css";
+
+const RELATED_COUNT = 3;
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
@@ -29,154 +29,48 @@ function normalizeArray(data) {
 }
 
 function htmlToText(value) {
-  const html = String(value || "");
-
-  if (typeof document !== "undefined") {
-    const element =
-      document.createElement("div");
-
-    element.innerHTML = html;
-
-    return String(
-      element.textContent ||
-        element.innerText ||
-        "",
-    )
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  return html
+  return String(value || "")
     .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function formatDate(value) {
-  if (!value) return "";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleDateString(
-    "mn-MN",
-    {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    },
-  );
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
 }
 
 function readingTime(body) {
-  const words = htmlToText(body)
-    .split(/\s+/)
-    .filter(Boolean).length;
-
-  return Math.max(
-    3,
-    Math.ceil(words / 180),
-  );
-}
-
-function getCategory(item) {
-  const text =
-    `${item?.title || ""} ${
-      item?.body || ""
-    }`.toLowerCase();
-
-  if (
-    text.includes("security") ||
-    text.includes("cyber") ||
-    text.includes("аюулгүй")
-  ) {
-    return "Security";
-  }
-
-  if (
-    text.includes("cloud") ||
-    text.includes("kubernetes")
-  ) {
-    return "Cloud";
-  }
-
-  if (
-    text.includes("ai") ||
-    text.includes("machine") ||
-    text.includes("llm")
-  ) {
-    return "AI/ML";
-  }
-
-  if (
-    text.includes("frontend") ||
-    text.includes("react") ||
-    text.includes("javascript")
-  ) {
-    return "Frontend";
-  }
-
-  if (text.includes("data")) {
-    return "Data";
-  }
-
-  return "DevOps";
+  const words = htmlToText(body).split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 180));
 }
 
 function getAuthor(item) {
-  return (
-    item?.author_name ||
-    item?.author ||
-    item?.author_email ||
-    item?.created_by_name ||
-    item?.created_by?.name ||
-    "Khural Plus"
-  );
+  return item?.author_name || item?.author || item?.created_by_name || "Registra";
 }
 
 function getInitials(value) {
-  const name = String(value || "")
-    .trim();
-
-  if (!name) return "KP";
-
-  if (name.includes("@")) {
-    return name
-      .slice(0, 2)
-      .toUpperCase();
-  }
-
-  const words = name
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (words.length === 1) {
-    return words[0]
-      .slice(0, 2)
-      .toUpperCase();
-  }
-
-  return `${words[0][0]}${words[1][0]}`
-    .toUpperCase();
+  const words = String(value || "").replace(/[.]/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "R";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return `${words[0][0]}${words[1][0]}`.toUpperCase();
 }
+
+const newsId = (item) => String(item?.id ?? item?._id ?? "");
 
 export default function NewsDetail() {
   const { id } = useParams();
+  const articleRef = useRef(null);
 
-  const [article, setArticle] =
-    useState(null);
-
-  const [allNews, setAllNews] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
+  const [article, setArticle] = useState(null);
+  const [allNews, setAllNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -186,54 +80,25 @@ export default function NewsDetail() {
         setLoading(true);
         setError("");
 
-        const listResponse =
-          await fetch(
-            `${API_BASE}/api/news`,
-          );
+        const response = await fetch(`${API_BASE}/api/news`);
+        const data = await response.json().catch(() => []);
 
-        const listData =
-          await listResponse
-            .json()
-            .catch(() => []);
-
-        if (!listResponse.ok) {
-          throw new Error(
-            listData?.message ||
-              "Мэдээг ачаалж чадсангүй.",
-          );
+        if (!response.ok) {
+          throw new Error(data?.message || "Мэдээг ачаалж чадсангүй.");
         }
 
-        const list =
-          normalizeArray(listData);
-
-        const found = list.find(
-          (item) =>
-            String(
-              item.id ?? item._id,
-            ) === String(id),
-        );
+        const list = normalizeArray(data);
+        const found = list.find((item) => newsId(item) === String(id));
 
         if (alive) {
           setAllNews(list);
           setArticle(found || null);
-
-          if (!found) {
-            setError(
-              "Мэдээ олдсонгүй.",
-            );
-          }
+          if (!found) setError("Мэдээ олдсонгүй.");
         }
       } catch (err) {
-        if (alive) {
-          setError(
-            err.message ||
-              "Сервертэй холбогдож чадсангүй.",
-          );
-        }
+        if (alive) setError(err.message || "Сервертэй холбогдож чадсангүй.");
       } finally {
-        if (alive) {
-          setLoading(false);
-        }
+        if (alive) setLoading(false);
       }
     }
 
@@ -244,35 +109,14 @@ export default function NewsDetail() {
     };
   }, [id]);
 
-  const related = useMemo(() => {
-    if (!article) return null;
-
-    const currentCategory =
-      getCategory(article);
-
-    return allNews.find(
-      (item) =>
-        String(
-          item.id ?? item._id,
-        ) !==
-          String(
-            article.id ??
-              article._id,
-          ) &&
-        getCategory(item) ===
-          currentCategory,
-    );
-  }, [article, allNews]);
-
+  // The public layout scrolls <body>, not the window, so reset both.
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "instant",
-    });
+    window.scrollTo({ top: 0, behavior: "instant" });
+    document.body.scrollTo?.({ top: 0, behavior: "instant" });
   }, [id]);
 
   // Count one view per article per browser session.
-  const articleId = article?.id || article?._id;
+  const articleId = newsId(article);
 
   useEffect(() => {
     if (!articleId) return;
@@ -286,12 +130,54 @@ export default function NewsDetail() {
     fetch(`${API_BASE}/api/news/${articleId}/view`, { method: "POST" }).catch(() => {});
   }, [articleId]);
 
+  // Reading progress bar across the article body.
+  useEffect(() => {
+    if (!articleId) return undefined;
+
+    const update = () => {
+      const el = articleRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      // 0 when the body enters the screen, 1 once its end is visible.
+      const read = (window.innerHeight - rect.top) / Math.max(rect.height, 1);
+      const done = Math.min(1, Math.max(0, read));
+      setProgress(done * 100);
+    };
+
+    // Capture catches scrolling on <body> as well as on the window.
+    const options = { capture: true, passive: true };
+    update();
+    document.addEventListener("scroll", update, options);
+    window.addEventListener("resize", update);
+    return () => {
+      document.removeEventListener("scroll", update, options);
+      window.removeEventListener("resize", update);
+    };
+  }, [articleId]);
+
+  const related = useMemo(() => {
+    if (!article) return [];
+    const category = getCategory(article);
+    const others = allNews.filter((item) => newsId(item) !== articleId);
+    const same = others.filter((item) => getCategory(item) === category);
+    const rest = others.filter((item) => getCategory(item) !== category);
+    return [...same, ...rest].slice(0, RELATED_COUNT);
+  }, [article, allNews, articleId]);
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   if (loading) {
     return (
       <main className="riPublicPage">
-        <div className="riNewsDetailLoading">
-          Мэдээг ачаалж байна...
-        </div>
+        <div className="naState">Мэдээг ачаалж байна...</div>
       </main>
     );
   }
@@ -299,163 +185,170 @@ export default function NewsDetail() {
   if (error || !article) {
     return (
       <main className="riPublicPage">
-        <section className="riNewsDetailNotFound">
-          <h1>
-            {error ||
-              "Мэдээ олдсонгүй."}
-          </h1>
-
-          <Link
-            to="/news"
-            className="riPrimaryButton"
-          >
+        <section className="naState">
+          <h1>{error || "Мэдээ олдсонгүй."}</h1>
+          <Link to="/news" className="riPrimaryButton">
             <FaArrowLeft />
             Мэдээ рүү буцах
           </Link>
         </section>
-
         <Footer />
       </main>
     );
   }
 
-  const author =
-    getAuthor(article);
-
-  const body =
-    article.body ||
-    article.content ||
-    "<p>Мэдээлэл байхгүй.</p>";
-
-  const image =
-    article.image_url
-      ? getImageSrc(
-          article.image_url,
-          eventFallback,
-        )
-      : eventFallback;
+  const author = getAuthor(article);
+  const category = getCategory(article);
+  const body = article.body || article.content || "<p>Мэдээлэл байхгүй.</p>";
+  const views = Number(article.views || 0);
+  const pageUrl = typeof window !== "undefined" ? encodeURIComponent(window.location.href) : "";
+  const shareTitle = encodeURIComponent(article.title || "");
 
   return (
     <main className="riPublicPage">
-      <article className="riNewsDetailPage">
-        <div className="riNewsDetailContainer">
-          <Link
-            to="/news"
-            className="riNewsBack"
-          >
-            <FaArrowLeft />
-            Мэдээ рүү буцах
-          </Link>
+      <div className="naProgress" aria-hidden="true">
+        <span style={{ width: `${progress}%` }} />
+      </div>
 
-          <header className="riNewsDetailHeader">
-            <span className="riNewsDetailCategory">
-              {getCategory(article)}
-            </span>
+      <article className="naPage">
+        <div className="naContainer">
+          <nav className="naCrumbs" aria-label="Breadcrumb">
+            <Link to="/news">
+              <FaArrowLeft />
+              Мэдээ
+            </Link>
+            <span>/</span>
+            <span>{category}</span>
+          </nav>
 
-            <h1>
-              {article.title ||
-                "Untitled"}
-            </h1>
+          <header className="naHeader">
+            <span className={`naCategory ${categoryClass(category)}`}>{category}</span>
+            <h1>{article.title || "Гарчиггүй"}</h1>
+            {article.summary ? <p className="naLead">{article.summary}</p> : null}
 
-            <div className="riNewsDetailMeta">
-              <div className="riNewsDetailAuthor">
-                <span>
-                  {getInitials(author)}
-                </span>
-
+            <div className="naMeta">
+              <div className="naAuthor">
+                <span className="naAvatar">{getInitials(author)}</span>
                 <div>
-                  <strong>
-                    {author}
-                  </strong>
-
-                  <small>
-                    {article.author_role ||
-                      "Khural Plus"}
-                  </small>
+                  <strong>{author}</strong>
+                  <small>Нийтлэлч</small>
                 </div>
               </div>
 
-              <span className="riNewsMetaDivider" />
-
-              <span>
-                {formatDate(
-                  article.created_at,
-                )}
-              </span>
-
-              <span>·</span>
-
-              <span className="riNewsReadTime">
-                <FaClock />
-                {readingTime(body)} мин
-                унших
-              </span>
+              <ul className="naFacts">
+                {formatDate(article.created_at) ? (
+                  <li>
+                    <FaCalendar />
+                    {formatDate(article.created_at)}
+                  </li>
+                ) : null}
+                <li>
+                  <FaClock />
+                  {readingTime(body)} мин унших
+                </li>
+                {views > 0 ? (
+                  <li>
+                    <FaEye />
+                    {views.toLocaleString("en-US")} уншсан
+                  </li>
+                ) : null}
+              </ul>
             </div>
           </header>
 
-          <div className="riNewsDetailHero">
-            <img
-              src={image}
-              alt={article.title}
-              onError={(e) => {
-                e.currentTarget.src =
-                  eventFallback;
-              }}
-            />
-          </div>
+          {article.image_url ? (
+            <figure className="naHero">
+              <img
+                src={getImageSrc(article.image_url, eventFallback)}
+                alt={article.title}
+                onError={(e) => {
+                  e.currentTarget.src = eventFallback;
+                }}
+              />
+            </figure>
+          ) : null}
 
-          <div className="riNewsDetailArticle">
-            <div
-              className="riNewsDetailContent"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(body),
-              }}
-            />
+          <div className="naBody" ref={articleRef}>
+            <div className="naContent" dangerouslySetInnerHTML={{ __html: sanitizeHtml(body) }} />
 
-            <div className="riNewsRelatedBox">
-              <h3>
-                Холбоотой эвэнтэд
-                оролцох
-              </h3>
+            <div className="naShare">
+              <span>Хуваалцах</span>
+              <div>
+                <button type="button" onClick={copyLink} aria-label="Холбоос хуулах" title="Холбоос хуулах">
+                  {copied ? <FaCheck /> : <FaLink />}
+                </button>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook-т хуваалцах"
+                  title="Facebook"
+                >
+                  <FaFacebookF />
+                </a>
+                <a
+                  href={`https://twitter.com/intent/tweet?url=${pageUrl}&text=${shareTitle}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="X-д хуваалцах"
+                  title="X"
+                >
+                  <FaXTwitter />
+                </a>
+              </div>
+              {copied ? <em>Холбоос хуулагдлаа</em> : null}
+            </div>
 
-              <p>
-                Энэ сэдэвтэй холбоотой
-                эвэнтүүдтэй танилцаж,
-                өөрийн оролцох арга
-                хэмжээг сонгоорой.
-              </p>
-
-              <Link
-                to="/events"
-                className="riPrimaryButton"
-              >
+            <section className="naCta">
+              <div>
+                <h3>Холбоотой эвэнтэд оролцох</h3>
+                <p>Энэ сэдэвтэй холбоотой эвэнтүүдтэй танилцаж, өөрийн оролцох арга хэмжээг сонгоорой.</p>
+              </div>
+              <Link to="/events" className="riPrimaryButton">
                 Эвэнтүүд үзэх
                 <FaArrowRight />
               </Link>
-            </div>
-
-            {related && (
-              <Link
-                to={`/news/${
-                  related.id ??
-                  related._id
-                }`}
-                className="riNextArticle"
-              >
-                <div>
-                  <small>
-                    ДАРААГИЙН МЭДЭЭ
-                  </small>
-
-                  <strong>
-                    {related.title}
-                  </strong>
-                </div>
-
-                <FaArrowRight />
-              </Link>
-            )}
+            </section>
           </div>
+
+          {related.length ? (
+            <section className="naRelated">
+              <div className="naRelatedHead">
+                <h2>Холбоотой мэдээ</h2>
+                <Link to="/news">
+                  Бүх мэдээ
+                  <FaArrowRight />
+                </Link>
+              </div>
+
+              <div className="naRelatedGrid">
+                {related.map((item) => {
+                  const itemCategory = getCategory(item);
+                  return (
+                    <Link key={newsId(item)} to={`/news/${newsId(item)}`} className="naCard">
+                      <div className="naCardImage">
+                        <img
+                          src={item.image_url ? getImageSrc(item.image_url, eventFallback) : eventFallback}
+                          alt=""
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = eventFallback;
+                          }}
+                        />
+                      </div>
+                      <div className="naCardBody">
+                        <span className={`naCategory ${categoryClass(itemCategory)}`}>{itemCategory}</span>
+                        <strong>{item.title}</strong>
+                        <small>
+                          {formatDate(item.created_at)} · {readingTime(item.body)} мин
+                        </small>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
         </div>
       </article>
 

@@ -4,16 +4,9 @@ import { FaClock } from "react-icons/fa6";
 import Footer from "../../components/Footer";
 import { API_BASE, getImageSrc } from "../../lib/config";
 import eventFallback from "../../assets/event.webp";
+import { NEWS_CATEGORIES, categoryClass, getCategory } from "./newsUtils";
 
-const categories = [
-  "All",
-  "DevOps",
-  "Cloud",
-  "AI/ML",
-  "Security",
-  "Frontend",
-  "Data",
-];
+const categories = ["All", ...NEWS_CATEGORIES];
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
@@ -69,74 +62,6 @@ function formatDate(value) {
     month: "short",
     day: "numeric",
   });
-}
-
-function getCategory(item) {
-  if (item?.category) {
-    return item.category;
-  }
-
-  const text = `${item?.title || ""} ${
-    item?.body ||
-    item?.content ||
-    item?.description ||
-    ""
-  }`.toLowerCase();
-
-  if (
-    text.includes("security") ||
-    text.includes("cyber") ||
-    text.includes("zero-trust") ||
-    text.includes("zero trust") ||
-    text.includes("аюулгүй")
-  ) {
-    return "Security";
-  }
-
-  if (
-    text.includes("cloud") ||
-    text.includes("kubernetes") ||
-    text.includes("docker") ||
-    text.includes("aws") ||
-    text.includes("azure")
-  ) {
-    return "Cloud";
-  }
-
-  if (
-    text.includes("ai") ||
-    text.includes("llm") ||
-    text.includes("machine learning") ||
-    text.includes("artificial")
-  ) {
-    return "AI/ML";
-  }
-
-  if (
-    text.includes("frontend") ||
-    text.includes("react") ||
-    text.includes("javascript") ||
-    text.includes("typescript")
-  ) {
-    return "Frontend";
-  }
-
-  if (
-    text.includes("data") ||
-    text.includes("analytics") ||
-    text.includes("database")
-  ) {
-    return "Data";
-  }
-
-  return "DevOps";
-}
-
-function categoryClass(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 function readingTime(value) {
@@ -287,6 +212,10 @@ export default function News() {
 
   const sorted = useMemo(() => {
     return [...news].sort((a, b) => {
+      // Pinned posts stay on top, newest first after that.
+      const pinned = Number(Boolean(b?.is_pinned)) - Number(Boolean(a?.is_pinned));
+      if (pinned) return pinned;
+
       const first = new Date(
         a?.created_at ||
           a?.updated_at ||
