@@ -95,6 +95,15 @@ function withSections(html) {
   if (typeof DOMParser === "undefined") return { html: clean, sections: [] };
 
   const doc = new DOMParser().parseFromString(`<div>${clean}</div>`, "text/html");
+
+  // Text pasted from Word, Google Docs or other sites keeps its own white
+  // highlight and black text, which show as white boxes on this page.
+  doc.querySelectorAll("[style]").forEach((el) => {
+    ["background", "background-color", "color"].forEach((prop) => el.style.removeProperty(prop));
+    if (!el.getAttribute("style")?.trim()) el.removeAttribute("style");
+  });
+  doc.querySelectorAll("[bgcolor]").forEach((el) => el.removeAttribute("bgcolor"));
+
   const sections = [];
   doc.querySelectorAll("h2").forEach((heading, index) => {
     const title = heading.textContent.trim();

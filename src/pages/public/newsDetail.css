@@ -213,7 +213,6 @@
   margin: 0 0 40px;
   overflow: hidden;
   border-radius: 18px;
-  background: var(--ri-card);
   aspect-ratio: 21 / 9;
 }
 
