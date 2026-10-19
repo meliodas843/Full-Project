@@ -18,6 +18,7 @@ import {
 import Footer from "../../components/Footer";
 import { API_BASE, getImageSrc } from "../../lib/config";
 import eventFallback from "../../assets/event.webp";
+import { copyText } from "../../utils/copyText";
 import { sanitizeHtml } from "../../utils/safeHtml";
 import { categoryClass, getCategory } from "./newsUtils";
 import "./newsDetail.css";
@@ -258,13 +259,9 @@ export default function NewsDetail() {
   }, [article, allNews, articleId]);
 
   async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-    }
+    const ok = await copyText(window.location.href);
+    setCopied(ok ? "ok" : "fail");
+    setTimeout(() => setCopied(false), 2000);
   }
 
   async function toggleLike() {
@@ -362,8 +359,8 @@ export default function NewsDetail() {
       >
         <FaLinkedinIn />
       </a>
-      <button type="button" onClick={copyLink} aria-label="Холбоос хуулах" title={copied ? "Хуулагдлаа" : "Холбоос хуулах"}>
-        {copied ? <FaCheck /> : <FaLink />}
+      <button type="button" onClick={copyLink} aria-label="Холбоос хуулах" title={copied === "ok" ? "Хуулагдлаа" : "Холбоос хуулах"}>
+        {copied === "ok" ? <FaCheck /> : <FaLink />}
       </button>
     </>
   );
@@ -373,6 +370,13 @@ export default function NewsDetail() {
 
   return (
     <main className="riPublicPage">
+      {copied ? (
+        <div className={`naCopied${copied === "fail" ? " fail" : ""}`} role="status">
+          {copied === "ok" ? <FaCheck /> : null}
+          {copied === "ok" ? "Холбоос хуулагдлаа" : "Хуулж чадсангүй. Хаягийн мөрөөс хуулна уу."}
+        </div>
+      ) : null}
+
       <div className="naProgress" aria-hidden="true">
         <span style={{ width: `${progress}%` }} />
       </div>

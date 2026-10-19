@@ -3,6 +3,7 @@ import { FiAlertTriangle, FiCheckCircle, FiCopy, FiDownload, FiSearch, FiX, FiXC
 import AdminShell from "../components/AdminShell";
 import { apiFetch, getToken } from "../../../lib/api";
 import { API_BASE } from "../../../lib/config";
+import { copyText } from "../../../utils/copyText";
 import {
   LOG_TYPES,
   LOG_TYPE_LABEL,
@@ -142,11 +143,10 @@ export default function Logs() {
   }
 
   async function copy(label, value) {
-    try {
-      await navigator.clipboard.writeText(value);
+    if (await copyText(value)) {
       setCopied(label);
       setTimeout(() => setCopied(""), 1500);
-    } catch {
+    } else {
       setError("Хуулж чадсангүй.");
     }
   }
