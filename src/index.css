@@ -30170,3 +30170,102 @@ svg {
     transition-duration: 0.01ms;
   }
 }
+
+/* ===== Companies pages (/organization, /organizations/:id) on tablets and phones ===== */
+
+@media (max-width: 1024px) {
+  .publicOrganizationControls .publicOrganizationSearch {
+    flex: 1 1 auto;
+    height: 48px;
+    min-height: 48px;
+  }
+
+  .publicOrganizationGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orgDetailPage .orgDetailContent {
+    padding: 22px 24px 56px;
+  }
+
+  .orgDetailPage .orgDetailLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Sidebar facts sit beside each other instead of in a tall column. */
+  .orgDetailPage .orgStats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .publicOrganizationToolbar {
+    gap: 10px;
+  }
+
+  .publicOrganizationControls .publicOrganizationSearch {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .publicOrganizationGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .orgDetailPage .orgDetailContent {
+    padding: 16px 16px 48px;
+  }
+
+  .orgDetailPage .orgDetailCover {
+    aspect-ratio: 16 / 7;
+  }
+
+  .orgDetailPage .orgDetailIdentity {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0 16px 16px;
+  }
+
+  .orgDetailPage .orgDetailLogo {
+    width: 72px;
+    height: 72px;
+    flex-basis: 72px;
+    margin-top: -36px;
+  }
+
+  .orgDetailPage .orgDetailActions {
+    width: 100%;
+  }
+
+  .orgDetailPage .orgDetailActions > * {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .orgDetailPage .orgStats {
+    gap: 8px;
+  }
+
+  .orgDetailPage .orgStat {
+    padding: 12px 10px;
+    text-align: center;
+  }
+
+  .orgDetailPage .orgStat strong {
+    font-size: 20px;
+  }
+}
+
+/* The closed mobile menu sits just off screen; keep its shadow (and its
+   links) out of the page until it opens. */
+.riMobileMenu:not(.open) {
+  box-shadow: none;
+  visibility: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.3s;
+}

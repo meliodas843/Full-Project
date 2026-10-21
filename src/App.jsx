@@ -96,6 +96,7 @@ function AppRoutes() {
         <Route path="/events/:id" element={<EventDetail />} />
 
         <Route path="/organization" element={<Organization />} />
+        <Route path="/organizations" element={<Navigate to="/organization" replace />} />
 
         <Route path="/organizations/:id" element={<OrganizationDetail />} />
 

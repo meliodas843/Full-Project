@@ -124,7 +124,7 @@ export default function Navbar() {
         </NavLink>
 
         <NavLink
-          to="/organizations"
+          to="/organization"
           className={navClass}
           onClick={() => setOpen(false)}
         >
