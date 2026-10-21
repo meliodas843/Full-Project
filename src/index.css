@@ -30269,3 +30269,69 @@ svg {
     transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
     visibility 0s linear 0.3s;
 }
+
+/* ===== User area on phones: one header height and one page spacing =====
+   Each /user page used to add its own outer padding on top of
+   .rgUserContent, so pages started 20-45px below the header with
+   10-20px side margins. The wrapper now owns the spacing and page roots
+   start flush inside it. */
+@media (max-width: 760px) {
+  .rgUserLayout .rgMobileHeader {
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .rgUserLayout .rgUserMain .rgUserContent {
+    padding: 20px 16px 40px;
+  }
+
+  .rgUserLayout .rgUserMain .rgUserContent > * {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .rgUserLayout .rgUserMain .rgUserContent > * > :first-child {
+    margin-top: 0;
+  }
+
+  /* The public company page brings its own side padding; inside the
+     user area the wrapper already provides it. */
+  .rgUserLayout .rgUserContent .orgDetailPage .orgDetailContent {
+    margin-top: 0;
+    padding: 0;
+  }
+
+  /* Events page: no extra white card around the list on phones, so it
+     lines up with the other pages. */
+  .rgUserLayout .rgUserContent .uep-right {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .rgUserLayout .rgUserContent .uep-right .myEventsPage {
+    margin-top: 0;
+    background: transparent;
+  }
+
+  .rgUserLayout .rgUserContent .myEventsPageHeading:empty {
+    display: none;
+  }
+
+  /* Invisible scroll-to-top marker: keep it, but out of the flex gap. */
+  .rgUserLayout .rgUserContent .uep-right > div:empty:first-child {
+    position: absolute;
+  }
+
+  /* Same title size on every page. */
+  .rgUserLayout .rgUserMain .rgUserContent h1 {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+}
