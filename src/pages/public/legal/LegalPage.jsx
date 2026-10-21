@@ -104,9 +104,9 @@ export default function LegalPage({ docKey }) {
 
           <article className="lgArticle">
             <LegalDocument doc={doc} />
-            <div className="lgEnd">
-              Энэхүү баримт бичиг {doc.effective}-ний өдрөөс эхлэн хүчин төгөлдөр мөрдөгдөнө. Хувилбар {doc.version}.
-            </div>
+            <p className="lgClosing">
+              Энэхүү {doc.title.toLowerCase()} нь {doc.effectiveText}-өөс эхлэн хүчин төгөлдөр мөрдөгдөнө.
+            </p>
           </article>
         </div>
       </div>

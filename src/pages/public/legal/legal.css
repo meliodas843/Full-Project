@@ -224,7 +224,9 @@
 .lgSection h2,
 .lgSection h3 {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   margin: 0 0 12px;
   color: var(--ri-heading, var(--ri-text, #111827));
   font-size: 19px;
@@ -237,39 +239,59 @@
   color: var(--ri-purple, #5847ee);
 }
 
-.lgSection p {
-  margin: 0 0 12px;
-  opacity: 0.88;
-}
-
-.lgSection ul {
-  margin: 0 0 12px;
+.lgClauses {
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.lgSection li {
+.lgClauses > li {
   display: flex;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.lgClauses p {
+  margin: 0;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .lgNum {
   flex-shrink: 0;
   min-width: 34px;
-  color: var(--ri-muted, #68708a);
-  font-size: 13px;
+  color: var(--ri-purple, #5847ee);
+  font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.lgEnd {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: rgba(88, 71, 238, 0.06);
+.lgItems {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lgItems li {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.lgItems li span {
+  flex-shrink: 0;
+  min-width: 18px;
+  color: var(--ri-muted, #68708a);
+  font-weight: 700;
+}
+
+.lgClosing {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--ri-border, #dfe3f3);
   color: var(--ri-muted, #68708a);
   font-size: 13px;
+  font-style: italic;
 }
 
 /* ---------- reading window (sign-up) ---------- */
@@ -367,23 +389,10 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   padding: 14px 24px;
   border-top: 1px solid var(--ri-border, #dfe3f3);
-}
-
-.lgModalFoot > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ri-muted, #68708a);
-  font-size: 12px;
-}
-
-.lgModalFoot > span.done {
-  color: #1f9a6c;
-  font-weight: 700;
 }
 
 .lgPrimary {
@@ -448,7 +457,6 @@
     padding-right: 16px;
   }
 
-  .lgModalFoot > div,
   .lgPrimary {
     width: 100%;
   }
