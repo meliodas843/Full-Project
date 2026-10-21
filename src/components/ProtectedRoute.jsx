@@ -45,6 +45,11 @@ export default function ProtectedRoute({ children, roles = [] }) {
   const path = location.pathname;
   const [status, setStatus] = useState("checking");
   const [user, setUser] = useState(() => safeParseUser());
+  // React reuses this component when moving between protected pages, so
+  // remember which path the current status belongs to. Until the check
+  // for the new path finishes, don't decide with the previous page's user
+  // (e.g. right after the profile was completed and saved).
+  const [checkedPath, setCheckedPath] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +57,7 @@ export default function ProtectedRoute({ children, roles = [] }) {
 
     if (!token) {
       setStatus("login");
+      setCheckedPath(path);
       return undefined;
     }
 
@@ -77,6 +83,7 @@ export default function ProtectedRoute({ children, roles = [] }) {
       localStorage.setItem("user", JSON.stringify(mergedUser));
       setUser(mergedUser);
       setStatus("ok");
+      setCheckedPath(path);
       return undefined;
     }
 
@@ -89,7 +96,10 @@ export default function ProtectedRoute({ children, roles = [] }) {
         });
 
         if (!res.ok) {
-          if (!cancelled) setStatus("login");
+          if (!cancelled) {
+            setStatus("login");
+            setCheckedPath(path);
+          }
           return;
         }
 
@@ -120,9 +130,13 @@ export default function ProtectedRoute({ children, roles = [] }) {
         if (!cancelled) {
           setUser(finalUser);
           setStatus("ok");
+          setCheckedPath(path);
         }
       } catch {
-        if (!cancelled) setStatus("login");
+        if (!cancelled) {
+          setStatus("login");
+          setCheckedPath(path);
+        }
       }
     }
 
@@ -133,7 +147,7 @@ export default function ProtectedRoute({ children, roles = [] }) {
     };
   }, [path]);
 
-  if (status === "checking") {
+  if (status === "checking" || checkedPath !== path) {
     return null;
   }
 

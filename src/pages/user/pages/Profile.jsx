@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -57,6 +57,10 @@ export default function Profile() {
   });
 
   const progress = useMemo(() => getCompletion(form), [form]);
+
+  // True while the profile has never been complete (e.g. right after
+  // sign-up). The first save that completes it continues to /user/home.
+  const firstCompletion = useRef(false);
 
   const fullName = `${form.firstName} ${form.lastName}`.trim() || "Хэрэглэгч";
 
@@ -121,6 +125,7 @@ export default function Profile() {
       };
 
       const nextForm = createProfileForm(mergedProfile);
+      firstCompletion.current = getCompletion(nextForm) < 100;
 
       setUser(mergedProfile);
       setForm(nextForm);
@@ -310,6 +315,11 @@ export default function Profile() {
       window.dispatchEvent(new Event("profile-updated"));
 
       setSaved(true);
+
+      if (firstCompletion.current) {
+        firstCompletion.current = false;
+        navigate("/user/home", { replace: true });
+      }
     } catch (err) {
       console.error("Save profile error:", err);
       setError(err.message || "Сервертэй холбогдож чадсангүй.");
