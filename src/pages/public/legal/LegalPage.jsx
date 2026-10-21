@@ -10,7 +10,7 @@ import "./legal.css";
 // current section, reading progress and print.
 export default function LegalPage({ docKey }) {
   const doc = LEGAL_DOCS[docKey];
-  const other = docKey === "terms" ? LEGAL_DOCS.privacy : LEGAL_DOCS.terms;
+  const others = Object.values(LEGAL_DOCS).filter((item) => item.key !== docKey);
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(doc.sections[0].id);
 
@@ -97,9 +97,13 @@ export default function LegalPage({ docKey }) {
                 </li>
               ))}
             </ol>
-            <Link to={other.path} className="lgOther">
-              {other.title} →
-            </Link>
+            <div className="lgOthers">
+              {others.map((item) => (
+                <Link key={item.key} to={item.path} className="lgOther">
+                  {item.title} →
+                </Link>
+              ))}
+            </div>
           </aside>
 
           <article className="lgArticle">

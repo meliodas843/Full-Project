@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -19,7 +19,7 @@ import brandLogo from "../../assets/registra-logo-def.png";
 
 import { API_BASE } from "../../lib/config";
 import LegalReader from "./legal/LegalReader";
-import { PRIVACY, TERMS } from "./legal/legalContent";
+import { ORGANIZATION_TERMS, PRIVACY, TERMS, docsFor } from "./legal/legalContent";
 
 const categories = [
   "Мэдээллийн технологи",
@@ -118,9 +118,12 @@ export default function Signup() {
   const [gender, setGender] = useState("");
 
   const [termsAccepted, setTermsAccepted] = useState(false);
-  // Both documents are read in one window; ticking the box needs one read
-  // to the end and one accept.
-  const [docsRead, setDocsRead] = useState(false);
+  // All documents for the account type are read in one window; ticking the
+  // box needs one read to the end and one accept. Companies also accept the
+  // Байгууллагын нэмэлт нөхцөл.
+  const legalDocs = useMemo(() => docsFor(accountType), [accountType]);
+  const [readKeys, setReadKeys] = useState({});
+  const allRead = legalDocs.every((doc) => readKeys[doc.key]);
   const [reader, setReader] = useState(null);
 
   // Switching between personal and company sign-up clears the tick: the
@@ -140,12 +143,15 @@ export default function Signup() {
 
   function toggleTerms(checked) {
     if (!checked) return setTermsAccepted(false);
-    if (!docsRead) return setReader("terms");
+    // Open at the first document not read yet (e.g. only the company
+    // addendum after switching to Байгууллага).
+    const unread = legalDocs.find((doc) => !readKeys[doc.key]);
+    if (unread) return setReader(unread.key);
     setTermsAccepted(true);
   }
 
   function acceptDocs() {
-    setDocsRead(true);
+    setReadKeys((prev) => ({ ...prev, ...Object.fromEntries(legalDocs.map((doc) => [doc.key, true])) }));
     setReader(null);
     setTermsAccepted(true);
     setMessage("");
@@ -267,6 +273,8 @@ export default function Signup() {
             termsVersion: TERMS.version,
 
             privacyVersion: PRIVACY.version,
+
+            organizationTermsVersion: accountType === "organization" ? ORGANIZATION_TERMS.version : undefined,
 
             organization:
               accountType === "organization"
@@ -1054,19 +1062,30 @@ export default function Signup() {
               <span>
                 <a href="/terms" onClick={(event) => openDoc(event, "terms")}>
                   Үйлчилгээний нөхцөл
-                </a>{" "}
-                болон{" "}
+                </a>
+                {accountType === "organization" ? ", " : " болон "}
                 <a href="/privacy" onClick={(event) => openDoc(event, "privacy")}>
                   Нууцлалын бодлого
                 </a>
-                -ыг уншиж танилцсан, зөвшөөрч байна
+                {accountType === "organization" ? (
+                  <>
+                    {" болон "}
+                    <a href="/organization-terms" onClick={(event) => openDoc(event, "organization")}>
+                      Байгууллагын нэмэлт нөхцөл
+                    </a>
+                    -ийг уншиж танилцсан, зөвшөөрч байна
+                  </>
+                ) : (
+                  "-ыг уншиж танилцсан, зөвшөөрч байна"
+                )}
               </span>
             </label>
 
             {reader ? (
               <LegalReader
+                docs={legalDocs}
                 startAt={reader}
-                alreadyRead={docsRead}
+                alreadyRead={allRead}
                 onAccept={acceptDocs}
                 onClose={() => setReader(null)}
               />

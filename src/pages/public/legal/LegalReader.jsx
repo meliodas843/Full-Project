@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { FiPrinter, FiX } from "react-icons/fi";
 import LegalDocument from "./LegalDocument";
-import { PRIVACY, TERMS } from "./legalContent";
 import "./legal.css";
 
-const DOCS = [TERMS, PRIVACY];
-
-// Reading window used on sign-up. Both documents are shown in one scroll
-// (Terms, then Privacy Policy); a single accept at the bottom covers both
-// and unlocks only after the reader has scrolled to the end.
-export default function LegalReader({ startAt = "terms", alreadyRead, onAccept, onClose }) {
+// Reading window used on sign-up. All documents for the account type are
+// shown in one scroll (Terms, Privacy Policy and, for companies, the
+// company addendum); one accept at the bottom covers all of them and
+// unlocks only after the reader has scrolled to the end.
+export default function LegalReader({ docs, startAt = "terms", alreadyRead, onAccept, onClose }) {
   const bodyRef = useRef(null);
   const [progress, setProgress] = useState(alreadyRead ? 100 : 0);
   const [current, setCurrent] = useState(startAt);
@@ -21,7 +19,7 @@ export default function LegalReader({ startAt = "terms", alreadyRead, onAccept, 
 
     // Opened from the "Нууцлалын бодлого" link: start at that document.
     const start = body.querySelector(`#lgdoc-${startAt}`);
-    body.scrollTop = start && startAt !== "terms" ? start.offsetTop - 8 : 0;
+    body.scrollTop = start && startAt !== docs[0].key ? start.offsetTop - 8 : 0;
 
     const update = () => {
       const max = body.scrollHeight - body.clientHeight;
@@ -29,14 +27,18 @@ export default function LegalReader({ startAt = "terms", alreadyRead, onAccept, 
       const value = max <= 24 ? 100 : Math.min(100, Math.round((body.scrollTop / (max - 24)) * 100));
       setProgress((prev) => (alreadyRead ? 100 : Math.max(prev, value)));
 
-      const privacyTop = body.querySelector("#lgdoc-privacy")?.offsetTop ?? Infinity;
-      setCurrent(body.scrollTop + 40 >= privacyTop ? "privacy" : "terms");
+      let visible = docs[0].key;
+      for (const doc of docs) {
+        const top = body.querySelector(`#lgdoc-${doc.key}`)?.offsetTop ?? Infinity;
+        if (body.scrollTop + 40 >= top) visible = doc.key;
+      }
+      setCurrent(visible);
     };
 
     update();
     body.addEventListener("scroll", update, { passive: true });
     return () => body.removeEventListener("scroll", update);
-  }, [startAt, alreadyRead]);
+  }, [docs, startAt, alreadyRead]);
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -47,19 +49,19 @@ export default function LegalReader({ startAt = "terms", alreadyRead, onAccept, 
   const jumpTo = (key) => {
     const body = bodyRef.current;
     const target = body?.querySelector(`#lgdoc-${key}`);
-    if (body && target) body.scrollTo({ top: key === "terms" ? 0 : target.offsetTop - 8, behavior: "smooth" });
+    if (body && target) body.scrollTo({ top: key === docs[0].key ? 0 : target.offsetTop - 8, behavior: "smooth" });
   };
 
-  const currentDoc = current === "privacy" ? PRIVACY : TERMS;
+  const currentDoc = docs.find((doc) => doc.key === current) || docs[0];
 
   return (
     <div className="lgModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="lgModal" role="dialog" aria-modal="true" aria-labelledby="lg-modal-title">
         <header className="lgModalHead">
           <div>
-            <h2 id="lg-modal-title">Үйлчилгээний нөхцөл ба Нууцлалын бодлого</h2>
+            <h2 id="lg-modal-title">{docs.length > 2 ? "Байгууллагын бүртгэлийн нөхцөл" : "Үйлчилгээний нөхцөл ба Нууцлалын бодлого"}</h2>
             <div className="lgModalTabs" role="tablist">
-              {DOCS.map((doc) => (
+              {docs.map((doc) => (
                 <button
                   key={doc.key}
                   type="button"
@@ -88,7 +90,7 @@ export default function LegalReader({ startAt = "terms", alreadyRead, onAccept, 
         </div>
 
         <div className="lgModalBody" ref={bodyRef} tabIndex={0}>
-          {DOCS.map((doc) => (
+          {docs.map((doc) => (
             <div key={doc.key} id={`lgdoc-${doc.key}`} className="lgModalDoc">
               <h2 className="lgModalDocTitle">{doc.title}</h2>
               <p className="lgLead">

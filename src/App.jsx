@@ -93,6 +93,7 @@ function AppRoutes() {
         <Route path="/news" element={<News />} />
         <Route path="/terms" element={<LegalPage docKey="terms" />} />
         <Route path="/privacy" element={<LegalPage docKey="privacy" />} />
+        <Route path="/organization-terms" element={<LegalPage docKey="organization" />} />
         <Route path="/news/:id" element={<NewsDetail />} />
 
         <Route path="/events" element={<PublicEvents />} />

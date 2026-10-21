@@ -447,10 +447,17 @@ router.post(
       // Record which Terms / Privacy versions were accepted at sign-up.
       const termsVersion = String(req.body?.termsVersion || "").slice(0, 20) || null;
       const privacyVersion = String(req.body?.privacyVersion || "").slice(0, 20) || null;
-      if (termsVersion || privacyVersion) {
+      // Companies also accept the Байгууллагын нэмэлт нөхцөл.
+      const orgTermsVersion =
+        accountType === "organization"
+          ? String(req.body?.organizationTermsVersion || "").slice(0, 20) || null
+          : null;
+      if (termsVersion || privacyVersion || orgTermsVersion) {
         await connection.query(
-          "UPDATE users SET terms_accepted_at = NOW(), terms_version = ?, privacy_version = ? WHERE id = ?",
-          [termsVersion, privacyVersion, userId],
+          `UPDATE users
+           SET terms_accepted_at = NOW(), terms_version = ?, privacy_version = ?, org_terms_version = ?
+           WHERE id = ?`,
+          [termsVersion, privacyVersion, orgTermsVersion, userId],
         );
       }
 

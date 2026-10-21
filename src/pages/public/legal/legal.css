@@ -187,11 +187,17 @@
   color: var(--ri-purple, #5847ee);
 }
 
-.lgOther {
-  display: block;
+.lgOthers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin: 12px 6px 0;
   padding-top: 12px;
   border-top: 1px solid var(--ri-border, #dfe3f3);
+}
+
+.lgOther {
+  display: block;
   color: var(--ri-purple, #5847ee);
   font-size: 13px;
   font-weight: 700;
