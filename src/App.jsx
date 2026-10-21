@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,39 +12,40 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 import ThemeToggle from "./components/ThemeToggle";
 import { useTheme } from "./theme/ThemeProvider";
+import { lazyPage } from "./lib/lazyPage";
 
 // Pages load on demand, so the first visit only downloads the page it needs.
-const EventShare = lazy(() => import("./pages/public/EventShare"));
-const Home = lazy(() => import("./pages/public/Home"));
-const Login = lazy(() => import("./pages/public/Login"));
-const Signup = lazy(() => import("./pages/public/Signup"));
-const News = lazy(() => import("./pages/public/News"));
-const PublicEvents = lazy(() => import("./pages/public/Event"));
-const ForgotPassword = lazy(() => import("./pages/public/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/public/ResetPassword"));
-const EventInvite = lazy(() => import("./pages/public/EventInvite"));
-const EventCheckin = lazy(() => import("./pages/user/pages/EventCheckin"));
-const EventTicket = lazy(() => import("./pages/user/pages/EventTicket"));
-const Organization = lazy(() => import("./pages/public/Organization"));
-const NewsDetail = lazy(() => import("./pages/public/NewsDetail"));
-const EventDetail = lazy(() => import("./pages/public/EventDetail"));
-const UserHome = lazy(() => import("./pages/user/pages/Home"));
-const Profile = lazy(() => import("./pages/user/pages/Profile"));
-const Calendar = lazy(() => import("./pages/user/pages/Calendar"));
-const Meeting = lazy(() => import("./pages/user/pages/Meeting"));
-const UserEvents = lazy(() => import("./pages/user/pages/Event"));
-const History = lazy(() => import("./pages/user/pages/History"));
-const Password = lazy(() => import("./pages/user/pages/Password"));
-const Bill = lazy(() => import("./pages/user/pages/Bill"));
-const Organizations = lazy(() => import("./pages/user/pages/Organizations"));
-const OrganizationDetail = lazy(() => import("./pages/user/pages/OrganizationDetail"));
-const OrganizationProfile = lazy(() => import("./pages/user/pages/OrganizationProfile"));
-const EventStatistics = lazy(() => import("./pages/user/pages/EventStatistics"));
-const EventImages = lazy(() => import("./pages/user/pages/EventImages"));
-const AdminDashboard = lazy(() => import("./pages/super_admin/pages/Dashboard"));
-const AdminNewsList = lazy(() => import("./pages/super_admin/pages/NewsList"));
-const AdminNewsEditor = lazy(() => import("./pages/super_admin/pages/NewsEditor"));
-const AdminLogs = lazy(() => import("./pages/super_admin/pages/Logs"));
+const EventShare = lazyPage(() => import("./pages/public/EventShare"));
+const Home = lazyPage(() => import("./pages/public/Home"));
+const Login = lazyPage(() => import("./pages/public/Login"));
+const Signup = lazyPage(() => import("./pages/public/Signup"));
+const News = lazyPage(() => import("./pages/public/News"));
+const PublicEvents = lazyPage(() => import("./pages/public/Event"));
+const ForgotPassword = lazyPage(() => import("./pages/public/ForgotPassword"));
+const ResetPassword = lazyPage(() => import("./pages/public/ResetPassword"));
+const EventInvite = lazyPage(() => import("./pages/public/EventInvite"));
+const EventCheckin = lazyPage(() => import("./pages/user/pages/EventCheckin"));
+const EventTicket = lazyPage(() => import("./pages/user/pages/EventTicket"));
+const Organization = lazyPage(() => import("./pages/public/Organization"));
+const NewsDetail = lazyPage(() => import("./pages/public/NewsDetail"));
+const EventDetail = lazyPage(() => import("./pages/public/EventDetail"));
+const UserHome = lazyPage(() => import("./pages/user/pages/Home"));
+const Profile = lazyPage(() => import("./pages/user/pages/Profile"));
+const Calendar = lazyPage(() => import("./pages/user/pages/Calendar"));
+const Meeting = lazyPage(() => import("./pages/user/pages/Meeting"));
+const UserEvents = lazyPage(() => import("./pages/user/pages/Event"));
+const History = lazyPage(() => import("./pages/user/pages/History"));
+const Password = lazyPage(() => import("./pages/user/pages/Password"));
+const Bill = lazyPage(() => import("./pages/user/pages/Bill"));
+const Organizations = lazyPage(() => import("./pages/user/pages/Organizations"));
+const OrganizationDetail = lazyPage(() => import("./pages/user/pages/OrganizationDetail"));
+const OrganizationProfile = lazyPage(() => import("./pages/user/pages/OrganizationProfile"));
+const EventStatistics = lazyPage(() => import("./pages/user/pages/EventStatistics"));
+const EventImages = lazyPage(() => import("./pages/user/pages/EventImages"));
+const AdminDashboard = lazyPage(() => import("./pages/super_admin/pages/Dashboard"));
+const AdminNewsList = lazyPage(() => import("./pages/super_admin/pages/NewsList"));
+const AdminNewsEditor = lazyPage(() => import("./pages/super_admin/pages/NewsEditor"));
+const AdminLogs = lazyPage(() => import("./pages/super_admin/pages/Logs"));
 
 const ADMIN_ROLES = ["admin", "super_admin"];
 const adminPage = (page) => <ProtectedRoute roles={ADMIN_ROLES}>{page}</ProtectedRoute>;
