@@ -770,6 +770,8 @@
   height: 240px;
   /* Room for the hover tooltip above the tallest bar. */
   padding-top: 48px;
+  min-width: 0;
+  overflow: visible;
   border-bottom: 1px solid var(--sa-border);
 }
 
@@ -777,9 +779,9 @@
 .saChartCol {
   position: relative;
   display: flex;
-  flex: 1;
+  flex: 1 1 0;
   align-items: flex-end;
-  min-width: 2px;
+  min-width: 0;
   height: 100%;
   cursor: default;
   outline: none;
@@ -789,6 +791,7 @@
   display: block;
   width: 100%;
   border-radius: 4px 4px 0 0;
+  min-width: 1px;
   background: var(--sa-accent);
   transition: opacity 0.15s;
 }
@@ -842,6 +845,15 @@
 .saChartTip small {
   color: rgba(255, 255, 255, 0.65);
   font-size: 11px;
+}
+
+/* 30 or 90 days: thinner gaps so every day fits on a phone. */
+.saChart.dense {
+  gap: 1px;
+}
+
+.saChart.dense .saChartCol i {
+  border-radius: 2px 2px 0 0;
 }
 
 .saChartAxis {

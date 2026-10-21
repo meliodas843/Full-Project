@@ -176,7 +176,7 @@ export default function Dashboard() {
           </div>
 
           <div
-            className="saChart"
+            className={`saChart${values.length > 14 ? " dense" : ""}`}
             aria-label={`Өдөр тутмын ${activeSeries.unit}`}
             onMouseLeave={() => setHoverDay(null)}
           >
