@@ -1,4 +1,5 @@
 import express from "express";
+import { readAcceptances, recordAcceptances } from "../utils/legal.js";
 
 import bcrypt from "bcryptjs";
 
@@ -252,6 +253,14 @@ router.post(
           });
       }
 
+      // The Terms and Privacy Policy (and, for companies, the company
+      // addendum) must be accepted; the form sends their versions.
+      const legal = readAcceptances(req.body, accountType);
+
+      if (legal.error) {
+        return res.status(400).json({ message: legal.error });
+      }
+
       connection = await pool.getConnection();
 
       await connection.beginTransaction();
@@ -444,22 +453,13 @@ router.post(
 
       const userId = userResult.insertId;
 
-      // Record which Terms / Privacy versions were accepted at sign-up.
-      const termsVersion = String(req.body?.termsVersion || "").slice(0, 20) || null;
-      const privacyVersion = String(req.body?.privacyVersion || "").slice(0, 20) || null;
-      // Companies also accept the Байгууллагын нэмэлт нөхцөл.
-      const orgTermsVersion =
-        accountType === "organization"
-          ? String(req.body?.organizationTermsVersion || "").slice(0, 20) || null
-          : null;
-      if (termsVersion || privacyVersion || orgTermsVersion) {
-        await connection.query(
-          `UPDATE users
-           SET terms_accepted_at = NOW(), terms_version = ?, privacy_version = ?, org_terms_version = ?
-           WHERE id = ?`,
-          [termsVersion, privacyVersion, orgTermsVersion, userId],
-        );
-      }
+      // Latest accepted versions on the user row, for quick lookups.
+      await connection.query(
+        `UPDATE users
+         SET terms_accepted_at = NOW(), terms_version = ?, privacy_version = ?, org_terms_version = ?
+         WHERE id = ?`,
+        [legal.accepted.terms, legal.accepted.privacy, legal.accepted.organization || null, userId],
+      );
 
       let createdOrganization = null;
 
@@ -689,6 +689,13 @@ router.post(
         };
       }
 
+      // Full record of what was accepted, in the same transaction as the account.
+      await recordAcceptances(connection, req, {
+        userId,
+        organizationId: createdOrganization?.id || null,
+        accepted: legal.accepted,
+      });
+
       await connection.commit();
 
       const [userRows] = await pool.query(
@@ -725,6 +732,7 @@ router.post(
         target: createdOrganization?.name || user?.email,
         targetDetail: user?.email,
         user,
+        details: { accepted: legal.accepted },
       });
 
       return res

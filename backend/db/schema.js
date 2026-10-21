@@ -101,6 +101,21 @@ const STATEMENTS = [
     KEY idx_audit_type (type, created_at)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  // Proof of consent: one row per legal document accepted at sign-up.
+  `CREATE TABLE IF NOT EXISTS legal_acceptances (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    organization_id BIGINT NULL,
+    document VARCHAR(30) NOT NULL,
+    version VARCHAR(20) NOT NULL,
+    accepted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip VARCHAR(64) NULL,
+    user_agent VARCHAR(500) NULL,
+    PRIMARY KEY (id),
+    KEY idx_legal_user (user_id),
+    KEY idx_legal_org (organization_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   // Emails collected by the "Долоо хоног бүрийн тойм" form on news pages.
   `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
     id BIGINT NOT NULL AUTO_INCREMENT,
