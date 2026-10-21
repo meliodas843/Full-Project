@@ -77,19 +77,39 @@ router.get("/dashboard", async (req, res, next) => {
        WHERE archived = 0 AND COALESCE(end_time, start_time) >= NOW()`,
     );
 
-    // Bookings per day for the chart, zero-filled.
-    const [dailyRows] = await pool.query(
-      `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS day, COUNT(*) AS total
-       FROM event_bookings
-       WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-       GROUP BY day`,
-      [days - 1],
-    );
-    const byDay = new Map(dailyRows.map((r) => [r.day, Number(r.total)]));
+    // Sign-ups and bookings per day for the chart, zero-filled. Days are
+    // cut at the viewer's midnight (tz = minutes east of UTC, sent by the
+    // browser), not the server's, so a sign-up at 07:00 in Ulaanbaatar
+    // counts on that day.
+    const tzMinutes = Math.max(-840, Math.min(840, Math.round(Number(req.query.tz) || 0)));
+    const offsetSec = tzMinutes * 60;
+    const today = Math.floor((Date.now() / 1000 + offsetSec) / 86400);
+    const firstDay = today - (days - 1);
+    const sinceSec = firstDay * 86400 - offsetSec;
+
+    const perDay = async (table, where = "1=1") => {
+      const [rows] = await pool.query(
+        `SELECT FLOOR((UNIX_TIMESTAMP(created_at) + ?) / 86400) AS daynum, COUNT(*) AS total
+         FROM ${table}
+         WHERE created_at >= FROM_UNIXTIME(?) AND (${where})
+         GROUP BY daynum`,
+        [offsetSec, sinceSec],
+      );
+      return new Map(rows.map((r) => [Number(r.daynum), Number(r.total)]));
+    };
+
+    const [usersByDay, bookingsByDay] = await Promise.all([
+      perDay("users", "role NOT IN ('admin', 'super_admin') OR role IS NULL"),
+      perDay("event_bookings"),
+    ]);
+
     const daily = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      daily.push({ day: date, total: byDay.get(date) || 0 });
+    for (let n = firstDay; n <= today; n++) {
+      daily.push({
+        day: new Date(n * 86400000).toISOString().slice(0, 10),
+        users: usersByDay.get(n) || 0,
+        bookings: bookingsByDay.get(n) || 0,
+      });
     }
 
     const [pendingOrganizations] = await pool.query(

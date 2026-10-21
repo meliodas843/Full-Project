@@ -15,6 +15,10 @@ import {
 } from "../adminUtils";
 
 const RANGES = [7, 30, 90];
+const SERIES = [
+  { key: "users", label: "Хэрэглэгч", unit: "шинэ хэрэглэгч" },
+  { key: "bookings", label: "Эвэнт", unit: "эвэнтийн бүртгэл" },
+];
 const number = (n) => Number(n || 0).toLocaleString("en-US");
 const money = (n) => `₮${Math.round(Number(n || 0)).toLocaleString("en-US")}`;
 
@@ -33,6 +37,7 @@ function Change({ value, days }) {
 
 export default function Dashboard() {
   const [days, setDays] = useState(30);
+  const [series, setSeries] = useState("users");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loadedAt, setLoadedAt] = useState(null);
@@ -41,7 +46,9 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     try {
       setError("");
-      setData(await apiFetch(`/api/admin/dashboard?days=${days}`));
+      // Minutes east of UTC, so the chart's days follow the viewer's clock.
+      const tz = -new Date().getTimezoneOffset();
+      setData(await apiFetch(`/api/admin/dashboard?days=${days}&tz=${tz}`));
       setLoadedAt(new Date());
     } catch (err) {
       setError(err.message || "Мэдээлэл ачаалж чадсангүй.");
@@ -76,8 +83,8 @@ export default function Dashboard() {
       ["Идэвхтэй эвэнт", k.events.active, ""],
       ["Байгууллага", k.organizations.total, k.organizations.current],
       [],
-      ["Өдөр", "Бүртгэл"],
-      ...data.daily.map((d) => [d.day, d.total]),
+      ["Өдөр", "Шинэ хэрэглэгч", "Эвэнтийн бүртгэл"],
+      ...data.daily.map((d) => [d.day, d.users, d.bookings]),
       [],
       ["Шилдэг эвэнт", "Бүртгэл", "Дээд тоо"],
       ...data.topEvents.map((e) => [e.title, e.booked, e.max_participants || ""]),
@@ -87,8 +94,10 @@ export default function Dashboard() {
   }
 
   const k = data?.kpis;
-  const maxDaily = Math.max(1, ...(data?.daily || []).map((d) => d.total));
-  const dailyTotal = (data?.daily || []).reduce((sum, d) => sum + d.total, 0);
+  const activeSeries = SERIES.find((x) => x.key === series);
+  const values = (data?.daily || []).map((d) => ({ day: d.day, total: Number(d[series] || 0) }));
+  const maxDaily = Math.max(1, ...values.map((d) => d.total));
+  const dailyTotal = values.reduce((sum, d) => sum + d.total, 0);
   const categoryTotal = (data?.categories || []).reduce((sum, c) => sum + c.total, 0);
 
   return (
@@ -139,20 +148,34 @@ export default function Dashboard() {
             <div>
               <h2>Өдөр тутмын бүртгэл</h2>
               <p>
-                Бүх эвэнт · нийт {number(dailyTotal)} бүртгэл · сүүлийн {days} хоног
+                Нийт {number(dailyTotal)} {activeSeries.unit} · сүүлийн {days} хоног
               </p>
             </div>
-            <div className="saSegment dark">
-              {RANGES.map((r) => (
-                <button key={r} type="button" className={days === r ? "active" : ""} onClick={() => setDays(r)}>
-                  {r} хоног
-                </button>
-              ))}
+            <div className="saChartControls">
+              <div className="saSegment">
+                {SERIES.map((x) => (
+                  <button
+                    key={x.key}
+                    type="button"
+                    className={series === x.key ? "active" : ""}
+                    onClick={() => setSeries(x.key)}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+              </div>
+              <div className="saSegment dark">
+                {RANGES.map((r) => (
+                  <button key={r} type="button" className={days === r ? "active" : ""} onClick={() => setDays(r)}>
+                    {r} хоног
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="saChart" role="img" aria-label="Өдөр тутмын бүртгэлийн график">
-            {(data?.daily || []).map((d) => (
+          <div className="saChart" role="img" aria-label={`Өдөр тутмын ${activeSeries.unit}`}>
+            {values.map((d) => (
               <div
                 key={d.day}
                 className={d.total ? "" : "zero"}
