@@ -354,7 +354,7 @@
 .lgModalTools button {
   display: grid;
   place-items: center;
-  width: 34px;
+  width: 60px;
   height: 34px;
   border: 1px solid var(--ri-border, #dfe3f3);
   border-radius: 9px;
