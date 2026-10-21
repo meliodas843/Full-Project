@@ -18,6 +18,8 @@ import {
 import brandLogo from "../../assets/registra-logo-def.png";
 
 import { API_BASE } from "../../lib/config";
+import LegalReader from "./legal/LegalReader";
+import { PRIVACY, TERMS } from "./legal/legalContent";
 
 const categories = [
   "Мэдээллийн технологи",
@@ -116,6 +118,36 @@ export default function Signup() {
   const [gender, setGender] = useState("");
 
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // Both documents must be read to the end before the box can be ticked.
+  const [readDocs, setReadDocs] = useState({ terms: false, privacy: false });
+  const [reader, setReader] = useState(null);
+
+  function openDoc(event, key) {
+    // The links sit inside the checkbox label; don't toggle the box.
+    event.preventDefault();
+    event.stopPropagation();
+    setReader(key);
+  }
+
+  function toggleTerms(checked) {
+    if (!checked) return setTermsAccepted(false);
+    const unread = ["terms", "privacy"].find((key) => !readDocs[key]);
+    if (unread) return setReader(unread);
+    setTermsAccepted(true);
+  }
+
+  function acceptDoc(key) {
+    const next = { ...readDocs, [key]: true };
+    setReadDocs(next);
+    const unread = ["terms", "privacy"].find((k) => !next[k]);
+    if (unread) {
+      setReader(unread);
+    } else {
+      setReader(null);
+      setTermsAccepted(true);
+      setMessage("");
+    }
+  }
 
   const [message, setMessage] = useState("");
 
@@ -229,6 +261,10 @@ export default function Signup() {
             companyName: form.companyName.trim(),
 
             gender,
+
+            termsVersion: TERMS.version,
+
+            privacyVersion: PRIVACY.version,
 
             organization:
               accountType === "organization"
@@ -1021,15 +1057,29 @@ export default function Signup() {
               <input
                 type="checkbox"
                 checked={termsAccepted}
-                onChange={(event) => setTermsAccepted(event.target.checked)}
+                onChange={(event) => toggleTerms(event.target.checked)}
               />
 
               <span>
-                <Link to="/terms">Үйлчилгээний нөхцөл</Link> болон{" "}
-                <Link to="/privacy">Нууцлалын бодлого</Link>
-                -ыг зөвшөөрч байна
+                <a href="/terms" onClick={(event) => openDoc(event, "terms")}>
+                  Үйлчилгээний нөхцөл
+                </a>{" "}
+                болон{" "}
+                <a href="/privacy" onClick={(event) => openDoc(event, "privacy")}>
+                  Нууцлалын бодлого
+                </a>
+                -ыг уншиж танилцсан, зөвшөөрч байна
               </span>
             </label>
+
+            {reader ? (
+              <LegalReader
+                docKey={reader}
+                alreadyRead={readDocs[reader]}
+                onAccept={() => acceptDoc(reader)}
+                onClose={() => setReader(null)}
+              />
+            ) : null}
 
             {message && <div className="rgSignupError">{message}</div>}
 

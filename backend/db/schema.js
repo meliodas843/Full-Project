@@ -135,6 +135,9 @@ const COLUMNS = [
 
   // Dashboard charts need to know when accounts and bookings were created.
   ["users", "created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"],
+  ["users", "terms_accepted_at", "ALTER TABLE users ADD COLUMN terms_accepted_at DATETIME NULL"],
+  ["users", "terms_version", "ALTER TABLE users ADD COLUMN terms_version VARCHAR(20) NULL"],
+  ["users", "privacy_version", "ALTER TABLE users ADD COLUMN privacy_version VARCHAR(20) NULL"],
   ["event_bookings", "created_at", "ALTER TABLE event_bookings ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"],
 
   // News publishing workflow (draft / scheduled / published) and admin list.

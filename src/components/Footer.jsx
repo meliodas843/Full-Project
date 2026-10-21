@@ -71,8 +71,8 @@ export default function Footer() {
           </span>
 
           <div>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
+            <Link to="/privacy">Нууцлалын бодлого</Link>
+            <Link to="/terms">Үйлчилгээний нөхцөл</Link>
           </div>
         </div>
       </div>
