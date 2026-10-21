@@ -38,6 +38,7 @@ function Change({ value, days }) {
 export default function Dashboard() {
   const [days, setDays] = useState(30);
   const [series, setSeries] = useState("users");
+  const [hoverDay, setHoverDay] = useState(null);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loadedAt, setLoadedAt] = useState(null);
@@ -174,15 +175,42 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="saChart" role="img" aria-label={`Өдөр тутмын ${activeSeries.unit}`}>
-            {values.map((d) => (
-              <div
-                key={d.day}
-                className={d.total ? "" : "zero"}
-                style={{ height: `${Math.max(2, (d.total / maxDaily) * 100)}%` }}
-                title={`${d.day}: ${d.total}`}
-              />
-            ))}
+          <div
+            className="saChart"
+            aria-label={`Өдөр тутмын ${activeSeries.unit}`}
+            onMouseLeave={() => setHoverDay(null)}
+          >
+            {values.map((d, index) => {
+              // Bars top out at 80% so the tooltip fits above the tallest one.
+              const height = Math.max(2, (d.total / maxDaily) * 80);
+              // Keep the tooltip inside the card at both ends of the chart.
+              const edge = index < 2 ? " left" : index > values.length - 3 ? " right" : "";
+              return (
+                <div
+                  key={d.day}
+                  className={`saChartCol${hoverDay === d.day ? " active" : ""}`}
+                  onMouseEnter={() => setHoverDay(d.day)}
+                  onFocus={() => setHoverDay(d.day)}
+                  onBlur={() => setHoverDay(null)}
+                  tabIndex={0}
+                  aria-label={`${d.day.replaceAll("-", ".")}: ${d.total} ${activeSeries.unit}`}
+                >
+                  {hoverDay === d.day ? (
+                    <span
+                      className={`saChartTip${edge}`}
+                      style={{ bottom: `calc(${height}% + 8px)` }}
+                    >
+                      <strong>{number(d.total)}</strong> {activeSeries.unit}
+                      <small>{d.day.replaceAll("-", ".")}</small>
+                    </span>
+                  ) : null}
+                  <i
+                    className={d.total ? "" : "zero"}
+                    style={{ height: `${height}%` }}
+                  />
+                </div>
+              );
+            })}
           </div>
           <div className="saChartAxis">
             <span>{data?.daily?.[0]?.day.slice(5).replace("-", ".")}</span>
