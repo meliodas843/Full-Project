@@ -481,3 +481,46 @@
     background: none;
   }
 }
+
+/* One window, both documents: tabs jump between them. */
+.lgModalTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.lgModalTabs button {
+  padding: 5px 11px;
+  border: 1px solid var(--ri-border, #dfe3f3);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ri-muted, #68708a);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lgModalTabs button.active {
+  border-color: var(--ri-purple, #5847ee);
+  background: rgba(88, 71, 238, 0.1);
+  color: var(--ri-purple, #5847ee);
+}
+
+.lgModalBody {
+  position: relative;
+}
+
+.lgModalDoc + .lgModalDoc {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 2px solid var(--ri-border, #dfe3f3);
+}
+
+.lgModalDocTitle {
+  margin: 0 0 6px;
+  color: var(--ri-heading, var(--ri-text, #111827));
+  font-size: 18px;
+  font-weight: 800;
+}

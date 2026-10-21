@@ -118,9 +118,18 @@ export default function Signup() {
   const [gender, setGender] = useState("");
 
   const [termsAccepted, setTermsAccepted] = useState(false);
-  // Both documents must be read to the end before the box can be ticked.
-  const [readDocs, setReadDocs] = useState({ terms: false, privacy: false });
+  // Both documents are read in one window; ticking the box needs one read
+  // to the end and one accept.
+  const [docsRead, setDocsRead] = useState(false);
   const [reader, setReader] = useState(null);
+
+  // Switching between personal and company sign-up clears the tick: the
+  // agreement is given for the account type being registered.
+  const [termsFor, setTermsFor] = useState(accountType);
+  if (termsFor !== accountType) {
+    setTermsFor(accountType);
+    setTermsAccepted(false);
+  }
 
   function openDoc(event, key) {
     // The links sit inside the checkbox label; don't toggle the box.
@@ -131,22 +140,15 @@ export default function Signup() {
 
   function toggleTerms(checked) {
     if (!checked) return setTermsAccepted(false);
-    const unread = ["terms", "privacy"].find((key) => !readDocs[key]);
-    if (unread) return setReader(unread);
+    if (!docsRead) return setReader("terms");
     setTermsAccepted(true);
   }
 
-  function acceptDoc(key) {
-    const next = { ...readDocs, [key]: true };
-    setReadDocs(next);
-    const unread = ["terms", "privacy"].find((k) => !next[k]);
-    if (unread) {
-      setReader(unread);
-    } else {
-      setReader(null);
-      setTermsAccepted(true);
-      setMessage("");
-    }
+  function acceptDocs() {
+    setDocsRead(true);
+    setReader(null);
+    setTermsAccepted(true);
+    setMessage("");
   }
 
   const [message, setMessage] = useState("");
@@ -1063,9 +1065,9 @@ export default function Signup() {
 
             {reader ? (
               <LegalReader
-                docKey={reader}
-                alreadyRead={readDocs[reader]}
-                onAccept={() => acceptDoc(reader)}
+                startAt={reader}
+                alreadyRead={docsRead}
+                onAccept={acceptDocs}
                 onClose={() => setReader(null)}
               />
             ) : null}
