@@ -1002,17 +1002,6 @@ export default function Signup() {
 
                     <span>♀ Эмэгтэй</span>
                   </label>
-
-                  <label>
-                    <input
-                      type="radio"
-                      name="gender"
-                      checked={gender === "other"}
-                      onChange={() => setGender("other")}
-                    />
-
-                    <span>◯ Тусгай тэмдэгт</span>
-                  </label>
                 </div>
               )}
             </div>

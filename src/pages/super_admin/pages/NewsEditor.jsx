@@ -2,7 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { FiArrowLeft, FiClock, FiEye, FiImage, FiTrash2, FiX } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiClock,
+  FiEye,
+  FiImage,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
 import AdminShell from "../components/AdminShell";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
@@ -14,7 +21,16 @@ import { NEWS_CATEGORIES, NEWS_STATES, fromTs } from "../adminUtils";
 const SUMMARY_MAX = 160;
 // Only what the toolbar offers. Anything else in pasted text (colours,
 // highlights, fonts) is dropped so it can't clash with the site theme.
-const QUILL_FORMATS = ["bold", "italic", "header", "list", "blockquote", "link", "image", "code-block"];
+const QUILL_FORMATS = [
+  "bold",
+  "italic",
+  "header",
+  "list",
+  "blockquote",
+  "link",
+  "image",
+  "code-block",
+];
 const MODES = [
   { key: "published", label: "Одоо" },
   { key: "scheduled", label: "Товлох" },
@@ -22,14 +38,46 @@ const MODES = [
 ];
 
 const pad = (n) => String(n).padStart(2, "0");
-const localDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const localDate = (d) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const localTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
 const CYRILLIC = {
-  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "j", з: "z", и: "i", й: "i",
-  к: "k", л: "l", м: "m", н: "n", о: "o", ө: "u", п: "p", р: "r", с: "s", т: "t", у: "u",
-  ү: "u", ф: "f", х: "kh", ц: "ts", ч: "ch", ш: "sh", щ: "sh", ъ: "", ы: "y", ь: "", э: "e",
-  ю: "yu", я: "ya",
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ё: "yo",
+  ж: "j",
+  з: "z",
+  и: "i",
+  й: "i",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  ө: "u",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ү: "u",
+  ф: "f",
+  х: "kh",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "sh",
+  ъ: "",
+  ы: "y",
+  ь: "",
+  э: "e",
+  ю: "yu",
+  я: "ya",
 };
 
 function slugify(text) {
@@ -44,7 +92,11 @@ function slugify(text) {
 }
 
 function readingMinutes(html) {
-  const words = String(html || "").replace(/<[^>]*>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+  const words = String(html || "")
+    .replace(/<[^>]*>/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }
 
@@ -121,11 +173,19 @@ export default function NewsEditor() {
   const effectiveSlug = slugTouched ? slug : slugify(title);
   const scheduledAt = new Date(`${date}T${time}`);
   const coverPreview = useMemo(
-    () => (coverFile ? URL.createObjectURL(coverFile) : removeCover ? "" : getImageSrc(coverUrl)),
+    () =>
+      coverFile
+        ? URL.createObjectURL(coverFile)
+        : removeCover
+          ? ""
+          : getImageSrc(coverUrl),
     [coverFile, coverUrl, removeCover],
   );
 
-  useEffect(() => () => coverFile && URL.revokeObjectURL(coverPreview), [coverFile, coverPreview]);
+  useEffect(
+    () => () => coverFile && URL.revokeObjectURL(coverPreview),
+    [coverFile, coverPreview],
+  );
 
   // Images inside the article are uploaded first, then inserted as links.
   const modules = useMemo(
@@ -148,12 +208,20 @@ export default function NewsEditor() {
               try {
                 const fd = new FormData();
                 fd.append("image", file);
-                const data = await apiFetch("/api/news/body-image", { method: "POST", body: fd });
+                const data = await apiFetch("/api/news/body-image", {
+                  method: "POST",
+                  body: fd,
+                });
                 const quill = quillRef.current?.getEditor?.();
                 if (!quill) return;
                 const range = quill.getSelection(true);
                 const index = range ? range.index : quill.getLength();
-                quill.insertEmbed(index, "image", getImageSrc(data.url), "user");
+                quill.insertEmbed(
+                  index,
+                  "image",
+                  getImageSrc(data.url),
+                  "user",
+                );
                 quill.setSelection(index + 1);
               } catch (err) {
                 showToast(err.message || "Зураг оруулж чадсангүй.", "error");
@@ -180,7 +248,8 @@ export default function NewsEditor() {
     fd.append("title", title.trim());
     fd.append("body", body);
     fd.append("status", saveMode);
-    if (saveMode === "scheduled") fd.append("publish_at", scheduledAt.toISOString());
+    if (saveMode === "scheduled")
+      fd.append("publish_at", scheduledAt.toISOString());
     fd.append("slug", effectiveSlug);
     fd.append("summary", summary.trim());
     fd.append("category", category);
@@ -192,7 +261,10 @@ export default function NewsEditor() {
 
     setSaving(true);
     try {
-      await apiFetch(isNew ? "/api/news" : `/api/news/${id}`, { method: isNew ? "POST" : "PUT", body: fd });
+      await apiFetch(isNew ? "/api/news" : `/api/news/${id}`, {
+        method: isNew ? "POST" : "PUT",
+        body: fd,
+      });
       const notice = {
         published: "Мэдээ нийтлэгдлээ.",
         scheduled: `Мэдээ ${date} ${time}-д нийтлэгдэхээр товлогдлоо.`,
@@ -220,7 +292,11 @@ export default function NewsEditor() {
       crumb={`Супер админ / Мэдээ / ${isNew ? "Шинэ" : "Засах"}`}
       title={isNew ? "Шинэ мэдээ" : "Мэдээ засах"}
       actions={
-        <button type="button" className="saButton" onClick={() => navigate("/super-admin/news")}>
+        <button
+          type="button"
+          className="saButton"
+          onClick={() => navigate("/super-admin/news")}
+        >
           <FiArrowLeft /> Жагсаалт руу
         </button>
       }
@@ -235,7 +311,11 @@ export default function NewsEditor() {
           <div className="saGrid">
             <section className="saCard">
               <div className="saCover">
-                {coverPreview ? <img src={coverPreview} alt="" /> : <div className="saCoverEmpty">Нүүр зураг алга</div>}
+                {coverPreview ? (
+                  <img src={coverPreview} alt="" />
+                ) : (
+                  <div className="saCoverEmpty">Нүүр зураг алга</div>
+                )}
                 <div className="saCoverActions">
                   {coverPreview ? (
                     <button
@@ -249,7 +329,11 @@ export default function NewsEditor() {
                       <FiTrash2 /> Арилгах
                     </button>
                   ) : null}
-                  <button type="button" className="saButton" onClick={() => coverInput.current?.click()}>
+                  <button
+                    type="button"
+                    className="saButton"
+                    onClick={() => coverInput.current?.click()}
+                  >
                     <FiImage /> Зураг оруулах
                   </button>
                 </div>
@@ -308,7 +392,9 @@ export default function NewsEditor() {
             <section className="saCard saCardPad">
               <div className="saCardHead">
                 <h2>Нийтлэх</h2>
-                {!isNew ? <span className="saBadge">{NEWS_STATES[state]}</span> : null}
+                {!isNew ? (
+                  <span className="saBadge">{NEWS_STATES[state]}</span>
+                ) : null}
               </div>
               <div className="saSegment" style={{ display: "flex" }}>
                 {MODES.map((m) => (
@@ -326,8 +412,20 @@ export default function NewsEditor() {
 
               {mode === "scheduled" ? (
                 <div className="saTwoInputs">
-                  <input className="saInput" type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Огноо" />
-                  <input className="saInput" type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-label="Цаг" />
+                  <input
+                    className="saInput"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    aria-label="Огноо"
+                  />
+                  <input
+                    className="saInput"
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    aria-label="Цаг"
+                  />
                 </div>
               ) : null}
 
@@ -343,15 +441,26 @@ export default function NewsEditor() {
               </button>
 
               <div className="saTwoInputs">
-                <button type="button" className="saButton" disabled={saving || mode === "draft"} onClick={() => save("draft")}>
+                <button
+                  type="button"
+                  className="saButton"
+                  disabled={saving || mode === "draft"}
+                  onClick={() => save("draft")}
+                >
                   Ноорог хадгалах
                 </button>
-                <button type="button" className="saButton" onClick={() => setPreview(true)}>
+                <button
+                  type="button"
+                  className="saButton"
+                  onClick={() => setPreview(true)}
+                >
                   <FiEye /> Урьдчилан харах
                 </button>
               </div>
               {mode === "scheduled" ? (
-                <div className="saHint">Товлосон цагт мэдээ сайт дээр автоматаар гарч ирнэ.</div>
+                <div className="saHint">
+                  Товлосон цагт мэдээ сайт дээр автоматаар гарч ирнэ.
+                </div>
               ) : null}
             </section>
 
@@ -372,7 +481,14 @@ export default function NewsEditor() {
 
               <label className="saLabel" htmlFor="sa-summary">
                 <span>Товч тайлбар</span>
-                <span style={{ color: summary.length > SUMMARY_MAX ? "var(--sa-red)" : undefined }}>
+                <span
+                  style={{
+                    color:
+                      summary.length > SUMMARY_MAX
+                        ? "var(--sa-red)"
+                        : undefined,
+                  }}
+                >
                   {summary.length}/{SUMMARY_MAX}
                 </span>
               </label>
@@ -388,27 +504,58 @@ export default function NewsEditor() {
               <label className="saLabel" htmlFor="sa-author">
                 Зохиогч
               </label>
-              <input id="sa-author" className="saInput" value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Б. Ганбаатар" />
+              <input
+                id="sa-author"
+                className="saInput"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="Б. Ганбаатар"
+              />
             </section>
-
           </div>
         </div>
       )}
 
       {preview ? (
-        <div className="saModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && setPreview(false)}>
-          <div className="saCard saModal" role="dialog" aria-modal="true" aria-label="Урьдчилан харах">
-            <button type="button" className="saCloseButton" onClick={() => setPreview(false)} aria-label="Хаах">
+        <div
+          className="saModalBackdrop"
+          onMouseDown={(e) => e.target === e.currentTarget && setPreview(false)}
+        >
+          <div
+            className="saCard saModal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Урьдчилан харах"
+          >
+            <button
+              type="button"
+              className="saCloseButton"
+              onClick={() => setPreview(false)}
+              aria-label="Хаах"
+            >
               <FiX />
             </button>
-            {category ? <span className="saBadge purple">{category}</span> : null}
-            <h2 style={{ fontSize: 26, margin: "10px 0 4px" }}>{title || "Гарчиггүй"}</h2>
+            {category ? (
+              <span className="saBadge purple">{category}</span>
+            ) : null}
+            <h2 style={{ fontSize: 26, margin: "10px 0 4px" }}>
+              {title || "Гарчиггүй"}
+            </h2>
             <div className="saCrumb" style={{ marginBottom: 16 }}>
               {author || "—"} · {readingMinutes(body)} мин унших
             </div>
-            {coverPreview ? <img src={coverPreview} alt="" style={{ width: "100%", borderRadius: 12, marginBottom: 16 }} /> : null}
+            {coverPreview ? (
+              <img
+                src={coverPreview}
+                alt=""
+                style={{ width: "100%", borderRadius: 12, marginBottom: 16 }}
+              />
+            ) : null}
             {summary ? <p style={{ fontWeight: 600 }}>{summary}</p> : null}
-            <div className="saPreviewBody" dangerouslySetInnerHTML={{ __html: sanitizeHtml(body) }} />
+            <div
+              className="saPreviewBody"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(body) }}
+            />
           </div>
         </div>
       ) : null}
