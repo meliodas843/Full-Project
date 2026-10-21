@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FiCheck, FiPrinter, FiX } from "react-icons/fi";
+import { FiPrinter, FiX } from "react-icons/fi";
 import LegalDocument from "./LegalDocument";
 import { LEGAL_DOCS } from "./legalContent";
 import "./legal.css";
@@ -62,24 +62,12 @@ export default function LegalReader({ docKey, alreadyRead, onAccept, onClose }) 
         <div className="lgModalBody" ref={bodyRef} tabIndex={0}>
           <p className="lgLead">{doc.subtitle}</p>
           <LegalDocument doc={doc} headingLevel={3} />
-          <div className="lgEnd">Баримт бичгийн төгсгөл.</div>
         </div>
 
         <footer className="lgModalFoot">
-          <span className={reachedEnd ? "done" : ""}>
-            {reachedEnd ? (
-              <>
-                <FiCheck /> Бүрэн уншсан
-              </>
-            ) : (
-              `Уншсан ${progress}% — зөвшөөрөхийн тулд эцэс хүртэл уншина уу`
-            )}
-          </span>
-          <div>
-            <button type="button" className="lgPrimary" disabled={!reachedEnd} onClick={onAccept}>
-              Уншиж танилцсан, зөвшөөрч байна
-            </button>
-          </div>
+          <button type="button" className="lgPrimary" disabled={!reachedEnd} onClick={onAccept}>
+            Уншиж танилцсан, зөвшөөрч байна
+          </button>
         </footer>
       </div>
     </div>
