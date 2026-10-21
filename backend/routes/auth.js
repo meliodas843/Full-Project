@@ -444,6 +444,16 @@ router.post(
 
       const userId = userResult.insertId;
 
+      // Record which Terms / Privacy versions were accepted at sign-up.
+      const termsVersion = String(req.body?.termsVersion || "").slice(0, 20) || null;
+      const privacyVersion = String(req.body?.privacyVersion || "").slice(0, 20) || null;
+      if (termsVersion || privacyVersion) {
+        await connection.query(
+          "UPDATE users SET terms_accepted_at = NOW(), terms_version = ?, privacy_version = ? WHERE id = ?",
+          [termsVersion, privacyVersion, userId],
+        );
+      }
+
       let createdOrganization = null;
 
       if (accountType === "organization") {

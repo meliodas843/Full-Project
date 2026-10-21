@@ -1,0 +1,475 @@
+/* Legal documents: /terms, /privacy and the sign-up reading window.
+   Colours follow the public theme (--ri-*) with light fallbacks. */
+
+.lgProgress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1200;
+  height: 3px;
+  pointer-events: none;
+}
+
+.lgProgress span,
+.lgModalProgress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ri-purple, #5847ee), var(--ri-cyan, #26c9e8));
+  transition: width 0.12s linear;
+}
+
+.lgPage {
+  background: var(--ri-bg, #f7f8ff);
+  color: var(--ri-text, #14162a);
+}
+
+.lgContainer {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* ---------- header ---------- */
+
+.lgHero {
+  padding: 40px 0 36px;
+  border-bottom: 1px solid var(--ri-border, #dfe3f3);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(38, 201, 232, 0.1), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(88, 71, 238, 0.08), transparent 45%),
+    var(--ri-card, #ffffff);
+}
+
+.lgBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 26px;
+  color: var(--ri-muted, #68708a);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lgBack:hover {
+  color: var(--ri-purple, #5847ee);
+}
+
+.lgEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ri-purple, #5847ee);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lgHero h1 {
+  margin: 12px 0 10px;
+  color: var(--ri-heading, var(--ri-text, #111827));
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.lgHero p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--ri-muted, #68708a);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.lgMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  margin-top: 22px;
+  color: var(--ri-muted, #68708a);
+  font-size: 13px;
+}
+
+.lgMeta span,
+.lgMeta button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.lgMeta button {
+  padding: 7px 12px;
+  border: 1px solid var(--ri-border, #dfe3f3);
+  border-radius: 8px;
+  background: var(--ri-card, #ffffff);
+  color: var(--ri-text, #14162a);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- layout ---------- */
+
+.lgLayout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+  padding: 40px 0 80px;
+}
+
+.lgToc {
+  position: sticky;
+  top: 96px;
+  padding: 16px 12px;
+  border: 1px solid var(--ri-border, #dfe3f3);
+  border-radius: 14px;
+  background: var(--ri-card, #ffffff);
+}
+
+.lgTocHead {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 6px 10px;
+  color: var(--ri-muted, #68708a);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lgTocHead strong {
+  color: var(--ri-purple, #5847ee);
+}
+
+.lgToc ol {
+  max-height: calc(100vh - 260px);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.lgToc button {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ri-text, #14162a);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lgToc button:hover {
+  background: rgba(88, 71, 238, 0.06);
+}
+
+.lgToc em {
+  min-width: 18px;
+  color: var(--ri-muted, #68708a);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.lgToc li.active button {
+  background: rgba(88, 71, 238, 0.1);
+  color: var(--ri-purple, #5847ee);
+  font-weight: 700;
+}
+
+.lgToc li.active em {
+  color: var(--ri-purple, #5847ee);
+}
+
+.lgOther {
+  display: block;
+  margin: 12px 6px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ri-border, #dfe3f3);
+  color: var(--ri-purple, #5847ee);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.lgArticle {
+  min-width: 0;
+  max-width: 760px;
+}
+
+/* ---------- document text ---------- */
+
+.lgDoc {
+  color: var(--ri-text, #14162a);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.lgSection {
+  padding: 4px 0 24px;
+  scroll-margin-top: 96px;
+}
+
+.lgSection + .lgSection {
+  padding-top: 24px;
+  border-top: 1px solid var(--ri-border, #dfe3f3);
+}
+
+.lgSection h2,
+.lgSection h3 {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 12px;
+  color: var(--ri-heading, var(--ri-text, #111827));
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.lgSection h2 span,
+.lgSection h3 span {
+  color: var(--ri-purple, #5847ee);
+}
+
+.lgSection p {
+  margin: 0 0 12px;
+  opacity: 0.88;
+}
+
+.lgSection ul {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.lgSection li {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.lgNum {
+  flex-shrink: 0;
+  min-width: 34px;
+  color: var(--ri-muted, #68708a);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.lgEnd {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(88, 71, 238, 0.06);
+  color: var(--ri-muted, #68708a);
+  font-size: 13px;
+}
+
+/* ---------- reading window (sign-up) ---------- */
+
+.lgModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 12, 28, 0.6);
+}
+
+.lgModal {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(86vh, 900px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--ri-card, #ffffff);
+  color: var(--ri-text, #14162a);
+  box-shadow: 0 30px 80px rgba(10, 12, 28, 0.35);
+}
+
+.lgModalHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--ri-border, #dfe3f3);
+}
+
+.lgModalHead h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.lgModalHead p {
+  margin: 0;
+  color: var(--ri-muted, #68708a);
+  font-size: 12px;
+}
+
+.lgModalTools {
+  display: flex;
+  gap: 6px;
+}
+
+.lgModalTools a,
+.lgModalTools button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--ri-border, #dfe3f3);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ri-text, #14162a);
+  cursor: pointer;
+}
+
+.lgModalProgress {
+  height: 3px;
+  background: var(--ri-border, #dfe3f3);
+}
+
+.lgModalBody {
+  flex: 1;
+  min-height: 0;
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+  outline: none;
+  overscroll-behavior: contain;
+}
+
+.lgLead {
+  margin: 0 0 18px;
+  color: var(--ri-muted, #68708a);
+  font-size: 14px;
+}
+
+.lgModalBody .lgSection h3 {
+  font-size: 16px;
+}
+
+.lgModalBody .lgDoc {
+  font-size: 14px;
+}
+
+.lgModalFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--ri-border, #dfe3f3);
+}
+
+.lgModalFoot > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ri-muted, #68708a);
+  font-size: 12px;
+}
+
+.lgModalFoot > span.done {
+  color: #1f9a6c;
+  font-weight: 700;
+}
+
+.lgPrimary {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ri-purple, #5847ee);
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lgPrimary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .lgLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding-top: 24px;
+  }
+
+  .lgToc {
+    position: static;
+  }
+
+  .lgToc ol {
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .lgContainer {
+    width: calc(100% - 32px);
+  }
+
+  .lgHero {
+    padding: 24px 0;
+  }
+
+  .lgModalBackdrop {
+    padding: 0;
+    place-items: end stretch;
+  }
+
+  .lgModal {
+    max-height: 92vh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .lgModalHead,
+  .lgModalBody,
+  .lgModalFoot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .lgModalFoot > div,
+  .lgPrimary {
+    width: 100%;
+  }
+}
+
+@media print {
+  .lgProgress,
+  .lgToc,
+  .lgBack,
+  .lgMeta button,
+  .riNavbar,
+  footer {
+    display: none !important;
+  }
+
+  .lgLayout {
+    display: block;
+    padding: 0;
+  }
+
+  .lgHero {
+    background: none;
+  }
+}

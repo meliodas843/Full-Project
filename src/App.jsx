@@ -20,6 +20,7 @@ const Home = lazyPage(() => import("./pages/public/Home"));
 const Login = lazyPage(() => import("./pages/public/Login"));
 const Signup = lazyPage(() => import("./pages/public/Signup"));
 const News = lazyPage(() => import("./pages/public/News"));
+const LegalPage = lazyPage(() => import("./pages/public/legal/LegalPage"));
 const PublicEvents = lazyPage(() => import("./pages/public/Event"));
 const ForgotPassword = lazyPage(() => import("./pages/public/ForgotPassword"));
 const ResetPassword = lazyPage(() => import("./pages/public/ResetPassword"));
@@ -90,6 +91,8 @@ function AppRoutes() {
         <Route path="/signup" element={<Signup />} />
 
         <Route path="/news" element={<News />} />
+        <Route path="/terms" element={<LegalPage docKey="terms" />} />
+        <Route path="/privacy" element={<LegalPage docKey="privacy" />} />
         <Route path="/news/:id" element={<NewsDetail />} />
 
         <Route path="/events" element={<PublicEvents />} />
