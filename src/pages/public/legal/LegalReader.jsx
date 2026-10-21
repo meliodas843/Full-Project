@@ -59,12 +59,6 @@ export default function LegalReader({ docKey, alreadyRead, onAccept, onClose }) 
           <span style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="lgModalBody" ref={bodyRef} tabIndex={0}>
-          <p className="lgLead">{doc.subtitle}</p>
-          <LegalDocument doc={doc} headingLevel={3} />
-          <div className="lgEnd">Баримт бичгийн төгсгөл.</div>
-        </div>
-
         <footer className="lgModalFoot">
           <span className={reachedEnd ? "done" : ""}>
             {reachedEnd ? (
