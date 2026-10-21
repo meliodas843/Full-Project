@@ -1382,3 +1382,9 @@
   vertical-align: middle;
   white-space: nowrap;
 }
+
+.saChartControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
