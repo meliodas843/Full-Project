@@ -3314,11 +3314,6 @@ textarea {
     padding: 10px;
   }
 
-  .uep-right {
-    padding: 14px;
-    border-radius: 16px;
-  }
-
   .meeting-card {
     flex-basis: 82vw;
     min-width: 82vw;
@@ -3348,8 +3343,6 @@ textarea {
   }
 
   .uep-right {
-    padding: 14px;
-    border-radius: 16px;
     order: 1;
   }
 
@@ -3527,11 +3520,6 @@ textarea {
     gap: 12px;
   }
 
-  .uep-right {
-    width: 100%;
-    min-width: 0;
-  }
-
   .news-list-header {
     flex-direction: column;
     align-items: stretch;
@@ -3574,11 +3562,6 @@ textarea {
   .uep-wrap {
     padding: 12px;
     gap: 12px;
-  }
-
-  .uep-right {
-    padding: 12px;
-    border-radius: 16px;
   }
 
   .meeting-card {
@@ -3704,10 +3687,6 @@ textarea {
 
   .uep-wrap {
     padding: 10px;
-  }
-
-  .uep-right {
-    padding: 12px;
   }
 
   .userLayout,
@@ -3917,11 +3896,6 @@ textarea {
     margin-left: 0;
   }
 
-  .uep-right {
-    width: 100%;
-    max-width: 100%;
-  }
-
   html:has(.user-layout),
   body:has(.user-layout),
   #root:has(.user-layout) {
@@ -3953,16 +3927,12 @@ textarea {
   }
 
   .uep-right {
-    width: 100%;
     max-width: 100%;
-    min-width: 0;
     flex: none;
     position: static;
     top: auto;
     left: auto;
     right: auto;
-    margin: 0;
-    padding: 0;
   }
 
   .meeting-card,
@@ -4116,18 +4086,6 @@ textarea {
   }
 
   .uep-right {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    flex: none;
-    position: static;
-    top: auto;
-    left: auto;
-    margin: 0;
-    padding: 0;
-  }
-
-  .uep-right {
     order: 2;
   }
 
@@ -4262,7 +4220,7 @@ textarea {
 :root[data-theme="dark"] .rpPage select,
 :root[data-theme="dark"] .rpPage textarea,
 :root[data-theme="dark"] .rpPage .rpReadonly input {
-  background: #11162b;
+  background-color: #11162b;
   color: #f5f6ff;
   border-color: #343b57;
 }
@@ -4322,7 +4280,7 @@ textarea {
 .rpPage .rpConnect input,
 .rpPage .rpConnect select,
 .rpPage .rpConnect textarea {
-  background: #ffffff;
+  background-color: #ffffff;
   color: #1d2433;
   border: 1px solid #e3e7f0;
 }
@@ -4353,7 +4311,7 @@ textarea {
 :root[data-theme="dark"] .rpPage .rpConnect input,
 :root[data-theme="dark"] .rpPage .rpConnect select,
 :root[data-theme="dark"] .rpPage .rpConnect textarea {
-  background: #11162b;
+  background-color: #11162b;
   color: #f5f6ff;
   border-color: #343b57;
 }
@@ -4403,11 +4361,6 @@ textarea {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.15),
     0 12px 25px rgba(38, 201, 232, 0.14);
-}
-
-html[data-user-theme="dark"] .uep-right {
-  background: #171b35;
-  border-color: #292e49;
 }
 
 html[data-user-theme="dark"] .myEventsSearch,
@@ -7343,7 +7296,7 @@ html[data-user-theme="dark"] .eventWizardPanel {
   border: 1px solid #e0e3eb;
   border-radius: 9px;
   outline: 0;
-  background: #fff;
+  background-color: #fff;
   color: #33394a;
   font: inherit;
   font-size: 12px;
@@ -7791,11 +7744,6 @@ html[data-user-theme="dark"] .eventWizardPanel {
 }
 
 @media (max-width: 1150px) {
-  .myEventsToolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
   .myEventTools {
     flex-wrap: wrap;
   }
@@ -12001,7 +11949,7 @@ html[data-user-theme="dark"] .riEventJoinJoined:hover,
   border: 1px solid #dde2eb;
   border-radius: 8px;
   outline: none;
-  background: #ffffff;
+  background-color: #ffffff;
   color: #252c3c;
   font-family: inherit;
   font-size: 11px;
@@ -14860,39 +14808,6 @@ html[data-user-theme="dark"] .card {
   font-size: 12px;
 }
 
-.eventWizardField input,
-.eventWizardField select,
-.eventWizardField textarea,
-.eventWizardSpeakerFields input,
-.eventWizardAgendaRow input {
-  width: 100%;
-  border: 1px solid #dce0e7;
-  border-radius: 11px;
-  background: #f9fafc;
-  color: #1c2231;
-  outline: none;
-  font: inherit;
-  font-size: 13px;
-  transition: 0.2s ease;
-  box-sizing: border-box;
-}
-
-.eventWizardField input,
-.eventWizardField select {
-  height: 46px;
-  padding: 0 13px;
-}
-
-.eventWizardField input:focus,
-.eventWizardField select:focus,
-.eventWizardField textarea:focus,
-.eventWizardSpeakerFields input:focus,
-.eventWizardAgendaRow input:focus {
-  border-color: #6c51ee;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(108, 81, 238, 0.07);
-}
-
 .eventWizardUpload > input {
   display: none;
 }
@@ -15101,11 +15016,12 @@ html[data-user-theme="dark"] .card {
   width: 100%;
   border: 1px solid #d7dbe2;
   border-radius: 12px;
-  background: #f8f9fb;
+  background-color: #f8f9fb;
   color: #151b2b;
   font: inherit;
   font-size: 14px;
   outline: none;
+  box-sizing: border-box;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -15139,7 +15055,7 @@ html[data-user-theme="dark"] .card {
 .eventWizardField select:focus,
 .eventWizardSpeakerFields input:focus,
 .eventWizardAgendaRow input:focus {
-  background: #fff;
+  background-color: #fff;
   border-color: #6652ef;
   box-shadow: 0 0 0 3px rgba(102, 82, 239, 0.1);
 }
@@ -16674,13 +16590,6 @@ html[data-user-theme="dark"] .card {
   }
 }
 
-.uep-right {
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  transform: none;
-}
-
 @media (max-width: 1250px) {
   .uep-wrap {
     grid-template-columns: 290px minmax(0, 1fr);
@@ -16705,12 +16614,6 @@ html[data-user-theme="dark"] .card {
     padding: 16px;
     gap: 16px;
   }
-
-  .uep-right {
-    width: 100%;
-    margin: 0;
-    transform: none;
-  }
 }
 
 .uep-right {
@@ -16724,7 +16627,6 @@ html[data-user-theme="dark"] .card {
   border-radius: 16px;
   box-shadow: 0 2px 5px rgba(16, 24, 40, 0.05);
   box-sizing: border-box;
-  margin-top: -20px;
 }
 
 .uep-error,
@@ -16789,10 +16691,6 @@ html[data-user-theme="dark"] .card {
     flex-direction: column;
     gap: 16px;
     padding: 16px;
-  }
-
-  .uep-right {
-    width: 100%;
   }
 
   .uep-right {
@@ -16967,7 +16865,7 @@ body[data-theme="dark"],
 [data-theme="dark"] .eventWizardField textarea,
 [data-theme="dark"] .eventWizardSpeakerFields input,
 [data-theme="dark"] .eventWizardAgendaRow input {
-  background: #1d243f;
+  background-color: #1d243f;
   border-color: #343c59;
   color: #ffffff;
 }
@@ -16977,7 +16875,7 @@ body[data-theme="dark"],
 [data-theme="dark"] .eventWizardField textarea:focus,
 [data-theme="dark"] .eventWizardSpeakerFields input:focus,
 [data-theme="dark"] .eventWizardAgendaRow input:focus {
-  background: #222944;
+  background-color: #222944;
   border-color: #7657ef;
 }
 
@@ -17040,7 +16938,7 @@ html[data-user-theme="dark"] .eventWizardField > span {
 html[data-user-theme="dark"] .eventWizard input,
 html[data-user-theme="dark"] .eventWizard textarea,
 html[data-user-theme="dark"] .eventWizard select {
-  background: #111529;
+  background-color: #111529;
   border-color: #303650;
   color: #f6f7fb;
 }
@@ -17053,7 +16951,7 @@ html[data-user-theme="dark"] .eventWizard textarea::placeholder {
 html[data-user-theme="dark"] .eventWizard input:focus,
 html[data-user-theme="dark"] .eventWizard textarea:focus,
 html[data-user-theme="dark"] .eventWizard select:focus {
-  background: #111529;
+  background-color: #111529;
   border-color: #735cff;
 }
 
@@ -17240,7 +17138,6 @@ html[data-user-theme="dark"] .uep-wrap.is-detail .uep-right {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
   margin: 0 0 20px;
 }
 
@@ -18872,7 +18769,7 @@ body:has(.user-layout),
   box-sizing: border-box;
   border: 1px solid #dfe3eb;
   outline: none;
-  background: #ffffff;
+  background-color: #ffffff;
   color: #151a2a;
   font: inherit;
   transition: 0.2s ease;
@@ -19221,7 +19118,7 @@ html[data-user-theme="dark"] .rgMeetingPeopleEmpty,
 html[data-user-theme="dark"] .rgMeetingSearch input,
 html[data-user-theme="dark"] .rgMeetingPerson,
 html[data-user-theme="dark"] .rgMeetingSelectedChip {
-  background: #111529;
+  background-color: #111529;
   border-color: #303650;
   color: #f6f7fb;
 }
@@ -21109,7 +21006,7 @@ html[data-user-theme="dark"] .myEventsEmpty {
 
 html[data-user-theme="dark"] .myEventsToolbar input,
 html[data-user-theme="dark"] .myEventsSort select {
-  background: #111529;
+  background-color: #111529;
   border-color: #303650;
   color: #f6f7fb;
 }
@@ -21369,7 +21266,7 @@ html[data-user-theme="dark"] .eventSearch input,
 html[data-user-theme="dark"] .organizationsSearch input,
 html[data-user-theme="dark"] .myEventsSort select,
 html[data-user-theme="dark"] .eventSort select {
-  background: transparent;
+  background-color: transparent;
   border-color: transparent;
   color: var(--rg-text-main);
   box-shadow: none;
@@ -21415,7 +21312,7 @@ html[data-user-theme="dark"] [role="dialog"] {
 html[data-user-theme="dark"] input,
 html[data-user-theme="dark"] textarea,
 html[data-user-theme="dark"] select {
-  background: #111529;
+  background-color: #111529;
   background-color: var(--rg-field);
   border-color: #303650;
   color: var(--rg-text-main);
@@ -21473,14 +21370,14 @@ html[data-user-theme="dark"] .myEventSearch:focus-within {
 }
 
 html[data-user-theme="dark"] .myEventTools select {
-  background: #111529;
+  background-color: #111529;
   border-color: #303650;
   color: #f6f7fb;
   color-scheme: dark;
 }
 
 html[data-user-theme="dark"] .myEventTools select option {
-  background: #111529;
+  background-color: #111529;
   color: #f6f7fb;
 }
 
@@ -21498,7 +21395,7 @@ html:not([data-user-theme="dark"]) .myEventSearch input {
 
 html[data-user-theme="light"] .myEventTools select,
 html:not([data-user-theme="dark"]) .myEventTools select {
-  background: #ffffff;
+  background-color: #ffffff;
   border-color: #e0e3eb;
   color: #33394a;
   color-scheme: light;
@@ -24896,7 +24793,7 @@ svg {
 
   .myEventsToolbar {
     width: 100%;
-    display: block;
+    gap: 12px;
     margin-bottom: 14px;
   }
 
@@ -25196,7 +25093,7 @@ svg {
 .rpField select,
 .rpField textarea,
 .rpReadonly input {
-  background: var(--rp-input);
+  background-color: var(--rp-input);
   color: var(--rp-text);
   border: 1px solid var(--rp-border);
   caret-color: var(--rp-accent);
@@ -25607,7 +25504,7 @@ svg {
   border: 1px solid #e6e6ee;
   border-radius: 8px;
   padding: 0 11px;
-  background: #fff;
+  background-color: #fff;
   color: #333;
   font: inherit;
   font-size: 12px;
@@ -30335,20 +30232,20 @@ svg {
 /* Safari draws native selects as grey gradient buttons and ignores their
    padding, so icons overlap the text. Every select in the user area gets the
    same flat look with a drawn chevron instead. The background-image is
-   !important because theme rules reset the whole background shorthand. */
+   because theme rules reset the whole background shorthand. */
 .rgUserLayout select:not([multiple]) {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  padding-right: 40px !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a90a0' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 14px center !important;
-  background-size: 16px 16px !important;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a90a0' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
   text-overflow: ellipsis;
   cursor: pointer;
 }
 
 .rgUserLayout select:not([multiple]):focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236652ef' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236652ef' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
