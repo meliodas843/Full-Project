@@ -511,7 +511,7 @@
     color: #a1a6c3
 }
 :where(:root[data-theme="dark"]) .rpPage .rpConnect input, :where(:root[data-theme="dark"]) .rpPage .rpConnect select, :where(:root[data-theme="dark"]) .rpPage .rpConnect textarea {
-    background: #181c37;
+    background-color: #181c37;
     color: #e3e4ed;
     border: 1px solid #303d5a
 }
@@ -812,7 +812,7 @@
 }
 :where(:root[data-theme="dark"]) .myEventTools select {
     border: 1px solid #31375b;
-    background: #181c37;
+    background-color: #181c37;
     color: #d4d6e4
 }
 :where(:root[data-theme="dark"]) .myEventStatus.published {
@@ -1722,7 +1722,7 @@
 }
 :where(:root[data-theme="dark"]) .orgField input, :where(:root[data-theme="dark"]) .orgField select, :where(:root[data-theme="dark"]) .orgField textarea {
     border: 1px solid #344159;
-    background: #181c37;
+    background-color: #181c37;
     color: #dddfe9
 }
 :where(:root[data-theme="dark"]) .orgField input::placeholder, :where(:root[data-theme="dark"]) .orgField textarea::placeholder {
@@ -1886,14 +1886,6 @@
 :where(:root[data-theme="dark"]) .rgProfileAlert.success {
     color: #8bf5d2
 }
-:where(:root[data-theme="dark"]) .eventWizardField input, :where(:root[data-theme="dark"]) .eventWizardField select, :where(:root[data-theme="dark"]) .eventWizardField textarea, :where(:root[data-theme="dark"]) .eventWizardSpeakerFields input, :where(:root[data-theme="dark"]) .eventWizardAgendaRow input {
-    border: 1px solid #32385d;
-    background: #141a27;
-    color: #e3e5ed
-}
-:where(:root[data-theme="dark"]) .eventWizardField input:focus, :where(:root[data-theme="dark"]) .eventWizardField select:focus, :where(:root[data-theme="dark"]) .eventWizardField textarea:focus, :where(:root[data-theme="dark"]) .eventWizardSpeakerFields input:focus, :where(:root[data-theme="dark"]) .eventWizardAgendaRow input:focus {
-    background: #181c37
-}
 :where(:root[data-theme="dark"]) .eventWizardPreviewGrid > div, :where(:root[data-theme="dark"]) .eventWizardPreviewDescription {
     border: 1px solid #31365b;
     background: #121529
@@ -1938,14 +1930,14 @@
 }
 :where(:root[data-theme="dark"]) .eventWizardField input, :where(:root[data-theme="dark"]) .eventWizardField textarea, :where(:root[data-theme="dark"]) .eventWizardField select, :where(:root[data-theme="dark"]) .eventWizardSpeakerFields input, :where(:root[data-theme="dark"]) .eventWizardAgendaRow input {
     border: 1px solid #33395f;
-    background: #151b25;
+    background-color: #151b25;
     color: #e8e9f0
 }
 :where(:root[data-theme="dark"]) .eventWizardField input::placeholder, :where(:root[data-theme="dark"]) .eventWizardField textarea::placeholder, :where(:root[data-theme="dark"]) .eventWizardSpeakerFields input::placeholder, :where(:root[data-theme="dark"]) .eventWizardAgendaRow input::placeholder {
     color: #949abb
 }
 :where(:root[data-theme="dark"]) .eventWizardField input:focus, :where(:root[data-theme="dark"]) .eventWizardField textarea:focus, :where(:root[data-theme="dark"]) .eventWizardField select:focus, :where(:root[data-theme="dark"]) .eventWizardSpeakerFields input:focus, :where(:root[data-theme="dark"]) .eventWizardAgendaRow input:focus {
-    background: #181c37
+    background-color: #181c37
 }
 :where(:root[data-theme="dark"]) .eventWizardField input:disabled {
     background: #1d2345;
@@ -2339,7 +2331,7 @@
 }
 :where(:root[data-theme="dark"]) .rgMeetingField input, :where(:root[data-theme="dark"]) .rgMeetingField select, :where(:root[data-theme="dark"]) .rgMeetingField textarea {
     border: 1px solid #31375b;
-    background: #181c37;
+    background-color: #181c37;
     color: #e8e9f0
 }
 :where(:root[data-theme="dark"]) .rgMeetingPeopleEmpty {
@@ -2795,7 +2787,7 @@
 }
 :where(:root[data-theme="dark"]) .rpField input, :where(:root[data-theme="dark"]) .rpField select {
     border: 1px solid #303559;
-    background: #181c37;
+    background-color: #181c37;
     color: #dcdde8
 }
 :where(:root[data-theme="dark"]) .rpReadonly input {

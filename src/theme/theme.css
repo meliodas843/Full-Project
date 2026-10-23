@@ -258,7 +258,7 @@ option {
 :root[data-theme="dark"] input,
 :root[data-theme="dark"] select,
 :root[data-theme="dark"] textarea {
-  background: var(--reg-input);
+  background-color: var(--reg-input);
   color: var(--reg-text);
   border-color: var(--reg-border);
 }
