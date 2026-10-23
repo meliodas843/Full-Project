@@ -101,6 +101,48 @@ const STATEMENTS = [
     KEY idx_audit_type (type, created_at)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  // Payment settings edited by the super admin (fee, receiving account …).
+  `CREATE TABLE IF NOT EXISTS payment_settings (
+    \`key\` VARCHAR(50) NOT NULL,
+    \`value\` TEXT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (\`key\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  // Event publish fee: one per event, paid by bank transfer, confirmed by a
+  // super admin. status: awaiting -> submitted -> confirmed | rejected.
+  `CREATE TABLE IF NOT EXISTS publish_fees (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    event_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    organization_id BIGINT NULL,
+    reference VARCHAR(20) NOT NULL,
+    amount DECIMAL(14, 2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'awaiting',
+    paid_amount DECIMAL(14, 2) NULL,
+    payer_note VARCHAR(255) NULL,
+    receipt_file VARCHAR(255) NULL,
+    reject_reason VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    submitted_at DATETIME NULL,
+    decided_at DATETIME NULL,
+    decided_by BIGINT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_publish_fee_event (event_id),
+    KEY idx_publish_fee_status (status, submitted_at),
+    KEY idx_publish_fee_user (user_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  // Where an organizer receives ticket income.
+  `CREATE TABLE IF NOT EXISTS payout_accounts (
+    user_id BIGINT NOT NULL,
+    bank_name VARCHAR(100) NOT NULL,
+    account_number VARCHAR(50) NOT NULL,
+    account_name VARCHAR(150) NOT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   // Proof of consent: one row per legal document accepted at sign-up.
   `CREATE TABLE IF NOT EXISTS legal_acceptances (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -150,6 +192,7 @@ const COLUMNS = [
 
   // Dashboard charts need to know when accounts and bookings were created.
   ["users", "created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"],
+  ["events", "status", "ALTER TABLE events ADD COLUMN status VARCHAR(20) DEFAULT 'published'"],
   ["users", "terms_accepted_at", "ALTER TABLE users ADD COLUMN terms_accepted_at DATETIME NULL"],
   ["users", "terms_version", "ALTER TABLE users ADD COLUMN terms_version VARCHAR(20) NULL"],
   ["users", "privacy_version", "ALTER TABLE users ADD COLUMN privacy_version VARCHAR(20) NULL"],

@@ -21,6 +21,7 @@ import { pruneAuditLogs, requestId } from "./utils/audit.js";
 import authRoutes from "./routes/auth.js";
 import newsRoutes from "./routes/news.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+import paymentRoutes from "./routes/payments.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import eventsRoutes from "./routes/event.routes.js";
 import eventGalleryRoutes from "./routes/eventGallery.routes.js";
@@ -102,6 +103,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/users", userRoutes);
