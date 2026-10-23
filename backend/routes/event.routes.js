@@ -1405,6 +1405,8 @@ router.get("/my-joined", authMiddleware, async (req, res) => {
 
       WHERE e.archived = 0
 
+        AND (e.status IS NULL OR e.status = 'published')
+
         AND (
 
           LOWER(e.created_by_email) = ?
@@ -2346,6 +2348,7 @@ router.get("/finished", authMiddleware, async (req, res) => {
       LEFT JOIN event_bookings eb ON eb.event_id = e.id
 
       WHERE e.archived = 0
+        AND (e.status IS NULL OR e.status = 'published')
 
         AND COALESCE(e.end_time, e.start_time) <= NOW()
 

@@ -4,7 +4,7 @@ import { FiCreditCard, FiFileText, FiGrid, FiList, FiLogOut, FiMenu, FiSettings,
 import logo from "../../../assets/registra-logo-def.png";
 import ThemeToggle from "../../../components/ThemeToggle";
 import { apiFetch, clearAuth } from "../../../lib/api";
-import { ROLE_LABELS, initials, readStoredUser } from "../adminUtils";
+import { PENDING_PAYMENTS_EVENT, ROLE_LABELS, initials, readStoredUser } from "../adminUtils";
 import "../admin.css";
 
 const SECTIONS = [
@@ -42,6 +42,12 @@ export default function AdminShell({ crumb, title, actions, children }) {
       alive = false;
     };
   }, [location.pathname]);
+
+  useEffect(() => {
+    const update = (e) => setPendingPayments(Number(e.detail || 0));
+    window.addEventListener(PENDING_PAYMENTS_EVENT, update);
+    return () => window.removeEventListener(PENDING_PAYMENTS_EVENT, update);
+  }, []);
 
   // On small screens the sidebar is a drawer: close it after navigating
   // and on Escape.

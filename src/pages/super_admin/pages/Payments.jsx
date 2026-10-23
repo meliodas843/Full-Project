@@ -6,7 +6,7 @@ import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
 import { apiFetch, getToken } from "../../../lib/api";
 import { API_BASE } from "../../../lib/config";
-import { formatDateTime, fromTs } from "../adminUtils";
+import { PENDING_PAYMENTS_EVENT, formatDateTime, fromTs } from "../adminUtils";
 
 const TABS = [
   { key: "submitted", label: "Баталгаажуулах" },
@@ -65,8 +65,11 @@ export default function Payments() {
     try {
       const params = new URLSearchParams({ status: tab });
       if (search) params.set("q", search);
-      setData(await apiFetch(`/api/admin/payments/publish-fees?${params}`));
+      const next = await apiFetch(`/api/admin/payments/publish-fees?${params}`);
+      setData(next);
       setError("");
+      // Keep the sidebar badge in step with what this page shows.
+      window.dispatchEvent(new CustomEvent(PENDING_PAYMENTS_EVENT, { detail: Number(next?.stats?.submitted || 0) }));
     } catch (err) {
       setError(err.message || "Ачаалж чадсангүй.");
     }
