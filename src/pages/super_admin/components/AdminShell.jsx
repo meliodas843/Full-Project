@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { FiFileText, FiGrid, FiList, FiLogOut, FiMenu, FiShield, FiX } from "react-icons/fi";
+import { FiCreditCard, FiFileText, FiGrid, FiList, FiLogOut, FiMenu, FiSettings, FiShield, FiX } from "react-icons/fi";
 import logo from "../../../assets/registra-logo-def.png";
 import ThemeToggle from "../../../components/ThemeToggle";
-import { clearAuth } from "../../../lib/api";
+import { apiFetch, clearAuth } from "../../../lib/api";
 import { ROLE_LABELS, initials, readStoredUser } from "../adminUtils";
 import "../admin.css";
 
@@ -13,11 +13,15 @@ const SECTIONS = [
     links: [
       { to: "/super-admin/dashboard", label: "Хянах самбар", icon: FiGrid },
       { to: "/super-admin/news", label: "Мэдээ", icon: FiFileText },
+      { to: "/super-admin/payments", label: "Төлбөр", icon: FiCreditCard, badge: "payments" },
     ],
   },
   {
     title: "Систем",
-    links: [{ to: "/super-admin/logs", label: "Лог бүртгэл", icon: FiList }],
+    links: [
+      { to: "/super-admin/logs", label: "Лог бүртгэл", icon: FiList },
+      { to: "/super-admin/settings", label: "Тохиргоо", icon: FiSettings },
+    ],
   },
 ];
 
@@ -26,6 +30,18 @@ export default function AdminShell({ crumb, title, actions, children }) {
   const location = useLocation();
   const user = readStoredUser();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Payments waiting for a decision, shown as a badge on "Төлбөр".
+  const [pendingPayments, setPendingPayments] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    apiFetch("/api/admin/payments/pending-count")
+      .then((data) => alive && setPendingPayments(Number(data?.submitted || 0)))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [location.pathname]);
 
   // On small screens the sidebar is a drawer: close it after navigating
   // and on Escape.
@@ -84,6 +100,9 @@ export default function AdminShell({ crumb, title, actions, children }) {
                 <NavLink key={link.to} to={link.to} className={({ isActive }) => `saNavLink${isActive ? " active" : ""}`}>
                   <link.icon />
                   <span>{link.label}</span>
+                  {link.badge === "payments" && pendingPayments > 0 ? (
+                    <em className="saNavBadge">{pendingPayments}</em>
+                  ) : null}
                 </NavLink>
               ))}
             </nav>

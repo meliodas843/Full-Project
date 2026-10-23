@@ -1,4 +1,4 @@
-import { EVENT_STATUS_LABELS, formatDateTime, getEventImage, getEventStatus } from "./History.helpers";
+import { EVENT_STATUS_LABELS, formatDateTime, getEventImage, getEventStatus, paymentStatusLabel } from "./History.helpers";
 import { createPortal } from "react-dom";
 import { FiImage, FiMoreVertical, FiTrash2 } from "react-icons/fi";
 
@@ -24,9 +24,13 @@ export default function MyEventCard({
         <img src={getEventImage(event)} alt={event.title} />
     
         <span
-          className={`myEventStatusBadge ${getEventStatus(event)}`}
+          className={`myEventStatusBadge ${getEventStatus(event)}${
+            event.fee_status === "rejected" ? " rejected" : ""
+          }`}
         >
-          {EVENT_STATUS_LABELS[getEventStatus(event)]}
+          {getEventStatus(event) === "payment"
+            ? paymentStatusLabel(event)
+            : EVENT_STATUS_LABELS[getEventStatus(event)]}
         </span>
       </button>
     
@@ -171,7 +175,15 @@ export default function MyEventCard({
             </>
           ) : (
             <>
-              {getEventStatus(event) === "draft" ? (
+              {getEventStatus(event) === "payment" ? (
+                <button
+                  type="button"
+                  className="myEventPayBtn"
+                  onClick={() => navigate(`/user/events/${event.id}/payment`)}
+                >
+                  {event.fee_status === "submitted" ? "Төлбөр" : "Төлбөр төлөх"}
+                </button>
+              ) : getEventStatus(event) === "draft" ? (
                 <button
                   type="button"
                   onClick={() => openEdit(event)}
