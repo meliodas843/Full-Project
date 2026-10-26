@@ -18,6 +18,7 @@ import {
 import brandLogo from "../../assets/registra-logo-def.png";
 
 import { API_BASE } from "../../lib/config";
+import CompanySuggestInput from "./CompanySuggestInput";
 import LegalReader from "./legal/LegalReader";
 import { ORGANIZATION_TERMS, PRIVACY, TERMS, docsFor } from "./legal/legalContent";
 
@@ -724,7 +725,7 @@ export default function Signup() {
                 <div className="rgFormField">
                   <label>АЖИЛЛАДАГ БАЙГУУЛЛАГА (ЗААВАЛ БИШ)</label>
 
-                  <input
+                  <CompanySuggestInput
                     name="companyName"
                     value={form.companyName}
                     onChange={handleChange}
@@ -793,12 +794,13 @@ export default function Signup() {
                 <div className="rgFormField">
                   <label>БАЙГУУЛЛАГЫН НЭР *</label>
 
-                  <input
+                  <CompanySuggestInput
                     name="organizationName"
                     value={form.organizationName}
                     onChange={handleChange}
                     placeholder="Жишээ: IT Insight ХХК"
                     required
+                    warnExact
                   />
                 </div>
 
