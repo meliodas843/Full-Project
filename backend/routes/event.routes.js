@@ -1,7 +1,6 @@
 import fs from "fs";
 import { getEventAccess } from "../utils/eventAccess.js";
 import { logAudit } from "../utils/audit.js";
-import { feeApplies, feeReference, loadSettings, requirePublishFee } from "../utils/payments.js";
 import { imageExtension, uploadError } from "../utils/uploadSafety.js";
 
 import path from "path";
@@ -572,8 +571,6 @@ router.get(
 
         AND visibility = 'public'
 
-        AND (status IS NULL OR status = 'published')
-
       LIMIT 1
 
       `,
@@ -646,8 +643,6 @@ router.get("/", async (req, res) => {
       WHERE archived = 0
 
         AND visibility = 'public'
-
-        AND (status IS NULL OR status = 'published')
 
       ORDER BY start_time DESC
 
@@ -1002,24 +997,6 @@ router.post("/", authMiddleware, (req, res) => {
 
       const eventId = result.insertId;
 
-      // Publish fee: the event stays hidden (status 'pending_payment') until a
-      // super admin confirms the organizer's bank transfer.
-      const paymentSettings = await loadSettings();
-      let payment = null;
-
-      if (feeApplies(paymentSettings)) {
-        const [[organization]] = await pool.query("SELECT id FROM organizations WHERE user_id = ? LIMIT 1", [
-          req.user?.id,
-        ]);
-        await requirePublishFee(pool, {
-          eventId,
-          userId: req.user?.id,
-          organizationId: organization?.id || null,
-          settings: paymentSettings,
-        });
-        payment = { required: true, reference: feeReference(eventId), amount: paymentSettings.publishFee };
-      }
-
       const [rows] = await pool.query(
         `
 
@@ -1083,8 +1060,6 @@ router.post("/", authMiddleware, (req, res) => {
         message: "Event created ✅",
 
         event: normalizeEventDateFields(rows[0]),
-
-        payment,
       });
     } catch (err) {
       console.error("POST /api/events error:", err);
@@ -1405,8 +1380,6 @@ router.get("/my-joined", authMiddleware, async (req, res) => {
 
       WHERE e.archived = 0
 
-        AND (e.status IS NULL OR e.status = 'published')
-
         AND (
 
           LOWER(e.created_by_email) = ?
@@ -1502,10 +1475,6 @@ router.get("/my-events", authMiddleware, async (req, res) => {
 
         e.agenda,
 
-        e.status,
-
-        (SELECT f.status FROM publish_fees f WHERE f.event_id = e.id) AS fee_status,
-
         (
 
           SELECT COUNT(*)
@@ -1600,8 +1569,6 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
 
          visibility,
 
-         status,
-
          (SELECT COUNT(*)
 
           FROM event_bookings
@@ -1619,11 +1586,6 @@ router.post("/:id/book", authMiddleware, async (req, res) => {
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
-    }
-
-    // Events waiting for the publish fee aren't open for registration yet.
-    if (event.status && event.status !== "published") {
-      return res.status(400).json({ message: "Энэ эвэнт хараахан нийтлэгдээгүй байна." });
     }
 
     const [[existing]] = await pool.query(
@@ -2348,7 +2310,6 @@ router.get("/finished", authMiddleware, async (req, res) => {
       LEFT JOIN event_bookings eb ON eb.event_id = e.id
 
       WHERE e.archived = 0
-        AND (e.status IS NULL OR e.status = 'published')
 
         AND COALESCE(e.end_time, e.start_time) <= NOW()
 

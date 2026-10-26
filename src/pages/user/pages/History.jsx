@@ -802,13 +802,6 @@ export default function History() {
 
       console.log("EVENT SAVED:", data);
 
-      // New event with a publish fee: continue to the payment step.
-      if (!editingEventId && data?.payment?.required && data?.event?.id) {
-        resetForm();
-        navigate(`/user/events/${data.event.id}/payment`);
-        return;
-      }
-
       console.log("SENT CATEGORY:", cleanCategory);
 
       await load();
@@ -1083,8 +1076,6 @@ export default function History() {
                   ["all", "Бүгд"],
 
                   ["draft", EVENT_STATUS_LABELS.draft],
-
-                  ["payment", EVENT_STATUS_LABELS.payment],
 
                   ["published", EVENT_STATUS_LABELS.published],
 
