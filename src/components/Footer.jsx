@@ -6,6 +6,7 @@ import {
   FaInstagram,
 } from "react-icons/fa6";
 import registraLogo from "../assets/registra-logo-def.png";
+import { SUPPORT_EMAIL } from "../lib/contact";
 
 export default function Footer() {
   return (
@@ -59,7 +60,7 @@ export default function Footer() {
 
           <div className="riFooterColumn">
             <h4>ХОЛБОО БАРИХ</h4>
-            <span>hello@khuralplus.mn</span>
+            <span>{SUPPORT_EMAIL}</span>
             <span>+976 7000 0000</span>
             <span>Улаанбаатар, Монгол</span>
           </div>
