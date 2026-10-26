@@ -38,8 +38,6 @@ const UserEvents = lazyPage(() => import("./pages/user/pages/Event"));
 const History = lazyPage(() => import("./pages/user/pages/History"));
 const Password = lazyPage(() => import("./pages/user/pages/Password"));
 const Bill = lazyPage(() => import("./pages/user/pages/Bill"));
-const EventPayment = lazyPage(() => import("./pages/user/pages/EventPayment"));
-const UserPayments = lazyPage(() => import("./pages/user/pages/Payments"));
 const Organizations = lazyPage(() => import("./pages/user/pages/Organizations"));
 const OrganizationDetail = lazyPage(() => import("./pages/user/pages/OrganizationDetail"));
 const OrganizationProfile = lazyPage(() => import("./pages/user/pages/OrganizationProfile"));
@@ -49,8 +47,6 @@ const AdminDashboard = lazyPage(() => import("./pages/super_admin/pages/Dashboar
 const AdminNewsList = lazyPage(() => import("./pages/super_admin/pages/NewsList"));
 const AdminNewsEditor = lazyPage(() => import("./pages/super_admin/pages/NewsEditor"));
 const AdminLogs = lazyPage(() => import("./pages/super_admin/pages/Logs"));
-const AdminPayments = lazyPage(() => import("./pages/super_admin/pages/Payments"));
-const AdminSettings = lazyPage(() => import("./pages/super_admin/pages/Settings"));
 
 const ADMIN_ROLES = ["admin", "super_admin"];
 const adminPage = (page) => <ProtectedRoute roles={ADMIN_ROLES}>{page}</ProtectedRoute>;
@@ -269,24 +265,6 @@ function AppRoutes() {
           }
         />
 
-        <Route
-          path="/user/events/:eventId/payment"
-          element={
-            <ProtectedRoute roles={["user"]}>
-              <EventPayment />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/user/payments"
-          element={
-            <ProtectedRoute roles={["user"]}>
-              <UserPayments />
-            </ProtectedRoute>
-          }
-        />
-
         <Route path="/super-admin" element={<Navigate to="/super-admin/dashboard" replace />} />
         <Route path="/super-admin/home" element={<Navigate to="/super-admin/dashboard" replace />} />
         <Route path="/super-admin/news-create" element={<Navigate to="/super-admin/news/new" replace />} />
@@ -295,8 +273,6 @@ function AppRoutes() {
         <Route path="/super-admin/news/new" element={adminPage(<AdminNewsEditor />)} />
         <Route path="/super-admin/news/:id" element={adminPage(<AdminNewsEditor />)} />
         <Route path="/super-admin/logs" element={adminPage(<AdminLogs />)} />
-        <Route path="/super-admin/payments" element={adminPage(<AdminPayments />)} />
-        <Route path="/super-admin/settings" element={adminPage(<AdminSettings />)} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

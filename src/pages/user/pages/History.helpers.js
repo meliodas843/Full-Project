@@ -195,11 +195,6 @@ export function getEventStatus(event) {
     return "draft";
   }
 
-  // Waiting for the publish fee to be paid and confirmed.
-  if (status === "pending_payment") {
-    return "payment";
-  }
-
   return "published";
 }
 
@@ -208,17 +203,8 @@ export const EVENT_STATUS_LABELS = {
 
   draft: "Ноорог",
 
-  payment: "Төлбөр хүлээгдэж буй",
-
   ended: "Дууссан",
 };
-
-// Badge text for an event waiting for its publish fee.
-export function paymentStatusLabel(event) {
-  if (event?.fee_status === "submitted") return "Төлбөр шалгагдаж буй";
-  if (event?.fee_status === "rejected") return "Төлбөр татгалзсан";
-  return EVENT_STATUS_LABELS.payment;
-}
 
 export function makeSpeaker() {
   return {
