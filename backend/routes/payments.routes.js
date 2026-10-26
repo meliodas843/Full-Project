@@ -7,9 +7,20 @@ import express from "express";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { logAudit } from "../utils/audit.js";
-import { loadSettings, receiptPath, receiptUpload } from "../utils/payments.js";
+import { feeApplies, loadSettings, receiptPath, receiptUpload } from "../utils/payments.js";
 
 const router = express.Router();
+
+// Public: whether publishing costs anything, for the home page FAQ. No bank
+// details here; those are only shown to signed-in organizers.
+router.get("/publish-fee", async (req, res, next) => {
+  try {
+    const s = await loadSettings();
+    return res.json({ required: feeApplies(s), amount: s.publishFee, reviewSlaHours: s.reviewSlaHours });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.use(authMiddleware);
 

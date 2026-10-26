@@ -1,0 +1,151 @@
+.riFaqSection {
+  background: var(--ri-bg);
+}
+
+.riFaqLayout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.6fr);
+  gap: 64px;
+  align-items: start;
+}
+
+.riFaqIntro .riPill {
+  margin-bottom: 20px;
+  background: rgba(99, 91, 255, 0.12);
+  color: #6d67ff;
+}
+
+.riFaqIntro h2 {
+  margin: 0 0 14px;
+  color: var(--ri-heading, var(--ri-text));
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.riFaqIntro p {
+  max-width: 340px;
+  margin: 0 0 26px;
+  color: var(--ri-muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.riFaqHelp {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 22px;
+  border: 1px solid var(--ri-border);
+  border-radius: 12px;
+  background: var(--ri-card);
+  color: var(--ri-text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(18, 24, 40, 0.05);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.riFaqHelp:hover {
+  border-color: var(--ri-purple);
+  transform: translateY(-1px);
+}
+
+.riFaqList {
+  border-top: 1px solid var(--ri-border);
+}
+
+.riFaqItem {
+  border-bottom: 1px solid var(--ri-border);
+}
+
+.riFaqItem h3 {
+  margin: 0;
+}
+
+.riFaqItem button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ri-text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.riFaqItem button i {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--ri-border);
+  border-radius: 50%;
+  background: var(--ri-card);
+  color: var(--ri-text);
+  font-size: 16px;
+  font-style: normal;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.riFaqItem.open button i {
+  border-color: var(--ri-purple);
+  background: var(--ri-purple);
+  color: #ffffff;
+}
+
+.riFaqItem button:focus-visible {
+  outline: 2px solid var(--ri-purple);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.riFaqAnswer p {
+  max-width: 760px;
+  margin: -6px 0 24px;
+  color: var(--ri-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .riFaqLayout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .riFaqIntro p {
+    max-width: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .riFaqItem button {
+    padding: 18px 0;
+    font-size: 15px;
+  }
+
+  .riFaqItem button i {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .riFaqAnswer p {
+    font-size: 14px;
+  }
+}
