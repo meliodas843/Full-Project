@@ -8,7 +8,9 @@
   --life-blob: #c9bcff;
   --life-photo-border: #ffffff;
   --life-badge-bg: #ecfbf4;
-  --life-bar-light: #ebe7ff;
+  --life-grid: #efedf9;
+  --life-tip-bg: #14162a;
+  --life-tip-text: #ffffff;
   background: radial-gradient(1200px 500px at 50% -10%, #efeaff 0%, var(--ri-bg-2, #ffffff) 60%);
 }
 
@@ -20,7 +22,9 @@ html[data-public-theme="dark"] .riLifeSection {
   --life-blob: #4b3aa8;
   --life-photo-border: #1d2340;
   --life-badge-bg: rgba(37, 196, 143, 0.14);
-  --life-bar-light: #252b4d;
+  --life-grid: #262e4a;
+  --life-tip-bg: #ffffff;
+  --life-tip-text: #14162a;
   background: radial-gradient(1200px 500px at 50% -10%, #1c1840 0%, var(--ri-bg-2, #101629) 60%);
 }
 
@@ -423,48 +427,134 @@ html[data-public-theme="dark"] .riLifeBadge {
 
 .riLifeKpi {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-top: auto;
+  margin-top: 4px;
 }
 
 .riLifeKpi strong {
-  display: block;
-  font-size: 30px;
+  font-size: 34px;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
 
 .riLifeKpi span {
+  margin-left: 6px;
   color: var(--ri-muted);
   font-size: 12px;
 }
 
 .riLifeKpi em {
-  color: #1d9e6c;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--life-badge-bg);
+  color: #138a5e;
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
 }
 
-.riLifeBars {
+html[data-public-theme="dark"] .riLifeKpi em {
+  color: #4fd8a5;
+}
+
+/* The dot and tooltip sit on the curve at (285, 25) of the 370×90 chart. */
+.riLifeChart {
+  position: relative;
+  height: 90px;
+  margin-top: auto;
+}
+
+.riLifeChart svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.riLifeGrid2 line {
+  stroke: var(--life-grid);
+  stroke-dasharray: 3 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.riLifeDot {
+  position: absolute;
+  left: 77%;
+  top: 27.8%;
+  width: 14px;
+  height: 14px;
+  border: 3px solid #7b5cff;
+  border-radius: 50%;
+  background: var(--life-card);
+  transform: translate(-50%, -50%);
+}
+
+.riLifeTip {
+  position: absolute;
+  left: 77%;
+  bottom: calc(72.2% + 14px);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: var(--life-tip-bg);
+  color: var(--life-tip-text);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px -6px rgba(20, 22, 42, 0.5);
+  transform: translateX(-50%);
+}
+
+.riLifeTip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.riLifeFiles {
   display: flex;
-  align-items: flex-end;
   gap: 6px;
-  height: 70px;
 }
 
-.riLifeBars span {
-  flex: 1;
-  border-radius: 6px 6px 3px 3px;
-  background: linear-gradient(180deg, #a58bff, #5847ee);
-  transform-origin: bottom;
+.riLifeFiles span {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
 }
 
-.riLifeBars span.light {
-  background: var(--life-bar-light);
+.riLifeFiles .pdf {
+  background: rgba(214, 69, 69, 0.12);
+  color: #d64545;
 }
 
+.riLifeFiles .xls {
+  background: rgba(29, 158, 108, 0.12);
+  color: #138a5e;
+}
+
+.riLifeFiles .csv {
+  background: rgba(88, 71, 238, 0.12);
+  color: #5847ee;
+}
+
+html[data-public-theme="dark"] .riLifeFiles .pdf {
+  color: #ff8a8a;
+}
+
+html[data-public-theme="dark"] .riLifeFiles .xls {
+  color: #4fd8a5;
+}
+
+html[data-public-theme="dark"] .riLifeFiles .csv {
+  color: #a99cff;
+}
 
 /* 5. Photo album */
 
@@ -581,9 +671,35 @@ html[data-public-theme="dark"] .riLifeBadge {
   }
 }
 
-@keyframes riLifeGrow {
+@keyframes riLifeDraw {
   to {
-    transform: scaleY(1);
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes riLifeFade {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes riLifeDotPing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(123, 92, 255, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(123, 92, 255, 0);
+  }
+}
+
+@keyframes riLifeTipIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 
@@ -625,13 +741,35 @@ html[data-public-theme="dark"] .riLifeBadge {
     animation: riLifePop 3.2s ease-in-out infinite;
   }
 
-  .riLifeBars span {
-    transform: scaleY(0);
+  /* Stats: the line draws itself once the card scrolls into view, then
+     the area, dot and tooltip follow. */
+  .riLifeLine {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
   }
 
-  .riLifeCard.riVisible .riLifeBars span {
-    animation: riLifeGrow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    animation-delay: calc(250ms + var(--i) * 80ms);
+  .riLifeArea,
+  .riLifeDot,
+  .riLifeTip {
+    opacity: 0;
+  }
+
+  .riLifeCard.riVisible .riLifeLine {
+    animation: riLifeDraw 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+  }
+
+  .riLifeCard.riVisible .riLifeArea {
+    animation: riLifeFade 0.8s ease 1s forwards;
+  }
+
+  .riLifeCard.riVisible .riLifeDot {
+    animation:
+      riLifeFade 0.3s ease 1.4s forwards,
+      riLifeDotPing 2s ease-out 1.8s infinite;
+  }
+
+  .riLifeCard.riVisible .riLifeTip {
+    animation: riLifeTipIn 0.4s ease 1.6s forwards;
   }
 }
 
