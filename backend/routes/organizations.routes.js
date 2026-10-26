@@ -166,6 +166,37 @@ function optionalAuth(req, res, next) {
   return authMiddleware(req, res, next);
 }
 
+// Sign-up autocomplete: registered organization names matching what the
+// person is typing. Exact matches first, then names starting with the text.
+router.get("/suggest", async (req, res) => {
+  const q = String(req.query.q || "").trim().slice(0, 80);
+  if (q.length < 1) return res.json({ organizations: [] });
+
+  try {
+    const like = q.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+    const [rows] = await pool.query(
+      `SELECT id, name, logo_url, is_verified, LOWER(TRIM(name)) = LOWER(?) AS exact
+         FROM organizations
+        WHERE name LIKE ?
+        ORDER BY exact DESC, name LIKE ? DESC, is_verified DESC, name
+        LIMIT 8`,
+      [q, `%${like}%`, `${like}%`],
+    );
+    return res.json({
+      organizations: rows.map((row) => ({
+        id: row.id,
+        name: row.name || "",
+        logo_url: row.logo_url || "",
+        verified: Boolean(row.is_verified),
+        exact: Boolean(row.exact),
+      })),
+    });
+  } catch (err) {
+    console.error("GET ORGANIZATION SUGGEST ERROR:", err);
+    return res.status(500).json({ message: "Байгууллага хайж чадсангүй." });
+  }
+});
+
 router.get(
   "/",
 
