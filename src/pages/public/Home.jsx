@@ -19,6 +19,8 @@ import {
 
 import Footer from "../../components/Footer";
 import HomeFaq from "./HomeFaq";
+import HomeLifecycle from "./HomeLifecycle";
+import HomeUpcoming from "./HomeUpcoming";
 
 import { API_BASE, getImageSrc } from "../../lib/config";
 
@@ -654,6 +656,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <HomeUpcoming events={events} />
+
+      <HomeLifecycle />
 
       <section className="riSection riFeaturesSection" id="features">
         <div className="riContainer">

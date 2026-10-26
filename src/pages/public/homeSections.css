@@ -1,0 +1,458 @@
+/* Home: "Удахгүй болох эвэнтүүд" and "Бүртгэлээс уулзалт хүртэл". */
+
+.riUpcomingSection {
+  background: var(--ri-bg);
+}
+
+.riUpcomingHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.riUpcomingHead .riPill {
+  margin-bottom: 14px;
+}
+
+.riUpcomingHead h2 {
+  margin: 0;
+  color: var(--ri-heading, var(--ri-text));
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.riUpcomingChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.riUpcomingChips button,
+.riUpcomingAll {
+  padding: 8px 14px;
+  border: 1px solid var(--ri-border);
+  border-radius: 999px;
+  background: var(--ri-card);
+  color: var(--ri-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.riUpcomingChips button:hover,
+.riUpcomingAll:hover {
+  border-color: var(--ri-purple);
+}
+
+.riUpcomingChips button.active {
+  border-color: var(--ri-text);
+  background: var(--ri-text);
+  color: var(--ri-bg);
+}
+
+.riUpcomingAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.riUpcomingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.riUpcomingCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--ri-border);
+  border-radius: 16px;
+  background: var(--ri-card);
+  color: var(--ri-text);
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+@keyframes riUpcomingIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.riUpcomingCard {
+  animation: riUpcomingIn 0.5s ease both;
+  animation-delay: var(--ri-up-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .riUpcomingCard {
+    animation: none;
+  }
+}
+
+.riUpcomingCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ri-shadow);
+}
+
+.riUpcomingMedia {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--ri-card-2);
+}
+
+.riUpcomingMedia img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.riUpcomingBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(13, 16, 34, 0.72);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+}
+
+.riUpcomingBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+}
+
+.riUpcomingBody h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.riUpcomingMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ri-muted);
+  font-size: 13px;
+}
+
+.riUpcomingOrg {
+  display: grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--ri-purple);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.riUpcomingOrg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #ffffff;
+}
+
+.riUpcomingSeats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+  color: var(--ri-muted);
+  font-size: 12px;
+}
+
+.riUpcomingSeats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.riUpcomingSeats strong {
+  color: var(--ri-purple);
+  font-weight: 700;
+}
+
+.riUpcomingBar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ri-card-2);
+}
+
+.riUpcomingBar span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ri-purple), var(--ri-violet));
+}
+
+.riUpcomingEmpty {
+  padding: 40px 20px;
+  border: 1px dashed var(--ri-border);
+  border-radius: 16px;
+  color: var(--ri-muted);
+  text-align: center;
+}
+
+/* Bento */
+
+.riLifeSection {
+  background: var(--ri-bg-2);
+}
+
+.riLifeSection .riSectionHead {
+  margin-bottom: 40px;
+}
+
+.riLifeSection .riSectionHead h2 {
+  color: var(--ri-heading, var(--ri-text));
+  font-size: clamp(26px, 3.2vw, 40px);
+}
+
+.riLifeGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.riLifeCard {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid var(--ri-border);
+  border-radius: 18px;
+  background: var(--ri-card);
+  color: var(--ri-text);
+}
+
+.riLifeCard.wide {
+  grid-column: span 3;
+}
+
+.riLifeCard.soft {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(98, 71, 239, 0.1), rgba(135, 82, 241, 0.04));
+}
+
+.riLifeCard.dark {
+  border-color: #1d2347;
+  background: radial-gradient(circle at 100% 0%, rgba(98, 71, 239, 0.35), transparent 55%), #0e1330;
+  color: #f7f8ff;
+}
+
+.riLifeCard.cyan {
+  background: linear-gradient(160deg, rgba(38, 201, 232, 0.16), rgba(38, 201, 232, 0.04));
+}
+
+.riLifeCard h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.riLifeCard p {
+  margin: 0;
+  color: var(--ri-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.riLifeCard.dark p {
+  color: #b7bdd6;
+}
+
+.riLifeIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: rgba(98, 71, 239, 0.12);
+  color: var(--ri-purple);
+  font-size: 17px;
+}
+
+.riLifeCard.dark .riLifeIcon {
+  background: rgba(38, 201, 232, 0.16);
+  color: var(--ri-cyan);
+}
+
+.riLifeCard.cyan .riLifeIcon {
+  background: rgba(38, 201, 232, 0.18);
+  color: #0f9fbb;
+}
+
+.riLifeTicket {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--ri-border);
+  border-radius: 14px;
+  background: var(--ri-card);
+  box-shadow: var(--ri-shadow);
+  transform: rotate(-3deg);
+}
+
+.riLifeTicket > svg {
+  font-size: 46px;
+  color: var(--ri-text);
+}
+
+.riLifeTicket strong {
+  display: block;
+  font-size: 13px;
+}
+
+.riLifeTicket span {
+  color: #1d9e6c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.riLifeSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.riLifeSlots span {
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: #c9cee6;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.riLifeSlots span.active {
+  border-color: var(--ri-cyan);
+  background: var(--ri-cyan);
+  color: #0e1330;
+}
+
+.riLifeBig {
+  margin-top: auto;
+  color: #0f9fbb;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.riLifeBig small {
+  color: var(--ri-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.riLifeBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 64px;
+  margin-top: auto;
+}
+
+.riLifeBars span {
+  flex: 1;
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, var(--ri-violet), var(--ri-purple));
+  opacity: 0.85;
+}
+
+.riLifePhotos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: auto;
+}
+
+.riLifePhotos img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+@media (max-width: 980px) {
+  .riUpcomingGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .riLifeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .riLifeCard,
+  .riLifeCard.wide {
+    grid-column: span 1;
+  }
+
+  .riLifeCard.wide {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .riUpcomingGrid,
+  .riLifeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .riLifeCard,
+  .riLifeCard.wide {
+    grid-column: span 1;
+    min-height: 0;
+  }
+
+  .riLifeCard.soft {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .riLifeTicket {
+    transform: none;
+  }
+}

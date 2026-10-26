@@ -639,7 +639,23 @@ router.get("/", async (req, res) => {
 
           WHERE eb.event_id = events.id
 
-        ) AS booked_count
+        ) AS booked_count,
+
+        -- Organizer for the cards: the linked organization, else the
+        -- creator's organization, else the creator's name.
+        COALESCE(
+          (SELECT o.name FROM organizations o WHERE o.id = events.organization_id),
+          (SELECT o.name FROM organizations o JOIN users u ON u.id = o.user_id
+            WHERE LOWER(u.email) = LOWER(events.created_by_email) LIMIT 1),
+          (SELECT NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), '') FROM users u
+            WHERE LOWER(u.email) = LOWER(events.created_by_email) LIMIT 1)
+        ) AS organizer_name,
+
+        COALESCE(
+          (SELECT o.logo_url FROM organizations o WHERE o.id = events.organization_id),
+          (SELECT o.logo_url FROM organizations o JOIN users u ON u.id = o.user_id
+            WHERE LOWER(u.email) = LOWER(events.created_by_email) LIMIT 1)
+        ) AS organizer_logo
 
       FROM events
 
