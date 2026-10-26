@@ -869,6 +869,13 @@ export default function Event() {
 
       const saved = data?.event || data;
 
+      // New event with a publish fee: continue to the payment step.
+      if (!editingEventId && data?.payment?.required && saved?.id) {
+        resetForm();
+        navigate(`/user/events/${saved.id}/payment`);
+        return;
+      }
+
       setSuccessMsg(
         editingEventId
           ? "Эвент амжилттай шинэчлэгдлээ ✅"

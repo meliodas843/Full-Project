@@ -2,6 +2,7 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FiCalendar,
+  FiCreditCard,
   FiGrid,
   FiHome,
   FiLock,
@@ -211,6 +212,15 @@ export default function Sidebar({
                   Required
                 </span>
               )}
+            </NavLink>
+
+            <NavLink
+              to="/user/payments"
+              className={({ isActive }) => (isActive ? "rgSideLink active" : "rgSideLink")}
+              onClick={onNavigate}
+            >
+              <FiCreditCard />
+              <span>Төлбөр</span>
             </NavLink>
           </nav>
         </section>

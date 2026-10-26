@@ -30,3 +30,6 @@ dist-ssr
 backend/.env
 backend/.env.*
 !backend/.env.example
+
+# Payment receipts (bank screenshots) - private, never commit
+backend/private_uploads/

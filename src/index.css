@@ -30205,6 +30205,30 @@ svg {
     line-height: 1.25;
   }
 }
+
+/* My events: waiting for the publish fee */
+.myEventStatusBadge.payment {
+  color: #b7791f;
+}
+
+.myEventStatusBadge.payment.rejected {
+  color: #d64545;
+}
+
+.myEventStatusBadge.payment::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.myEventActions .myEventPayBtn {
+  border-color: transparent;
+  background: #6247ef;
+  color: #ffffff;
+}
+
 /* Safari draws native selects as grey gradient buttons and ignores their
    padding, so icons overlap the text. Every select in the user area gets the
    same flat look with a drawn chevron instead. Rules that colour selects use

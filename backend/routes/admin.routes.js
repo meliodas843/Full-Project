@@ -5,7 +5,9 @@ import express from "express";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
+import fs from "fs";
 import { AUDIT_TYPES, RETENTION_DAYS, logAudit } from "../utils/audit.js";
+import { loadSettings, receiptPath, saveSettings } from "../utils/payments.js";
 
 const router = express.Router();
 
@@ -74,7 +76,8 @@ router.get("/dashboard", async (req, res, next) => {
 
     const activeEvents = await scalar(
       `SELECT COUNT(*) FROM events
-       WHERE archived = 0 AND COALESCE(end_time, start_time) >= NOW()`,
+       WHERE archived = 0 AND COALESCE(end_time, start_time) >= NOW()
+         AND (status IS NULL OR status = 'published')`,
     );
 
     // Sign-ups and bookings per day for the chart, zero-filled. Days are
@@ -443,6 +446,258 @@ router.get("/logs.csv", async (req, res, next) => {
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="registra-log-${new Date().toISOString().slice(0, 10)}.csv"`);
+    return res.send("﻿" + [header.join(","), ...lines].join("\n"));
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* =========================
+   PAYMENTS: publish fee settings and verification
+========================= */
+router.get("/payments/settings", async (req, res, next) => {
+  try {
+    return res.json(await loadSettings());
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put("/payments/settings", async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const fee = Math.round(Number(body.publishFee));
+    const sla = Math.round(Number(body.reviewSlaHours));
+    const accountNumber = String(body.accountNumber || "").replace(/\s+/g, "");
+
+    if (!Number.isFinite(fee) || fee < 0 || fee > 10000000) {
+      return res.status(400).json({ message: "Шимтгэлийн дүн буруу байна." });
+    }
+    if (accountNumber && !/^\d{6,20}$/.test(accountNumber)) {
+      return res.status(400).json({ message: "Дансны дугаар 6-20 оронтой тоо байна." });
+    }
+    if (body.feeEnabled && fee > 0 && !accountNumber) {
+      return res.status(400).json({ message: "Шимтгэл авахын тулд төлбөр хүлээн авах дансаа оруулна уу." });
+    }
+
+    await saveSettings({
+      fee_enabled: body.feeEnabled ? "1" : "0",
+      publish_fee: String(fee),
+      bank_name: String(body.bankName || "").trim().slice(0, 100),
+      account_number: accountNumber,
+      account_name: String(body.accountName || "").trim().slice(0, 150),
+      review_sla_hours: String(Number.isFinite(sla) ? Math.min(72, Math.max(1, sla)) : 4),
+    });
+
+    logAudit(req, {
+      type: "update",
+      action: "Төлбөрийн тохиргоо өөрчилсөн",
+      target: `Шимтгэл ₮${fee.toLocaleString("en-US")}`,
+      details: { feeEnabled: Boolean(body.feeEnabled), publishFee: fee, bank: body.bankName, accountNumber },
+    });
+
+    return res.json(await loadSettings());
+  } catch (error) {
+    next(error);
+  }
+});
+
+const FEE_ADMIN_COLUMNS = `
+  f.id, f.event_id, f.reference, f.amount, f.status, f.paid_amount, f.payer_note, f.reject_reason,
+  f.receipt_file IS NOT NULL AS has_receipt,
+  UNIX_TIMESTAMP(f.created_at) AS created_ts,
+  UNIX_TIMESTAMP(f.submitted_at) AS submitted_ts,
+  UNIX_TIMESTAMP(f.decided_at) AS decided_ts,
+  e.title AS event_title, e.image_url AS event_image,
+  u.email AS payer_email,
+  TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS payer_name,
+  o.name AS organization_name,
+  TRIM(CONCAT(COALESCE(d.first_name, ''), ' ', COALESCE(d.last_name, ''))) AS decided_by_name
+`;
+
+const FEE_JOINS = `
+  FROM publish_fees f
+  JOIN events e ON e.id = f.event_id
+  LEFT JOIN users u ON u.id = f.user_id
+  LEFT JOIN organizations o ON o.id = f.organization_id
+  LEFT JOIN users d ON d.id = f.decided_by
+`;
+
+function feeFilters(query) {
+  const where = [];
+  const params = [];
+  const status = String(query.status || "submitted");
+  if (["awaiting", "submitted", "confirmed", "rejected"].includes(status)) {
+    where.push("f.status = ?");
+    params.push(status);
+  }
+  const q = String(query.q || "").trim().slice(0, 100);
+  if (q) {
+    const like = `%${q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
+    where.push("(f.reference LIKE ? OR e.title LIKE ? OR u.email LIKE ? OR o.name LIKE ?)");
+    params.push(like, like, like, like);
+  }
+  return { sql: where.length ? where.join(" AND ") : "1=1", params };
+}
+
+// Sidebar badge: payments waiting for a decision.
+router.get("/payments/pending-count", async (req, res, next) => {
+  try {
+    const [[row]] = await pool.query("SELECT COUNT(*) AS n FROM publish_fees WHERE status = 'submitted'");
+    return res.json({ submitted: Number(row.n) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/payments/publish-fees", async (req, res, next) => {
+  try {
+    const settings = await loadSettings();
+    const filter = feeFilters(req.query);
+
+    const [rows] = await pool.query(
+      `SELECT ${FEE_ADMIN_COLUMNS} ${FEE_JOINS}
+       WHERE ${filter.sql}
+       ORDER BY COALESCE(f.submitted_at, f.created_at) ${req.query.status === "submitted" || !req.query.status ? "ASC" : "DESC"}
+       LIMIT 300`,
+      filter.params,
+    );
+
+    const [[stats]] = await pool.query(
+      `SELECT
+         SUM(status = 'submitted') AS submitted,
+         SUM(status = 'awaiting') AS awaiting,
+         SUM(status = 'confirmed' AND decided_at >= CURDATE()) AS confirmed_today,
+         SUM(status = 'submitted' AND submitted_at < DATE_SUB(NOW(), INTERVAL ? HOUR)) AS overdue,
+         COALESCE(SUM(CASE WHEN status = 'confirmed' AND decided_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN amount END), 0) AS month_total
+       FROM publish_fees`,
+      [settings.reviewSlaHours],
+    );
+
+    const [recent] = await pool.query(
+      `SELECT ${FEE_ADMIN_COLUMNS} ${FEE_JOINS}
+       WHERE f.status IN ('confirmed', 'rejected')
+       ORDER BY f.decided_at DESC
+       LIMIT 8`,
+    );
+
+    const counts = Object.fromEntries(Object.entries(stats).map(([key, value]) => [key, Number(value || 0)]));
+    return res.json({ rows, recent, stats: counts, reviewSlaHours: settings.reviewSlaHours });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/payments/publish-fees/:id/receipt", async (req, res, next) => {
+  try {
+    const [[fee]] = await pool.query("SELECT receipt_file FROM publish_fees WHERE id = ?", [Number(req.params.id)]);
+    const file = receiptPath(fee?.receipt_file);
+    if (!file || !fs.existsSync(file)) return res.status(404).json({ message: "Баримт олдсонгүй." });
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.sendFile(file);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Confirm: the transfer arrived. Publishes the event and books the income.
+router.post("/payments/publish-fees/:id/confirm", async (req, res, next) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [[fee]] = await connection.query(
+      `SELECT f.*, e.title FROM publish_fees f JOIN events e ON e.id = f.event_id WHERE f.id = ? FOR UPDATE`,
+      [Number(req.params.id)],
+    );
+
+    if (!fee) {
+      await connection.rollback();
+      return res.status(404).json({ message: "Төлбөр олдсонгүй." });
+    }
+    if (fee.status === "confirmed") {
+      await connection.rollback();
+      return res.status(400).json({ message: "Аль хэдийн баталгаажсан." });
+    }
+
+    await connection.query(
+      "UPDATE publish_fees SET status = 'confirmed', decided_at = NOW(), decided_by = ?, reject_reason = NULL WHERE id = ?",
+      [req.user.id, fee.id],
+    );
+    await connection.query("UPDATE events SET status = 'published' WHERE id = ?", [fee.event_id]);
+    await connection.query(
+      `INSERT INTO payments (amount, status, user_id, organization_id, event_id, description)
+       VALUES (?, 'paid', ?, ?, ?, ?)`,
+      [fee.amount, fee.user_id, fee.organization_id, fee.event_id, `Эвэнт нийтлэх шимтгэл ${fee.reference}`],
+    );
+
+    await connection.commit();
+
+    logAudit(req, {
+      type: "decision",
+      action: "Нийтлэх шимтгэл баталгаажуулсан",
+      target: fee.title,
+      targetDetail: fee.reference,
+      details: { amount: Number(fee.amount), paidAmount: fee.paid_amount === null ? null : Number(fee.paid_amount) },
+    });
+
+    return res.json({ message: "Баталгаажлаа. Эвэнт нийтлэгдлээ." });
+  } catch (error) {
+    await connection.rollback().catch(() => {});
+    next(error);
+  } finally {
+    connection.release();
+  }
+});
+
+router.post("/payments/publish-fees/:id/reject", async (req, res, next) => {
+  try {
+    const reason = String(req.body?.reason || "").trim().slice(0, 255);
+    if (!reason) return res.status(400).json({ message: "Татгалзсан шалтгааныг бичнэ үү." });
+
+    const [[fee]] = await pool.query(
+      "SELECT f.id, f.status, f.reference, e.title FROM publish_fees f JOIN events e ON e.id = f.event_id WHERE f.id = ?",
+      [Number(req.params.id)],
+    );
+    if (!fee) return res.status(404).json({ message: "Төлбөр олдсонгүй." });
+    if (fee.status === "confirmed") return res.status(400).json({ message: "Баталгаажсан төлбөрийг татгалзах боломжгүй." });
+
+    await pool.query(
+      "UPDATE publish_fees SET status = 'rejected', decided_at = NOW(), decided_by = ?, reject_reason = ? WHERE id = ?",
+      [req.user.id, reason, fee.id],
+    );
+
+    logAudit(req, {
+      type: "decision",
+      status: "warn",
+      action: "Нийтлэх шимтгэлийг татгалзсан",
+      target: fee.title,
+      targetDetail: fee.reference,
+      details: { reason },
+    });
+
+    return res.json({ message: "Татгалзлаа. Зохион байгуулагч дахин илгээх боломжтой." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/payments/publish-fees.csv", async (req, res, next) => {
+  try {
+    const filter = feeFilters({ ...req.query, status: req.query.status || "all" });
+    const [rows] = await pool.query(
+      `SELECT ${FEE_ADMIN_COLUMNS} ${FEE_JOINS} WHERE ${filter.sql} ORDER BY f.id DESC LIMIT 50000`,
+      filter.params,
+    );
+    const iso = (ts) => (ts ? new Date(Number(ts) * 1000).toISOString() : "");
+    const header = ["reference", "event", "payer", "email", "organization", "amount", "paid_amount", "status", "submitted_utc", "decided_utc", "reject_reason"];
+    const lines = rows.map((r) =>
+      [r.reference, r.event_title, r.payer_name, r.payer_email, r.organization_name, r.amount, r.paid_amount, r.status, iso(r.submitted_ts), iso(r.decided_ts), r.reject_reason]
+        .map(csvCell)
+        .join(","),
+    );
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="registra-publish-fees-${new Date().toISOString().slice(0, 10)}.csv"`);
     return res.send("﻿" + [header.join(","), ...lines].join("\n"));
   } catch (error) {
     next(error);
