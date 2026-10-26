@@ -121,3 +121,6 @@ export function readStoredUser() {
     return {};
   }
 }
+
+// Fired by the payments page with the number of payments awaiting review.
+export const PENDING_PAYMENTS_EVENT = "registra:pending-payments";

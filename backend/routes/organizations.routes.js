@@ -198,6 +198,8 @@ router.get(
 
               WHERE e.organization_id = o.id
 
+              AND (e.status IS NULL OR e.status = 'published')
+
               AND (
 
                 e.end_time IS NULL
@@ -277,6 +279,8 @@ router.get(
               FROM events e
 
               WHERE e.organization_id = o.id
+
+              AND (e.status IS NULL OR e.status = 'published')
 
               AND (
 
@@ -364,6 +368,8 @@ router.get(
 
               WHERE e.organization_id = o.id
 
+              AND (e.status IS NULL OR e.status = 'published')
+
             ) AS total_events_count,
 
             (
@@ -373,6 +379,8 @@ router.get(
               FROM events e
 
               WHERE e.organization_id = o.id
+
+              AND (e.status IS NULL OR e.status = 'published')
 
               AND (
 
@@ -825,6 +833,8 @@ router.get(
 
               WHERE e.organization_id = o.id
 
+              AND (e.status IS NULL OR e.status = 'published')
+
             ) AS total_events_count,
 
             (
@@ -834,6 +844,8 @@ router.get(
               FROM events e
 
               WHERE e.organization_id = o.id
+
+              AND (e.status IS NULL OR e.status = 'published')
 
               AND (
 
@@ -949,6 +961,7 @@ router.get(
           WHERE e.organization_id = ?
             AND e.archived = 0
             AND e.visibility = 'public'
+            AND (e.status IS NULL OR e.status = 'published')
           ORDER BY e.start_time DESC
           `,
 
