@@ -263,12 +263,13 @@ export default function Payments() {
                           <span className={`saBadge ${tone}`}>{label}</span>
                         ) : (
                           <div className="saCell2">
-                            <span className={`saBadge ${STATUS_BADGE[row.status]?.[0] || ""}`}>
-                              {STATUS_BADGE[row.status]?.[1]}
+                            <span className={`saBadge ${Number(row.trial) ? "blue" : STATUS_BADGE[row.status]?.[0] || ""}`}>
+                              {Number(row.trial) ? "Туршилт" : STATUS_BADGE[row.status]?.[1]}
                             </span>
                             {row.decided_ts ? (
                               <span>
-                                {row.decided_by_name || ""} · {formatDateTime(fromTs(row.decided_ts))}
+                                {Number(row.trial) ? "Автоматаар нийтлэгдсэн" : row.decided_by_name || ""} ·{" "}
+                                {formatDateTime(fromTs(row.decided_ts))}
                               </span>
                             ) : null}
                             {row.reject_reason ? <span style={{ color: "var(--sa-red)" }}>{row.reject_reason}</span> : null}
@@ -330,10 +331,12 @@ export default function Payments() {
           <ul className="saFeed">
             {data.recent.map((r) => (
               <li key={r.id} className={r.status === "rejected" ? "error" : ""}>
-                <span className={`saBadge ${STATUS_BADGE[r.status]?.[0] || ""}`}>{STATUS_BADGE[r.status]?.[1]}</span>{" "}
+                <span className={`saBadge ${Number(r.trial) ? "blue" : STATUS_BADGE[r.status]?.[0] || ""}`}>
+                  {Number(r.trial) ? "Туршилт" : STATUS_BADGE[r.status]?.[1]}
+                </span>{" "}
                 <span className="saMono">{r.reference}</span> · {r.event_title} · {money(r.amount)}
                 <small>
-                  {r.decided_by_name || "Админ"} · {formatDateTime(fromTs(r.decided_ts))}
+                  {Number(r.trial) ? "Автомат" : r.decided_by_name || "Админ"} · {formatDateTime(fromTs(r.decided_ts))}
                   {r.reject_reason ? ` · ${r.reject_reason}` : ""}
                 </small>
               </li>

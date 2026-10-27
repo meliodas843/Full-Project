@@ -5,6 +5,8 @@
 // bank transfer to the account in the settings with the reference code, then
 // submit ('submitted', optional receipt). A super admin confirms (event
 // becomes 'published', a row is added to payments) or rejects with a reason.
+// While the free trial is on, submitting publishes the event straight away
+// (the fee is confirmed with trial = 1 and no payment row is added).
 
 import fs from "fs";
 import path from "path";
@@ -19,6 +21,7 @@ export const SETTING_DEFAULTS = {
   account_number: "",
   account_name: "",
   review_sla_hours: "4",
+  trial_mode: "1",
 };
 
 export async function loadSettings(db = pool) {
@@ -32,6 +35,7 @@ export async function loadSettings(db = pool) {
     accountNumber: s.account_number,
     accountName: s.account_name,
     reviewSlaHours: Math.max(1, Math.round(Number(s.review_sla_hours) || 4)),
+    trialMode: s.trial_mode === "1",
   };
 }
 

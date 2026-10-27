@@ -9,6 +9,7 @@ import {
   FiClock,
   FiCopy,
   FiFileText,
+  FiGift,
   FiInfo,
   FiSend,
   FiUpload,
@@ -106,6 +107,7 @@ export default function EventPayment() {
 
   const status = fee?.status;
   const canPay = status === "awaiting" || status === "rejected";
+  const trial = Boolean(bank?.trialMode);
 
   const copyRow = (key, label, value, display = value) => (
     <div className="pfRow">
@@ -138,13 +140,23 @@ export default function EventPayment() {
 
         {fee ? (
           <>
-            <div className="pfInfo">
-              <FiInfo />
-              <p>
-                <strong>Эвэнт нийтлэх шимтгэл — {money(fee.amount)}.</strong> Шимтгэлийг доорх дансанд шилжүүлсний
-                дараа супер админ шалгаж баталгаажуулмагц таны эвэнт нийтэд харагдана.
-              </p>
-            </div>
+            {trial ? (
+              <div className="pfInfo trial">
+                <FiGift />
+                <p>
+                  <strong>Туршилтын хугацаа — төлбөр төлөх шаардлагагүй.</strong> Одоогоор эвэнт нийтлэх үнэгүй.
+                  «Төлбөр төлсөн» товчийг дармагц таны эвэнт шууд нийтлэгдэнэ.
+                </p>
+              </div>
+            ) : (
+              <div className="pfInfo">
+                <FiInfo />
+                <p>
+                  <strong>Эвэнт нийтлэх шимтгэл — {money(fee.amount)}.</strong> Шимтгэлийг доорх дансанд шилжүүлсний
+                  дараа супер админ шалгаж баталгаажуулмагц таны эвэнт нийтэд харагдана.
+                </p>
+              </div>
+            )}
 
             <div className="pfLayout">
               <section className="pfCard">
@@ -152,8 +164,12 @@ export default function EventPayment() {
                   <div className="pfState green">
                     <FiCheckCircle />
                     <div>
-                      <strong>Төлбөр баталгаажсан. Эвэнт нийтлэгдлээ.</strong>
-                      <span>{formatTs(fee.decided_ts)}-д баталгаажсан.</span>
+                      <strong>{fee.trial ? "Эвэнт нийтлэгдлээ." : "Төлбөр баталгаажсан. Эвэнт нийтлэгдлээ."}</strong>
+                      <span>
+                        {fee.trial
+                          ? `Туршилтын хугацаанд төлбөргүйгээр нийтлэгдсэн · ${formatTs(fee.decided_ts)}`
+                          : `${formatTs(fee.decided_ts)}-д баталгаажсан.`}
+                      </span>
                     </div>
                   </div>
                 ) : status === "submitted" ? (
@@ -185,6 +201,15 @@ export default function EventPayment() {
                   <strong className="pfAmount">{money(fee.amount)}</strong>
                 </div>
 
+                {trial ? (
+                  <div className="pfAlert trial">
+                    <FiGift />
+                    <span>
+                      Туршилтын хугацаанд доорх дансанд мөнгө шилжүүлэх шаардлагагүй. Данс зөвхөн танилцуулах зорилготой.
+                    </span>
+                  </div>
+                ) : null}
+
                 {bank?.accountNumber ? (
                   <div className="pfBank">
                     {copyRow("bank", "Банк", bank.bankName, bank.bankName || "—")}
@@ -193,7 +218,7 @@ export default function EventPayment() {
                     {copyRow("amount", "Дүн", String(Math.round(Number(fee.amount))), money(fee.amount))}
                     {copyRow("ref", "Гүйлгээний утга", fee.reference)}
                   </div>
-                ) : (
+                ) : trial ? null : (
                   <div className="pfAlert error">Төлбөр хүлээн авах данс тохируулагдаагүй байна. Супер админтай холбогдоно уу.</div>
                 )}
 
@@ -209,13 +234,15 @@ export default function EventPayment() {
                   </li>
                 </ol>
 
-                <div className="pfAlert warn">
-                  <FiAlertTriangle />
-                  <span>
-                    Гүйлгээний утгад <b>{fee.reference}</b> кодыг заавал бичнэ үү. Код байхгүй эсвэл дүн зөрүүтэй бол
-                    баталгаажуулалт удаашрах эсвэл татгалзагдаж болно.
-                  </span>
-                </div>
+                {trial ? null : (
+                  <div className="pfAlert warn">
+                    <FiAlertTriangle />
+                    <span>
+                      Гүйлгээний утгад <b>{fee.reference}</b> кодыг заавал бичнэ үү. Код байхгүй эсвэл дүн зөрүүтэй бол
+                      баталгаажуулалт удаашрах эсвэл татгалзагдаж болно.
+                    </span>
+                  </div>
+                )}
 
                 {canPay ? (
                   <>
@@ -258,7 +285,7 @@ export default function EventPayment() {
                       <button
                         type="button"
                         className="pfPrimary"
-                        disabled={sending || !bank?.accountNumber}
+                        disabled={sending || (!trial && !bank?.accountNumber)}
                         onClick={submit}
                       >
                         <FiSend />

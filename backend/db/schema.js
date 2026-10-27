@@ -201,6 +201,8 @@ const COLUMNS = [
   // Dashboard charts need to know when accounts and bookings were created.
   ["users", "created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"],
   ["events", "status", "ALTER TABLE events ADD COLUMN status VARCHAR(20) DEFAULT 'published'"],
+  // Publish fees approved automatically during the free trial period.
+  ["publish_fees", "trial", "ALTER TABLE publish_fees ADD COLUMN trial TINYINT(1) NOT NULL DEFAULT 0"],
   // Events created by an organization; read by the organization pages and
   // the public event list.
   ["events", "organization_id", "ALTER TABLE events ADD COLUMN organization_id BIGINT NULL"],

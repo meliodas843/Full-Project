@@ -117,6 +117,20 @@ export default function Settings() {
 
               <div className="saToggleRow">
                 <div>
+                  <strong>Туршилтын хугацаа</strong>
+                  <span>Асаалттай үед төлбөр шаардахгүй — «Төлбөр төлсөн» дармагц эвэнт шууд нийтлэгдэнэ</span>
+                </div>
+                <button
+                  type="button"
+                  className={`saSwitch${form.trialMode ? " on" : ""}`}
+                  aria-pressed={form.trialMode}
+                  aria-label="Туршилтын хугацаа"
+                  onClick={() => set("trialMode", !form.trialMode)}
+                />
+              </div>
+
+              <div className="saToggleRow">
+                <div>
                   <strong>Эвэнт нийтлэхэд шимтгэл авах</strong>
                   <span>Унтраавал шинэ эвэнт шууд нийтлэгдэнэ</span>
                 </div>
@@ -213,8 +227,9 @@ export default function Settings() {
             <div className="saNotice" style={{ marginTop: 12 }}>
               <FiInfo />
               <span>
-                Эвэнт үүсгэсний дараа зохион байгуулагч энэ мэдээллийг харж шилжүүлэг хийнэ. Таныг баталгаажуулмагц
-                эвэнт нийтлэгдэнэ.
+                {form.trialMode
+                  ? "Туршилтын хугацаанд зохион байгуулагч энэ мэдээллийг харах боловч мөнгө шилжүүлэхгүй — «Төлбөр төлсөн» дармагц эвэнт шууд нийтлэгдэнэ."
+                  : "Эвэнт үүсгэсний дараа зохион байгуулагч энэ мэдээллийг харж шилжүүлэг хийнэ. Таныг баталгаажуулмагц эвэнт нийтлэгдэнэ."}
               </span>
             </div>
             {!form.feeEnabled ? (
