@@ -20,13 +20,22 @@ export function getFrontendUrl() {
   return required("FRONTEND_URL").replace(/\/+$/, "");
 }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
+// Any SMTP provider via SMTP_HOST / SMTP_PORT (e.g. Microsoft 365:
+// smtp.office365.com, 587). Without SMTP_HOST it falls back to Gmail.
+function transportOptions() {
+  const auth = {
     user: process.env.RESET_EMAIL_USER,
     pass: process.env.RESET_EMAIL_PASS,
-  },
-});
+  };
+  const host = String(process.env.SMTP_HOST || "").trim();
+  if (!host) return { service: "gmail", auth };
+
+  const port = Number(process.env.SMTP_PORT) || 587;
+  const secure = String(process.env.SMTP_SECURE || "").toLowerCase() === "true" || port === 465;
+  return { host, port, secure, requireTLS: !secure, auth };
+}
+
+const transporter = nodemailer.createTransport(transportOptions());
 
 function findLogoPath() {
   const candidates = [

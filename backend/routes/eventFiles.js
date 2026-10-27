@@ -5,7 +5,7 @@ import path from "path";
 import express from "express";
 import multer from "multer";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import transporter from "../services/mailer.js";
 import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { sendEventGalleryEmails } from "../services/galleryEmail.js";
@@ -21,19 +21,6 @@ const UPLOAD_DIR = path.join(
 fs.mkdirSync(UPLOAD_DIR, {
   recursive: true,
 });
-
-const setupTransporter =
-  nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user:
-        process.env
-          .RESET_EMAIL_USER,
-      pass:
-        process.env
-          .RESET_EMAIL_PASS,
-    },
-  });
 
 function sha256(value) {
   return crypto
@@ -111,7 +98,7 @@ async function sendWelcomeEmail({
       eventName || "Event"
     ).trim();
 
-  await setupTransporter.sendMail({
+  await transporter.sendMail({
     from:
       `"Registra" <${process.env.RESET_EMAIL_USER}>`,
 
