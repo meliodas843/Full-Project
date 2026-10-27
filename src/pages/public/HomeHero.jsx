@@ -235,8 +235,8 @@ export default function HomeHero({ events }) {
               ))}
             </div>
             <div>
-              <b>{booked > 0 ? `${booked} хүн` : "Бүртгэл"}</b>
-              {booked > 0 ? "бүртгүүлсэн" : "нээлттэй"}
+              <b>Бүртгэл</b>
+              нээлттэй
             </div>
           </div>
 
