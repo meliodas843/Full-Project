@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiCheck, FiCreditCard, FiInfo, FiSave } from "react-icons/fi";
 import AdminShell from "../components/AdminShell";
+import HomeHeroSettings from "../components/HomeHeroSettings";
 import Toast from "../components/Toast";
 import useToast from "../hooks/useToast";
 import { apiFetch } from "../../../lib/api";
@@ -25,8 +26,8 @@ const SLA_OPTIONS = [2, 4, 8, 24];
 
 const money = (n) => `₮${Math.round(Number(n || 0)).toLocaleString("en-US")}`;
 
-// Publish fee and the account organizers pay it to. The right column shows
-// what organizers see on the payment step.
+// Site settings: the home page hero image, then the publish fee and the
+// account organizers pay it to (the right column shows what organizers see).
 export default function Settings() {
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
@@ -58,7 +59,7 @@ export default function Settings() {
   return (
     <AdminShell
       crumb="Супер админ / Систем / Тохиргоо"
-      title="Данс ба шимтгэлийн тохиргоо"
+      title="Тохиргоо"
       actions={
         <>
           <button type="button" className="saButton" onClick={() => navigate("/super-admin/payments")}>
@@ -71,6 +72,8 @@ export default function Settings() {
       }
     >
       <Toast toast={toast} onClose={hideToast} />
+      <HomeHeroSettings showToast={showToast} />
+
       {error ? <div className="saError">{error}</div> : null}
 
       {form ? (

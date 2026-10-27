@@ -6,7 +6,11 @@ import pool from "../db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
 import fs from "fs";
+import path from "path";
+import multer from "multer";
 import { AUDIT_TYPES, RETENTION_DAYS, logAudit } from "../utils/audit.js";
+import { HERO_IMAGE_KEY, getSiteSetting, setSiteSetting } from "../utils/siteSettings.js";
+import { imageExtension, isAllowedImage, uploadError } from "../utils/uploadSafety.js";
 import { loadSettings, receiptPath, saveSettings } from "../utils/payments.js";
 
 const router = express.Router();
@@ -699,6 +703,66 @@ router.get("/payments/publish-fees.csv", async (req, res, next) => {
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="registra-publish-fees-${new Date().toISOString().slice(0, 10)}.csv"`);
     return res.send("﻿" + [header.join(","), ...lines].join("\n"));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Home page hero card image. Uploads go to uploads/site; only the newest file
+// is kept.
+const SITE_UPLOAD_DIR = path.join(process.cwd(), "uploads", "site");
+const SITE_URL_PREFIX = "/uploads/site/";
+
+const heroUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      fs.mkdirSync(SITE_UPLOAD_DIR, { recursive: true });
+      cb(null, SITE_UPLOAD_DIR);
+    },
+    filename: (req, file, cb) => cb(null, `hero-${Date.now()}${imageExtension(file.mimetype)}`),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) =>
+    isAllowedImage(file.mimetype) ? cb(null, true) : cb(uploadError("PNG, JPG, WEBP эсвэл GIF зураг оруулна уу.")),
+});
+
+function removeSiteFile(url) {
+  if (!String(url || "").startsWith(SITE_URL_PREFIX)) return;
+  const file = path.join(SITE_UPLOAD_DIR, path.basename(url));
+  fs.promises.unlink(file).catch(() => {});
+}
+
+router.get("/site/home", async (req, res, next) => {
+  try {
+    return res.json({ heroImage: await getSiteSetting(HERO_IMAGE_KEY) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/site/hero-image", heroUpload.single("image"), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "Зураг сонгоно уу." });
+    const previous = await getSiteSetting(HERO_IMAGE_KEY);
+    const url = `${SITE_URL_PREFIX}${req.file.filename}`;
+    await setSiteSetting(HERO_IMAGE_KEY, url);
+    removeSiteFile(previous);
+
+    logAudit(req, { type: "update", action: "Нүүр хуудасны картын зураг сольсон", target: "Нүүр хуудас" });
+    return res.json({ heroImage: url, message: "Зураг хадгалагдлаа." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/site/hero-image", async (req, res, next) => {
+  try {
+    const previous = await getSiteSetting(HERO_IMAGE_KEY);
+    await setSiteSetting(HERO_IMAGE_KEY, "");
+    removeSiteFile(previous);
+
+    logAudit(req, { type: "update", action: "Нүүр хуудасны картын зургийг анхныхаар болгосон", target: "Нүүр хуудас" });
+    return res.json({ heroImage: "", message: "Эвэнтийн өөрийн зураг харагдана." });
   } catch (error) {
     next(error);
   }

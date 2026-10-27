@@ -101,6 +101,14 @@ const STATEMENTS = [
     KEY idx_audit_type (type, created_at)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  // Public site settings edited by the super admin (home page hero image …).
+  `CREATE TABLE IF NOT EXISTS site_settings (
+    \`key\` VARCHAR(50) NOT NULL,
+    \`value\` TEXT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (\`key\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   // Payment settings edited by the super admin (fee, receiving account …).
   `CREATE TABLE IF NOT EXISTS payment_settings (
     \`key\` VARCHAR(50) NOT NULL,

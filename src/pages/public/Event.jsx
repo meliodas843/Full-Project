@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { FaMagnifyingGlass, FaXmark } from "react-icons/fa6";
 
@@ -192,7 +192,10 @@ export default function Events() {
 
   const [myBookings, setMyBookings] = useState([]);
 
-  const [query, setQuery] = useState("");
+  const [searchParams] = useSearchParams();
+
+  // The home page search links here as /events?q=...
+  const [query, setQuery] = useState(() => searchParams.get("q") || "");
 
   const [category, setCategory] = useState("Бүгд");
 

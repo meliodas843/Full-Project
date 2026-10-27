@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 
@@ -18,13 +18,13 @@ import {
 } from "react-icons/fa6";
 
 import Footer from "../../components/Footer";
+import AnimatedNumber from "./AnimatedNumber";
 import HomeFaq from "./HomeFaq";
+import HomeHero from "./HomeHero";
 import HomeLifecycle from "./HomeLifecycle";
 import HomeUpcoming from "./HomeUpcoming";
 
-import { API_BASE, getImageSrc } from "../../lib/config";
-
-import eventFallback from "../../assets/event.webp";
+import { API_BASE } from "../../lib/config";
 
 function normalizeArray(data) {
   if (Array.isArray(data)) return data;
@@ -36,188 +36,6 @@ function normalizeArray(data) {
   if (Array.isArray(data?.data)) return data.data;
 
   return [];
-}
-
-function formatDate(value) {
-  if (!value) return "";
-
-  const d = new Date(value);
-
-  if (Number.isNaN(d.getTime())) return "";
-
-  return d.toLocaleDateString("mn-MN", {
-    year: "numeric",
-
-    month: "short",
-
-    day: "numeric",
-  });
-}
-
-function getRegisteredCount(event) {
-  const directValues = [
-    event?.booked_count,
-
-    event?.registered_count,
-
-    event?.registration_count,
-
-    event?.registrations_count,
-
-    event?.participant_count,
-
-    event?.participants_count,
-
-    event?.attendee_count,
-
-    event?.attendees_count,
-
-    event?.booking_count,
-
-    event?.bookings_count,
-  ];
-
-  for (const value of directValues) {
-    const number = Number(value);
-
-    if (Number.isFinite(number) && number >= 0) {
-      return number;
-    }
-  }
-
-  const arrays = [
-    event?.registrations,
-
-    event?.participants,
-
-    event?.attendees,
-
-    event?.bookings,
-
-    event?.users,
-  ];
-
-  for (const value of arrays) {
-    if (Array.isArray(value)) {
-      return value.length;
-    }
-  }
-
-  return 0;
-}
-
-function getCapacity(event) {
-  const values = [
-    event?.max_participants,
-
-    event?.capacity,
-
-    event?.participant_limit,
-
-    event?.max_attendees,
-
-    event?.maximum_participants,
-
-    event?.seat_limit,
-
-    event?.seats,
-  ];
-
-  for (const value of values) {
-    const number = Number(value);
-
-    if (Number.isFinite(number) && number > 0) {
-      return number;
-    }
-  }
-
-  return 0;
-}
-
-function AnimatedNumber({
-  value = 0,
-
-  duration = 1300,
-
-  suffix = "",
-
-  prefix = "",
-}) {
-  const [displayValue, setDisplayValue] = useState(0);
-
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const element = ref.current;
-
-    if (!element) return;
-
-    let frame = null;
-
-    let started = false;
-
-    const startAnimation = () => {
-      if (started) return;
-
-      started = true;
-
-      const target = Math.max(0, Number(value) || 0);
-
-      const start = performance.now();
-
-      const animate = (time) => {
-        const elapsed = time - start;
-
-        const progress = Math.min(elapsed / duration, 1);
-
-        const eased = 1 - Math.pow(1 - progress, 4);
-
-        const current = Math.round(target * eased);
-
-        setDisplayValue(current);
-
-        if (progress < 1) {
-          frame = requestAnimationFrame(animate);
-        }
-      };
-
-      frame = requestAnimationFrame(animate);
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          startAnimation();
-
-          observer.disconnect();
-        }
-      },
-
-      {
-        threshold: 0.25,
-      },
-    );
-
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-    };
-  }, [value, duration]);
-
-  return (
-    <span ref={ref}>
-      {prefix}
-
-      {displayValue.toLocaleString("en-US")}
-
-      {suffix}
-    </span>
-  );
 }
 
 const features = [
@@ -413,8 +231,6 @@ const plans = [
 export default function Home() {
   const [events, setEvents] = useState([]);
 
-  const [animatedPercentage, setAnimatedPercentage] = useState(0);
-
   useEffect(() => {
     let alive = true;
 
@@ -469,193 +285,9 @@ export default function Home() {
     };
   }, []);
 
-  const featured = useMemo(() => {
-    const event = events.find(
-      (item) => String(item.visibility || "public").toLowerCase() !== "private",
-    );
-
-    return {
-      title: event?.title || "Technology Summit 2026",
-
-      date: formatDate(event?.start_time),
-
-      location:
-        event?.location ||
-        event?.venue ||
-        event?.address ||
-        "Ulaanbaatar Event Center",
-
-      image: event?.image_url ? getImageSrc(event.image_url) : eventFallback,
-
-      registered: getRegisteredCount(event),
-
-      capacity: getCapacity(event),
-
-      category: String(event?.category || "").trim(),
-    };
-  }, [events]);
-
-  const percentage = useMemo(() => {
-    if (!featured.capacity) return 0;
-
-    return Math.min(
-      100,
-
-      Math.round((featured.registered / featured.capacity) * 100),
-    );
-  }, [featured.registered, featured.capacity]);
-
-  useEffect(() => {
-    let frame = null;
-
-    const start = performance.now();
-
-    const duration = 1200;
-
-    const animate = (time) => {
-      const progress = Math.min((time - start) / duration, 1);
-
-      const eased = 1 - Math.pow(1 - progress, 4);
-
-      setAnimatedPercentage(Math.round(percentage * eased));
-
-      if (progress < 1) {
-        frame = requestAnimationFrame(animate);
-      }
-    };
-
-    frame = requestAnimationFrame(animate);
-
-    return () => {
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-    };
-  }, [percentage]);
-
   return (
     <main className="riPublicPage">
-      <section className="riHero">
-        <div className="riHeroGlow riHeroGlowOne" />
-
-        <div className="riHeroGlow riHeroGlowTwo" />
-
-        <div className="riContainer riHeroGrid">
-          <div className="riHeroContent riHeroEntrance">
-            <div className="riPill riHeroPillAnimation">
-              <span />
-              IT EVENT MANAGEMENT PLATFORM
-            </div>
-
-            <h1 className="riHeroTitleAnimation">
-              Эвэнтээ
-              <br />
-              <em>бүртгэж, удирдаад</em>
-              <br />
-              илүү хялбар ажилла.
-            </h1>
-
-            <p className="riHeroDescriptionAnimation">
-              Хурал, эвэнт, workshop болон арга хэмжээний бүртгэл, оролцогчдын
-              мэдээлэл, удирдлагыг нэг орчин үеийн платформоос.
-            </p>
-
-            <div className="riHeroButtons riHeroButtonsAnimation">
-              <Link to="/events" className="riPrimaryButton">
-                Эвэнтүүд үзэх
-                <FaArrowRight />
-              </Link>
-
-              <Link to="/news" className="riSecondaryButton">
-                Мэдээ унших
-              </Link>
-            </div>
-
-            <div className="riHeroStats riHeroStatsAnimation">
-              <div>
-                <strong>
-                  <AnimatedNumber value={5200} suffix="+" />
-                </strong>
-
-                <span>Бүртгэлтэй хэрэглэгч</span>
-              </div>
-
-              <div>
-                <strong>
-                  <AnimatedNumber value={340} />
-                </strong>
-
-                <span>Зохион байгуулсан эвэнт</span>
-              </div>
-
-              <div>
-                <strong>
-                  <AnimatedNumber value={98} suffix="%" />
-                </strong>
-
-                <span>Сэтгэл ханамж</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="riHeroVisual riHeroCardAnimation">
-            <div className="riHeroCircle riHeroCircleOne" />
-
-            <div className="riHeroCircle riHeroCircleTwo" />
-
-            <div className="riFeaturedEvent">
-              <div className="riFeaturedImage">
-                <img src={featured.image} alt={featured.title} />
-
-                {featured.category && (
-                  <span className="riEventCategory">{featured.category}</span>
-                )}
-              </div>
-
-              <div className="riFeaturedBody">
-                <div className="riFeaturedTitleRow">
-                  <h3>{featured.title}</h3>
-
-                  <span className="riLiveBadge">Live</span>
-                </div>
-
-                <p>
-                  {featured.date}
-
-                  {featured.date && featured.location ? " · " : ""}
-
-                  {featured.location}
-                </p>
-
-                <div className="riCapacityBar">
-                  <span
-                    className="riAnimatedCapacity"
-                    style={{
-                      width: `${animatedPercentage}%`,
-                    }}
-                  />
-                </div>
-
-                <div className="riCapacityText">
-                  <span>
-                    <AnimatedNumber
-                      value={featured.registered}
-                      duration={1100}
-                    />{" "}
-                    /{" "}
-                    {featured.capacity > 0
-                      ? featured.capacity.toLocaleString("en-US")
-                      : "∞"}{" "}
-                    оролцогч
-                  </span>
-
-                  <strong>{animatedPercentage}%</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeHero events={events} />
 
       <HomeUpcoming events={events} />
 
