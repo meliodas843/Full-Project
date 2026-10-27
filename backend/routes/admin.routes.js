@@ -491,13 +491,20 @@ router.put("/payments/settings", async (req, res, next) => {
       account_number: accountNumber,
       account_name: String(body.accountName || "").trim().slice(0, 150),
       review_sla_hours: String(Number.isFinite(sla) ? Math.min(72, Math.max(1, sla)) : 4),
+      trial_mode: body.trialMode ? "1" : "0",
     });
 
     logAudit(req, {
       type: "update",
       action: "Төлбөрийн тохиргоо өөрчилсөн",
       target: `Шимтгэл ₮${fee.toLocaleString("en-US")}`,
-      details: { feeEnabled: Boolean(body.feeEnabled), publishFee: fee, bank: body.bankName, accountNumber },
+      details: {
+        feeEnabled: Boolean(body.feeEnabled),
+        trialMode: Boolean(body.trialMode),
+        publishFee: fee,
+        bank: body.bankName,
+        accountNumber,
+      },
     });
 
     return res.json(await loadSettings());
@@ -516,7 +523,8 @@ const FEE_ADMIN_COLUMNS = `
   u.email AS payer_email,
   TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS payer_name,
   o.name AS organization_name,
-  TRIM(CONCAT(COALESCE(d.first_name, ''), ' ', COALESCE(d.last_name, ''))) AS decided_by_name
+  TRIM(CONCAT(COALESCE(d.first_name, ''), ' ', COALESCE(d.last_name, ''))) AS decided_by_name,
+  f.trial
 `;
 
 const FEE_JOINS = `
@@ -573,7 +581,7 @@ router.get("/payments/publish-fees", async (req, res, next) => {
          SUM(status = 'awaiting') AS awaiting,
          SUM(status = 'confirmed' AND decided_at >= CURDATE()) AS confirmed_today,
          SUM(status = 'submitted' AND submitted_at < DATE_SUB(NOW(), INTERVAL ? HOUR)) AS overdue,
-         COALESCE(SUM(CASE WHEN status = 'confirmed' AND decided_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN amount END), 0) AS month_total
+         COALESCE(SUM(CASE WHEN status = 'confirmed' AND trial = 0 AND decided_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN amount END), 0) AS month_total
        FROM publish_fees`,
       [settings.reviewSlaHours],
     );

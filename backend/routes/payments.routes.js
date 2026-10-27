@@ -16,7 +16,12 @@ const router = express.Router();
 router.get("/publish-fee", async (req, res, next) => {
   try {
     const s = await loadSettings();
-    return res.json({ required: feeApplies(s), amount: s.publishFee, reviewSlaHours: s.reviewSlaHours });
+    return res.json({
+      required: feeApplies(s),
+      amount: s.publishFee,
+      reviewSlaHours: s.reviewSlaHours,
+      trialMode: s.trialMode,
+    });
   } catch (error) {
     next(error);
   }
@@ -31,7 +36,7 @@ const FEE_COLUMNS = `
   UNIX_TIMESTAMP(f.submitted_at) AS submitted_ts,
   UNIX_TIMESTAMP(f.decided_at) AS decided_ts,
   e.title AS event_title, e.image_url AS event_image, e.start_time AS event_start,
-  e.status AS event_status
+  e.status AS event_status, f.trial
 `;
 
 // Bank account and fee shown on the payment step.
@@ -44,6 +49,7 @@ router.get("/settings", async (req, res, next) => {
       accountNumber: s.accountNumber,
       accountName: s.accountName,
       reviewSlaHours: s.reviewSlaHours,
+      trialMode: s.trialMode,
     });
   } catch (error) {
     next(error);
@@ -86,7 +92,7 @@ router.get("/publish-fees/event/:eventId", async (req, res, next) => {
 router.post("/publish-fees/:id/submit", receiptUpload.single("receipt"), async (req, res, next) => {
   try {
     const [[fee]] = await pool.query(
-      `SELECT f.id, f.status, f.reference, f.receipt_file, e.title
+      `SELECT f.id, f.event_id, f.status, f.reference, f.receipt_file, e.title
        FROM publish_fees f JOIN events e ON e.id = f.event_id
        WHERE f.id = ? AND f.user_id = ?`,
       [Number(req.params.id), req.user.id],
@@ -99,6 +105,39 @@ router.post("/publish-fees/:id/submit", receiptUpload.single("receipt"), async (
 
     const paidAmount = Number(req.body?.paid_amount);
     const note = String(req.body?.payer_note || "").trim().slice(0, 255) || null;
+
+    // Free trial: no payment is needed, so publish right away.
+    if ((await loadSettings()).trialMode) {
+      const conn = await pool.getConnection();
+      try {
+        await conn.beginTransaction();
+        await conn.query(
+          `UPDATE publish_fees
+           SET status = 'confirmed', trial = 1, submitted_at = NOW(), decided_at = NOW(), decided_by = NULL,
+               reject_reason = NULL, payer_note = ?
+           WHERE id = ?`,
+          [note, fee.id],
+        );
+        await conn.query("UPDATE events SET status = 'published' WHERE id = ?", [fee.event_id]);
+        await conn.commit();
+      } catch (error) {
+        await conn.rollback();
+        throw error;
+      } finally {
+        conn.release();
+      }
+
+      if (req.file) fs.rm(receiptPath(req.file.filename), { force: true }, () => {});
+
+      logAudit(req, {
+        type: "create",
+        action: "Туршилтын хугацаанд эвэнт шууд нийтлэгдсэн",
+        target: fee.title,
+        targetDetail: fee.reference,
+      });
+
+      return res.json({ published: true, message: "Туршилтын хугацаа тул таны эвэнт шууд нийтлэгдлээ." });
+    }
 
     await pool.query(
       `UPDATE publish_fees

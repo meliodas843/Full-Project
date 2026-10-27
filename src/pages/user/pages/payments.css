@@ -103,6 +103,23 @@
   margin: 0;
 }
 
+/* Free trial: publishing costs nothing for now. */
+.pfInfo.trial,
+.pfAlert.trial {
+  border: 1px solid rgba(29, 158, 108, 0.28);
+  background: rgba(29, 158, 108, 0.1);
+  color: var(--pf-text);
+}
+
+.pfInfo.trial svg,
+.pfAlert.trial svg {
+  color: #1d9e6c;
+}
+
+.pfAlert.trial {
+  margin-bottom: 14px;
+}
+
 .pfAlert svg {
   flex-shrink: 0;
   margin-top: 2px;

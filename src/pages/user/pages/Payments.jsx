@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiArrowRight, FiCheckCircle, FiCreditCard, FiEdit2, FiEye, FiInfo } from "react-icons/fi";
+import { FiArrowRight, FiCheckCircle, FiCreditCard, FiEdit2, FiEye, FiGift, FiInfo } from "react-icons/fi";
 import UserShell from "../components/UserShell";
 import { apiFetch, getToken } from "../../../lib/api";
 import { API_BASE } from "../../../lib/config";
@@ -21,14 +21,17 @@ export default function Payments() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [filter, setFilter] = useState("all");
+  const [trial, setTrial] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [acc, list] = await Promise.all([
+      const [acc, list, settings] = await Promise.all([
         apiFetch("/api/payments/payout-account"),
         apiFetch("/api/payments/publish-fees"),
+        apiFetch("/api/payments/settings").catch(() => null),
       ]);
       setAccount(acc);
+      setTrial(Boolean(settings?.trialMode));
       setFees(Array.isArray(list) ? list : []);
       setError("");
     } catch (err) {
@@ -83,7 +86,7 @@ export default function Payments() {
     const since = monthStart.getTime() / 1000;
     return {
       paidThisMonth: fees
-        .filter((f) => f.status === "confirmed" && Number(f.decided_ts) >= since)
+        .filter((f) => f.status === "confirmed" && !Number(f.trial) && Number(f.decided_ts) >= since)
         .reduce((sum, f) => sum + Number(f.amount), 0),
       inReview: fees.filter((f) => f.status === "submitted").length,
       unpaid: fees.filter((f) => f.status === "awaiting" || f.status === "rejected").length,
@@ -101,6 +104,16 @@ export default function Payments() {
             <h1>Төлбөр ба орлого хүлээн авах данс</h1>
           </div>
         </div>
+
+        {trial ? (
+          <div className="pfInfo trial">
+            <FiGift />
+            <p>
+              <strong>Туршилтын хугацаа — төлбөр төлөх шаардлагагүй.</strong> Одоогоор эвэнт нийтлэх үнэгүй. Эвэнтийн
+              төлбөрийн хуудсанд «Төлбөр төлсөн» товчийг дармагц эвэнт шууд нийтлэгдэнэ.
+            </p>
+          </div>
+        ) : null}
 
         {error ? <div className="pfAlert error">{error}</div> : null}
         {notice ? <div className="pfAlert ok">{notice}</div> : null}
@@ -274,7 +287,7 @@ export default function Payments() {
                       <td className="num">{money(fee.amount)}</td>
                       <td>
                         <span className={`pfBadge ${FEE_STATUS[fee.status]?.tone || ""}`}>
-                          {FEE_STATUS[fee.status]?.label || fee.status}
+                          {Number(fee.trial) ? "Үнэгүй · туршилт" : FEE_STATUS[fee.status]?.label || fee.status}
                         </span>
                       </td>
                       <td className="pfRowActions">
