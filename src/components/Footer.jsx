@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import {
   FaFacebookF,
   FaLinkedinIn,
-  FaGithub,
   FaInstagram,
 } from "react-icons/fa6";
 import registraLogo from "../assets/registra-logo-def.png";
@@ -34,9 +33,6 @@ export default function Footer() {
               <a href="#" aria-label="LinkedIn">
                 <FaLinkedinIn />
               </a>
-              <a href="#" aria-label="Github">
-                <FaGithub />
-              </a>
               <a href="#" aria-label="Instagram">
                 <FaInstagram />
               </a>
@@ -61,7 +57,7 @@ export default function Footer() {
           <div className="riFooterColumn">
             <h4>ХОЛБОО БАРИХ</h4>
             <span>{SUPPORT_EMAIL}</span>
-            <span>+976 7000 0000</span>
+            <span>+976 99091442</span>
             <span>Улаанбаатар, Монгол</span>
           </div>
         </div>
