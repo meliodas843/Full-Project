@@ -225,27 +225,25 @@ export default function HomeHero({ events }) {
             </div>
           </article>
 
-          {event ? (
-            <div className="hhChip hhChipLive" aria-hidden="true">
-              <i className="hhLive" />
-              <div className="hhAvatars small">
-                {AVATARS.map(([text, color]) => (
-                  <span key={text} style={{ background: color }}>
-                    {text}
-                  </span>
-                ))}
-              </div>
-              <div>
-                <b>{booked > 0 ? `${booked} хүн` : "Бүртгэл"}</b>
-                {booked > 0 ? "бүртгүүлсэн" : "нээлттэй"}
-              </div>
+          <div className="hhChip hhChipLive" aria-hidden="true">
+            <i className="hhLive" />
+            <div className="hhAvatars small">
+              {AVATARS.map(([text, color]) => (
+                <span key={text} style={{ background: color }}>
+                  {text}
+                </span>
+              ))}
             </div>
-          ) : null}
+            <div>
+              <b>Бүртгэл</b>
+              нээлттэй
+            </div>
+          </div>
 
           <div className="hhChip hhChipStats" aria-hidden="true">
             <div>
-              <b>{upcoming.length} эвэнт</b>
-              удахгүй болно
+              <b>{upcoming.length ? `${upcoming.length} эвэнт` : "Шинэ эвэнтүүд"}</b>
+              {upcoming.length ? "удахгүй болно" : "тун удахгүй"}
             </div>
             <svg viewBox="0 0 90 30">
               <path d="M2 26 C15 22 22 14 34 16 S55 6 66 9 S82 3 88 2" />
