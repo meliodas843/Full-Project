@@ -219,7 +219,7 @@ export default function ResetPassword() {
 
   const passwordChecks = {
 
-    length: password.length >= 10,
+    length: password.length >= 8,
 
     upper: /[A-Z]/.test(password),
 
@@ -1328,7 +1328,7 @@ export default function ResetPassword() {
 
                           <span>
 
-                            10-аас
+                            8-аас
 
                             доошгүй
 

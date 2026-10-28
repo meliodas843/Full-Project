@@ -281,8 +281,6 @@ export default function OrganizationProfile() {
     const required = {
       name: clean(form.name),
 
-      registration_number: clean(form.registration_number),
-
       industry: clean(form.industry),
 
       employee_count: clean(form.employee_count),
@@ -353,7 +351,7 @@ export default function OrganizationProfile() {
 
       body.append("name", required.name);
 
-      body.append("registration_number", required.registration_number);
+      body.append("registration_number", clean(form.registration_number));
 
       body.append("industry", required.industry);
 

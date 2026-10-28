@@ -47,10 +47,7 @@ export default function OrganizationProfileForm({
                 </div>
     
                 <div className="orgField">
-                  <label>
-                    РЕГИСТРИЙН ДУГААР{" "}
-                    <span className="orgRequiredStar">*</span>
-                  </label>
+                  <label>РЕГИСТРИЙН ДУГААР</label>
     
                   <input
                     type="text"

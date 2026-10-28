@@ -21,7 +21,7 @@ function normalizeEmail(value) {
 
 function isStrongPassword(password) {
   return (
-    password.length >= 10 &&
+    password.length >= 8 &&
     /[a-z]/.test(password) &&
     /[A-Z]/.test(password) &&
     /\d/.test(password) &&
@@ -302,7 +302,7 @@ router.post(
         .status(400)
         .json({
           message:
-            "Нууц үг хамгийн багадаа 10 тэмдэгттэй бөгөөд том үсэг, жижиг үсэг, тоо, тусгай тэмдэгт агуулсан байх ёстой.",
+            "Нууц үг хамгийн багадаа 8 тэмдэгттэй бөгөөд том үсэг, жижиг үсэг, тоо, тусгай тэмдэгт агуулсан байх ёстой.",
         });
     }
 
