@@ -14,6 +14,7 @@ import {
   resetEmailLimiter,
 } from "./utils/security.js";
 import { setUploadHeaders } from "./utils/uploadSafety.js";
+import { renderIndex } from "./utils/sharePreview.js";
 import pool from "./db.js";
 import { ensureSchema } from "./db/schema.js";
 import { pruneAuditLogs, requestId } from "./utils/audit.js";
@@ -132,13 +133,14 @@ const frontendPath = path.resolve(
   "../dist"
 );
 
+// index.html is sent by the route below, with the link preview filled in.
 app.use(
-  express.static(frontendPath)
+  express.static(frontendPath, { index: false })
 );
 
 app.get(
   "/{*splat}",
-  (req, res, next) => {
+  async (req, res, next) => {
     if (
       req.path.startsWith("/api/") ||
       req.path === "/api" ||
@@ -150,12 +152,12 @@ app.get(
       return next();
     }
 
-    return res.sendFile(
-      path.join(
-        frontendPath,
-        "index.html"
-      )
-    );
+    try {
+      const html = await renderIndex(path.join(frontendPath, "index.html"), req);
+      return res.type("html").send(html);
+    } catch (error) {
+      return next(error);
+    }
   }
 );
 
