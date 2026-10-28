@@ -876,13 +876,14 @@ export default function Signup() {
                   </div>
 
                   <div className="rgFormField">
-                    <label>УТАС (ЗААВАЛ БИШ)</label>
+                    <label>УТАС *</label>
 
                     <div className="rgInputIcon">
                       <FiPhone />
 
                       <input
                         name="organizationPhone"
+                        required
                         value={form.organizationPhone}
                         onChange={handleChange}
                         placeholder="7700 0000"

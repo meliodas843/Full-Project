@@ -94,7 +94,6 @@ function isOrganizationComplete(data) {
 
   return Boolean(
     String(organization.name || "").trim() &&
-      String(organization.registration_number || "").trim() &&
       String(organization.industry || "").trim() &&
       String(organization.employee_count || "").trim() &&
       String(organization.description || "").trim() &&
