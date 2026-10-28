@@ -142,10 +142,10 @@ export const register = async (req, res) => {
       });
     }
 
-    if (password.length < 10) {
+    if (password.length < 8) {
       return res.status(400).json({
         message:
-          "Password must be at least 10 characters",
+          "Нууц үг хамгийн багадаа 8 тэмдэгттэй байх ёстой.",
       });
     }
 
