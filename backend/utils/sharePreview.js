@@ -10,7 +10,9 @@ import { NEWS_IS_VISIBLE } from "../routes/news.routes.js";
 const SITE_TITLE = "Registra — Бүх төрлийн эвент, бизнес уулзалтуудыг нэг дороос";
 const SITE_DESCRIPTION =
   "Хурал, workshop, meetup-аа олж бүртгүүл. Эвэнтийн дараа хэрэгтэй хүмүүстэйгээ 1:1 Zoom уулзалт товлоорой.";
-const DEFAULT_IMAGE = "/og-image.png";
+// Bump the version whenever og-image.png changes: preview apps keep their
+// own copy of an image per address and only fetch it again for a new one.
+const DEFAULT_IMAGE = "/og-image.png?v=2";
 const WEEKDAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
 
 const escapeHtml = (value) =>
