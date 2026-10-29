@@ -7,9 +7,9 @@ import fs from "fs/promises";
 import pool from "../db.js";
 import { NEWS_IS_VISIBLE } from "../routes/news.routes.js";
 
-const SITE_TITLE = "Registra — Монголын IT эвэнтүүд нэг дор";
+const SITE_TITLE = "Registra — Бүх төрлийн эвент, бизнес уулзалтуудыг нэг дороос";
 const SITE_DESCRIPTION =
-  "Бүх төрлийн эвент, бизнес уулзалтуудыг нэг дороос.";
+  "Хурал, workshop, meetup-аа олж бүртгүүл. Эвэнтийн дараа хэрэгтэй хүмүүстэйгээ 1:1 Zoom уулзалт товлоорой.";
 const DEFAULT_IMAGE = "/og-image.png";
 const WEEKDAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
 

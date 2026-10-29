@@ -76,11 +76,11 @@ export default function HomeHero({ events }) {
           </Link>
 
           <h1>
-            Монголын IT
+            Бүх төрлийн эвент,
             <br />
-            эвэнтүүд{" "}
+            бизнес уулзалтуудыг{" "}
             <span className="hhGradient">
-              нэг дор
+              нэг дороос
               <svg viewBox="0 0 300 22" preserveAspectRatio="none" aria-hidden="true">
                 <defs>
                   <linearGradient id={`${gradientId}-u`} x1="0" x2="1">
@@ -94,7 +94,7 @@ export default function HomeHero({ events }) {
           </h1>
 
           <p className="hhLead">
-            Бүх төрлийн эвент, бизнес уулзалтуудыг нэг дороос.
+            Хурал, workshop, meetup-аа олж бүртгүүл. Эвэнтийн дараа хэрэгтэй хүмүүстэйгээ 1:1 Zoom уулзалт товлоорой.
           </p>
 
           <form className="hhSearch" role="search" onSubmit={search}>
