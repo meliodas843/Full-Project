@@ -9,7 +9,7 @@ import { NEWS_IS_VISIBLE } from "../routes/news.routes.js";
 
 const SITE_TITLE = "Registra — Монголын IT эвэнтүүд нэг дор";
 const SITE_DESCRIPTION =
-  "Монголын IT эвэнтүүдийг нэг дороос олж бүртгүүл. QR тасалбар, ирц бүртгэл, эвэнтийн дараах 1:1 Zoom уулзалт.";
+  "Бүх төрлийн эвент, бизнес уулзалтуудыг нэг дороос.";
 const DEFAULT_IMAGE = "/og-image.png";
 const WEEKDAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
 

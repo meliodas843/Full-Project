@@ -94,7 +94,7 @@ export default function HomeHero({ events }) {
           </h1>
 
           <p className="hhLead">
-            Хурал, workshop, meetup-аа олж бүртгүүл. Эвэнтийн дараа хэрэгтэй хүмүүстэйгээ 1:1 Zoom уулзалт товлоорой.
+            Бүх төрлийн эвент, бизнес уулзалтуудыг нэг дороос.
           </p>
 
           <form className="hhSearch" role="search" onSubmit={search}>
