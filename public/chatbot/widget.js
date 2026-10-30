@@ -129,37 +129,37 @@ else (() => {
   * { box-sizing: border-box; font-family: Manrope, system-ui, sans-serif; }
   button { font: inherit; }
 
-  .launch { position: fixed; right: 20px; bottom: 20px; z-index: 2147483000; width: 64px; height: 64px; padding: 0;
+  .launch { position: fixed; right: 20px; bottom: 20px; z-index: 2147483000; width: 52px; height: 52px; padding: 0;
     border: 0; border-radius: 50%; cursor: pointer; background: #fff url(${BASE}avatar.png) center/cover;
-    box-shadow: 0 0 0 3px var(--purple), 0 12px 28px -6px rgba(88,71,238,.7); transition: transform .2s; }
+    box-shadow: 0 0 0 2.5px var(--purple), 0 10px 22px -6px rgba(88,71,238,.7); transition: transform .2s; }
   .launch:hover { transform: translateY(-3px); }
 
-  .panel { position: fixed; right: 20px; bottom: 100px; z-index: 2147483000; width: 384px; max-width: calc(100vw - 32px);
-    height: min(620px, calc(100vh - 130px)); display: flex; flex-direction: column; overflow: hidden;
-    background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px;
+  .panel { position: fixed; right: 20px; bottom: 84px; z-index: 2147483000; width: 340px; max-width: calc(100vw - 32px);
+    height: min(540px, calc(100vh - 112px)); display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 18px;
     box-shadow: 0 28px 64px -16px rgba(13,17,36,.6), 0 0 0 1px rgba(88,71,238,.15);
     transform-origin: bottom right; transition: opacity .22s ease, transform .26s cubic-bezier(.2,.9,.3,1.15), visibility .26s; }
   .panel.closed { opacity: 0; visibility: hidden; transform: translateY(14px) scale(.92); pointer-events: none; }
 
   /* The ticket: purple stub, perforated tear line, notches cut from both edges */
-  header { position: relative; display: flex; align-items: center; gap: 14px; padding: 20px 18px 24px; background: var(--grad); color: #fff; }
+  header { position: relative; display: flex; align-items: center; gap: 11px; padding: 15px 15px 19px; background: var(--grad); color: #fff; }
   header::after { content: ""; position: absolute; left: 22px; right: 22px; bottom: 0; border-top: 2px dashed rgba(255,255,255,.4); }
   .tear { position: relative; height: 0; }
   .tear::before, .tear::after { content: ""; position: absolute; top: -12px; width: 24px; height: 24px; border-radius: 50%;
     background: var(--bg); border: 1px solid var(--border); }
   .tear::before { left: -13px; } .tear::after { right: -13px; }
-  header img { width: 54px; height: 54px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.85); }
-  .name { font-size: 21px; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
-  .role { margin-top: 3px; font-size: 13.5px; font-weight: 600; color: rgba(255,255,255,.78); }
+  header img { width: 42px; height: 42px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.85); }
+  .name { font-size: 18px; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+  .role { margin-top: 2px; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.78); }
   .role b { color: #fff; font-weight: 800; }
   .px { position: absolute; display: block; }  /* confetti from registra.mn artwork */
-  .close { margin-left: auto; position: relative; width: 38px; height: 38px; border: 0; border-radius: 12px; cursor: pointer;
+  .close { margin-left: auto; position: relative; width: 32px; height: 32px; border: 0; border-radius: 12px; cursor: pointer;
     color: #fff; background: rgba(255,255,255,.14); display: grid; place-items: center; transition: background .15s; }
   .close:hover { background: rgba(255,255,255,.26); }
 
-  .log { position: relative; flex: 1; overflow-y: auto; padding: 24px 16px 14px; display: flex; flex-direction: column; gap: 10px;
+  .log { position: relative; flex: 1; overflow-y: auto; padding: 20px 13px 12px; display: flex; flex-direction: column; gap: 10px;
     scrollbar-color: var(--border) transparent; }
-  .msg { max-width: 86%; padding: 11px 15px; font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere;
+  .msg { max-width: 88%; padding: 9px 13px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
     animation: rise .2s ease-out; }
   .bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 4px 16px 16px 16px; }
   .user { align-self: flex-end; background: var(--grad); color: #fff; font-weight: 600; border-radius: 16px 4px 16px 16px;
@@ -176,18 +176,18 @@ else (() => {
   @keyframes blink { 50% { opacity: .25; transform: translateY(-2px); } }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 2px; animation: rise .2s ease-out; }
-  .chip { padding: 8px 12px; border: 1px solid var(--cyan); border-radius: 9px; background: transparent; color: var(--cyan);
-    font-size: 12.5px; font-weight: 800; cursor: pointer; transition: background .15s, color .15s; }
+  .chip { padding: 7px 10px; border: 1px solid var(--cyan); border-radius: 9px; background: transparent; color: var(--cyan);
+    font-size: 12px; font-weight: 800; cursor: pointer; transition: background .15s, color .15s; }
   .chip:hover { background: var(--cyan); color: #0D1124; }
   .light .chip { border-color: var(--purple); color: var(--purple); }
   .light .chip:hover { background: var(--purple); color: #fff; }
 
-  form { display: flex; gap: 8px; padding: 12px; background: var(--alt); border-top: 1px solid var(--border); }
-  input { flex: 1; min-width: 0; padding: 12px 15px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface);
-    color: var(--text); font: 500 14.5px Manrope, system-ui, sans-serif; outline: none; transition: border-color .15s, box-shadow .15s; }
+  form { display: flex; gap: 7px; padding: 10px; background: var(--alt); border-top: 1px solid var(--border); }
+  input { flex: 1; min-width: 0; padding: 10px 13px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface);
+    color: var(--text); font: 500 13.5px Manrope, system-ui, sans-serif; outline: none; transition: border-color .15s, box-shadow .15s; }
   input::placeholder { color: var(--muted); }
   input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(88,71,238,.3); }
-  .send { flex: none; width: 46px; height: 46px; border: 0; border-radius: 13px; cursor: pointer; background: var(--grad); color: #fff;
+  .send { flex: none; width: 40px; height: 40px; border: 0; border-radius: 13px; cursor: pointer; background: var(--grad); color: #fff;
     display: grid; place-items: center; box-shadow: 0 10px 20px -10px rgba(88,71,238,.9); transition: transform .15s; }
   .send:hover { transform: translateY(-1px); }
   .send:disabled { opacity: .45; cursor: default; transform: none; }
@@ -204,9 +204,9 @@ else (() => {
   <div class="wrap">
     <section class="panel closed" role="dialog" aria-label="Шилүүс — Registra-ийн туслах" aria-hidden="true">
       <header>
-        <span class="px" style="top:14px;right:66px;width:9px;height:9px;border-radius:2px;background:var(--cyan)" aria-hidden="true"></span>
-        <span class="px" style="top:31px;right:58px;width:0;height:0;border:5px solid transparent;border-bottom:8px solid rgba(255,255,255,.55);border-top:0" aria-hidden="true"></span>
-        <span class="px" style="top:10px;right:52px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)" aria-hidden="true"></span>
+        <span class="px" style="top:11px;right:58px;width:9px;height:9px;border-radius:2px;background:var(--cyan)" aria-hidden="true"></span>
+        <span class="px" style="top:26px;right:51px;width:0;height:0;border:5px solid transparent;border-bottom:8px solid rgba(255,255,255,.55);border-top:0" aria-hidden="true"></span>
+        <span class="px" style="top:8px;right:46px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)" aria-hidden="true"></span>
         <img src="${BASE}avatar.png" alt="">
         <div><div class="name">Шилүүс</div><div class="role"><b>Registra</b>-ийн туслах</div></div>
         <button class="close" aria-label="Хаах">
