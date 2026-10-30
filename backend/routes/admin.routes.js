@@ -12,6 +12,7 @@ import { AUDIT_TYPES, RETENTION_DAYS, logAudit } from "../utils/audit.js";
 import { HERO_IMAGE_KEY, getSiteSetting, setSiteSetting } from "../utils/siteSettings.js";
 import { imageExtension, isAllowedImage, uploadError } from "../utils/uploadSafety.js";
 import { loadSettings, receiptPath, saveSettings } from "../utils/payments.js";
+import { KEEP_DAYS as CHATBOT_KEEP_DAYS } from "./chatbot.routes.js";
 
 const router = express.Router();
 
@@ -771,6 +772,55 @@ router.delete("/site/hero-image", async (req, res, next) => {
 
     logAudit(req, { type: "update", action: "Нүүр хуудасны картын зургийг анхныхаар болгосон", target: "Нүүр хуудас" });
     return res.json({ heroImage: "", message: "Эвэнтийн өөрийн зураг харагдана." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Questions the chat assistant could not answer. Most asked first.
+router.get("/chatbot-questions", async (req, res, next) => {
+  try {
+    const resolved = req.query.status === "resolved" ? 1 : 0;
+    const [rows] = await pool.query(
+      `SELECT id, question, page, ask_count, resolved,
+              UNIX_TIMESTAMP(first_asked_at) AS first_ts, UNIX_TIMESTAMP(last_asked_at) AS last_ts
+         FROM chatbot_questions
+        WHERE resolved = ?
+        ORDER BY ask_count DESC, last_asked_at DESC
+        LIMIT 500`,
+      [resolved],
+    );
+    const [[counts]] = await pool.query(
+      "SELECT SUM(resolved = 0) AS open, SUM(resolved = 1) AS resolved FROM chatbot_questions",
+    );
+    return res.json({
+      rows,
+      counts: { open: Number(counts.open || 0), resolved: Number(counts.resolved || 0) },
+      keepDays: CHATBOT_KEEP_DAYS,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/chatbot-questions/:id", async (req, res, next) => {
+  try {
+    const [result] = await pool.query("UPDATE chatbot_questions SET resolved = ? WHERE id = ?", [
+      req.body?.resolved ? 1 : 0,
+      Number(req.params.id),
+    ]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Асуулт олдсонгүй." });
+    return res.json({ message: req.body?.resolved ? "Шийдсэн гэж тэмдэглэлээ." : "Буцаан нээлээ." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/chatbot-questions/:id", async (req, res, next) => {
+  try {
+    const [result] = await pool.query("DELETE FROM chatbot_questions WHERE id = ?", [Number(req.params.id)]);
+    if (!result.affectedRows) return res.status(404).json({ message: "Асуулт олдсонгүй." });
+    return res.json({ message: "Устгалаа." });
   } catch (error) {
     next(error);
   }

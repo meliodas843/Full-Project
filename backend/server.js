@@ -5,6 +5,7 @@ import express from "express";
 import helmet from "helmet";
 import {
   apiLimiter,
+  chatbotLimiter,
   authLimiter,
   corsMiddleware,
   errorHandler,
@@ -24,6 +25,7 @@ import newsRoutes from "./routes/news.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
 import paymentRoutes from "./routes/payments.routes.js";
 import siteRoutes from "./routes/site.routes.js";
+import chatbotRoutes from "./routes/chatbot.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import eventsRoutes from "./routes/event.routes.js";
 import eventGalleryRoutes from "./routes/eventGallery.routes.js";
@@ -69,6 +71,7 @@ app.use("/api", apiLimiter);
 app.use(["/api/auth/login", "/api/auth/register", "/api/auth/google"], authLimiter);
 app.use("/api/email/password-code", resetEmailLimiter);
 app.use("/api/email/user-lookup", lookupLimiter);
+app.use("/api/chatbot", chatbotLimiter);
 app.use(["/api/password/verify-code", "/api/password/reset-with-code"], resetCodeLimiter);
 
 app.use(
@@ -107,6 +110,7 @@ app.use("/api/news", newsRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/site", siteRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/users", userRoutes);

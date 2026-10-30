@@ -1737,3 +1737,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- chatbot questions ---------- */
+
+.saCbHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--sa-border);
+}
+
+.saCbHead p {
+  flex: 1 1 320px;
+  margin: 0;
+  color: var(--sa-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.saCbQuestion {
+  max-width: 560px;
+  overflow-wrap: anywhere;
+}
+
+.saCbActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
