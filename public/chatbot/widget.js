@@ -287,21 +287,21 @@ else (() => {
   $(".close").onclick = () => setOpen(false);
   root.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
 
-  // Unanswered questions go to the super admin (Чатбот асуултууд) so the
-  // answers can be added. Each question once, at most 10 per visit.
+  // Every question and the answer given go to the super admin (Чатбот
+  // асуултууд). Each question once, at most 30 per visit.
   const reported = new Set();
-  const report = (text) => {
+  const report = (text, reply) => {
     const key = text.toLowerCase().replace(/\s+/g, " ");
-    if (reported.has(key) || reported.size >= 10) return;
+    if (reported.has(key) || reported.size >= 30) return;
     reported.add(key);
     if (reported.size === 1) {
       log.append(Object.assign(document.createElement("div"), {
-        className: "note", textContent: "Хариулж чадаагүй асуултыг Шилүүсийг сайжруулахад ашиглана.",
+        className: "note", textContent: "Асуултуудыг тань Шилүүсийг сайжруулахад ашиглана.",
       }));
     }
-    fetch(new URL("/api/chatbot/unanswered", BASE), {
+    fetch(new URL("/api/chatbot/questions", BASE), {
       method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
-      body: JSON.stringify({ question: text, page: location.pathname }),
+      body: JSON.stringify({ question: text, page: location.pathname, answered: reply.answered, answer: reply.answered ? reply.text : "" }),
     }).catch(() => {});
   };
 
@@ -315,7 +315,7 @@ else (() => {
     dots.remove();
     const reply = match(kb, text, fb);
     add("bot", reply.text, reply.link);
-    if (!reply.answered) report(text);
+    report(text, reply);
     addChips(reply.chips);
     log.scrollTop = q.offsetTop - 12; // long answers: show the question and the start of the reply, not the end
     send.disabled = false;

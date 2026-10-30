@@ -777,25 +777,32 @@ router.delete("/site/hero-image", async (req, res, next) => {
   }
 });
 
-// Questions the chat assistant could not answer. Most asked first.
+// Questions asked in the chat assistant. Most asked first.
+const CHATBOT_TABS = {
+  unanswered: "answered = 0 AND resolved = 0",
+  answered: "answered = 1",
+  resolved: "answered = 0 AND resolved = 1",
+};
+
 router.get("/chatbot-questions", async (req, res, next) => {
   try {
-    const resolved = req.query.status === "resolved" ? 1 : 0;
+    const where = CHATBOT_TABS[req.query.status] || CHATBOT_TABS.unanswered;
     const [rows] = await pool.query(
-      `SELECT id, question, page, ask_count, resolved,
+      `SELECT id, question, page, answered, answer, ask_count, resolved,
               UNIX_TIMESTAMP(first_asked_at) AS first_ts, UNIX_TIMESTAMP(last_asked_at) AS last_ts
          FROM chatbot_questions
-        WHERE resolved = ?
+        WHERE ${where}
         ORDER BY ask_count DESC, last_asked_at DESC
         LIMIT 500`,
-      [resolved],
     );
     const [[counts]] = await pool.query(
-      "SELECT SUM(resolved = 0) AS open, SUM(resolved = 1) AS resolved FROM chatbot_questions",
+      `SELECT SUM(${CHATBOT_TABS.unanswered}) AS unanswered, SUM(${CHATBOT_TABS.answered}) AS answered,
+              SUM(${CHATBOT_TABS.resolved}) AS resolved
+         FROM chatbot_questions`,
     );
     return res.json({
       rows,
-      counts: { open: Number(counts.open || 0), resolved: Number(counts.resolved || 0) },
+      counts: Object.fromEntries(Object.keys(CHATBOT_TABS).map((k) => [k, Number(counts[k] || 0)])),
       keepDays: CHATBOT_KEEP_DAYS,
     });
   } catch (error) {
