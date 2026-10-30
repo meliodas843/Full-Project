@@ -1768,3 +1768,16 @@
   justify-content: flex-end;
   gap: 6px;
 }
+
+.saCbAnswer {
+  display: -webkit-box;
+  max-width: 560px;
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: var(--sa-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

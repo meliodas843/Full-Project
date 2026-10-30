@@ -109,13 +109,16 @@ const STATEMENTS = [
     PRIMARY KEY (\`key\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-  // Questions the chat assistant could not answer, shown to the super admin.
-  // One row per distinct question (question_key); asking again counts up.
+  // Questions asked in the chat assistant and the answer it gave (answered = 0
+  // when it did not know), shown to the super admin. One row per distinct
+  // question (question_key); asking again counts up.
   `CREATE TABLE IF NOT EXISTS chatbot_questions (
     id BIGINT NOT NULL AUTO_INCREMENT,
     question VARCHAR(300) NOT NULL,
     question_key VARCHAR(191) NOT NULL,
     page VARCHAR(255) NULL,
+    answered TINYINT(1) NOT NULL DEFAULT 0,
+    answer TEXT NULL,
     ask_count INT NOT NULL DEFAULT 1,
     resolved TINYINT(1) NOT NULL DEFAULT 0,
     first_asked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -240,6 +243,10 @@ const COLUMNS = [
   ["news", "is_featured", "ALTER TABLE news ADD COLUMN is_featured TINYINT(1) NOT NULL DEFAULT 0"],
   ["news", "is_pinned", "ALTER TABLE news ADD COLUMN is_pinned TINYINT(1) NOT NULL DEFAULT 0"],
   ["news", "updated_at", "ALTER TABLE news ADD COLUMN updated_at DATETIME NULL"],
+
+  // The chat assistant saves answered questions too, not only unanswered ones.
+  ["chatbot_questions", "answered", "ALTER TABLE chatbot_questions ADD COLUMN answered TINYINT(1) NOT NULL DEFAULT 0 AFTER page"],
+  ["chatbot_questions", "answer", "ALTER TABLE chatbot_questions ADD COLUMN answer TEXT NULL AFTER answered"],
 
   // Admin approval of organizations: NULL = waiting, approved / rejected.
   ["organizations", "review_status", "ALTER TABLE organizations ADD COLUMN review_status VARCHAR(20) NULL"],

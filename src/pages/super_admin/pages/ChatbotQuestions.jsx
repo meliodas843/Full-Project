@@ -7,14 +7,22 @@ import { apiFetch } from "../../../lib/api";
 import { formatDateTime, fromTs, timeAgo } from "../adminUtils";
 
 const TABS = [
-  { key: "open", label: "Шийдээгүй" },
+  { key: "unanswered", label: "Хариулаагүй" },
+  { key: "answered", label: "Хариулсан" },
   { key: "resolved", label: "Шийдсэн" },
 ];
 
-// Questions the chat assistant "Шилүүс" could not answer. The super admin
-// adds the answers to public/chatbot/knowledge.json, then marks them done.
+const EMPTY = {
+  unanswered: "Хариулаагүй асуулт алга. 🎉",
+  answered: "Хариулсан асуулт алга.",
+  resolved: "Шийдсэн асуулт алга.",
+};
+
+// Questions asked in the chat assistant "Шилүүс" and the answer it gave.
+// For unanswered ones the super admin adds the answer to
+// public/chatbot/knowledge.json, then marks them done.
 export default function ChatbotQuestions() {
-  const [status, setStatus] = useState("open");
+  const [status, setStatus] = useState("unanswered");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
@@ -47,9 +55,7 @@ export default function ChatbotQuestions() {
   }
 
   const setResolved = (row, resolved) =>
-    act(row, () =>
-      apiFetch(`/api/admin/chatbot-questions/${row.id}`, { method: "PATCH", body: { resolved } }),
-    );
+    act(row, () => apiFetch(`/api/admin/chatbot-questions/${row.id}`, { method: "PATCH", body: { resolved } }));
 
   const remove = (row) => {
     if (!window.confirm(`«${row.question}» асуултыг устгах уу?`)) return;
@@ -57,17 +63,21 @@ export default function ChatbotQuestions() {
   };
 
   const rows = data?.rows || [];
+  const counts = data?.counts;
 
   return (
     <AdminShell crumb="Супер админ / Агуулга" title="Чатбот асуултууд">
       {error ? <div className="saError">{error}</div> : null}
 
       <div className="saLogSummary">
-        <span>
-          <strong>{data?.counts.open ?? 0}</strong> шийдээгүй
+        <span className="amber">
+          <strong>{counts?.unanswered ?? 0}</strong> хариулаагүй
         </span>
         <span>
-          <strong>{data?.counts.resolved ?? 0}</strong> шийдсэн
+          <strong>{counts?.answered ?? 0}</strong> хариулсан
+        </span>
+        <span>
+          <strong>{counts?.resolved ?? 0}</strong> шийдсэн
         </span>
         <span>
           Хадгалах хугацаа <strong>{data?.keepDays ?? 90} хоног</strong>
@@ -77,8 +87,9 @@ export default function ChatbotQuestions() {
       <section className="saCard">
         <div className="saCbHead">
           <p>
-            Шилүүс эдгээр асуултад хариулж чадаагүй. Хариултыг <code>public/chatbot/knowledge.json</code>-д нэмээд
-            «Шийдсэн» гэж тэмдэглэнэ үү. Олон удаа асуусан нь эхэнд харагдана.
+            Шилүүсээс асуусан бүх асуулт, түүний өгсөн хариулт. Хариулаагүй асуултын хариултыг{" "}
+            <code>public/chatbot/knowledge.json</code>-д нэмээд «Шийдсэн» гэж тэмдэглэнэ үү. Олон удаа асуусан нь эхэнд
+            харагдана.
           </p>
           <div className="saSegment">
             {TABS.map((tab) => (
@@ -95,15 +106,13 @@ export default function ChatbotQuestions() {
         </div>
 
         {data && !rows.length ? (
-          <div className="saEmpty">
-            {status === "open" ? "Хариулаагүй асуулт алга. 🎉" : "Шийдсэн асуулт алга."}
-          </div>
+          <div className="saEmpty">{EMPTY[status]}</div>
         ) : (
           <div className="saTableWrap">
             <table className="saTable">
               <thead>
                 <tr>
-                  <th>Асуулт</th>
+                  <th>{status === "answered" ? "Асуулт · хариулт" : "Асуулт"}</th>
                   <th>Удаа</th>
                   <th>Сүүлд асуусан</th>
                   <th aria-label="Үйлдэл" />
@@ -115,6 +124,11 @@ export default function ChatbotQuestions() {
                     <td>
                       <div className="saCell2">
                         <strong className="saCbQuestion">{row.question}</strong>
+                        {row.answer ? (
+                          <p className="saCbAnswer" title={row.answer}>
+                            {row.answer}
+                          </p>
+                        ) : null}
                         <span>{row.page || "—"}</span>
                       </div>
                     </td>
@@ -124,15 +138,16 @@ export default function ChatbotQuestions() {
                     <td title={formatDateTime(fromTs(row.last_ts))}>{timeAgo(fromTs(row.last_ts))}</td>
                     <td>
                       <div className="saCbActions">
-                        {status === "open" ? (
+                        {status === "unanswered" ? (
                           <button type="button" className="saButton" disabled={busyId === row.id} onClick={() => setResolved(row, true)}>
                             <FiCheck /> Шийдсэн
                           </button>
-                        ) : (
+                        ) : null}
+                        {status === "resolved" ? (
                           <button type="button" className="saButton" disabled={busyId === row.id} onClick={() => setResolved(row, false)}>
                             <FiRotateCcw /> Буцаах
                           </button>
-                        )}
+                        ) : null}
                         <button
                           type="button"
                           className="saButton danger"
