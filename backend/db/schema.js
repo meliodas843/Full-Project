@@ -109,6 +109,22 @@ const STATEMENTS = [
     PRIMARY KEY (\`key\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  // Questions the chat assistant could not answer, shown to the super admin.
+  // One row per distinct question (question_key); asking again counts up.
+  `CREATE TABLE IF NOT EXISTS chatbot_questions (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    question VARCHAR(300) NOT NULL,
+    question_key VARCHAR(191) NOT NULL,
+    page VARCHAR(255) NULL,
+    ask_count INT NOT NULL DEFAULT 1,
+    resolved TINYINT(1) NOT NULL DEFAULT 0,
+    first_asked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_asked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_chatbot_question (question_key),
+    KEY idx_chatbot_open (resolved, last_asked_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   // Payment settings edited by the super admin (fee, receiving account …).
   `CREATE TABLE IF NOT EXISTS payment_settings (
     \`key\` VARCHAR(50) NOT NULL,

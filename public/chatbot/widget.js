@@ -79,6 +79,19 @@ const FALLBACK = {
   en: "Sorry, I don't know that yet. 🐾 Please contact support@registra.mn or +976 99091442.\nTry asking: \"How do I create an event?\", \"How much is it?\", \"Where is my QR ticket?\"",
 };
 
+// Most of the question has to be about the entry: "Паркинг хаана байдаг вэ"
+// shares only "байдаг" with the pricing answer, so it is not answered. Counts
+// question words hitting the entry's keywords in either language.
+// Latin words may be Mongolian ("une", "evnt uusgeh"), so they are tried both ways.
+// Question words like "when", "work" don't need to match.
+const WEAK = new Set(["when", "where", "why", "which", "get", "work", "works", "much", "many"]);
+function covers(entry, question, mn) {
+  const q = keep(mn ? mnStems(question) : enStems(question), WEAK);
+  const mnKeys = [...entry.mnKeys, ...entry.enKeys.map(mnWord)];
+  const ok = (w) => hit(w, entry.enKeys) || hit(mnWord(w), mnKeys);
+  return q.filter(ok).length * 2 > q.length;
+}
+
 // The best entry for a question: { text, link, chips }. Falls back when
 // nothing matches or the answer is still a [TODO].
 function match(entries, question, fallback = FALLBACK) {
@@ -94,8 +107,8 @@ function match(entries, question, fallback = FALLBACK) {
     for (const l of mnFirst ? ["mn", "en"] : ["en", "mn"]) if (s[l] > top) [best, lang, top] = [e, l, s[l]]; // first language wins ties
   }
   const reply = best?.[lang];
-  if (reply && !reply.includes("[TODO")) return { text: reply, link: best.link || "", chips: best.chips || [] }; // unfilled answers are never shown
-  return { text: fallback[lang], link: "", chips: lang === "mn" ? fallback.chips || [] : [] };
+  if (reply && !reply.includes("[TODO") && covers(best, question, mnFirst)) return { text: reply, link: best.link || "", chips: best.chips || [], answered: true }; // unfilled answers are never shown
+  return { text: fallback[lang], link: "", chips: lang === "mn" ? fallback.chips || [] : [], answered: false };
 }
 
 const answer = (entries, question) => match(entries, question).text;
@@ -167,6 +180,8 @@ else (() => {
   .user { align-self: flex-end; background: var(--grad); color: #fff; font-weight: 600; border-radius: 16px 4px 16px 16px;
     box-shadow: 0 8px 18px -10px rgba(88,71,238,.9); }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+
+  .note { margin-top: -4px; padding-left: 4px; font-size: 11px; color: var(--muted); }
 
   .more { display: inline-block; margin-top: 8px; color: var(--cyan); font-weight: 800; text-decoration: none; }
   .more:hover { text-decoration: underline; }
@@ -272,6 +287,24 @@ else (() => {
   $(".close").onclick = () => setOpen(false);
   root.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
 
+  // Unanswered questions go to the super admin (Чатбот асуултууд) so the
+  // answers can be added. Each question once, at most 10 per visit.
+  const reported = new Set();
+  const report = (text) => {
+    const key = text.toLowerCase().replace(/\s+/g, " ");
+    if (reported.has(key) || reported.size >= 10) return;
+    reported.add(key);
+    if (reported.size === 1) {
+      log.append(Object.assign(document.createElement("div"), {
+        className: "note", textContent: "Хариулж чадаагүй асуултыг Шилүүсийг сайжруулахад ашиглана.",
+      }));
+    }
+    fetch(new URL("/api/chatbot/unanswered", BASE), {
+      method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
+      body: JSON.stringify({ question: text, page: location.pathname }),
+    }).catch(() => {});
+  };
+
   async function ask(text) {
     send.disabled = true;
     const q = add("user", text);
@@ -282,6 +315,7 @@ else (() => {
     dots.remove();
     const reply = match(kb, text, fb);
     add("bot", reply.text, reply.link);
+    if (!reply.answered) report(text);
     addChips(reply.chips);
     log.scrollTop = q.offsetTop - 12; // long answers: show the question and the start of the reply, not the end
     send.disabled = false;

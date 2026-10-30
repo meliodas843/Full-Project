@@ -51,6 +51,7 @@ const AdminNewsEditor = lazyPage(() => import("./pages/super_admin/pages/NewsEdi
 const AdminLogs = lazyPage(() => import("./pages/super_admin/pages/Logs"));
 const AdminPayments = lazyPage(() => import("./pages/super_admin/pages/Payments"));
 const AdminSettings = lazyPage(() => import("./pages/super_admin/pages/Settings"));
+const AdminChatbotQuestions = lazyPage(() => import("./pages/super_admin/pages/ChatbotQuestions"));
 
 const ADMIN_ROLES = ["admin", "super_admin"];
 const adminPage = (page) => <ProtectedRoute roles={ADMIN_ROLES}>{page}</ProtectedRoute>;
@@ -297,6 +298,7 @@ function AppRoutes() {
         <Route path="/super-admin/logs" element={adminPage(<AdminLogs />)} />
         <Route path="/super-admin/payments" element={adminPage(<AdminPayments />)} />
         <Route path="/super-admin/settings" element={adminPage(<AdminSettings />)} />
+        <Route path="/super-admin/chatbot" element={adminPage(<AdminChatbotQuestions />)} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

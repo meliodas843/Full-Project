@@ -49,6 +49,9 @@ export const reactionLimiter = limiter(15, 60, TOO_MANY);
 
 export const newsletterLimiter = limiter(60, 5, TOO_MANY);
 
+// Unanswered chat questions are anonymous: a few per visitor is plenty.
+export const chatbotLimiter = limiter(15, 20, TOO_MANY);
+
 // 5xx responses used to include err.message (SQL errors, file paths). Keep
 // logging them server-side but don't send them to the browser.
 export function hideServerErrors(req, res, next) {

@@ -50,6 +50,8 @@ test("unknown questions get the fallback with its topics", () => {
   const reply = ask("нохой");
   assert.equal(reply.text, fallback.mn);
   assert.deepEqual(reply.chips, fb.quick_replies);
+  assert.equal(reply.answered, false);
+  assert.equal(ask("сайн байна уу").answered, true);
 });
 
 test("Mongolian typed in Latin answers in Mongolian, even with English words", () => {
@@ -66,4 +68,14 @@ test("\"yaj\" (how) is a filler word, not a keyword", () => {
 
 test("English questions still use knowledge.md", () => {
   assert.match(ask("Where's my QR ticket?").text, /QR/);
+});
+
+test("saved questions hide contact details and group repeats", async () => {
+  const { cleanQuestion, questionKey } = await import("../routes/chatbot.routes.js");
+  assert.equal(
+    cleanQuestion("Миний имэйл bat@gmail.com, утас +976 9909 1442"),
+    "Миний имэйл [имэйл], утас [дугаар]",
+  );
+  assert.equal(cleanQuestion("x".repeat(500)).length, 300);
+  assert.equal(questionKey(cleanQuestion("Хэрхэн QR авах вэ??")), questionKey(cleanQuestion("  хэрхэн qr авах вэ ")));
 });

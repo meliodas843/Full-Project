@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { FiCreditCard, FiFileText, FiGrid, FiList, FiLogOut, FiMenu, FiSettings, FiShield, FiX } from "react-icons/fi";
+import { FiCreditCard, FiFileText, FiGrid, FiList, FiLogOut, FiMenu, FiMessageCircle, FiSettings, FiShield, FiX } from "react-icons/fi";
 import logo from "../../../assets/registra-logo-def.png";
 import ThemeToggle from "../../../components/ThemeToggle";
 import { apiFetch, clearAuth } from "../../../lib/api";
@@ -14,6 +14,7 @@ const SECTIONS = [
       { to: "/super-admin/dashboard", label: "Хянах самбар", icon: FiGrid },
       { to: "/super-admin/news", label: "Мэдээ", icon: FiFileText },
       { to: "/super-admin/payments", label: "Төлбөр", icon: FiCreditCard, badge: "payments" },
+      { to: "/super-admin/chatbot", label: "Чатбот асуултууд", icon: FiMessageCircle },
     ],
   },
   {
