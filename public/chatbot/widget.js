@@ -10,12 +10,12 @@ const LAT = [["sh", "ш"], ["ch", "ч"], ["ts", "ц"], ["kh", "х"], ["ya", "я"
   ["u", "у"], ["v", "ү"], ["w", "в"], ["x", "х"], ["y", "й"], ["z", "з"]];
 const FOLD = { ө: "о", ү: "у", в: "у", е: "э", ё: "о", ы: "и", й: "и", ъ: "", ь: "" }; // letters people mix up when typing
 const mnWord = (w) => LAT.reduce((t, [l, c]) => t.replaceAll(l, c), w).replace(/[өүвеёыйъь]/g, (c) => FOLD[c]);
-const MN_STOP = new Set(["гэж", "юу", "вэ", "бэ", "уу", "үү", "юм", "бол", "ямар", "хэрхэн", "яаж", "хэд", "байна", "та", "би", "энэ", "тэр", "ээ", "нь", "уу", "болох", "вэ", "гэдэг", "хэн",
+const MN_STOP = new Set(["гэж", "юу", "вэ", "бэ", "уу", "үү", "юм", "бол", "ямар", "хэрхэн", "яаж", "яж", "хэд", "байна", "та", "би", "энэ", "тэр", "ээ", "нь", "уу", "болох", "вэ", "гэдэг", "хэн",
   // suffixes split off by a hyphen (Registra-ийн)
   "ийн", "ын", "ний", "д", "т", "аас", "ээс", "оос", "өөс", "тай", "тэй", "той", "ыг", "ийг", "г", "руу", "рүү", "дээр",
   "регистра", "registra", "mn"].map(mnWord)); // the whole bot is about Registra, so its name tells nothing
 // Latin words that only Mongolian uses: "registra gej yu we" is Mongolian, "check in" is not
-const MN_HINT = new Set(["gej", "yu", "yuu", "we", "ve", "be", "uu", "vv", "bol", "yamar", "herhen", "yaaj", "hed", "baina", "yum", "ni", "deer", "haana", "hezee"]);
+const MN_HINT = new Set(["gej", "yu", "yuu", "we", "ve", "be", "uu", "vv", "bol", "yamar", "herhen", "yaaj", "yaj", "hed", "baina", "yum", "ni", "deer", "haana", "hezee"]);
 const EN_STOP = new Set(["what", "is", "the", "a", "an", "how", "do", "does", "i", "you", "to", "of", "for", "can", "my", "me", "your", "are", "it", "in", "on", "and", "or", "with", "about", "please", "there", "who", "registra", "mn"]);
 const words = (s) => s.toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
 // stop = drop filler words; a question made only of filler ("юу байна", "what can you do") keeps them all
@@ -88,7 +88,9 @@ function match(entries, question, fallback = FALLBACK) {
   let best = null, lang = mnFirst ? "mn" : "en", top = 0;
   for (const e of entries) {
     const s = { en: score(q.en, e.enKeys, e.enBody), mn: score(q.mn, e.mnKeys, e.mnBody) };
-    if (cyr) [s.mn, s.en] = [s.mn + s.en, 0]; // Cyrillic question with an English word ("Бүртгэл / Account") still answers in Mongolian
+    // A Mongolian question (Cyrillic, or Latin like "herhen qr code awah we") answers in Mongolian
+    // even when its matching words are English ("Бүртгэл / Account", "qr code").
+    if (mnFirst) [s.mn, s.en] = [s.mn + s.en, 0];
     for (const l of mnFirst ? ["mn", "en"] : ["en", "mn"]) if (s[l] > top) [best, lang, top] = [e, l, s[l]]; // first language wins ties
   }
   const reply = best?.[lang];

@@ -27,6 +27,14 @@ test("answers from knowledge.json, typed in Cyrillic or Latin", () => {
   assert.match(ask("zoom link").text, /автоматаар үүсч/);
 });
 
+test("each question and variant in knowledge.json gets its own answer", () => {
+  for (const item of json.faq) {
+    for (const q of [item.question, ...(item.variants || [])]) {
+      assert.equal(ask(q).text, item.answer, `${item.id}: "${q}"`);
+    }
+  }
+});
+
 test("answers carry their link and quick replies", () => {
   assert.equal(ask("Яаж бүртгүүлэх вэ?").link, "/signup");
   assert.deepEqual(ask("sain uu").chips, json.system_intents[0].quick_replies);
@@ -42,6 +50,18 @@ test("unknown questions get the fallback with its topics", () => {
   const reply = ask("нохой");
   assert.equal(reply.text, fallback.mn);
   assert.deepEqual(reply.chips, fb.quick_replies);
+});
+
+test("Mongolian typed in Latin answers in Mongolian, even with English words", () => {
+  const reply = ask("herhen qr code awah we").text;
+  assert.match(reply, /QR/);
+  assert.match(reply, /\p{Script=Cyrillic}/u);
+  assert.doesNotMatch(reply, /View QR code/);
+});
+
+test("\"yaj\" (how) is a filler word, not a keyword", () => {
+  assert.match(ask("event yaj uusgeh we").text, /Эвэнт үүсгэх/);
+  assert.match(ask("yaj burtguuleh ve").text, /данс төрлөө сонгоно/);
 });
 
 test("English questions still use knowledge.md", () => {
